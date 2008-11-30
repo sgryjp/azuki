@@ -1,25 +1,35 @@
-﻿// file: KeywordHighlighter.cs
+﻿// file: BasicHighlighter.cs
 // brief: Keyword based highlighter.
 // author: YAMAMOTO Suguru
-// update: 2008-11-23
+// encoding: UTF-8
+// update: 2008-07-05
 //=========================================================
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Debug = System.Diagnostics.Debug;
 
-namespace Sgry.Azuki.Highlighter
+namespace Sgry.Azuki
 {
 	/// <summary>
-	/// A keyword-based highlighter which can highlight
+	/// A basic highlighter which can highlight
 	/// matched keywords and parts being enclosed by specified pair.
 	/// </summary>
-	public class KeywordHighlighter : IHighlighter
+	public class BasicHighlighter : HighlighterBase
 	{
 		#region Inner Types and Fields
 		class KeywordSet
 		{
 			public CharTreeNode root = new CharTreeNode();
 			public CharClass klass = CharClass.Normal;
+		}
+
+		class Enclosure
+		{
+			public string opener;
+			public string closer;
+			public CharClass klass;
+			public char escape;
 		}
 
 		class CharTreeNode
@@ -96,9 +106,9 @@ namespace Sgry.Azuki.Highlighter
 		}
 
 		/// <summary>
-		/// Clears all registered line-highlight entries.
+		/// Clears all registered line-comment entries.
 		/// </summary>
-		public void ClearLineHighlight()
+		public void ClearLineComments()
 		{
 			_LineHighlights.Clear();
 		}
@@ -201,40 +211,32 @@ namespace Sgry.Azuki.Highlighter
 		/// Parse and highlight keywords.
 		/// </summary>
 		/// <param name="doc">Document to highlight.</param>
-		public void Highlight( Document doc )
+		/// <param name="begin">Index to start highlighting.</param>
+		/// <param name="end">Index to end highlighting.</param>
+		/// <param name="invalidBegin">Begin index of the range to be invalidated.</param>
+		/// <param name="invalidEnd">End index of the range to be invalidated.</param>
+		public override void Highlight( Document doc, int begin, int end, out int invalidBegin, out int invalidEnd )
 		{
-			int begin = 0;
-			int end = doc.Length;
-			Highlight( doc, ref begin, ref end );
-		}
-
-		/// <summary>
-		/// Parse and highlight keywords.
-		/// </summary>
-		/// <param name="doc">Document to highlight.</param>
-		/// <param name="dirtyBegin">Index to start highlighting. On return, start index of the range to be invalidated.</param>
-		/// <param name="dirtyEnd">Index to end highlighting. On return, end index of the range to be invalidated.</param>
-		public void Highlight( Document doc, ref int dirtyBegin, ref int dirtyEnd )
-		{
-			if( dirtyBegin < 0 || doc.Length < dirtyBegin )
-				throw new ArgumentOutOfRangeException( "dirtyBegin" );
-			if( dirtyEnd < 0 || doc.Length < dirtyEnd )
-				throw new ArgumentOutOfRangeException( "dirtyEnd" );
+			if( begin < 0 || doc.Length < begin )
+				throw new ArgumentOutOfRangeException( "begin" );
+			if( end < 0 || doc.Length < end )
+				throw new ArgumentOutOfRangeException( "end" );
 
 			int index, nextIndex;
 			bool highlighted;
 			int lastChangedCharIndex = 0;
 
 			// update EPI and get index to start highlighting
-			UpdateEPI( doc, dirtyBegin, out dirtyBegin, out dirtyEnd );
-dirtyEnd = doc.Length;
+			UpdateEPI( doc, begin, out begin, out end );
+			invalidBegin = begin;
+			invalidEnd = doc.Length;
 
 			// seek each chars and do pattern matching
-			index = dirtyBegin;
-			while( 0 <= index && index < dirtyEnd )
+			index = begin;
+			while( 0 <= index && index < end )
 			{
 				// highlight line-comment if this token is one
-				nextIndex = TryHighlightLineComment( doc, _LineHighlights, index, dirtyEnd );
+				nextIndex = TryHighlightLineComment( doc, _LineHighlights, index, end );
 				if( index < nextIndex )
 				{
 					// successfully highlighted. skip to next.
@@ -243,7 +245,7 @@ dirtyEnd = doc.Length;
 				}
 
 				// highlight enclosing part if this token begins a part
-				nextIndex = TryHighlightEnclosure( doc, _Enclosures, index, dirtyEnd );
+				nextIndex = TryHighlightEnclosure( doc, _Enclosures, index, end );
 				if( index < nextIndex )
 				{
 					// successfully highlighted. skip to next.
@@ -252,7 +254,7 @@ dirtyEnd = doc.Length;
 				}
 
 				// highlight keyword if this token is a keyword
-				highlighted = TryHighlightKeyword( doc, _Keywords, index, dirtyEnd, out nextIndex );
+				highlighted = TryHighlightKeyword( doc, _Keywords, index, end, out nextIndex );
 				if( highlighted )
 				{
 					index = nextIndex;
@@ -260,7 +262,7 @@ dirtyEnd = doc.Length;
 				}
 
 				// highlight digit as number
-				nextIndex = HighlighterUtl.TryHighlightNumberToken( doc, index, dirtyEnd );
+				nextIndex = TryHighlightNumberToken( doc, index, end );
 				if( index < nextIndex )
 				{
 					index = nextIndex;
@@ -268,7 +270,7 @@ dirtyEnd = doc.Length;
 				}
 				
 				// this token is normal class; reset classes and seek to next token
-				nextIndex = HighlighterUtl.FindNextToken( doc, index );
+				nextIndex = Utl.NextToken( doc, index );
 				for( int i=index; i<nextIndex; i++ )
 				{
 					doc.SetCharClass( i, CharClass.Normal );
@@ -288,14 +290,14 @@ dirtyEnd = doc.Length;
 			int closePos;
 
 			// get pair which begins from this position
-			pair = HighlighterUtl.StartsWith( doc, pairs, startIndex );
+			pair = Utl.StartsWith( doc, pairs, startIndex );
 			if( pair == null )
 			{
 				return startIndex; // no pair begins from here.
 			}
 
 			// find closing pair
-			closePos = HighlighterUtl.FindCloser( doc, pair, startIndex+pair.opener.Length, endIndex );
+			closePos = Utl.FindCloser( doc, pair, startIndex+pair.opener.Length, endIndex );
 			if( closePos == -1 )
 			{
 				// not found.
@@ -330,14 +332,14 @@ dirtyEnd = doc.Length;
 			Enclosure pair;
 
 			// get line comment opener
-			pair = HighlighterUtl.StartsWith( doc, pairs, startIndex );
+			pair = Utl.StartsWith( doc, pairs, startIndex );
 			if( pair == null )
 			{
 				return startIndex; // no line-comment begins from here.
 			}
 
 			// get line-end pos
-			closePos = HighlighterUtl.GetLineEndIndexFromCharIndex( doc, startIndex );
+			closePos = Utl.GetLineEndIndexFromCharIndex( doc, startIndex );
 
 			// highlight the line
 			for( int i=startIndex; i<closePos; i++ )
@@ -444,6 +446,40 @@ dirtyEnd = doc.Length;
 			nextSeekIndex = index;
 			return false;
 		}
+
+		/// <summary>
+		/// Highlight a token consisted with only digits.
+		/// </summary>
+		/// <returns>Index of next parse point if a pair was highlighted or 'begin' index</returns>
+		static int TryHighlightNumberToken( Document doc, int startIndex, int endIndex )
+		{
+			Debug.Assert( endIndex <= doc.Length );
+			int begin = startIndex;
+			int end = begin;
+
+			if( doc.Length <= end || doc[end] < '0' || '9' < doc[end] )
+				return begin;
+
+			// seek end of this number token
+			while( end < endIndex && '0' <= doc[end] && doc[end] <= '9' )
+			{
+				end++;
+			}
+
+			// ensure this token ends with NOT an alphabet
+			if( end < endIndex && Char.IsLetter(doc[end]) )
+			{
+				return begin; // not a number token
+			}
+
+			// highlight this token
+			for( int i=begin; i<end; i++ )
+			{
+				doc.SetCharClass( i, CharClass.Number );
+			}
+
+			return end;
+		}
 		#endregion
 
 		#region Management of Enclosing Pair Indexes
@@ -481,18 +517,13 @@ dirtyEnd = doc.Length;
 				_EPI.Delete( epiIndex, _EPI.Count );
 			}
 
-			// find pairs
 			for( int i=begin; i<end; i++ )
 			{
 				// ensure a pair begins from here
-				pair = HighlighterUtl.StartsWith( doc, _Enclosures, i );
+				pair = Utl.StartsWith( doc, _Enclosures, i );
 				if( pair == null )
 				{
-					pair = HighlighterUtl.StartsWith( doc, _LineHighlights, i );
-					if( pair == null )
-					{
-						continue; // no pair matched
-					}
+					continue; // no pair matched
 				}
 
 				// remember opener index
@@ -500,17 +531,14 @@ dirtyEnd = doc.Length;
 				epiIndex++;
 
 				// find closing pair
-				closePos = HighlighterUtl.FindCloser( doc, pair, i+pair.opener.Length, end );
+				closePos = Utl.FindCloser( doc, pair, i+pair.opener.Length, end );
 				if( closePos == -1 )
 				{
 					break; // no matching closer
 				}
 
 				// remember closer index
-				if( pair.closer != null )
-					_EPI.Insert( epiIndex, closePos + pair.closer.Length );
-				else
-					_EPI.Insert( epiIndex, closePos );
+				_EPI.Insert( epiIndex, closePos + pair.closer.Length );
 				epiIndex++;
 
 				// skip this pair
@@ -520,6 +548,50 @@ dirtyEnd = doc.Length;
 		#endregion
 
 		#region Utilities
+		/*
+		EnclosingPair GetPairStartingFrom( int index )
+		{
+			EnclosingPair pair;
+			string opener;
+
+			pair = Utl.StartsWith( doc, _EnclosingPairs, index );
+			if( pair != null )
+			{
+				return pair;
+			}
+
+			opener = Utl.StartsWith( doc, _LineHighlights, index );
+			if( opener != null )
+			{
+				pair = new EnclosingPair();
+				pair.opener = opener;
+				pair.closer = null;
+				pair.klass = CharClass.Comment;
+				return pair;
+			}
+
+			if( Utl.StartsWith(doc, "\"", index) )
+			{
+				pair = new EnclosingPair();
+				pair.opener = "\"";
+				pair.closer = "\"";
+				pair.klass = CharClass.String;
+				return pair;
+			}
+
+			if( Utl.StartsWith(doc, "'", index) )
+			{
+				pair = new EnclosingPair();
+				pair.opener = "'";
+				pair.closer = "'";
+				pair.klass = CharClass.String;
+				return pair;
+			}
+
+			return null;
+		}
+		*/
+
 		static bool Matched_Case1( Document doc, CharTreeNode node, int index )
 		{
 			if( node.child != null )
@@ -542,6 +614,42 @@ dirtyEnd = doc.Length;
 
 		static class Utl
 		{
+			public static int GetLineEndIndexFromCharIndex( Document doc, int index )
+			{
+				int lineIndex = doc.GetLineIndexFromCharIndex( index );
+				if( lineIndex+1 < doc.LineCount )
+					return doc.GetLineHeadIndex( lineIndex+1 );
+				else
+					return doc.Length;
+			}
+
+			public static void EPI_RemoveBetween( SplitArray<int> epi, int min, int max )
+			{
+				int i;
+				
+				if( epi.Count == 0 )
+					return;
+
+				// skip first value which overs the 'min'
+				i = 0;
+				while( i < epi.Count && epi[i] < min )
+				{
+					if( epi.Count <= i )
+						return;
+					
+					i++;
+				}
+
+				// delete values
+				while( i < epi.Count && epi[i] < max )
+				{
+					if( epi.Count <= i )
+						return;
+
+					epi.Delete( i, i+1 );
+				}
+			}
+
 			public static int FindLeastMaximum( SplitArray<int> numbers, int value )
 			{
 				if( numbers.Count == 0 )
@@ -560,12 +668,132 @@ dirtyEnd = doc.Length;
 				return numbers.Count - 1;
 			}
 
+			public static int NextToken( Document doc, int index )
+			{
+				if( doc.Length <= index+1 )
+					return doc.Length;
+
+				if( Char.IsLetterOrDigit(doc[index]) )
+				{
+					do
+					{
+						index++;
+						if( doc.Length <= index )
+							return doc.Length;
+					}
+					while( Char.IsLetterOrDigit(doc[index]) );
+				}
+				else
+				{
+					index++;
+				}
+				
+				while( Char.IsWhiteSpace(doc[index]) )
+				{
+					index++;
+					if( doc.Length <= index )
+						return doc.Length;
+				}
+				
+				return index;
+			}
+
+			public static int PrevToken( Document doc, int index )
+			{
+				return WordLogic.PrevWordStartForMove( doc, index );
+			}
+
 			public static void Highlight( Document doc, int index, CharTreeNode node, CharClass klass )
 			{
 				for( int i=0; i<node.depth; i++ )
 				{
 					doc.SetCharClass( index-i, klass );
 				}
+			}
+
+			public static bool StartsWith( Document doc, string token, int index )
+			{
+				int i = 0;
+
+				for( ; i<token.Length && index+i<doc.Length; i++ )
+				{
+					if( token[i] != doc[index+i] )
+						return false;
+				}
+
+				if( i == token.Length )
+					return true;
+				else
+					return false;
+			}
+
+			public static Enclosure StartsWith( Document doc, List<Enclosure> pairs, int index )
+			{
+				foreach( Enclosure pair in pairs )
+				{
+					if( StartsWith(doc, pair.opener, index) )
+						return pair;
+				}
+				return null;
+			}
+
+			public static string StartsWith( Document doc, List<string> strings, int index )
+			{
+				foreach( string str in strings )
+				{
+					if( StartsWith(doc, str, index) )
+						return str;
+				}
+				return null;
+			}
+
+			/// <summary>
+			/// return closer pos or line-end if closer is null.
+			/// </summary>
+			public static int FindCloser( Document doc, Enclosure pair, int startIndex, int endIndex )
+			{
+				int index;
+
+				if( pair.closer == null )
+				{
+					// return line-end
+					return GetLineEndIndexFromCharIndex( doc, startIndex );
+				}
+				else
+				{
+					// treat escape
+					index = Find( doc, pair.closer, startIndex, endIndex );
+					while( 1 <= index && doc[index-1] == pair.escape )
+					{
+						index++;
+						index = Find( doc, pair.closer, index, endIndex );
+					}
+					return index;
+				}
+			}
+
+			static int Find( Document doc, string token, int startIndex, int endIndex )
+			{
+				Debug.Assert( doc != null && token != null );
+
+				for( int i=startIndex; i<endIndex; i++ )
+				{
+					int j = 0;
+					for( ; j<token.Length && i+j<doc.Length; j++ )
+					{
+						if( doc[i+j] != token[j] )
+						{
+							break; // go to next position
+						}
+					}
+					if( j == token.Length )
+					{
+						// found.
+						return i;
+					}
+				}
+
+				return -1;
 			}
 		}
 		#endregion

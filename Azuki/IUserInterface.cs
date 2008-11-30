@@ -2,20 +2,23 @@
 // brief: interface of user interface module (platform dependent)
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// update: 2008-11-03
+// update: 2008-07-27
 //=========================================================
 using System;
 using System.Drawing;
 
 namespace Sgry.Azuki
 {
-	using IHighlighter = Highlighter.IHighlighter;
-	
 	/// <summary>
-	/// Interface of user interface module.
+	/// Interface of user interface module
 	/// </summary>
 	public interface IUserInterface
 	{
+		/// <summary>
+		/// Gets a graphic interface.
+		/// </summary>
+		IGraphics GetIGraphics();
+
 		#region Associated View and Document
 		/// <summary>
 		/// Gets or sets the document which is the current editing target.
@@ -50,19 +53,12 @@ namespace Sgry.Azuki
 		void ResetKeyBind();
 
 		/// <summary>
-		/// Gets an action which is already associated with given key.
-		/// If no action was associate with given key, returns null.
-		/// </summary>
-		/// <param name="keyCode">key code</param>
-		ActionProc GetKeyBind( uint keyCode );
-
-		/// <summary>
 		/// Sets or removes key-bind entry.
 		/// Note that giving null to action will remove the key-bind.
 		/// </summary>
 		/// <param name="keyCode">key code to set/remove new action</param>
 		/// <param name="action">action to be associated or null in case of removing key-bind.</param>
-		void SetKeyBind( uint keyCode, ActionProc action );
+		void SetKeyBind( int keyCode, ActionProc action );
 		#endregion
 
 		#region Appearance
@@ -88,17 +84,9 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets or sets drawing options.
-		/// </summary>
-		DrawingOption DrawingOption
-		{
-			get; set;
-		}
-
-		/// <summary>
 		/// Whether to show line number or not.
 		/// </summary>
-		bool ShowsLineNumber
+		bool ShowLineNumber
 		{
 			get; set;
 		}
@@ -106,7 +94,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Whether to show horizontal scroll bar or not.
 		/// </summary>
-		bool ShowsHScrollBar
+		bool ShowHScrollBar
 		{
 			get; set;
 		}
@@ -114,7 +102,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Whether the current line would be drawn with underline or not.
 		/// </summary>
-		bool HighlightsCurrentLine
+		bool HighlightCurrentLine
 		{
 			get; set;
 		}
@@ -195,24 +183,6 @@ namespace Sgry.Azuki
 		/// but replace the character at where the caret is on.
 		/// </summary>
 		bool IsOverwriteMode
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets or sets whether to automatically convert
-		/// an input tab character to equivalent amount of spaces.
-		/// </summary>
-		bool ConvertsTabToSpaces
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets or sets whether to automatically convert
-		/// an input full-width space to a space.
-		/// </summary>
-		bool ConvertsFullWidthSpaceToSpace
 		{
 			get; set;
 		}
@@ -341,30 +311,6 @@ namespace Sgry.Azuki
 			get;
 		}
 		#endregion
-
-		#region Others
-		/// <summary>
-		/// Gets a graphic interface.
-		/// </summary>
-		IGraphics GetIGraphics();
-
-		/// <summary>
-		/// Gets or sets highlighter for currently active document.
-		/// Setting null to this property will disable highlighting.
-		/// </summary>
-		IHighlighter Highlighter
-		{
-			get; set;
-		}
-		#endregion
-
-		/// <summary>
-		/// Gets this component is focused by user or not.
-		/// </summary>
-		bool Focused
-		{
-			get;
-		}
 
 		#region Position / Index Conversion
 		/// <summary>

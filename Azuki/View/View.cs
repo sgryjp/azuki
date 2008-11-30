@@ -1,12 +1,11 @@
 ﻿// file: View.cs
 // brief: Platform independent view implementation of Azuki engine.
 // author: YAMAMOTO Suguru
-// update: 2008-11-03
+// update: 2008-07-26
 //=========================================================
 using System;
 using System.Drawing;
 using StringBuilder = System.Text.StringBuilder;
-using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki
 {
@@ -19,12 +18,20 @@ namespace Sgry.Azuki
 	public abstract partial class View : IDisposable
 	{
 		#region Fields and Types
+		[Flags]
+		enum SpecialChar : int
+		{
+			Space = 1, FullWidthSpace = 2, Tab = 4, Eol = 8
+		}
+
 		/// <summary>platform dependent layer of user interface</summary>
 		protected IUserInterface _UI;
 		Document _Document = null;
 		Font _Font;
 		int _FirstVisibleLine = 0;
 		int _ScrollPosX;
+		bool _ShowLineNumber = true;
+		bool _HighlightCurrentLine = true;
 		int _TextAreaWidth = 300;
 
 		/// <summary>when the caret moves up or down, Azuki tries to set next caret's column index to this value.</summary>
@@ -48,12 +55,7 @@ namespace Sgry.Azuki
 		int _TabWidth = 8;
 		int _TabWidthInPx;
 		int _LCharWidth;
-		DrawingOption _DrawingOption
-			= DrawingOption.DrawsTab
-			| DrawingOption.DrawsFullWidthSpace
-			| DrawingOption.DrawsEol
-			| DrawingOption.ShowsLineNumber
-			| DrawingOption.HighlightCurrentLine;
+		SpecialChar _DrawSpecialCharFlag = SpecialChar.Tab | SpecialChar.FullWidthSpace | SpecialChar.Eol;
 		#endregion
 
 		#region Init / Dispose
@@ -78,9 +80,11 @@ namespace Sgry.Azuki
 			this._Gra = _UI.GetIGraphics();
 
 			// inherit other parameters
-			this._DrawingOption = other._DrawingOption;
+			this._DrawSpecialCharFlag = other._DrawSpecialCharFlag;
 			this._FirstVisibleLine = other._FirstVisibleLine;
+			this._HighlightCurrentLine = other._HighlightCurrentLine;
 			this._ScrollPosX = other._ScrollPosX;
+			this._ShowLineNumber = other._ShowLineNumber;
 			this._TabWidth = other._TabWidth;
 			this._VisibleSize = other._VisibleSize;
 
@@ -91,13 +95,6 @@ namespace Sgry.Azuki
 			TextAreaWidth = other._TextAreaWidth;
 		}
 
-#		if DEBUG
-		~View()
-		{
-			Debug.Assert( _Gra == null, ""+GetType()+"("+GetHashCode()+") was destroyed but not disposed." );
-		}
-#		endif
-
 		/// <summary>
 		/// Disposes resources.
 		/// </summary>
@@ -105,7 +102,6 @@ namespace Sgry.Azuki
 		{
 			// dispose graphic resources
 			_Gra.Dispose();
-			_Gra = null;
 
 			// uninstall event handlers from document
 			if( _Document != null )
@@ -128,9 +124,9 @@ namespace Sgry.Azuki
 
 		#region Properties
 		/// <summary>
-		/// Gets or sets the document displayed in this view.
+		/// The document displayed in this view.
 		/// </summary>
-		public virtual Document Document
+		public Document Document
 		{
 			get{ return _Document; }
 			set
@@ -225,30 +221,16 @@ namespace Sgry.Azuki
 			_FullSpaceWidth = _Gra.MeasureText( "\x3000" ).Width;
 			_LineHeight = _Gra.MeasureText( "Mp" ).Height;
 		}
-		#endregion
-
-		#region Drawing Options
-		/// <summary>
-		/// Gets or sets view options.
-		/// </summary>
-		public DrawingOption DrawingOption
-		{
-			get{ return _DrawingOption; }
-			set{ _DrawingOption = value; }
-		}
 
 		/// <summary>
 		/// Gets or sets whether the current line would be drawn with underline or not.
 		/// </summary>
-		public bool HighlightsCurrentLine
+		public bool HighlightCurrentLine
 		{
-			get{ return (DrawingOption & DrawingOption.HighlightCurrentLine) != 0; }
+			get{ return _HighlightCurrentLine; }
 			set
 			{
-				if( value )
-					DrawingOption |= DrawingOption.HighlightCurrentLine;
-				else
-					DrawingOption &= ~DrawingOption.HighlightCurrentLine;
+				_HighlightCurrentLine = value;
 				Invalidate();
 			}
 		}
@@ -258,18 +240,15 @@ namespace Sgry.Azuki
 		/// </summary>
 		public bool ShowLineNumber
 		{
-			get{ return (DrawingOption & DrawingOption.ShowsLineNumber) != 0; }
+			get{ return _ShowLineNumber; }
 			set
 			{
-				if( value )
-					DrawingOption |= DrawingOption.ShowsLineNumber;
-				else
-					DrawingOption &= ~DrawingOption.ShowsLineNumber;
+				// update field
+				_ShowLineNumber = value;
 
 				// send dummy scroll event
 				// to update screen position of the caret
 				_UI.Scroll( Rectangle.Empty, 0, 0 );
-				Invalidate();
 			}
 		}
 
@@ -278,13 +257,13 @@ namespace Sgry.Azuki
 		/// </summary>
 		public bool DrawsSpace
 		{
-			get{ return (DrawingOption & DrawingOption.DrawsSpace) != 0; }
+			get{ return (_DrawSpecialCharFlag & SpecialChar.Space) != 0; }
 			set
 			{
 				if( value )
-					DrawingOption |= DrawingOption.DrawsSpace;
+					_DrawSpecialCharFlag |= SpecialChar.Space;
 				else
-					DrawingOption &= ~DrawingOption.DrawsSpace;
+					_DrawSpecialCharFlag &= ~SpecialChar.Space;
 				Invalidate();
 			}
 		}
@@ -294,13 +273,13 @@ namespace Sgry.Azuki
 		/// </summary>
 		public bool DrawsFullWidthSpace
 		{
-			get{ return (DrawingOption & DrawingOption.DrawsFullWidthSpace) != 0; }
+			get{ return (_DrawSpecialCharFlag & SpecialChar.FullWidthSpace) != 0; }
 			set
 			{
 				if( value )
-					DrawingOption |= DrawingOption.DrawsFullWidthSpace;
+					_DrawSpecialCharFlag |= SpecialChar.FullWidthSpace;
 				else
-					DrawingOption &= ~DrawingOption.DrawsFullWidthSpace;
+					_DrawSpecialCharFlag &= ~SpecialChar.FullWidthSpace;
 				Invalidate();
 			}
 		}
@@ -310,13 +289,13 @@ namespace Sgry.Azuki
 		/// </summary>
 		public bool DrawsTab
 		{
-			get{ return (DrawingOption & DrawingOption.DrawsTab) != 0; }
+			get{ return (_DrawSpecialCharFlag & SpecialChar.Tab) != 0; }
 			set
 			{
 				if( value )
-					DrawingOption |= DrawingOption.DrawsTab;
+					_DrawSpecialCharFlag |= SpecialChar.Tab;
 				else
-					DrawingOption &= ~DrawingOption.DrawsTab;
+					_DrawSpecialCharFlag &= ~SpecialChar.Tab;
 				Invalidate();
 			}
 		}
@@ -326,13 +305,13 @@ namespace Sgry.Azuki
 		/// </summary>
 		public bool DrawsEolCode
 		{
-			get{ return (DrawingOption & DrawingOption.DrawsEol) != 0; }
+			get{ return (_DrawSpecialCharFlag & SpecialChar.Eol) != 0; }
 			set
 			{
 				if( value )
-					DrawingOption |= DrawingOption.DrawsEol;
+					_DrawSpecialCharFlag |= SpecialChar.Eol;
 				else
-					DrawingOption &= ~DrawingOption.DrawsEol;
+					_DrawSpecialCharFlag &= ~SpecialChar.Eol;
 				Invalidate();
 			}
 		}
@@ -644,34 +623,6 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
-		/// <summary>
-		/// Sets font size to larger one.
-		/// </summary>
-		public void ZoomIn()
-		{
-			// calculate next font size
-			float newSize = (float)(Font.Size * 1.25);
-
-			// apply
-			Font = new Font( Font.Name, newSize, Font.Style );
-		}
-
-		/// <summary>
-		/// Sets font size to smaller one.
-		/// </summary>
-		public void ZoomOut()
-		{
-			// calculate next font size
-			float newSize = (float)(Font.Size * 0.8);
-			if( newSize < 1 )
-			{
-				return;
-			}
-
-			// apply
-			Font = new Font( Font.Name, newSize, Font.Style );
-		}
-
 		#region Communication between UI Module
 		/// <summary>
 		/// UI module must call this to synchronize
@@ -699,13 +650,6 @@ namespace Sgry.Azuki
 //DEBUG//_Gra.ForeColor=Color.Red;_Gra.DrawLine(rect.Left,rect.Top,rect.Right,rect.Bottom);_Gra.DrawLine(rect.Left,rect.Bottom,rect.Right,rect.Top);DebugUtl.Sleep(400);
 			_UI.Invalidate( rect );
 		}
-
-		/// <summary>
-		/// Requests to invalidate area covered by given text range.
-		/// </summary>
-		/// <param name="beginIndex">Begin text index of the area to be invalidated.</param>
-		/// <param name="endIndex">End text index of the area to be invalidated.</param>
-		public abstract void Invalidate( int beginIndex, int endIndex );
 		#endregion
 
 		#region Utilities
@@ -713,7 +657,7 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				if( ShowLineNumber )
+				if( _ShowLineNumber )
 					return _LineNumWidth + 4;
 				else
 					return 0;

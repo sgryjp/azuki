@@ -1,13 +1,12 @@
 ﻿// file: IHighlighter.cs
 // brief: Interface of highlighter object for Azuki.
 // author: YAMAMOTO Suguru
-// update: 2008-10-13
+// encoding: UTF-8
+// update: 2008-07-05
 //=========================================================
 using System;
-using System.Collections.Generic;
-using Debug = System.Diagnostics.Debug;
 
-namespace Sgry.Azuki.Highlighter
+namespace Sgry.Azuki
 {
 	/// <summary>
 	/// Interface of highlighter object for Azuki.
@@ -24,8 +23,36 @@ namespace Sgry.Azuki.Highlighter
 		/// Highlight document part.
 		/// </summary>
 		/// <param name="doc">Document to highlight.</param>
-		/// <param name="dirtyBegin">Index to start highlighting. On return, start index of the range to be invalidated.</param>
-		/// <param name="dirtyEnd">Index to end highlighting. On return, end index of the range to be invalidated.</param>
-		void Highlight( Document doc, ref int dirtyBegin, ref int dirtyEnd );
+		/// <param name="begin">Index to start highlighting.</param>
+		/// <param name="end">Index to end highlighting.</param>
+		/// <param name="invalidBegin">Begin index of the range to be invalidated.</param>
+		/// <param name="invalidEnd">End index of the range to be invalidated.</param>
+		void Highlight( Document doc, int begin, int end, out int invalidBegin, out int invalidEnd );
+	}
+
+	/// <summary>
+	/// Adopter class for highlighter classes.
+	/// </summary>
+	public abstract class HighlighterBase : IHighlighter
+	{
+		/// <summary>
+		/// Highlight whole document.
+		/// </summary>
+		/// <param name="doc">Document to highlight.</param>
+		public void Highlight( Document doc )
+		{
+			int b, e;
+			Highlight( doc, 0, doc.Length, out b, out e );
+		}
+
+		/// <summary>
+		/// Highlight document part.
+		/// </summary>
+		/// <param name="doc">Document to highlight.</param>
+		/// <param name="begin">Index to start highlighting.</param>
+		/// <param name="end">Index to end highlighting.</param>
+		/// <param name="invalidBegin">Begin index of the range to be invalidated.</param>
+		/// <param name="invalidEnd">End index of the range to be invalidated.</param>
+		public abstract void Highlight( Document doc, int begin, int end, out int invalidBegin, out int invalidEnd );
 	}
 }

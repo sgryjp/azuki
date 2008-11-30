@@ -1,38 +1,26 @@
 ﻿// file: UiImpl.cs
-// brief: User interface logic that independent from platform.
+// brief: Implementation of user interface logic
 // author: YAMAMOTO Suguru
-// update: 2008-11-30
+// update: 2008-07-26
 //=========================================================
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
-using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki
 {
-	using IHighlighter = Highlighter.IHighlighter;
-
-	/// <summary>
-	/// User inteface logic that independent from platform.
-	/// </summary>
 	class UiImpl : IDisposable
 	{
 		#region Fields
-#		if PocketPC
-		const int HighlightInterval = 500;
-#		else
-		const int HighlightInterval = 350;
-#		endif
 		IUserInterface _UI;
-		View _View = null;
-		ViewType _ViewType = ViewType.Propotional;
 
-		IDictionary< uint, ActionProc > _KeyMap = new Dictionary< uint, ActionProc >( 32 );
+		IDictionary< int, ActionProc > _KeyMap = new Dictionary< int, ActionProc >( 32 );
 		AutoIndentHook _AutoIndentHook = null;
 		bool _IsOverwriteMode = false;
-		bool _ConvertsTabToSpaces = false;
-		bool _ConvertsFullWidthSpaceToSpace = false;
+
+		View _View = null;
+		ViewType _ViewType = ViewType.Propotional;
 
 		Point _MouseDownPos = new Point( -1, 0 ); // this X coordinate also be used as a flag to determine whether the mouse button is down or not
 		bool _MouseDragging = false;
@@ -53,29 +41,19 @@ namespace Sgry.Azuki
 			_HighlighterThread.Start();
 		}
 
-#		if DEBUG
-		~UiImpl()
-		{
-			Debug.Assert( _View == null, ""+GetType()+"("+GetHashCode()+") was destroyed but not disposed." );
-		}
-#		endif
-
 		public void Dispose()
 		{
 			_HighlighterThread.Abort();
-			_HighlighterThread = null;
 
 			// uninstall document event handlers
 			Document.SelectionChanged -= Doc_SelectionChanged;
 			Document.ContentChanged -= Doc_ContentChanged;
 
 			// dispose view
-			_View.Dispose();
-			_View = null;
+			View.Dispose();
 		}
 		#endregion
 
-		#region View and Document
 		public Document Document
 		{
 			get{ return View.Document; }
@@ -102,13 +80,9 @@ namespace Sgry.Azuki
 				// redraw graphic
 				_UI.Invalidate();
 				_UI.UpdateCaretGraphic();
-				_UI.UpdateScrollBarRange();
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the associated view object.
-		/// </summary>
 		public View View
 		{
 			get{ return _View; }
@@ -161,7 +135,6 @@ namespace Sgry.Azuki
 				}
 			}
 		}
-		#endregion
 
 		#region Behavior
 		/// <summary>
@@ -178,26 +151,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets or sets whether to automatically convert
-		/// an input tab character to equivalent amount of spaces.
-		/// </summary>
-		public bool ConvertsTabToSpaces
-		{
-			get{ return _ConvertsTabToSpaces; }
-			set{ _ConvertsTabToSpaces = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets whether to automatically convert
-		/// an input full-width space to a space.
-		/// </summary>
-		public bool ConvertsFullWidthSpaceToSpace
-		{
-			get{ return _ConvertsFullWidthSpaceToSpace; }
-			set{ _ConvertsFullWidthSpaceToSpace = value; }
-		}
-
-		/// <summary>
 		/// Gets or sets hook delegate to execute auto-indentation.
 		/// If null, auto-indentation will not be performed.
 		/// </summary>
@@ -210,19 +163,7 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Key Handling
-		public ActionProc GetKeyBind( uint keyCode )
-		{
-			try
-			{
-				return _KeyMap[ keyCode ];
-			}
-			catch( KeyNotFoundException )
-			{
-				return null;
-			}
-		}
-
-		public void SetKeyBind( uint keyCode, ActionProc action )
+		public void SetKeyBind( int keyCode, ActionProc action )
 		{
 			// remove specified key code from dictionary anyway
 			_KeyMap.Remove( keyCode );
@@ -234,7 +175,7 @@ namespace Sgry.Azuki
 			}
 		}
 
-		internal bool IsKeyBindDefined( uint keyCode )
+		internal bool IsKeyBindDefined( int keyCode )
 		{
 			return _KeyMap.ContainsKey( keyCode );
 		}
@@ -269,31 +210,18 @@ namespace Sgry.Azuki
 			}
 
 			// make string to be inserted
-			doc.GetSelection( out selBegin, out selEnd );
 			if( LineLogic.IsEolChar(ch) )
 			{
 				str = doc.EolCode;
-			}
-			else if( ch == '\t' && _ConvertsTabToSpaces )
-			{
-				int spaceCount = NextTabStop( selBegin ) - selBegin;
-				str = String.Empty;
-				for( int i=0; i<spaceCount; i++ )
-				{
-					str += ' ';
-				}
-			}
-			else if( ch == '\x3000' && _ConvertsFullWidthSpaceToSpace )
-			{
-				str = "\x0020";
 			}
 			else
 			{
 				str = ch.ToString();
 			}
-			newCaretIndex = selBegin + str.Length;
+			newCaretIndex = Math.Min( doc.AnchorIndex, doc.CaretIndex ) + str.Length;
 
 			// calc replacement target range
+			doc.GetSelection( out selBegin, out selEnd );
 			if( IsOverwriteMode
 				&& selBegin == selEnd && selEnd+1 < doc.Length
 				&& LineLogic.IsEolChar(doc[selBegin]) != true )
@@ -305,8 +233,8 @@ namespace Sgry.Azuki
 			doc.Replace( str, selBegin, selEnd );
 			doc.SetSelection( newCaretIndex, newCaretIndex );
 
-		update:
 			// set desired column
+		update:
 			_View.SetDesiredColumn();
 
 			// update graphic
@@ -315,35 +243,10 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
-		#region Highlighter
-		/// <summary>
-		/// Gets or sets highlighter for currently active document.
-		/// Setting null to this property will disable highlighting.
-		/// </summary>
-		public IHighlighter Highlighter
-		{
-			get
-			{
-				if( Document == null )
-					return null;
-				else
-					return Document.Highlighter;
-			}
-			set
-			{
-				if( Document == null )
-					return;
-				
-				// switch document's highlighter
-				Document.Highlighter = value;
-
-				// then, invalidate view's whole area
-				_View.Invalidate();
-			}
-		}
-
+		#region Highlight Thread
 		void HighlighterThreadProc()
 		{
+			int invalidBegin, invalidEnd;
 			int dirtyBegin, dirtyEnd;
 			Document doc;
 
@@ -352,50 +255,26 @@ namespace Sgry.Azuki
 				// wait until the flag was set down
 				while( _ShouldBeHighlighted == false )
 				{
-					Thread.Sleep( HighlightInterval );
+					Thread.Sleep( 500 );
 				}
 				_ShouldBeHighlighted = false;
 
-				// wait a moment and check if 
-				Thread.Sleep( HighlightInterval );
+				// wait a moment and begin highlight
+				Thread.Sleep( 500 );
 				if( _ShouldBeHighlighted != false || _UI.Document == null )
 				{
-					// flag was set up while this thread are sleeping.
-					// skip this time.
-					continue;
+					continue; // flag was set up while this thread are sleeping... skip this time.
 				}
 
 				doc = _UI.Document;
 
 				// determine where to start highlighting
 				dirtyBegin = Math.Max( 0, _DirtyRangeBegin );
-				dirtyEnd = Math.Max( dirtyBegin, _DirtyRangeEnd );
-				if( doc.Length < dirtyEnd )
-				{
-					dirtyEnd = doc.Length;
-				}
+				dirtyEnd = Math.Max( doc.Length, _DirtyRangeEnd );
 
 				// highlight and refresh view
-				try
-				{
-					doc.Highlighter.Highlight( doc, ref dirtyBegin, ref dirtyEnd );
-					View.Invalidate( dirtyBegin, dirtyEnd );
-				}
-				catch( Exception ex )
-				{
-					// exit if the exception is ThreadAbortException
-					if( ex is ThreadAbortException )
-					{
-						break;
-					}
-
-					// For example, contents could be shorten just during highlighting
-					// because Azuki design does not lock buffers for thread safety.
-					// It is very hard to take care of such cases in highlighters (including user-made ones)
-					// so here I trap any exception (except ThreadAbortException)
-					// and invalidate whole view in that case.
-					View.Invalidate();
-				}
+				doc.Highlighter.Highlight( doc, dirtyBegin, doc.Length, out invalidBegin, out invalidEnd );
+				_UI.Invalidate();
 
 				// prepare for next loop
 				_DirtyRangeBegin = -1;
@@ -405,13 +284,15 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region UI Event
-		public void HandleKeyDown( uint keyData )
+		public void HandleKeyDown( int keyData )
 		{
-			ActionProc action = GetKeyBind( keyData );
-			if( action != null )
+			try
 			{
+				ActionProc action = _KeyMap[ keyData ];
 				action( _UI );
 			}
+			catch( KeyNotFoundException )
+			{}
 		}
 
 		public void HandlePaint( Rectangle clipRect )
@@ -456,7 +337,7 @@ namespace Sgry.Azuki
 
 			// get range of a word at clicked location
 			index = View.GetIndexFromVirPos( pos );
-			WordLogic.GetWordAt( Document, index, out begin, out end );
+			WordLogic.GetWordAt( Document.InternalBuffer, index, out begin, out end );
 			if( end <= begin )
 			{
 				return;
@@ -539,13 +420,6 @@ namespace Sgry.Azuki
 				_DirtyRangeEnd = e.Index + e.NewText.Length;
 			}
 			_ShouldBeHighlighted = true;
-		}
-		#endregion
-
-		#region Utilitites
-		int NextTabStop( int index )
-		{
-			return ((index / _View.TabWidth) + 1) * _View.TabWidth;
 		}
 		#endregion
 	}

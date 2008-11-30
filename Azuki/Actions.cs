@@ -2,7 +2,7 @@
 // brief: Actions for Azuki engine.
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// update: 2008-10-13
+// update: 2008-07-26
 //=========================================================
 using System;
 
@@ -170,7 +170,7 @@ namespace Sgry.Azuki
 			// nothing selected?
 			if( doc.AnchorIndex == doc.CaretIndex )
 			{
-				int nextWordIndex = WordLogic.NextWordStartForMove( doc, doc.CaretIndex );
+				int nextWordIndex = WordLogic.NextWordStartForMove( doc.InternalBuffer, doc.CaretIndex );
 				if( nextWordIndex == doc.Length && doc.CaretIndex == nextWordIndex )
 				{
 					Plat.Inst.MessageBeep();
@@ -346,7 +346,6 @@ namespace Sgry.Azuki
 
 			// undo
 			view.Document.Undo();
-			view.SetDesiredColumn();
 			view.ScrollToCaret();
 		}
 
@@ -364,7 +363,6 @@ namespace Sgry.Azuki
 
 			// redo
 			view.Document.Redo();
-			view.SetDesiredColumn();
 			view.ScrollToCaret();
 		}
 

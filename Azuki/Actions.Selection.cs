@@ -2,7 +2,7 @@
 // brief: Actions for Azuki engine (actions to change selection).
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// update: 2008-09-25
+// update: 2008-07-26
 //=========================================================
 using System;
 using System.Drawing;
@@ -88,17 +88,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveToNextWord( IUserInterface ui )
 		{
-			Document doc = ui.View.Document;
-			int selBegin, selEnd;
-
-			// if there are something selected, release selection
-			doc.GetSelection( out selBegin, out selEnd );
-			if( selEnd != selBegin )
-			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
-			}
-
-			// then, move caret
+			// move caret
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_NextWord, ui.View );
 
 			// update desired column
@@ -110,20 +100,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveToPrevWord( IUserInterface ui )
 		{
-			Document doc = ui.View.Document;
-			int selBegin, selEnd;
-
-			// if there are something selected, release selection
-			doc.GetSelection( out selBegin, out selEnd );
-			if( selEnd != selBegin )
-			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
-			}
-			// otherwise, move caret
-			else
-			{
-				CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_PrevWord, ui.View );
-			}
+			// move caret
+			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_PrevWord, ui.View );
 
 			// update desired column
 			ui.View.SetDesiredColumn();
@@ -134,40 +112,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveToLineHead( IUserInterface ui )
 		{
-			Document doc = ui.View.Document;
-			int selBegin, selEnd;
-
-			// if there are something selected, release selection
-			doc.GetSelection( out selBegin, out selEnd );
-			if( selEnd != selBegin )
-			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
-			}
-
-			// then, move caret
+			// move caret
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_LineHead, ui.View );
-
-			// update desired column
-			ui.View.SetDesiredColumn();
-		}
-
-		/// <summary>
-		/// Move caret to the first non-whitespace char at the line.
-		/// </summary>
-		public static void MoveToLineHeadSmart( IUserInterface ui )
-		{
-			Document doc = ui.View.Document;
-			int selBegin, selEnd;
-
-			// if there are something selected, release selection
-			ui.View.Document.GetSelection( out selBegin, out selEnd );
-			if( selEnd != selBegin )
-			{
-				ui.View.Document.SetSelection( doc.CaretIndex, doc.CaretIndex );
-			}
-
-			// then, move caret
-			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_LineHeadSmart, ui.View );
 
 			// update desired column
 			ui.View.SetDesiredColumn();
@@ -178,17 +124,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveToLineEnd( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			int selBegin, selEnd;
-
-			// if there are something selected, release selection
-			doc.GetSelection( out selBegin, out selEnd );
-			if( selEnd != selBegin )
-			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
-			}
-
-			// then, move caret
+			// move caret
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_LineEnd, ui.View );
 
 			// update desired column
@@ -259,20 +195,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveToFileHead( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			int selBegin, selEnd;
-
-			// if there are something selected, release selection
-			doc.GetSelection( out selBegin, out selEnd );
-			if( selEnd != selBegin )
-			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
-			}
-			// otherwise, move caret
-			else
-			{
-				CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_FileHead, ui.View );
-			}
+			// move caret
+			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_FileHead, ui.View );
 
 			// update desired column
 			ui.View.SetDesiredColumn();
@@ -283,17 +207,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveToFileEnd( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			int selBegin, selEnd;
-
-			// if there are something selected, release selection
-			doc.GetSelection( out selBegin, out selEnd );
-			if( selEnd != selBegin )
-			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
-			}
-
-			// then, move caret
+			// move caret
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_FileEnd, ui.View );
 
 			// update desired column
@@ -375,18 +289,6 @@ namespace Sgry.Azuki
 		{
 			// change selection
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_LineHead, ui.View );
-
-			// update desired column
-			ui.View.SetDesiredColumn();
-		}
-
-		/// <summary>
-		/// Expand selection to the first non-whitespace char at the line.
-		/// </summary>
-		public static void SelectToLineHeadSmart( IUserInterface ui )
-		{
-			// change selection
-			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_LineHeadSmart, ui.View );
 
 			// update desired column
 			ui.View.SetDesiredColumn();

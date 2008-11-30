@@ -1,7 +1,7 @@
 // file: WinApi.cs
 // brief: Sgry's Win32API glues.
 // author: YAMAMOTO Suguru
-// update: 2008-11-30
+// update: 2008-07-13
 //=========================================================
 using System;
 using System.Text;
@@ -17,18 +17,6 @@ namespace Sgry.Azuki.Windows
 	/// </summary>
 	internal static class WinApi
 	{
-#		if !PocketPC
-		const string kernel32_dll = "kernel32";
-		const string user32_dll = "user32";
-		const string gdi32_dll = "gdi32";
-		const string imm32_dll = "imm32";
-#		else
-		const string kernel32_dll = "coredll";
-		const string user32_dll = "coredll";
-		const string gdi32_dll = "coredll";
-		const string imm32_dll = "coredll";
-#		endif
-
 		#region Constants
 		public const int WM_PAINT = 0x000F;
 		public const int WM_HSCROLL = 0x0114;
@@ -216,61 +204,129 @@ namespace Sgry.Azuki.Windows
 			}
 		}
 
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		static unsafe extern Int32 GetCaretPos( POINT* outPos );
 		
-		[DllImport(user32_dll, EntryPoint="SetCaretPos")]
+#		if !PocketPC
+		[DllImport("user32", EntryPoint="SetCaretPos")]
+#		else
+		[DllImport("coredll", EntryPoint="SetCaretPos")]
+#		endif
 		static extern Int32 SetCaretPos_( Int32 x, Int32 y );
 			
-		[DllImport(user32_dll, EntryPoint="CreateCaret")]
+#		if !PocketPC
+		[DllImport("user32", EntryPoint="CreateCaret")]
+#		else
+		[DllImport("coredll", EntryPoint="CreateCaret")]
+#		endif
 		static extern Int32 CreateCaret_( IntPtr window, IntPtr hBitmap, Int32 width, Int32 height );
 
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern Int32 DestroyCaret();
 			
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern Int32 ShowCaret( IntPtr window );
-
-		[DllImport(user32_dll)]
+			
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern Int32 HideCaret( IntPtr window );
 		#endregion
 
 		#region GDI - Device Context Manipulation
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static unsafe extern IntPtr BeginPaint( IntPtr hWnd, PAINTSTRUCT* ps );
 
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern unsafe Int32 EndPaint( IntPtr hWnd, PAINTSTRUCT* ps );
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern IntPtr CreateCompatibleDC( IntPtr hdc );
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern IntPtr CreateCompatibleBitmap( IntPtr hdc, Int32 width, Int32 height );
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static unsafe extern Int32 DeleteDC( IntPtr hdc );
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern Int32 BitBlt(
 			IntPtr destination, Int32 destX, Int32 destY, Int32 width, Int32 height,
 			IntPtr source, Int32 srcX, Int32 srcY, UInt32 rasterOpCode );
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern Int32 SelectClipRgn( IntPtr hdc, IntPtr regionHdl );
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public unsafe static extern IntPtr CreateRectRgnIndirect( RECT * rect );
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public unsafe static extern IntPtr SelectObject( IntPtr hdc, IntPtr gdiObj );
 		
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public unsafe static extern Int32 DeleteObject( IntPtr gdiObj );
 		#endregion
 
 		#region GDI - Text and Fonts
-		[DllImport(gdi32_dll, CharSet=CharSet.Unicode)]
+#		if !PocketPC
+		[DllImport("gdi32", CharSet=CharSet.Unicode)]
+#		else
+		[DllImport("coredll", CharSet=CharSet.Unicode)]
+#		endif
 		unsafe static extern bool ExtTextOutW( IntPtr hdc, Int32 x, Int32 y, UInt32 formatOptions, RECT* bounds, string text, UInt32 textLength, IntPtr zero );
 		public static bool ExtTextOut( IntPtr hdc, int x, int y, int formatOptions, string text )
 		{
@@ -286,7 +342,11 @@ namespace Sgry.Azuki.Windows
 			}
 		}
 
-		[DllImport(gdi32_dll, CharSet=CharSet.Unicode)]
+#		if !PocketPC
+		[DllImport("gdi32", CharSet=CharSet.Unicode)]
+#		else
+		[DllImport("coredll", CharSet=CharSet.Unicode)]
+#		endif
 		unsafe static extern Int32 GetTextExtentExPointW( IntPtr hdc, string text, int textLen, int maxWidth, int* out_fitLength, int* out_x, SIZE* out_size );
 		public static Size GetTextExtent( IntPtr hdc, string text, int textLen, int maxWidth, out int fitLength, out int[] extents )
 		{
@@ -313,7 +373,11 @@ namespace Sgry.Azuki.Windows
 			}
 		}
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		static extern UInt32 SetTextAlign( IntPtr hdc, UInt32 mode );
 		public static void SetTextAlign( IntPtr hdc, bool alignRight )
 		{
@@ -322,6 +386,28 @@ namespace Sgry.Azuki.Windows
 			uint rc = SetTextAlign( hdc, flag );
 			Debug.Assert( rc != UInt32.MaxValue, "failed to set text alignment by SetTextAlign." );
 		}
+
+/*#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
+		unsafe static extern Int32 GetTextMetricsW( IntPtr dc, TEXTMETRIC* tm );
+
+		public static void GetTextMetrics( IntPtr dc, ref TEXTMETRIC tm )
+		{
+			unsafe
+			{
+				fixed( TEXTMETRIC * p = &tm )
+				{
+					Int32 rc = GetTextMetricsW( dc, p );
+					if( rc == 0 )
+					{
+						throw new Exception( "failed to get text metrics from DC ("+dc.ToInt32()+")." );
+					}
+				}
+			}
+		}*/
 
 		public static unsafe LogFont CreateLogFont( IntPtr window, Font font )
 		{
@@ -346,10 +432,18 @@ namespace Sgry.Azuki.Windows
 			return lf;
 		}
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public unsafe static extern IntPtr CreateFontIndirectW( [In, MarshalAs(UnmanagedType.LPStruct)] LogFont lf );
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern Int32 SetTextColor( IntPtr hdc, Int32 color );
 		public static Int32 SetTextColor( IntPtr hdc, Color color )
 		{
@@ -357,7 +451,11 @@ namespace Sgry.Azuki.Windows
 			return SetTextColor( hdc, bgr );
 		}
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern Int32 SetBkColor( IntPtr hdc, Int32 color );
 		public static Int32 SetBkColor( IntPtr hdc, Color color )
 		{
@@ -365,35 +463,71 @@ namespace Sgry.Azuki.Windows
 			return SetBkColor( hdc, bgr );
 		}
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern Int32 SetBkMode( IntPtr hdc, Int32 mode );
 		#endregion
 
 		#region GDI - Drawing Other Graphics
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public unsafe static extern UInt32 MoveToEx( IntPtr hdc, Int32 x, Int32 y, IntPtr nul );
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public unsafe static extern Int32 LineTo( IntPtr hdc, Int32 x, Int32 y );
 		
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public unsafe static extern Int32 SetPixel( IntPtr hdc, Int32 x, Int32 y, Int32 color );
 		
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public unsafe static extern Int32 Polyline( IntPtr hdc, POINT* points, Int32 count );
 		
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public unsafe static extern Int32 Rectangle( IntPtr hdc, Int32 left, Int32 top, Int32 right, Int32 bottom );
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public unsafe static extern IntPtr CreatePen( Int32 style, Int32 width, Int32 color );
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public unsafe static extern IntPtr CreateSolidBrush( Int32 color );
 		#endregion
 
 		#region Window Scrolling
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		static unsafe extern int SetScrollInfo( IntPtr window, int barType, SCROLLINFO* si, Int32 bRedraw );
 		public static void SetScrollPos( IntPtr window, bool isHScroll, int pos )
 		{
@@ -406,21 +540,23 @@ namespace Sgry.Azuki.Windows
 			}
 		}
 
-		public static void SetScrollRange( IntPtr window, bool isHScroll, int min, int max, int pageSize )
+		public static void SetScrollRange( IntPtr window, bool isHScroll, int min, int max )
 		{
-			Debug.Assert( 0 <= pageSize );
 			unsafe {
 				SCROLLINFO si;
 				si.size = (uint)sizeof( SCROLLINFO );
-				si.mask = SIF_RANGE|SIF_PAGE|SIF_DISABLENOSCROLL;
+				si.mask = SIF_RANGE|SIF_DISABLENOSCROLL;
 				si.min = min;
 				si.max = max;
-				si.page = (uint)pageSize;
 				SetScrollInfo( window, isHScroll?0:1, &si, 1 );
 			}
 		}
 
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		static unsafe extern Int32 GetScrollInfo( IntPtr window, Int32 bar, SCROLLINFO * si );
 		public static int GetScrollPos( IntPtr window, bool isHScroll )
 		{
@@ -462,7 +598,11 @@ namespace Sgry.Azuki.Windows
 			}
 		}
 
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		static unsafe extern Int32 ScrollWindowEx( IntPtr window, int x, int y, RECT* scroll, RECT* clip, IntPtr updateRegion, RECT* update, UInt32 flags );
 		public static void ScrollWindow( IntPtr window, int x, int y )
 		{
@@ -482,14 +622,22 @@ namespace Sgry.Azuki.Windows
 		#endregion
 
 		#region Keyboard
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		static extern Int16 GetKeyState( Int32 vKeyCode );
 		public static bool IsKeyDown( Keys keyCode )
 		{
 			return GetKeyState((Int32)keyCode) < 0;
 		}
 
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		static extern Int16 GetAsyncKeyState( Int32 vKeyCode );
 		public static bool IsKeyDownAsync( Keys keyCode )
 		{
@@ -533,38 +681,74 @@ namespace Sgry.Azuki.Windows
 			ImmReleaseContext( window, imContext );
 		}
 
-		[DllImport(imm32_dll)]
+#		if !PocketPC
+		[DllImport("imm32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern IntPtr ImmGetContext( IntPtr hWnd );
 
-		[DllImport(imm32_dll)]
+#		if !PocketPC
+		[DllImport("imm32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern Int32 ImmReleaseContext( IntPtr hWnd, IntPtr context );
 
-		[DllImport(imm32_dll)]
+#		if !PocketPC
+		[DllImport("imm32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		static unsafe extern Int32 ImmSetCompositionWindow( IntPtr imContext, COMPOSITIONFORM* compForm );
 
-		[DllImport(imm32_dll)]
+#		if !PocketPC
+		[DllImport("imm32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		static unsafe extern Int32 ImmSetCompositionFontW( IntPtr imContext,  [In, MarshalAs(UnmanagedType.LPStruct)] LogFont logFont );
 
-		[DllImport(gdi32_dll)]
+#		if !PocketPC
+		[DllImport("gdi32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern Int32 GetDeviceCaps( IntPtr dc, Int32 index );
 
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern IntPtr GetDC( IntPtr hWnd );
 
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern Int32 ReleaseDC( IntPtr hWnd, IntPtr dc );
 		#endregion
 
 		#region Window Position
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern Int32 SetWindowPos( IntPtr window, IntPtr insertAfter, Int32 x, Int32 y, Int32 width, Int32 height, Int32 flags );
 		#endregion
 
 		#region GetWindowLong
-		[DllImport(user32_dll)]
+		[DllImport("user32", EntryPoint="GetWindowLongPtrW")]
 		static extern IntPtr GetWindowLongPtrW( IntPtr hWnd, Int32 code );
 
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32", EntryPoint="GetWindowLongW")]
+#		else
+		[DllImport("coredll", EntryPoint="GetWindowLongW")]
+#		endif
 		static extern IntPtr GetWindowLongW( IntPtr hWnd, Int32 code );
 		
 		public static IntPtr GetWindowLong( IntPtr hWnd, Int32 code )
@@ -575,10 +759,14 @@ namespace Sgry.Azuki.Windows
 				return GetWindowLongPtrW( hWnd, code );
 		}
 
-		[DllImport(user32_dll)]
+		[DllImport("user32")]
 		static extern Int32 SetWindowLongPtrW( IntPtr hWnd, Int32 code, WNDPROC newLong );
 		
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		static extern Int32 SetWindowLongW( IntPtr hWnd, Int32 code, WNDPROC newLong );
 		
 		public static Int32 SetWindowLong( IntPtr hWnd, Int32 code, WNDPROC newLong )
@@ -589,21 +777,29 @@ namespace Sgry.Azuki.Windows
 				return SetWindowLongPtrW( hWnd, code, newLong );
 		}
 
-		[DllImport(user32_dll)]
-		static extern IntPtr SetWindowLongPtrW( IntPtr hWnd, Int32 code, IntPtr newLong );
+		[DllImport("user32", EntryPoint="SetWindowLongPtrW")]
+		static extern IntPtr SetWindowLong64( IntPtr hWnd, Int32 code, IntPtr newLong );
 
-		[DllImport(user32_dll)]
-		static extern IntPtr SetWindowLongW( IntPtr hWnd, Int32 code, IntPtr newLong );
+#		if !PocketPC
+		[DllImport("user32", EntryPoint="SetWindowLongW")]
+#		else
+		[DllImport("coredll", EntryPoint="SetWindowLongW")]
+#		endif
+		static extern IntPtr SetWindowLong32( IntPtr hWnd, Int32 code, IntPtr newLong );
 		
 		public static IntPtr SetWindowLong( IntPtr hWnd, Int32 code, IntPtr newLong )
 		{
 			if( Marshal.SizeOf(IntPtr.Zero) == 4 )
-				return SetWindowLongW( hWnd, code, newLong );
+				return SetWindowLong32( hWnd, code, newLong );
 			else
-				return SetWindowLongPtrW( hWnd, code, newLong );
+				return SetWindowLong64( hWnd, code, newLong );
 		}
 		
-		[DllImport(user32_dll)]
+#		if !PocketPC
+		[DllImport("user32")]
+#		else
+		[DllImport("coredll")]
+#		endif
 		public static extern IntPtr CallWindowProc( IntPtr wndProc, IntPtr window, Int32 message, IntPtr wParam, IntPtr lParam );
 		#endregion
 	}

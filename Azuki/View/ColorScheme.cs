@@ -1,8 +1,8 @@
 ﻿// file: ColorScheme.cs
-// brief: color set
+// brief: color set record
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// update: 2008-11-03
+// update: 2008-07-21
 //=========================================================
 using System.Collections.Generic;
 using System.Drawing;
@@ -46,7 +46,7 @@ namespace Sgry.Azuki
 	/// </summary>
 	public class ColorScheme
 	{
-		Dictionary< byte, ColorPair > _Colors = new Dictionary< byte, ColorPair >();
+		Dictionary< CharClass, ColorPair > _Colors = new Dictionary< CharClass, ColorPair >();
 
 		#region Init / Dispose
 		/// <summary>
@@ -64,16 +64,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public ColorPair this[ CharClass klass ]
 		{
-			get{ return GetColor(klass); }
+			get{ return _Colors[klass]; }
 			set{ SetColor(klass, value); }
-		}
-
-		/// <summary>
-		/// Gets color pair for a char-class.
-		/// </summary>
-		public ColorPair GetColor( CharClass klass )
-		{
-			return _Colors[klass.Id];
 		}
 
 		/// <summary>
@@ -81,7 +73,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void SetColor( CharClass klass, ColorPair colorPair )
 		{
-			_Colors[klass.Id] = colorPair;
+			_Colors[klass] = colorPair;
 			if( klass == CharClass.Normal )
 			{
 				ForeColor = colorPair.Fore;
@@ -122,11 +114,7 @@ namespace Sgry.Azuki
 			this[ CharClass.Number ] = new ColorPair( Color.Black, bgcolor );
 			this[ CharClass.String ] = new ColorPair( Color.Teal, bgcolor );
 			this[ CharClass.Keyword ] = new ColorPair( Color.Blue, bgcolor );
-			this[ CharClass.Keyword2 ] = new ColorPair( Color.Maroon, bgcolor );
-			this[ CharClass.Keyword3 ] = new ColorPair( Color.Navy, bgcolor );
-			this[ CharClass.PreProcessor ] = new ColorPair( Color.Purple, bgcolor );
 			this[ CharClass.Comment ] = new ColorPair( Color.Green, bgcolor );
-			this[ CharClass.DocComment ] = new ColorPair( Color.Gray, bgcolor );
 
 			this.SelectionFore = Color.White;
 			this.SelectionBack = azuki;

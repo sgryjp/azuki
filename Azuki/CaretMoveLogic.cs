@@ -1,7 +1,8 @@
 // file: CaretMoveLogic.cs
 // brief: Implementation of caret movement.
 // author: YAMAMOTO Suguru
-// update: 2008-10-13
+// encoding: UTF-8
+// update: 2008-06-15
 //=========================================================
 using System;
 using System.Drawing;
@@ -177,7 +178,7 @@ namespace Sgry.Azuki
 				return doc.Length;
 			}
 
-			return WordLogic.NextWordStartForMove( doc, doc.CaretIndex );
+			return WordLogic.NextWordStartForMove( doc.InternalBuffer, doc.CaretIndex );
 		};
 
 		/// <summary>
@@ -204,27 +205,6 @@ namespace Sgry.Azuki
 			return view.GetLineHeadIndexFromCharIndex(
 					view.Document.CaretIndex
 				);
-		};
-
-		/// <summary>
-		/// Calculate index of the first non-whitespace char of the line where caret is at.
-		/// </summary>
-		public static CalcMethod Calc_LineHeadSmart
-			= delegate( View view )
-		{
-			int lineHeadIndex, firstNonSpaceIndex;
-			Document doc = view.Document;
-
-			lineHeadIndex = view.GetLineHeadIndexFromCharIndex( doc.CaretIndex );
-
-			firstNonSpaceIndex = lineHeadIndex;
-			while( firstNonSpaceIndex < doc.Length
-				&& Utl.IsWhiteSpace(doc[firstNonSpaceIndex]) )
-			{
-				firstNonSpaceIndex++;
-			}
-
-			return (firstNonSpaceIndex == doc.CaretIndex) ? lineHeadIndex : firstNonSpaceIndex;
 		};
 
 		/// <summary>
@@ -270,21 +250,6 @@ namespace Sgry.Azuki
 		{
 			return view.Document.Length;
 		};
-		#endregion
-
-		#region Utilities
-		static class Utl
-		{
-			public static bool IsWhiteSpace( char ch )
-			{
-				if( ch == ' '
-					|| ch == '\t'
-					|| ch == '\x3000' )
-					return true;
-
-				return false;
-			}
-		}
 		#endregion
 	}
 }

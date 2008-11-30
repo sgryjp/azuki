@@ -1,27 +1,24 @@
 ﻿// file: DummyHighlighter.cs
 // brief: Dummy highlighter which executes nothing.
 // author: YAMAMOTO Suguru
-// update: 2008-11-03
+// encoding: UTF-8
+// update: 2008-07-12
 //=========================================================
 using System;
 
-namespace Sgry.Azuki.Highlighter
+namespace Sgry.Azuki
 {
 	/// <summary>
 	/// Dummy highlighter which does nothing.
 	/// </summary>
-	class DummyHighlighter : IHighlighter
+	public class DummyHighlighter : HighlighterBase
 	{
 		/// <summary>
 		/// Does nothing.
 		/// </summary>
-		public void Highlight( Document doc )
-		{}
-
-		/// <summary>
-		/// Does nothing.
-		/// </summary>
-		public void Highlight( Document doc, ref int dirtyBegin, ref int dirtyEnd )
-		{}
+		public override void Highlight( Document doc, int begin, int end, out int invalidBegin, out int invalidEnd )
+		{
+			invalidBegin = invalidEnd = 0;
+		}
 	}
 }

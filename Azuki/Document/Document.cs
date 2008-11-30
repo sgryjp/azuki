@@ -1,7 +1,8 @@
 // file: Document.cs
 // brief: Document of Azuki engine.
 // author: YAMAMOTO Suguru
-// update: 2008-11-01
+// encoding: UTF-8
+// update: 2008-07-20
 //=========================================================
 using System;
 using System.Collections;
@@ -12,8 +13,6 @@ using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki
 {
-	using Highlighter;
-
 	/// <summary>
 	/// The document of the Azuki editor engine.
 	/// </summary>
@@ -29,7 +28,6 @@ namespace Sgry.Azuki
 		bool _IsRecordingHistory = true;
 		string _EolCode = "\r\n";
 		bool _IsReadOnly = false;
-		bool _IsDirty = false;
 		IHighlighter _Highlighter;
 		#endregion
 
@@ -44,63 +42,6 @@ namespace Sgry.Azuki
 			_LHI.Add( 0 );
 			
 			_Highlighter = new DummyHighlighter();
-		}
-		#endregion
-
-		#region States
-		/// <summary>
-		/// Gets whether modifications for this document which is not saved yet exists or not.
-		/// Note that although any changes sets this flag true automatically,
-		/// setting this flag false never be done because Document has no 'save' feature.
-		/// Thus the application is responsible to setting this flag back to false after saving content.
-		/// </summary>
-		public bool IsDirty
-		{
-			get{ return _IsDirty; }
-			set
-			{
-				bool valueChanged = (_IsDirty != value);
-				
-				_IsDirty = value;
-				if( valueChanged )
-				{
-					InvokeDirtyStateChanged();
-				}
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets whether this document is recording edit actions or not.
-		/// </summary>
-		public bool IsRecordingHistory
-		{
-			get{ return _IsRecordingHistory; }
-			set{ _IsRecordingHistory = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets whether this document is read-only or not.
-		/// </summary>
-		public bool IsReadOnly
-		{
-			get{ return _IsReadOnly; }
-			set{ _IsReadOnly = value; }
-		}
-
-		/// <summary>
-		/// Gets whether an available undo action exists or not.
-		/// </summary>
-		public bool CanUndo
-		{
-			get{ return _History.CanUndo; }
-		}
-
-		/// <summary>
-		/// Gets whether an available REDO action exists or not.
-		/// </summary>
-		public bool CanRedo
-		{
-			get{ return _History.CanRedo; }
 		}
 		#endregion
 
@@ -238,26 +179,6 @@ namespace Sgry.Azuki
 				throw new ArgumentOutOfRangeException( "index", "Invalid index was given (index:"+index+", this.Length:"+Length+")." );
 
 			return _Buffer[ index ];
-		}
-
-		/// <summary>
-		/// Gets a word at specified index.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
-		public string GetWordAt( int index )
-		{
-			if( index < 0 || _Buffer.Count < index )
-				throw new ArgumentOutOfRangeException( "index", "Invalid index was given (index:"+index+", this.Length:"+Length+")." );
-
-			int begin, end;
-
-			WordLogic.GetWordAt( this, index, out begin, out end );
-			if( begin < 0 || end < 0 || end <= begin )
-			{
-				return String.Empty;
-			}
-
-			return GetTextInRange( begin, end );
 		}
 
 		/// <summary>
@@ -437,7 +358,9 @@ namespace Sgry.Azuki
 
 			_Buffer.SetCharClassAt( index, klass );
 		}
+		#endregion
 
+		#region Content Modification
 		/// <summary>
 		/// Replaces current selection.
 		/// </summary>
@@ -542,17 +465,12 @@ namespace Sgry.Azuki
 			Debug.Assert( begin <= Length );
 
 			// cast event
-			if( _IsDirty == false )
-			{
-				_IsDirty = true;
-				InvokeDirtyStateChanged();
-			}
 			InvokeContentChanged( begin, oldText, text );
 			InvokeSelectionChanged( oldAnchor, oldCaret );
 		}
 		#endregion
 
-		#region Editing Behavior
+		#region Edit Actions and Modes
 		/// <summary>
 		/// Executes UNDO.
 		/// </summary>
@@ -563,6 +481,14 @@ namespace Sgry.Azuki
 				EditAction action = _History.GetUndoAction();
 				action.Undo();
 			}
+		}
+
+		/// <summary>
+		/// Gets whether an available undo action exists or not.
+		/// </summary>
+		public bool CanUndo
+		{
+			get{ return _History.CanUndo; }
 		}
 
 		/// <summary>
@@ -586,8 +512,16 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
+		/// Gets whether an available REDO action exists or not.
+		/// </summary>
+		public bool CanRedo
+		{
+			get{ return _History.CanRedo; }
+		}
+
+		/// <summary>
 		/// Gets or sets EOL Code used in this document.
-		/// Note that setting this property does nothing to the content.
+		/// Note that setting this property do nothing to the content.
 		/// This is provided for other classes to determine EOL code to be used;
 		/// for example, choosing EOL code to be input with Enter key,
 		/// setting/getting by engine's client for any usage.
@@ -601,6 +535,24 @@ namespace Sgry.Azuki
 					throw new InvalidOperationException( "invalid EOL code was set." );
 				_EolCode = value;
 			}
+		}
+
+		/// <summary>
+		/// Gets or sets whether this document is recording edit actions or not.
+		/// </summary>
+		public bool IsRecordingHistory
+		{
+			get{ return _IsRecordingHistory; }
+			set{ _IsRecordingHistory = value; }
+		}
+
+		/// <summary>
+		/// Gets or sets whether this document is read-only or not.
+		/// </summary>
+		public bool IsReadOnly
+		{
+			get{ return _IsReadOnly; }
+			set{ _IsReadOnly = value; }
 		}
 		#endregion
 
@@ -627,6 +579,7 @@ namespace Sgry.Azuki
 			if( charIndex < 0 || _Buffer.Count < charIndex )
 				throw new ArgumentOutOfRangeException( "charIndex", "Invalid index was given (charIndex:"+charIndex+", this.Length:"+Length+")." );
 
+			//return LineLogic.GetLineHeadIndexFromCharIndex( _Buffer, _LHI, charIndex );
 			return LineLogic.GetLineHeadIndexFromCharIndex( _Buffer, _LHI, charIndex );
 		}
 
@@ -651,6 +604,7 @@ namespace Sgry.Azuki
 			if( charIndex < 0 || _Buffer.Count < charIndex )
 				throw new ArgumentOutOfRangeException( "charIndex", "Invalid index was given (charIndex:"+charIndex+", this.Length:"+Length+")." );
 
+			//LineLogic.GetLineColumnIndexFromCharIndex( _Buffer, _LHI, charIndex, out lineIndex, out columnIndex );
 			LineLogic.GetLineColumnIndexFromCharIndex( _Buffer, _LHI, charIndex, out lineIndex, out columnIndex );
 		}
 
@@ -665,18 +619,16 @@ namespace Sgry.Azuki
 			if( columnIndex < 0 )
 				throw new ArgumentOutOfRangeException( "columnIndex", "Invalid index was given (columnIndex:"+columnIndex+")." );
 
+			//return LineLogic.GetCharIndexFromLineColumnIndex( _Buffer, _LHI, lineIndex, columnIndex );
 			return LineLogic.GetCharIndexFromLineColumnIndex( _Buffer, _LHI, lineIndex, columnIndex );
 		}
 		#endregion
 
-		#region Highlighter
+		#region Highlighter and Character classes
 		/// <summary>
 		/// Gets or sets highlighter for this document.
-		/// Setting null to thie property will disable highlighting.
-		/// Note that setting new value to this property will not invalidate graphics.
-		/// To update graphic, set value via IUserInterface.Highlighter.
+		/// Note that setting null will disable highlighting.
 		/// </summary>
-		/// <seealso cref="IUserInterface.Highlighter"/>
 		public IHighlighter Highlighter
 		{
 			get{ return _Highlighter; }
@@ -684,9 +636,6 @@ namespace Sgry.Azuki
 			{
 				if( value == null )
 					value = new DummyHighlighter();
-
-				// clear all highlight information
-				_Buffer.ClearCharClasses();
 
 				// associate with new highlighter object and highlight whole content
 				_Highlighter = value;
@@ -761,16 +710,6 @@ namespace Sgry.Azuki
 			if( ContentChanged != null )
 				ContentChanged( this, new ContentChangedEventArgs(index, oldText, newText) );
 		}
-
-		/// <summary>
-		/// Occurs when IsDirty property has changed.
-		/// </summary>
-		public event EventHandler DirtyStateChanged;
-		void InvokeDirtyStateChanged()
-		{
-			if( DirtyStateChanged != null )
-				DirtyStateChanged( this, EventArgs.Empty );
-		}
 		#endregion
 
 		#region Utilities
@@ -779,7 +718,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public IEnumerator GetEnumerator()
 		{
-			return _Buffer.GetEnumerator();
+			return new DocumentLineEnumerator( this );
 		}
 
 		/// <summary>
@@ -849,11 +788,12 @@ namespace Sgry.Azuki
 					}
 				}
 			}
+
 		}
 		#endregion
 	}
 
-	#region Types for Events
+	#region Events for Documents
 	/// <summary>
 	/// Event handler for SelectionChanged event.
 	/// </summary>
@@ -942,6 +882,63 @@ namespace Sgry.Azuki
 		{
 			get{ return _NewText; }
 		}
+	}
+	#endregion
+
+	#region Line Enumerator
+	/// <summary>
+	/// Line enumerator for Document of Azuki.
+	/// </summary>
+	public class DocumentLineEnumerator : IEnumerator
+	{
+		Document _Doc;
+		int _LineIndex = -1;
+
+		#region Init / Dispose
+		/// <summary>
+		/// Creates a new instance.
+		/// </summary>
+		public DocumentLineEnumerator( Document doc )
+		{
+			_Doc = doc;
+		}
+
+		/// <summary>
+		/// Disposes resources.
+		/// </summary>
+		public void Dispose()
+		{}
+		#endregion
+
+		#region IEnumerator Interface
+		/// <summary>
+		/// Moves this enumerator to the next line.
+		/// </summary>
+		public bool MoveNext()
+		{
+			if( _Doc.LineCount <= _LineIndex+1 )
+				return false;
+
+			_LineIndex++;
+			return true;
+		}
+
+		/// <summary>
+		/// Resets location of this enumerator.
+		/// </summary>
+		public void Reset()
+		{
+			_LineIndex = -1;
+		}
+		
+		/// <summary>
+		/// Retrieves the line content where this enumerator indicates. (System.String)
+		/// </summary>
+		public object Current
+		{
+			get{ return _Doc.GetLineContent(_LineIndex); }
+		}
+		#endregion
 	}
 	#endregion
 }

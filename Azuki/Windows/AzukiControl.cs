@@ -1,7 +1,7 @@
 ﻿// file: AzukiControl.cs
 // brief: User interface for Windows platform (both Desktop and CE).
 // author: YAMAMOTO Suguru
-// update: 2008-11-30
+// update: 2008-07-26
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -14,8 +14,6 @@ using System.Runtime.InteropServices;
 
 namespace Sgry.Azuki.Windows
 {
-	using IHighlighter = Highlighter.IHighlighter;
-
 	/// <summary>
 	/// Azuki user interface for Windows.Forms framework
 	/// (.NET Compact Framework compatible).
@@ -33,11 +31,10 @@ namespace Sgry.Azuki.Windows
 		Size _CaretSize = new Size( DefaultCaretWidth, 10 );
 		bool _AcceptsReturn = true;
 		bool _AcceptsTab = true;
-		bool _ShowsHScrollBar = true;
+		bool _ShowHScrollBar = true;
 #		if !PocketPC
 		bool _UseCtrlTabToMoveFocus = true;
 #		endif
-		int _WheelPos = 0;
 		
 		InvalidateProc1 _invalidateProc1 = null;
 		InvalidateProc2 _invalidateProc2 = null;
@@ -52,18 +49,6 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		public AzukiControl()
 		{
-			// check platform
-			try
-			{
-				// if this is a build for CF and called on FF platform,
-				// this must throw DllNotFoundException.
-				WinApi.IsKeyDown( Keys.A );
-			}
-			catch( DllNotFoundException ex )
-			{
-				throw new PlatformNotSupportedException( "Not supported platform", ex );
-			}
-
 			// rewrite window procedure at first
 			// (force to create window by accessing Handle property)
 			IntPtr dummy = this.Handle;
@@ -78,8 +63,8 @@ namespace Sgry.Azuki.Windows
 
 			// set default value for each scroll bar
 			// (setting scroll bar range forces the window to have style of WS_VSCROLL/WS_HSCROLL)
-			WinApi.SetScrollRange( Handle, false, 0, 1, 1 );
-			WinApi.SetScrollRange( Handle, true, 0, 1, 1 );
+			WinApi.SetScrollRange( Handle, false, 0, 1 );
+			WinApi.SetScrollRange( Handle, true, 0, 1 );
 			
 			this.Font = base.Font;
 			WinApi.CreateCaret( Handle, _CaretSize );
@@ -117,30 +102,34 @@ namespace Sgry.Azuki.Windows
 		}
 		#endregion
 
-		#region IUserInterface - Associated View and Document
 		/// <summary>
-		/// Gets or sets the document which is the current editing target.
+		/// Gets a graphic interface.
 		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
-		public Document Document
+		public IGraphics GetIGraphics()
 		{
-			get{ return _Impl.Document; }
-			set{ _Impl.Document = value; }
+			return Plat.Inst.GetGraphics( Handle );
 		}
 
 		/// <summary>
 		/// Gets the associated view object.
 		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
 		public View View
 		{
 			get{ return _Impl.View; }
+		}
+
+		#region IUserInterface - Document and View Types
+		/// <summary>
+		/// Gets or sets the document which is the current editing target.
+		/// </summary>
+#		if !PocketPC
+		[Browsable(false)]
+		[DefaultValue(null)]
+#		endif
+		public Document Document
+		{
+			get{ return _Impl.Document; }
+			set{ _Impl.Document = value; }
 		}
 
 		/// <summary>
@@ -150,7 +139,6 @@ namespace Sgry.Azuki.Windows
 #		if !PocketPC
 		[Category("Drawing")]
 		[DefaultValue(ViewType.Propotional)]
-		[Description("Specify how to draw text content. Wrapped propotional view shows text wrapped within the width specified as ViewWidth property. Propotional view do not wrap text but draws faster.")]
 #		endif
 		public ViewType ViewType
 		{
@@ -173,7 +161,7 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.Up, Actions.MoveUp );
 			SetKeyBind( Keys.Right|Keys.Control, Actions.MoveToNextWord );
 			SetKeyBind( Keys.Left|Keys.Control, Actions.MoveToPrevWord );
-			SetKeyBind( Keys.Home, Actions.MoveToLineHeadSmart );
+			SetKeyBind( Keys.Home, Actions.MoveToLineHead );
 			SetKeyBind( Keys.End, Actions.MoveToLineEnd );
 			SetKeyBind( Keys.PageDown, Actions.MovePageDown );
 			SetKeyBind( Keys.PageUp, Actions.MovePageUp );
@@ -186,7 +174,7 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.Up|Keys.Shift, Actions.SelectToUp );
 			SetKeyBind( Keys.Right|Keys.Shift|Keys.Control, Actions.SelectToNextWord );
 			SetKeyBind( Keys.Left|Keys.Shift|Keys.Control, Actions.SelectToPrevWord );
-			SetKeyBind( Keys.Home|Keys.Shift, Actions.SelectToLineHeadSmart );
+			SetKeyBind( Keys.Home|Keys.Shift, Actions.SelectToLineHead );
 			SetKeyBind( Keys.End|Keys.Shift, Actions.SelectToLineEnd );
 			SetKeyBind( Keys.PageDown|Keys.Shift, Actions.SelectToPageDown );
 			SetKeyBind( Keys.PageUp|Keys.Shift, Actions.SelectToPageUp );
@@ -218,32 +206,12 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Gets an action which is already associated with given key.
-		/// If no action was associate with given key, returns null.
-		/// </summary>
-		/// <param name="keyCode">key code</param>
-		public ActionProc GetKeyBind( uint keyCode )
-		{
-			return _Impl.GetKeyBind( keyCode );
-		}
-
-		/// <summary>
-		/// Gets an action which is already associated with given key.
-		/// If no action was associate with given key, returns null.
-		/// </summary>
-		/// <param name="keyCode">key code</param>
-		public ActionProc GetKeyBind( Keys keyCode )
-		{
-			return _Impl.GetKeyBind( (uint)keyCode );
-		}
-
-		/// <summary>
 		/// Sets or removes key-bind entry.
 		/// Note that giving null to action will remove the key-bind.
 		/// </summary>
 		/// <param name="keyCode">key code to set/remove new action</param>
 		/// <param name="action">action to be associated or null in case of removing key-bind.</param>
-		public void SetKeyBind( uint keyCode, ActionProc action )
+		public void SetKeyBind( int keyCode, ActionProc action )
 		{
 			_Impl.SetKeyBind( keyCode, action );
 		}
@@ -256,7 +224,7 @@ namespace Sgry.Azuki.Windows
 		/// <param name="action">action to be associated or null in case of removing key-bind.</param>
 		public void SetKeyBind( Keys keyCode, ActionProc action )
 		{
-			SetKeyBind( (uint)keyCode, action );
+			SetKeyBind( (int)keyCode, action );
 		}
 		#endregion
 
@@ -273,8 +241,6 @@ namespace Sgry.Azuki.Windows
 			if( DesignMode )
 				return;
 #			endif
-			if( Focused == false )
-				return;
 
 			// calculate caret size
 			_CaretSize.Width = Utl.CalcOverwriteCaretWidth( Document, View, CaretIndex, IsOverwriteMode );
@@ -325,24 +291,11 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 #		if !PocketPC
 		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 #		endif
 		public ColorScheme ColorScheme
 		{
 			get{ return View.ColorScheme; }
 			set{ View.ColorScheme = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets drawing options.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-#		endif
-		public DrawingOption DrawingOption
-		{
-			get{ return View.DrawingOption; }
-			set{ View.DrawingOption = value; }
 		}
 
 		/// <summary>
@@ -352,7 +305,7 @@ namespace Sgry.Azuki.Windows
 		[Category("Drawing")]
 		[DefaultValue(true)]
 #		endif
-		public bool ShowsLineNumber
+		public bool ShowLineNumber
 		{
 			get{ return View.ShowLineNumber; }
 			set
@@ -373,18 +326,18 @@ namespace Sgry.Azuki.Windows
 		[DefaultValue(true)]
 		[Description("If true, horizontal scrollbar will appear.")]
 #		endif
-		public bool ShowsHScrollBar
+		public bool ShowHScrollBar
 		{
-			get{ return _ShowsHScrollBar; }
+			get{ return _ShowHScrollBar; }
 			set
 			{
 				const int SWP_FRAMECHANGED = 0x0020;
 
-				_ShowsHScrollBar = value;
+				_ShowHScrollBar = value;
 
 				// make new style bits
 				long style = WinApi.GetWindowLong( Handle, WinApi.GWL_STYLE ).ToInt64();
-				if( _ShowsHScrollBar )
+				if( _ShowHScrollBar )
 					style |= WinApi.WS_HSCROLL;
 				else
 					style &= ~(WinApi.WS_HSCROLL);
@@ -403,10 +356,10 @@ namespace Sgry.Azuki.Windows
 		[Category("Drawing")]
 		[DefaultValue(true)]
 #		endif
-		public bool HighlightsCurrentLine
+		public bool HighlightCurrentLine
 		{
-			get{ return View.HighlightsCurrentLine; }
-			set{ View.HighlightsCurrentLine = value; }
+			get{ return View.HighlightCurrentLine; }
+			set{ View.HighlightCurrentLine = value; }
 		}
 
 		/// <summary>
@@ -489,9 +442,7 @@ namespace Sgry.Azuki.Windows
 		/// Sets width of the content area (including line number area).
 		/// </summary>
 #		if !PocketPC
-		[Browsable(true)]
-		[Category("Drawing")]
-		[Description("Width of the text content area. In proportional view, highlight line will be drawn in this width and this will be automatically expanded to enough width to show the input text. In wrapped-propotional view, text will be wrapped in this width.")]
+		[Browsable(false)]
 #		endif
 		public int ViewWidth
 		{
@@ -565,7 +516,6 @@ namespace Sgry.Azuki.Windows
 		/// <seealso cref="AutoIndentLogic"/>
 #		if !PocketPC
 		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 #		endif
 		public AutoIndentHook AutoIndentHook
 		{
@@ -574,38 +524,7 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Gets or sets whether to automatically convert
-		/// an input tab character to equivalent amount of spaces.
-		/// </summary>
-#		if !PocketPC
-		[Category("Behavior")]
-		[DefaultValue(false)]
-		[Description("If true, an input tab character will be automatically converted into equivalent amount of spaces.")]
-#		endif
-		public bool ConvertsTabToSpaces
-		{
-			get{ return _Impl.ConvertsTabToSpaces; }
-			set{ _Impl.ConvertsTabToSpaces = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets whether to automatically convert
-		/// an input full-width space to a space.
-		/// </summary>
-#		if !PocketPC
-		[Category("Behavior")]
-		[DefaultValue(false)]
-		[Description("If true, an input full-width space will be automatically converted to a half-width space.")]
-#		endif
-		public bool ConvertsFullWidthSpaceToSpace
-		{
-			get{ return _Impl.ConvertsFullWidthSpaceToSpace; }
-			set{ _Impl.ConvertsFullWidthSpaceToSpace = value; }
-		}
-
-		/// <summary>
-		/// If this is true, treats Enter key as an input and
-		/// prevent pressing dialog default button.
+		/// If this is true, treats Enter key as an input and prevent pressing dialog default button.
 		/// </summary>
 #		if !PocketPC
 		[Category("Behavior")]
@@ -619,8 +538,7 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// If this is true, treats Tab key as an input and
-		/// prevent moving focus to other control in a dialog.
+		/// If this is true, treats Tab key as an input and prevent moving focus to other control in a dialog.
 		/// </summary>
 #		if !PocketPC
 		[Category("Behavior")]
@@ -640,7 +558,7 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		public void Undo()
 		{
-			Actions.Undo( this );
+			View.Document.Undo();
 		}
 
 		/// <summary>
@@ -648,7 +566,6 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 #		if !PocketPC
 		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 #		endif
 		public bool CanUndo
 		{
@@ -668,7 +585,6 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 #		if !PocketPC
 		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 #		endif
 		public bool IsRecordingHistory
 		{
@@ -681,7 +597,7 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		public void Redo()
 		{
-			Actions.Redo( this );
+			View.Document.Redo();
 		}
 
 		/// <summary>
@@ -689,7 +605,6 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 #		if !PocketPC
 		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 #		endif
 		public bool CanRedo
 		{
@@ -778,20 +693,9 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		public override string Text
 		{
-			get
-			{
-				// under unknown condition, Text property was called when a Form was disposed.
-				// take care of that case.
-				if( View == null || View.Document == null )
-					return null;
-
-				return View.Document.Text;
-			}
+			get{ return View.Document.Text; }
 			set
 			{
-				//if( View == null || View.Document == null )
-				//	return;
-
 				View.Document.Text = value;
 				View.SetDesiredColumn();
 				ScrollToCaret();
@@ -804,20 +708,10 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 #		if !PocketPC
 		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 #		endif
 		public int TextLength
 		{
 			get{ return View.Document.Length; }
-		}
-
-		/// <summary>
-		/// Gets a word at specified index.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
-		public string GetWordAt( int index )
-		{
-			return Document.GetWordAt( index );
 		}
 
 		/// <summary>
@@ -834,7 +728,6 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 #		if !PocketPC
 		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 #		endif
 		public int LineCount
 		{
@@ -953,97 +846,37 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		public void UpdateScrollBarRange()
 		{
-			int vMax, hMax;
-			int vPageSize, hPageSize;
-			int visibleLineCount;
+			int vRange, hRange;
 
-			// calculate vertical range and page size
-			visibleLineCount = View.VisibleSize.Height / View.LineSpacing;
-			if( View.LineCount >> 3 <= visibleLineCount )
+			// calculate range
+			vRange = View.LineCount - 1;
+			if( vRange <= 1 )
 			{
-				vPageSize = visibleLineCount;
+				vRange = 1;
 			}
-			else
-			{
-				vPageSize = View.LineCount >> 3;
-			}
-			vMax = View.LineCount - 1;
-			vMax += vPageSize - 1;
-
-			// calculate horizontal range and page size
-			hMax = View.TextAreaWidth;
-			hPageSize = View.VisibleSize.Width;
+			hRange = View.TextAreaWidth;
 
 			// update the range of vertical scrollbar
-			WinApi.SetScrollRange( Handle, false, 0, vMax, vPageSize );
+			WinApi.SetScrollRange( Handle, false, 0, vRange );
 			
 			// update the range of horizontal scrollbar
-			if( ShowsHScrollBar == false )
-				WinApi.SetScrollRange( Handle, true, 0, 0, hPageSize ); // bar will be hidden
+			if( ShowHScrollBar == false )
+				WinApi.SetScrollRange( Handle, true, 0, 0 ); // bar will be hidden
 			else
-				WinApi.SetScrollRange( Handle, true, 0, hMax, hPageSize );
-		}
-		#endregion
-
-		#region IUserInterface - Others
-		/// <summary>
-		/// Gets a graphic interface.
-		/// </summary>
-		public IGraphics GetIGraphics()
-		{
-			return Plat.Inst.GetGraphics( Handle );
-		}
-
-		/// <summary>
-		/// Gets or sets highlighter for currently active document.
-		/// Setting null to this property will disable highlighting.
-		/// See built-in highlighters for
-		/// <see cref="Sgry.Azuki.Highlighter.Highlighters">Highlighters</see>.
-		/// </summary>
-		/// <seealso cref="Sgry.Azuki.Highlighter.Highlighters"/>
-		/// <remarks>
-		/// Note that user can create and specify custom highlighter object.
-		/// If you want to create a keyword-based highlighter,
-		/// you can customize or extend
-		/// <see cref="Sgry.Azuki.Highlighter.KeywordHighlighter">KeywordHighlighter</see>.
-		/// If you want ot create not a keyword based one,
-		/// create a class which implements
-		/// <see cref="Sgry.Azuki.Highlighter.IHighlighter">IHighlighter</see>
-		/// and write your own highlighting logic.
-		/// </remarks>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
-		public IHighlighter Highlighter
-		{
-			get{ return _Impl.Highlighter; }
-			set{ _Impl.Highlighter = value; }
+				WinApi.SetScrollRange( Handle, true, 0, hRange );
 		}
 		#endregion
 
 		#region GUI Event Handling
 		void HandleWheelEvent( int scrollOffset )
 		{
-			// get modifier key state
-			bool shift = WinApi.IsKeyDown( Keys.ShiftKey );
-			bool control = WinApi.IsKeyDown( Keys.ControlKey );
-			bool alt = WinApi.IsKeyDown( Keys.Menu );
-
-			// dispatch mouse event
-			if( !control && !alt && shift )
+			int type = (scrollOffset < 0) ? WinApi.SB_LINEUP : WinApi.SB_LINEDOWN;
+			
+			if( WinApi.IsKeyDown(Keys.ShiftKey) )
 			{
-				int type = (scrollOffset < 0) ? WinApi.SB_LINEUP : WinApi.SB_LINEDOWN;
 				HandleHScrollEvent( type );
 			}
-			else if( control && !alt && !shift )
-			{
-				if( 0 < scrollOffset )
-					View.ZoomIn();
-				else
-					View.ZoomOut();
-			}
-			else if( !control && !alt && !shift )
+			else
 			{
 				View.Scroll( scrollOffset );
 			}
@@ -1126,7 +959,7 @@ namespace Sgry.Azuki.Windows
 
 		void Control_KeyDown( object sender, KeyEventArgs e )
 		{
-			_Impl.HandleKeyDown( (uint)e.KeyData );
+			_Impl.HandleKeyDown( (int)e.KeyData );
 		}
 
 		void Control_KeyPress( object sender, KeyPressEventArgs e )
@@ -1241,7 +1074,7 @@ namespace Sgry.Azuki.Windows
 		protected override bool IsInputKey( Keys keyData )
 		{
 			// is there an action associted with that key?
-			if( _Impl.IsKeyBindDefined((uint)keyData) )
+			if( _Impl.IsKeyBindDefined((int)keyData) )
 			{
 				return true;
 			}
@@ -1411,37 +1244,13 @@ namespace Sgry.Azuki.Windows
 				}
 				else if( message == WinApi.WM_MOUSEWHEEL )
 				{
-					// [*] on Vista x64, wParam value SHOULD be signed 64 bit like next:
-					// 0xFFFFFFFFFF880000
-					// but sometimes invalid value like next will be sent for same scroll action:
-					// 0x00000000FE980000
-					// so we should get extract 3rd and 4th byte and make it 16-bit int
-
-					int linesPerWheel;
-					Int16 wheelDelta;
-
-					// get line count to scroll on each wheel event
+					// in x64 environment, wParam value can be larger than Int32.MaxValue.
+					// so here we calculate delta in 64bit
+					int delta = (int)( (wParam.ToInt64() >> 16) / 120 );
 #					if !PocketPC
-					linesPerWheel = SystemInformation.MouseWheelScrollLines;
-#					else
-					linesPerWheel = 1;
+					delta *= SystemInformation.MouseWheelScrollLines;
 #					endif
-
-					// calculate wheel position
-					wheelDelta = (Int16)( wParam.ToInt64() << 32 >> 48 ); // [*]
-					_WheelPos += wheelDelta;
-
-					// do scroll when the scroll position exceeds threashould
-					if( 120 <= _WheelPos )
-					{
-						_WheelPos -= 120;
-						HandleWheelEvent( -linesPerWheel );
-					}
-					else if( _WheelPos <= -120 )
-					{
-						_WheelPos += 120;
-						HandleWheelEvent( linesPerWheel );
-					}
+					HandleWheelEvent( -delta );
 				}
 				else if( message == WinApi.WM_IME_STARTCOMPOSITION )
 				{

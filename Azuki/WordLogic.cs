@@ -1,7 +1,8 @@
 ﻿// file: WordLogic.cs
 // brief: Word detection logic for well Japanese handling
 // author: YAMAMOTO Suguru
-// update: 2008-10-13
+// encoding: UTF-8
+// update: 2008-06-15
 //=========================================================
 using System;
 using System.Text;
@@ -9,9 +10,9 @@ using System.Text;
 namespace Sgry.Azuki
 {
 	/// <summary>
-	/// Custom word detection logic for Azuki.
+	/// Custom word detection logic for Azuki
 	/// </summary>
-	public class WordLogic
+	class WordLogic
 	{
 		delegate bool ClassifyCharProc( TextBuffer text, int index );
 
@@ -19,14 +20,14 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Finds a word at specified index.
 		/// </summary>
-		public static void GetWordAt( Document doc, int index, out int wordBegin, out int wordEnd )
+		public static void GetWordAt( TextBuffer text, int index, out int wordBegin, out int wordEnd )
 		{
 			int ps, pe, ns, ne;
 
-			ps = PrevWordStart( doc, index );
-			pe = PrevWordEnd( doc, index );
-			ns = NextWordStartForMove( doc, index );
-			ne = NextWordEnd( doc, index );
+			ps = PrevWordStart( text, index );
+			pe = PrevWordEnd( text, index );
+			ns = NextWordStartForMove( text, index );
+			ne = NextWordEnd( text, index );
 
 			wordBegin = Math.Max( ps, pe );
 			wordEnd = Math.Min( ns, ne );
@@ -98,11 +99,10 @@ namespace Sgry.Azuki
 		/// Basically this is same logic as NextWordStart
 		/// except that this do not treat EOL code as a word.
 		/// </remarks>
-		public static int NextWordStartForMove( Document doc, int startIndex )
+		public static int NextWordStartForMove( TextBuffer text, int startIndex )
 		{
 			int index;
 			ClassifyCharProc isSameClass;
-			TextBuffer text = doc.InternalBuffer;
 			
 			// check start index
 			index = startIndex;
@@ -145,11 +145,10 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Finds previous word start location.
 		/// </summary>
-		public static int PrevWordStart( Document doc, int startIndex )
+		public static int PrevWordStart( TextBuffer text, int startIndex )
 		{
 			int index;
 			ClassifyCharProc isSameClass;
-			TextBuffer text = doc.InternalBuffer;
 			
 			// check start index
 			index = startIndex;
@@ -192,11 +191,10 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets previous word end location.
 		/// </summary>
-		public static int PrevWordEnd( Document doc, int startIndex )
+		public static int PrevWordEnd( TextBuffer text, int startIndex )
 		{
 			int index;
 			ClassifyCharProc isSameClass;
-			TextBuffer text = doc.InternalBuffer;
 			
 			// check start index
 			index = startIndex;
@@ -233,11 +231,10 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets start location of the next word.
 		/// </summary>
-		public static int NextWordStart( Document doc, int startIndex )
+		public static int NextWordStart( TextBuffer text, int startIndex )
 		{
 			int index;
 			ClassifyCharProc isSameClass;
-			TextBuffer text = doc.InternalBuffer;
 			
 			// check start index
 			index = startIndex - 1;
@@ -274,17 +271,16 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// get end location of the next word
 		/// </summary>
-		public static int NextWordEnd( Document doc, int startIndex )
+		public static int NextWordEnd( TextBuffer text, int startIndex )
 		{
 			int index;
 			ClassifyCharProc isSameClass;
-			TextBuffer text = doc.InternalBuffer;
 
 			// check start index
 			index = startIndex;
 			if( text.Count <= index )
 			{
-				return text.Count;
+				return text.Count - 1;
 			}
 			else if( index < 0 )
 			{
@@ -385,8 +381,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		static ClassifyCharProc ClassifyChar( TextBuffer text, int index )
 		{
-			if( IsDigit(text, index) )		return IsDigit;
 			if( IsAlphabet(text, index) )	return IsAlphabet;
+			if( IsDigit(text, index) )		return IsDigit;
 			if( IsWhiteSpace(text, index) )	return IsWhiteSpace;
 			if( IsPunct(text, index) )		return IsPunct;
 			if( IsEolCode(text, index) )	return IsEolCode;
@@ -418,51 +414,16 @@ namespace Sgry.Azuki
 		static ClassifyCharProc IsDigit = delegate( TextBuffer text, int index )
 		{
 			char ch = text[index];
-			
+
 			// is digit?
+			if( ch == 0x66 || ch == 0x69 || ch == 0x6a || ch == 0x6c || ch == 0x78 )
+				return true; // include some pre/postfixes: f, i, j, l, x
 			if( 0x30 <= ch && ch <= 0x39 ) // half-width digits
 				return true;
 			if( 0xff10 <= ch && ch <= 0xff19 ) // full-width digits
 				return true;
 			if( ch == 0x2e ) // '.' for float literal
 				return true;
-			
-			// include some postfixe alphabets
-			// (i, j is for complex numbers in Python)
-			if( (ch == 'f' || ch == 'l' || ch == 'i' || ch == 'j')
-				&& 1 <= index )
-			{
-				char ch2 = text[ index-1 ];
-				if( '0' <= ch && ch <= '9' )
-					return true;
-			}
-
-			// include 'x' of '0x'
-			if( ch == 'x'
-				&& 1 <= index && text[index-1] == '0' )
-			{
-				return true;
-			}
-
-			// include hexadecimal literals
-			if( ('a' <= ch && ch <= 'f' || 'A' <= ch && ch <= 'F')
-				&& 1 <= index )
-			{
-				// find 'x' backward for 16 characters at worst. return true if found.
-				int backCount = 1;
-				while( 0 <= index - backCount
-					&& backCount < 16
-					&& 'a' <= ch && ch <= 'f' || 'A' <= ch && ch <= 'F' || '0' <= ch && ch <= '9' )
-				{
-					ch = text[ index-backCount ];
-					if( ch == 'x' )
-					{
-						return true;
-					}
-
-					backCount++;
-				}
-			}
 
 			return false;
 		};
@@ -470,9 +431,6 @@ namespace Sgry.Azuki
 		static ClassifyCharProc IsPunct = delegate( TextBuffer text, int index )
 		{
 			char ch = text[index];
-			
-			if( ch == 0x5f ) // exclude '_'; is treated as an alphabet
-				return false;
 
 			if( 0x21 <= ch && ch <= 0x2f )
 				return true;
@@ -546,9 +504,9 @@ namespace Sgry.Azuki
 
 		static ClassifyCharProc IsUnknown = delegate( TextBuffer text, int index )
 		{
-			if( IsDigit(text, index) )
-				return false;
 			if( IsAlphabet(text, index) )
+				return false;
+			if( IsDigit(text, index) )
 				return false;
 			if( IsWhiteSpace(text, index) )
 				return false;

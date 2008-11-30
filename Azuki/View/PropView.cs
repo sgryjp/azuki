@@ -1,10 +1,9 @@
-﻿// file: PropView.cs
+﻿// file: PropWrapView.cs
 // brief: Platform independent view (propotional).
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// update: 2008-10-28
+// update: 2008-07-13
 //=========================================================
-//#define DRAW_SLOWLY
 using System;
 using System.Drawing;
 using System.Diagnostics;
@@ -178,25 +177,6 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Appearance Invalidating and Updating
-		/// <summary>
-		/// Requests to invalidate area covered by given text range.
-		/// </summary>
-		/// <param name="beginIndex">Begin text index of the area to be invalidated.</param>
-		/// <param name="endIndex">End text index of the area to be invalidated.</param>
-		public override void Invalidate( int beginIndex, int endIndex )
-		{
-			int beginLineHead, endLineHead;
-			int beginL, endL, dummy;
-
-			// get needed coordinates
-			GetLineColumnIndexFromCharIndex( beginIndex, out beginL, out dummy );
-			GetLineColumnIndexFromCharIndex( endIndex, out endL, out dummy );
-			beginLineHead = GetLineHeadIndex( beginL );
-			endLineHead = GetLineHeadIndex( endL );
-			
-			Invalidate( beginIndex, endIndex, beginL, endL, beginLineHead, endLineHead );
-		}
-
 		protected override void Doc_SelectionChanged( object sender, SelectionChangedEventArgs e )
 		{
 			Document doc = Document;
@@ -214,7 +194,7 @@ namespace Sgry.Azuki
 			if( e.OldAnchor == e.OldCaret
 				&& anchor == caret )
 			{
-				if( HighlightsCurrentLine
+				if( HighlightCurrentLine
 					&& _PrevCaretLine != caretLine )
 				{
 					Doc_SelectionChanged_UpdateCaretHighlight( _PrevCaretLine, caretLine );
@@ -230,7 +210,7 @@ namespace Sgry.Azuki
 			else
 			{
 				// if this is the beginning of selection, remove current line heighlight (underline)
-				if( HighlightsCurrentLine && e.OldCaret == e.OldAnchor )
+				if( HighlightCurrentLine && e.OldCaret == e.OldAnchor )
 				{
 					int y = GetVirPosFromIndex( e.OldCaret ).Y - (FirstVisibleLine * LineSpacing);
 					Invalidate(
@@ -304,6 +284,7 @@ namespace Sgry.Azuki
 		void Doc_SelectionChanged_OnExpandSel( SelectionChangedEventArgs e, int caretLine, int caretColumn )
 		{
 			Document doc = this.Document;
+			Rectangle upper, middle, lower;
 			int begin, beginL, beginC;
 			int end, endL, endC;
 			int beginLineHead, endLineHead;
@@ -330,8 +311,34 @@ namespace Sgry.Azuki
 			beginLineHead = GetLineHeadIndex( beginL );
 			endLineHead = GetLineHeadIndex( endL ); // if old caret is the end pos and if the pos exceeds current text length, this will fail.
 
-			// invalidate
-			Invalidate( begin, end, beginL, endL, beginLineHead, endLineHead );
+			// calculate upper part of the invalid area
+			String firstLinePart = doc.GetTextInRange( beginLineHead, begin );
+			upper = new Rectangle();
+			upper.X = MeasureTokenEndX( firstLinePart, 0 ) - (ScrollPosX - TextAreaX);
+			upper.Y = LineSpacing * beginL - (FirstVisibleLine * LineSpacing);
+			upper.Width = VisibleSize.Width - upper.X;
+			upper.Height = LineSpacing;
+
+			// calculate lower part of the invalid area
+			String finalLinePart = doc.GetTextInRange( endLineHead, end );
+			lower = new Rectangle();
+			lower.X = TextAreaX;
+			lower.Y = LineSpacing * endL - (FirstVisibleLine * LineSpacing);
+			lower.Width = MeasureTokenEndX( finalLinePart, 0 ) - ScrollPosX;
+			lower.Height = LineSpacing;
+
+			// calculate middle part of the invalid area
+			middle = new Rectangle();
+			middle.X = TextAreaX;
+			middle.Y = LineSpacing * (beginL + 1) - (FirstVisibleLine * LineSpacing);
+			middle.Width = VisibleSize.Width;
+			middle.Height = lower.Y - middle.Y;
+
+			// invalidate three rectangles
+			Invalidate( upper );
+			if( 0 < middle.Height )
+				Invalidate( middle );
+			Invalidate( lower );
 		}
 
 		void Doc_SelectionChanged_OnReleaseSel( SelectionChangedEventArgs e )
@@ -339,6 +346,9 @@ namespace Sgry.Azuki
 			// in this case, we must invalidate between
 			// old anchor pos and old caret pos.
 			Document doc = base.Document;
+			Rectangle upper = new Rectangle();
+			Rectangle middle = new Rectangle();
+			Rectangle lower = new Rectangle();
 			int beginLineHead, endLineHead;
 			int begin, beginL, beginC;
 			int end, endL, endC;
@@ -368,23 +378,44 @@ namespace Sgry.Azuki
 			// if old selection was in one line?
 			if( _PrevCaretLine == _PrevAnchorLine )
 			{
-				Rectangle rect = new Rectangle();
 				string textBeforeSel = doc.GetTextInRange( beginLineHead, begin );
 				string textSelected = doc.GetTextInRange( endLineHead, end );
 				int left = MeasureTokenEndX( textBeforeSel, 0 ) - (ScrollPosX - TextAreaX);
 				int right = MeasureTokenEndX( textSelected, 0 ) - (ScrollPosX - TextAreaX);
-				rect.X = left;
-				rect.Y = LineSpacing * beginL - (FirstVisibleLine * LineSpacing);
-				rect.Width = right - left;
-				rect.Height = LineSpacing;
-
-				Invalidate( rect );
+				upper.X = left;
+				upper.Y = LineSpacing * beginL - (FirstVisibleLine * LineSpacing);
+				upper.Width = right - left;
+				upper.Height = LineSpacing;
 			}
 			else
 			{
-				Invalidate( begin, end, beginL, endL, beginLineHead, endLineHead );
-				return;
+				// calculate upper part of the invalid area
+				string leftPart = doc.GetTextInRange( beginLineHead, begin );
+				upper.X = MeasureTokenEndX( leftPart, 0 ) - (ScrollPosX - TextAreaX);
+				upper.Y = LineSpacing * beginL - (FirstVisibleLine * LineSpacing);
+				upper.Width = VisibleSize.Width - upper.X;
+				upper.Height = LineSpacing;
+
+				// calculate lower part of the invalid area
+				string rightPart = doc.GetTextInRange( endLineHead, end );
+				lower.X = TextAreaX;
+				lower.Y = LineSpacing * endL - (FirstVisibleLine * LineSpacing);
+				lower.Width = MeasureTokenEndX( rightPart, 0 ) - ScrollPosX;
+				lower.Height = LineSpacing;
+
+				// calculate middle part of the invalid area
+				middle.X = TextAreaX;
+				middle.Y = LineSpacing * (beginL + 1) - (FirstVisibleLine * LineSpacing);
+				middle.Width = VisibleSize.Width;
+				middle.Height = lower.Y - middle.Y;
 			}
+
+			// invalidate three rectangles
+			Invalidate( upper );
+			if( 0 < middle.Height )
+				Invalidate( middle );
+			if( 0 < lower.Height )
+				Invalidate( lower );
 		}
 
 		protected override void Doc_ContentChanged( object sender, ContentChangedEventArgs e )
@@ -422,41 +453,6 @@ namespace Sgry.Azuki
 				Invalidate( invalidRect2 );
 			}
 		}
-
-		void Invalidate( int begin, int end, int beginLine, int endLine, int beginLineHead, int endLineHead )
-		{
-			Rectangle upper, lower, middle;
-			Document doc = Document;
-
-			// calculate upper part of the invalid area
-			String firstLinePart = doc.GetTextInRange( beginLineHead, begin );
-			upper = new Rectangle();
-			upper.X = MeasureTokenEndX( firstLinePart, 0 ) - (ScrollPosX - TextAreaX);
-			upper.Y = LineSpacing * beginLine - (FirstVisibleLine * LineSpacing);
-			upper.Width = VisibleSize.Width - upper.X;
-			upper.Height = LineSpacing;
-
-			// calculate lower part of the invalid area
-			String finalLinePart = doc.GetTextInRange( endLineHead, end );
-			lower = new Rectangle();
-			lower.X = TextAreaX;
-			lower.Y = LineSpacing * endLine - (FirstVisibleLine * LineSpacing);
-			lower.Width = MeasureTokenEndX( finalLinePart, 0 ) - ScrollPosX;
-			lower.Height = LineSpacing;
-
-			// calculate middle part of the invalid area
-			middle = new Rectangle();
-			middle.X = TextAreaX;
-			middle.Y = LineSpacing * (beginLine + 1) - (FirstVisibleLine * LineSpacing);
-			middle.Width = VisibleSize.Width;
-			middle.Height = lower.Y - middle.Y;
-
-			// invalidate three rectangles
-			Invalidate( upper );
-			if( 0 < middle.Height )
-				Invalidate( middle );
-			Invalidate( lower );
-		}
 		#endregion
 
 		#region Painting
@@ -473,8 +469,8 @@ namespace Sgry.Azuki
 			Point pos = new Point();
 
 			// prepare off-screen buffer
-#			if !DRAW_SLOWLY && !PocketPC
-			_Gra.BeginPaint( clipRect );
+#			if !DRAW_SLOWLY
+//			_Gra.BeginPaint( clipRect );
 #			endif
 
 			// draw all lines
@@ -496,13 +492,13 @@ namespace Sgry.Azuki
 
 			// flush drawing results BEFORE updating current line highlight
 			// because the highlight graphic is never limited to clipping rect
-#			if !DRAW_SLOWLY && !PocketPC
-			_Gra.EndPaint();
+#			if !DRAW_SLOWLY
+//			_Gra.EndPaint();
 #			endif
 
 			// draw underline to highlight current line if there is no selection
 			Document.GetSelection( out selBegin, out selEnd );
-			if( HighlightsCurrentLine && selBegin == selEnd )
+			if( HighlightCurrentLine && selBegin == selEnd )
 			{
 				int caretLine, caretPosY;
 

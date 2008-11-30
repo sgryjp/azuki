@@ -2,7 +2,7 @@
 // brief: Logics to manipulate line/column in a string.
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// update: 2008-11-03
+// update: 2008-06-10
 //=========================================================
 using System;
 using System.Collections;
@@ -37,7 +37,7 @@ namespace Sgry.Azuki
 				}
 				else
 				{
-					throw new ArgumentOutOfRangeException( String.Format("specified column index was too large (given:{0} actual line length:{1})", columnIndex, lineLength) );
+					throw new ArgumentException( String.Format("specified column index was too large (given:{0} actual line length:{1})", columnIndex, lineLength) );
 				}
 			}
 #			endif
@@ -168,39 +168,19 @@ namespace Sgry.Azuki
 		#region Line Head Index Management
 		/// <summary>
 		/// Maintain line head indexes for text insertion.
-		/// THIS MUST BE CALLED BEFORE ACTUAL INSERTION.
 		/// </summary>
 		public static void LHI_Insert( SplitArray<int> lhi, TextBuffer text, string insertText, int insertIndex )
 		{
-			DebugUtl.Assert( lhi != null && 0 < lhi.Count && lhi[0] == 0, "lhi must have 0 as a first member." );
-			DebugUtl.Assert( insertText != null && 0 < insertText.Length, "insertText must not be null nor empty." );
-			DebugUtl.Assert( 0 <= insertIndex && insertIndex <= text.Count, "insertIndex is out of range ("+insertIndex+")." );
-			int insTargetLine, dummy;
+			DebugUtl.Assert( 0 < lhi.Count && lhi[0] == 0, "lhi must have 0 as a first member." );
+			int insL, insC;
 			int lineHeadIndex;
 			int lineEndIndex;
 			int insLineCount;
 
 			// at first, find the line which contains the insertion point
-			GetLineColumnIndexFromCharIndex( text, lhi, insertIndex, out insTargetLine, out dummy );
+			GetLineColumnIndexFromCharIndex( text, lhi, insertIndex, out insL, out insC );
 
-			// if the inserting divides a CR+LF, insert an entry for the CR separated
-			if( 0 < insertIndex && text[insertIndex-1] == '\r'
-				&& insertIndex < text.Count && text[insertIndex] == '\n' )
-			{
-				lhi.Insert( insTargetLine+1, insertIndex );
-				insTargetLine++;
-			}
-
-			// if inserted text begins with LF and is inserted just after a CR,
-			// remove this CR's entry
-			if( 0 < insertIndex && text[insertIndex-1] == '\r'
-				&& 0 < insertText.Length && insertText[0] == '\n' )
-			{
-				lhi.Delete( insTargetLine, insTargetLine+1 );
-				insTargetLine--;
-			}
-
-			// insert line index entries to LHI
+			// if multiple lines are inserted, insert line index entry to LHI
 			insLineCount = 1;
 			lineHeadIndex = 0;
 			do
@@ -209,11 +189,11 @@ namespace Sgry.Azuki
 				lineEndIndex = NextLineHead( insertText, lineHeadIndex ) - 1;
 				if( lineEndIndex == -2 ) // == "if NextLineHead returns -1"
 				{
-					// no more lines following to this line.
+					// no more lines are followred to this line.
 					// this is the final line. no need to insert new entry
 					break;
 				}
-				lhi.Insert( insTargetLine+insLineCount, insertIndex+lineEndIndex+1 );
+				lhi.Insert( insL+insLineCount, insertIndex+lineEndIndex+1 );
 				insLineCount++;
 
 				// find next line head
@@ -221,18 +201,8 @@ namespace Sgry.Azuki
 			}
 			while( lineHeadIndex != -1 );
 
-			// if inserted text is ending with CR and is inserted just before a LF,
-			// remove this CR's entry
-			if( 0 < insertText.Length && insertText[insertText.Length - 1] == '\r'
-				&& insertIndex < text.Count && text[insertIndex] == '\n' )
-			{
-				int lastInsertedLine = insTargetLine + insLineCount - 1;
-				lhi.Delete( lastInsertedLine, lastInsertedLine+1 );
-				insTargetLine--;
-			}
-
 			// shift all followings
-			for( int i=insTargetLine+insLineCount; i<lhi.Count; i++ )
+			for( int i=insL+insLineCount; i<lhi.Count; i++ )
 			{
 				lhi[i] += insertText.Length;
 			}
@@ -240,38 +210,17 @@ namespace Sgry.Azuki
 		
 		/// <summary>
 		/// Maintain line head indexes for text deletion.
-		/// THIS MUST BE CALLED BEFORE ACTUAL DELETION.
+		/// THIS MUST BE CALLED BEFORE DELETING.
 		/// </summary>
 		public static void LHI_Delete( SplitArray<int> lhi, TextBuffer text, int delBegin, int delEnd )
 		{
-			DebugUtl.Assert( lhi != null && 0 < lhi.Count && lhi[0] == 0, "lhi must have 0 as a first member." );
-			DebugUtl.Assert( 0 <= delBegin && delBegin < text.Count, "delBegin is out of range." );
-			DebugUtl.Assert( delBegin <= delEnd && delEnd <= text.Count, "delEnd is out of range." );
-			int delFromL, delToL;
-			int dummy;
+			DebugUtl.Assert( 0 < lhi.Count && lhi[0] == 0, "lhi must have 0 as a first member." );
+			int delFromL, delFromC, delToL, delToC;
 			int delLen = delEnd - delBegin;
 			
 			// calculate line indexes of both ends of the range
-			GetLineColumnIndexFromCharIndex( text, lhi, delBegin, out delFromL, out dummy );
-			GetLineColumnIndexFromCharIndex( text, lhi, delEnd, out delToL, out dummy );
-
-			if( 0 < delBegin && text[delBegin-1] == '\r' )
-			{
-				if( delEnd < text.Count && text[delEnd] == '\n' )
-				{
-					// if the deletion creates a new CR+LF, delete an entry of the CR
-					lhi.Delete( delToL, delToL+1 );
-					delToL--;
-				}
-				else if( text[delBegin] == '\n' )
-				{
-					// if the deletion divides a CR+LF at left side of deletion range,
-					// insert an entry for the CR
-					lhi.Insert( delToL, delBegin );
-					delFromL++;
-					delToL++;
-				}
-			}
+			GetLineColumnIndexFromCharIndex( text, lhi, delBegin, out delFromL, out delFromC );
+			GetLineColumnIndexFromCharIndex( text, lhi, delEnd, out delToL, out delToC );
 
 			// subtract line head indexes for lines after deletion point
 			for( int i=delToL+1; i<lhi.Count; i++ )

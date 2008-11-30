@@ -5,12 +5,12 @@
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{2A084F07-8BE9-4175-833F-25D1347755E2}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>
     </AppDesignerFolder>
-    <RootNamespace>Sgry.Ann</RootNamespace>
-    <AssemblyName>Ann</AssemblyName>
-    <StartupObject>Sgry.Ann.Program</StartupObject>
+    <RootNamespace>Sgry.Azuki</RootNamespace>
+    <AssemblyName>AzukiSample</AssemblyName>
+    <StartupObject>Sgry.Azuki.Windows.AzukiSample</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -42,33 +42,11 @@
     <Reference Include="Azuki" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Actions.Edit.cs" />
-    <Compile Include="Actions.File.cs" />
-    <Compile Include="Actions.Tool.cs" />
-    <Compile Include="Actions.View.cs" />
-    <Compile Include="Actions.Window.cs" />
-    <Compile Include="AnnForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="AppConfig.cs" />
-    <Compile Include="AppLogic.cs" />
-    <Compile Include="Document.cs" />
-    <Compile Include="DocumentListForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="DrawingOptionForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="EncodingAnalyzer.cs" />
-    <Compile Include="FileType.cs" />
-    <Compile Include="Ini.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="AzukiSample.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
