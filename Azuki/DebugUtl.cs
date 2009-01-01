@@ -1,6 +1,6 @@
 // file: DebugUtl.cs
 // brief: Sgry's utilities for debug
-// update: 2008-12-31
+// update: 2008-12-28
 //=========================================================
 using System;
 using System.IO;
@@ -233,12 +233,8 @@ namespace Sgry
 #	if DEBUG
 	class TestUtl
 	{
+		public static bool ErrorOccured = false;
 		public static int ErrorCount = 0;
-
-		public static bool ErrorOccured
-		{
-			get{ return (0 < ErrorCount); }
-		}
 
 		[Conditional("DEBUG")]
 		public static void AssertEquals( object expected, object actual )
@@ -311,6 +307,7 @@ namespace Sgry
 				WriteLineWithChar( Console.Error, '=' );
 				Console.Error.WriteLine();
 				Console.ForegroundColor = orgColor;
+				ErrorOccured = true;
 				ErrorCount++;
 			}
 		}

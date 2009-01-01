@@ -1,4 +1,4 @@
-﻿// 2008-12-31
+﻿// 2008-06-17
 #if DEBUG
 using System;
 
@@ -13,21 +13,18 @@ namespace Sgry.Azuki.Test
 			SplitArrayTest.Test();
 			DocumentTest.Test();
 			KeywordHighlighterTest.Test();
-			
 			if( TestUtl.ErrorOccured )
 			{
 				Console.ForegroundColor = ConsoleColor.Red;
-				Console.Error.WriteLine( "ERROR (count:{0})", TestUtl.ErrorCount );
+				Console.Error.WriteLine( "{0} error(s) occured.", TestUtl.ErrorCount );
 				Console.ResetColor();
-			}
-			else
-			{
-				Console.ForegroundColor = ConsoleColor.Green;
-				Console.Error.WriteLine( "SUCCESS" );
-				Console.ResetColor();
+				return 1;
 			}
 
-			return TestUtl.ErrorCount;
+			Console.ForegroundColor = ConsoleColor.Green;
+			Console.Error.WriteLine( "test succeeded." );
+			Console.ResetColor();
+			return 0;
 		}
 	}
 }
