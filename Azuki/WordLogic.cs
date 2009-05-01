@@ -1,7 +1,7 @@
 ﻿// file: WordLogic.cs
 // brief: Word detection logic for well Japanese handling
 // author: YAMAMOTO Suguru
-// update: 2009-05-01
+// update: 2009-01-12
 //=========================================================
 using System;
 using System.Text;
@@ -13,7 +13,6 @@ namespace Sgry.Azuki
 	/// </summary>
 	class WordLogic
 	{
-		const int MaxHexIntLiteralLen = 32;
 		delegate bool ClassifyCharProc( TextBuffer text, int index );
 
 		#region Word detection logic
@@ -403,22 +402,6 @@ namespace Sgry.Azuki
 		{
 			char ch = text[index];
 
-			// take care of some letters that are used for integer literals
-			if( ch == 'x'
-				&& 0 <= index-1
-				&& text[index-1] == '0' )
-			{
-				return false;
-			}
-			if( ch == 'f' || ch == 'l' || ch == 'i' || ch == 'j' )
-			{
-				if( 0 <= index-1
-					&& ('0' <= text[index-1] && text[index-1] <= '9') )
-				{
-					return false;
-				}
-			}
-
 			// is alphabet?
 			if( ch == 0x5f ) // include '_'
 				return true;
@@ -465,22 +448,22 @@ namespace Sgry.Azuki
 
 			// include hexadecimal literals
 			if( ('a' <= ch && ch <= 'f' || 'A' <= ch && ch <= 'F')
-				&& 2 <= index )
+				&& 1 <= index )
 			{
-				// find "0x" backward
-				int i = index;
-				int limit = Math.Max( 1, index-MaxHexIntLiteralLen );
-				do
+				// find 'x' backward for 16 characters at worst. return true if found.
+				int backCount = 1;
+				while( 0 <= index - backCount
+					&& backCount < 16
+					&& 'a' <= ch && ch <= 'f' || 'A' <= ch && ch <= 'F' || '0' <= ch && ch <= '9' )
 				{
-					i--;
-					ch = text[i];
-					if( ch == 'x' && text[i-1] == '0' )
+					ch = text[ index-backCount ];
+					if( ch == 'x' )
 					{
 						return true;
 					}
+
+					backCount++;
 				}
-				while( limit < i
-					&& 'a' <= ch && ch <= 'f' || 'A' <= ch && ch <= 'F' || '0' <= ch && ch <= '9' );
 			}
 
 			return false;
@@ -584,10 +567,9 @@ namespace Sgry.Azuki
 		};
 		#endregion
 
-		#region Utilities
 		static int PrevValidPos( TextBuffer text, int index )
 		{
-			if( index-1 < 0 )
+			if( index-1 <= 0 )
 				return 0;
 
 			char ch1 = text[ index-1 ];
@@ -604,6 +586,5 @@ namespace Sgry.Azuki
 
 			return index;
 		}
-		#endregion
 	}
 }

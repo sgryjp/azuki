@@ -1,7 +1,7 @@
 ﻿// file: UiImpl.cs
 // brief: User interface logic that independent from platform.
 // author: YAMAMOTO Suguru
-// update: 2009-04-25
+// update: 2009-04-18
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,6 @@ namespace Sgry.Azuki
 
 		IDictionary< uint, ActionProc > _KeyMap = new Dictionary< uint, ActionProc >( 32 );
 		AutoIndentHook _AutoIndentHook = null;
-		char _FirstSurrogateChar = '\0';
 		bool _IsOverwriteMode = false;
 		bool _ConvertsTabToSpaces = false;
 		bool _ConvertsFullWidthSpaceToSpace = false;
@@ -214,13 +213,11 @@ namespace Sgry.Azuki
 		#region Key Handling
 		public ActionProc GetKeyBind( uint keyCode )
 		{
-			ActionProc proc;
-
-			if( _KeyMap.TryGetValue(keyCode, out proc) == true )
+			try
 			{
-				return proc;
+				return _KeyMap[ keyCode ];
 			}
-			else
+			catch( KeyNotFoundException )
 			{
 				return null;
 			}
@@ -272,33 +269,9 @@ namespace Sgry.Azuki
 				goto update;
 			}
 
-			// handle surrogate pairs
-			if( Char.IsSurrogate(ch) )
-			{
-				if( _FirstSurrogateChar == '\0' )
-				{
-					// this is first char of a surrogate pair. remember it.
-					_FirstSurrogateChar = ch;
-					return;
-				}
-			}
-			else
-			{
-				// Azuki accepts surrogate pairs only if it was continuously inserted.
-				// so we clear the history
-				_FirstSurrogateChar = '\0';
-			}
-
 			// make string to be inserted
 			doc.GetSelection( out selBegin, out selEnd );
-			if( _FirstSurrogateChar != '\0' )
-			{
-				// this is a second char of a surrogate pair.
-				// compose the surrogate pair
-				str = "" + _FirstSurrogateChar + ch;
-				_FirstSurrogateChar = '\0';
-			}
-			else if( LineLogic.IsEolChar(ch) )
+			if( LineLogic.IsEolChar(ch) )
 			{
 				str = doc.EolCode;
 			}

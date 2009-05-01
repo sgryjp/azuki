@@ -1,7 +1,7 @@
 // file: SplitArray.cs
 // brief: Data structure holding a 'gap' in it for efficient insert/delete operation.
 // author: YAMAMOTO Suguru
-// update: 2009-04-25
+// update: 2009-04-13
 //=========================================================
 //#define ENABLE_TRACE_WITH_DUMP
 using System;
@@ -49,7 +49,6 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
-		#region ToArray
 		/// <summary>
 		/// Creates a copy of the content as an array by using given converter.
 		/// </summary>
@@ -79,9 +78,7 @@ namespace Sgry.Azuki
 
 			return array;
 		}
-		#endregion
 
-		#region Count and Capacity
 		/// <summary>
 		/// Gets count of the elements currently stored.
 		/// </summary>
@@ -91,14 +88,12 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets or sets the size of the internal buffer.
+		/// Sets the size of the internal buffer.
 		/// </summary>
 		public virtual int Capacity
 		{
-			get{ return _Data.Length; }
 			set{ this.EnsureSpaceForInsertion(value); }
 		}
-		#endregion
 
 		#region Content Access
 		/// <summary>
