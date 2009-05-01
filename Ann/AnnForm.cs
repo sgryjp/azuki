@@ -1,4 +1,4 @@
-// 2009-04-25
+// 2009-03-02
 using System;
 using System.Drawing;
 using System.Collections.Generic;
@@ -90,26 +90,27 @@ namespace Sgry.Ann
 		void HandleMenuAction( object sender, EventArgs e )
 		{
 			Debug.Assert( sender is MenuItem );
-			AnnAction action;
 
 			MenuItem mi = (MenuItem)sender;
-			if( _MenuMap.TryGetValue(mi, out action) )
+			try
 			{
-				action( _App );
+				_MenuMap[ mi ]( _App );
 			}
+			catch( KeyNotFoundException )
+			{}
 		}
 
 		void HandleKeyAction( object sender, KeyEventArgs e )
 		{
-			AnnAction action;
-
-			if( _Azuki.GetKeyBind(e.KeyData) == null )
+			try
 			{
-				if( _KeyMap.TryGetValue(e.KeyData, out action) )
+				if( _Azuki.GetKeyBind(e.KeyData) == null )
 				{
-					action( _App );
+					_KeyMap[ e.KeyData ]( _App );
 				}
 			}
+			catch( KeyNotFoundException )
+			{}
 		}
 
 		void InitMenuMap()

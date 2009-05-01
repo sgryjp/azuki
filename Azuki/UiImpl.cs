@@ -1,7 +1,7 @@
 ﻿// file: UiImpl.cs
 // brief: User interface logic that independent from platform.
 // author: YAMAMOTO Suguru
-// update: 2009-04-25
+// update: 2009-02-07
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,6 @@ namespace Sgry.Azuki
 
 		IDictionary< uint, ActionProc > _KeyMap = new Dictionary< uint, ActionProc >( 32 );
 		AutoIndentHook _AutoIndentHook = null;
-		char _FirstSurrogateChar = '\0';
 		bool _IsOverwriteMode = false;
 		bool _ConvertsTabToSpaces = false;
 		bool _ConvertsFullWidthSpaceToSpace = false;
@@ -51,7 +50,6 @@ namespace Sgry.Azuki
 			_View = new PropView( ui );
 
 			_HighlighterThread = new Thread( HighlighterThreadProc );
-			_HighlighterThread.Priority = ThreadPriority.BelowNormal;
 			_HighlighterThread.Start();
 		}
 
@@ -214,13 +212,11 @@ namespace Sgry.Azuki
 		#region Key Handling
 		public ActionProc GetKeyBind( uint keyCode )
 		{
-			ActionProc proc;
-
-			if( _KeyMap.TryGetValue(keyCode, out proc) == true )
+			try
 			{
-				return proc;
+				return _KeyMap[ keyCode ];
 			}
-			else
+			catch( KeyNotFoundException )
 			{
 				return null;
 			}
@@ -272,33 +268,9 @@ namespace Sgry.Azuki
 				goto update;
 			}
 
-			// handle surrogate pairs
-			if( Char.IsSurrogate(ch) )
-			{
-				if( _FirstSurrogateChar == '\0' )
-				{
-					// this is first char of a surrogate pair. remember it.
-					_FirstSurrogateChar = ch;
-					return;
-				}
-			}
-			else
-			{
-				// Azuki accepts surrogate pairs only if it was continuously inserted.
-				// so we clear the history
-				_FirstSurrogateChar = '\0';
-			}
-
 			// make string to be inserted
 			doc.GetSelection( out selBegin, out selEnd );
-			if( _FirstSurrogateChar != '\0' )
-			{
-				// this is a second char of a surrogate pair.
-				// compose the surrogate pair
-				str = "" + _FirstSurrogateChar + ch;
-				_FirstSurrogateChar = '\0';
-			}
-			else if( LineLogic.IsEolChar(ch) )
+			if( LineLogic.IsEolChar(ch) )
 			{
 				str = doc.EolCode;
 			}
@@ -377,14 +349,14 @@ namespace Sgry.Azuki
 
 			while( true )
 			{
-				// wait while the flag is down
+				// wait until the flag was set down
 				while( _ShouldBeHighlighted == false )
 				{
 					Thread.Sleep( HighlightInterval );
 				}
 				_ShouldBeHighlighted = false;
 
-				// wait a moment and check if the flag is still up
+				// wait a moment and check if 
 				Thread.Sleep( HighlightInterval );
 				if( _ShouldBeHighlighted != false || _UI.Document == null )
 				{
@@ -454,13 +426,6 @@ namespace Sgry.Azuki
 
 		internal void HandleMouseDown( int buttonIndex, Point pos, bool shift, bool ctrl, bool alt, bool win )
 		{
-			// if mouse-down coordinate is out of window, this is not a normal event so ignore this
-			if( pos.X < 0 || pos.Y < 0 )
-			{
-				return;
-			}
-
-			// remember mouse down screen position and convert it to virtual view's coordinate
 			_MouseDownPos = pos;
 			View.ScreenToVirtual( ref pos );
 
@@ -480,7 +445,7 @@ namespace Sgry.Azuki
 				View.ScrollToCaret();
 			}
 		}
-
+		
 		internal void HandleMouseUp( int buttonIndex, Point pos, bool shift, bool ctrl, bool alt, bool win )
 		{
 			_MouseDownPos.X = -1;
@@ -492,9 +457,6 @@ namespace Sgry.Azuki
 			int index;
 			int begin, end;
 
-			// convert screen coordinate to virtual view coordinate
-			pos.X = Math.Max( 0, pos.X );
-			pos.Y = Math.Max( 0, pos.Y );
 			View.ScreenToVirtual( ref pos );
 
 			// get range of a word at clicked location
@@ -504,7 +466,7 @@ namespace Sgry.Azuki
 			{
 				return;
 			}
-
+			
 			// select the word.
 			// (because Azuki's invalidation logic only supports
 			// selection change by keyboard commands,
@@ -518,10 +480,6 @@ namespace Sgry.Azuki
 			// if mouse button was not down, ignore
 			if( _MouseDownPos.X < 0 )
 				return;
-
-			// make sure that these coordinates are positive value
-			pos.X = Math.Max( 0, pos.X );
-			pos.Y = Math.Max( 0, pos.Y );
 
 			// if the movement is very slightly, ignore
 			if( _MouseDragging == false )

@@ -1,9 +1,8 @@
-﻿// 2009-04-20
+﻿// 2008-11-24
 using System;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
-using Encoding = System.Text.Encoding;
 
 namespace Sgry.Ann
 {
@@ -23,10 +22,10 @@ namespace Sgry.Ann
 			
 			try
 			{
-				ini.Load( IniFilePath, Encoding.UTF8 );
+				ini.LoadFromFile( IniFilePath );
 
-				int fontSize = ini.Get( "Default", "FontSize", 11 );
-				str = ini.Get( "Default", "Font", null );
+				int fontSize = ini.TryGetInt( "Default", "FontSize", 11 );
+				str = ini.TryGetString( "Default", "Font", null );
 				AppConfig.Font = new Font( str, fontSize, FontStyle.Regular );
 			}
 			catch

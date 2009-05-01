@@ -1,7 +1,7 @@
 // file: XmlHighlighter.cs
 // brief: Highlighter for XML.
 // author: YAMAMOTO Suguru
-// update: 2009-04-12
+// update: 2009-01-12
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -79,10 +79,14 @@ namespace Sgry.Azuki.Highlighter
 			{
 				dirtyBegin = 0;
 			}
-			dirtyEnd = doc.Length;
+			dirtyEnd = HighlighterUtl.Find( doc, ">", dirtyEnd, doc.Length );
+			if( dirtyEnd == -1 )
+			{
+				dirtyEnd = doc.Length;
+			}
 
 			// seek each tags
-			index = 0;
+			index = HighlighterUtl.Find( doc, "<", dirtyBegin, doc.Length );
 			while( 0 <= index && index < dirtyEnd )
 			{
 				if( HighlighterUtl.StartsWith(doc, "<!--", index) )
@@ -93,11 +97,9 @@ namespace Sgry.Azuki.Highlighter
 					{
 						// successfully highlighted. skip to next.
 						index = nextIndex;
-						continue;
 					}
 				}
-
-				if( doc[index] == '<' )
+				else
 				{
 					// set class for '<'
 					doc.SetCharClass( index, CharClass.Delimitter );
@@ -160,15 +162,17 @@ namespace Sgry.Azuki.Highlighter
 						doc.SetCharClass( index, CharClass.Delimitter );
 						if( 1 <= index && doc[index-1] == '/' )
 							doc.SetCharClass( index-1, CharClass.Delimitter );
-						index++;
 					}
 				}
-				else
-				{
-					// normal character.
-					doc.SetCharClass( index, CharClass.Normal );
-					index++;
-				}
+
+				// seek to next tag
+				index = HighlighterUtl.Find( doc, "<", index, doc.Length );
+			}
+
+			// expand invalaidation range
+			if( 0 <= index && index < doc.Length )
+			{
+				dirtyEnd = HighlighterUtl.Find( doc, ">", index, doc.Length );
 			}
 		}
 
@@ -200,8 +204,10 @@ namespace Sgry.Azuki.Highlighter
 						doc.SetCharClass( i, pair.klass );
 					return doc.Length;
 				}
-
-				return startIndex;
+				else
+				{
+					return startIndex;
+				}
 			}
 
 			// highlight enclosed part

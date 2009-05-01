@@ -25,13 +25,6 @@ namespace Sgry.Azuki.Highlighter
 		
 		/// <summary>Escape char used in the enclosing pair.</summary>
 		public char escape;
-
-#		if DEBUG
-		public override string ToString()
-		{
-			return opener + "..." + closer;
-		}
-#		endif
 	}
 
 	static class HighlighterUtl

@@ -1,4 +1,4 @@
-// 2009-04-20
+// 2009-03-02
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -99,18 +99,10 @@ namespace Sgry.Ann
 				if( _DAD_ActiveDocument == value )
 					return;
 
-				// save state of the document being deactivated
-				if( _DAD_ActiveDocument != null )
-				{
-					_DAD_ActiveDocument.FirstVisibleLineIndex = MainForm.Azuki.View.FirstVisibleLine;
-				}
-
 				// activate document
 				_DAD_ActiveDocument = value;
 				MainForm.Azuki.Document = ActiveDocument.AzukiDoc;
 				MainForm.Azuki.ScrollToCaret();
-				MainForm.Azuki.View.FirstVisibleLine = _DAD_ActiveDocument.FirstVisibleLineIndex;
-				MainForm.Azuki.UpdateCaretGraphic();
 
 				// update UI
 				MainForm.ResetText();
@@ -272,7 +264,7 @@ namespace Sgry.Ann
 		{
 			Document doc;
 			StreamReader file = null;
-			char[] buf = null;
+			char[] buf = new char[ 4096 ];
 			int readCount = 0;
 
 			// if specified file was already opened, just return the document
@@ -297,17 +289,6 @@ namespace Sgry.Ann
 			// load file content
 			using( file = new StreamReader(filePath, encoding) )
 			{
-				// prepare load buffer
-				doc.AzukiDoc.Capacity = (int)file.BaseStream.Length;
-				if( file.BaseStream.Length < 1024*1024 )
-				{
-					buf = new char[ file.BaseStream.Length ];
-				}
-				else
-				{
-					buf = new char[ (file.BaseStream.Length+10) / 10 ];
-				}
-
 				while( !file.EndOfStream )
 				{
 					readCount = file.Read( buf, 0, buf.Length-1 );
@@ -715,7 +696,7 @@ namespace Sgry.Ann
 		{
 			public static void AnalyzeEncoding( string filePath, out Encoding encoding, out bool withBom )
 			{
-				const int MaxSize = 50 * 1024;
+				const int OneMega = 1024 * 1024;
 				Stream file = null;
 				byte[] data;
 				int dataSize;
@@ -725,13 +706,13 @@ namespace Sgry.Ann
 					using( file = File.OpenRead(filePath) )
 					{
 						// prepare buffer
-						if( MaxSize < file.Length )
-							dataSize = MaxSize;
+						if( OneMega < file.Length )
+							dataSize = OneMega;
 						else
 							dataSize = (int)file.Length;
 						data = new byte[ dataSize ];
 
-						// read data at maximum 50KB
+						// read data at maximum 1MB
 						file.Read( data, 0, dataSize );
 						encoding = EncodingAnalyzer.Analyze( data, out withBom );
 						if( encoding == null )
