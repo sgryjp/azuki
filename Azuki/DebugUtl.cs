@@ -1,6 +1,6 @@
 // file: DebugUtl.cs
 // brief: Sgry's utilities for debug
-// update: 2009-05-16
+// update: 2009-02-22
 //=========================================================
 using System;
 using System.IO;
@@ -225,7 +225,7 @@ namespace Sgry
 	}
 
 	#region Minimal Testing Framework
-#	if DEBUG && !PocketPC
+#	if DEBUG
 	/// <summary>
 	/// Test utility.
 	/// </summary>

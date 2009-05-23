@@ -1,4 +1,4 @@
-// 2009-05-16
+// 2009-04-20
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -297,12 +297,8 @@ namespace Sgry.Ann
 			// load file content
 			using( file = new StreamReader(filePath, encoding) )
 			{
-				// expand internal buffer size before loading file
-				// (estimating needed buffer size by a half of byte-count of file)
-				doc.AzukiDoc.Capacity = (int)( file.BaseStream.Length / 2 );
-
 				// prepare load buffer
-				// (if the file is larger than 1MB, separate by 10 and load for each)
+				doc.AzukiDoc.Capacity = (int)file.BaseStream.Length;
 				if( file.BaseStream.Length < 1024*1024 )
 				{
 					buf = new char[ file.BaseStream.Length ];
@@ -312,7 +308,6 @@ namespace Sgry.Ann
 					buf = new char[ (file.BaseStream.Length+10) / 10 ];
 				}
 
-				// read
 				while( !file.EndOfStream )
 				{
 					readCount = file.Read( buf, 0, buf.Length-1 );
@@ -474,13 +469,11 @@ namespace Sgry.Ann
 				if( doc.FilePath != null )
 				{
 					// set initial directory to that containing currently active file if exists
-#					if !PocketPC
 					string dirPath = Path.GetDirectoryName( doc.FilePath );
 					if( Directory.Exists(dirPath) )
 					{
 						dialog.InitialDirectory = dirPath;
 					}
-#					endif
 
 					// set initial file name
 					dialog.FileName = Path.GetFileName( doc.FilePath );

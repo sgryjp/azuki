@@ -26,7 +26,7 @@ namespace Sgry.Azuki
 #		endif
 		IUserInterface _UI;
 		View _View = null;
-		ViewType _ViewType = ViewType.Proportional;
+		ViewType _ViewType = ViewType.Propotional;
 
 		IDictionary< uint, ActionProc > _KeyMap = new Dictionary< uint, ActionProc >( 32 );
 		AutoIndentHook _AutoIndentHook = null;
@@ -131,10 +131,10 @@ namespace Sgry.Azuki
 				// switch to new view object
 				switch( value )
 				{
-					case ViewType.WrappedProportional:
+					case ViewType.WrappedPropotional:
 						View = new PropWrapView( View );
 						break;
-					//case ViewType.Proportional:
+					//case ViewType.Propotional:
 					default:
 						View = new PropView( View );
 						break;

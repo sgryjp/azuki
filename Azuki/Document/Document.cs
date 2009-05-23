@@ -1,7 +1,7 @@
 // file: Document.cs
 // brief: Document of Azuki engine.
 // author: YAMAMOTO Suguru
-// update: 2009-05-16
+// update: 2009-04-13
 //=========================================================
 using System;
 using System.Collections;
@@ -22,7 +22,11 @@ namespace Sgry.Azuki
 	public class Document : IEnumerable
 	{
 		#region Fields
-		TextBuffer _Buffer = new TextBuffer( 512, 256 );
+#		if DEBUG
+		TextBuffer _Buffer = new TextBuffer( 4, 4 );
+#		else
+		TextBuffer _Buffer = new TextBuffer( 1024, 256 );
+#		endif
 		SplitArray<int> _LHI = new SplitArray<int>( 64 ); // line head indexes
 		EditHistory _History = new EditHistory();
 		int _CaretIndex = 0;
@@ -32,7 +36,6 @@ namespace Sgry.Azuki
 		bool _IsReadOnly = false;
 		bool _IsDirty = false;
 		IHighlighter _Highlighter = null;
-		object _Tag = null;
 		#endregion
 
 		#region Init / Dispose
@@ -107,12 +110,15 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets or sets the size of the internal buffer.
+		/// Sets the size of the internal buffer.
 		/// </summary>
 		public int Capacity
 		{
-			get{ return _Buffer.Capacity; }
-			set{ _Buffer.Capacity = value; }
+			set
+			{
+				_Buffer.Capacity = value;
+				_LHI.Capacity = value;
+			}
 		}
 		#endregion
 
@@ -1084,35 +1090,11 @@ namespace Sgry.Azuki
 
 		#region Utilities
 		/// <summary>
-		/// Gets or sets an object associated with this document.
-		/// </summary>
-		public object Tag
-		{
-			get{ return _Tag; }
-			set{ _Tag = value; }
-		}
-
-		/// <summary>
 		/// Gets line content enumerator.
 		/// </summary>
 		public IEnumerator GetEnumerator()
 		{
 			return _Buffer.GetEnumerator();
-		}
-
-		/// <summary>
-		/// Gets estimated memory size used by this document.
-		/// </summary>
-		public int MemoryUsage
-		{
-			get
-			{
-				int usage = 0;
-				usage += _Buffer.Capacity * ( sizeof(char) + sizeof(CharClass) );
-				usage += _LHI.Capacity * sizeof(int);
-				usage += _History.MemoryUsage;
-				return usage;
-			}
 		}
 
 		/// <summary>
