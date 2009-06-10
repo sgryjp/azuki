@@ -1,7 +1,7 @@
 // file: PropWrapView.cs
 // brief: Platform independent view (propotional, line-wrap).
 // author: YAMAMOTO Suguru
-// update: 2009-01-29
+// update: 2009-06-10
 //=========================================================
 //DEBUG//#define PLHI_DEBUG
 //DEBUG//#define DRAW_SLOWLY
@@ -106,16 +106,13 @@ namespace Sgry.Azuki
 				}
 
 				// update property
-				if( base.TextAreaWidth != value )
-				{
-					base.TextAreaWidth = value;
+				base.TextAreaWidth = value;
 
-					// update physical line head indexes
-					string text = Document.Text;
-					_PLHI.Clear();
-					_PLHI.Add( 0 );
-					UpdatePLHI( 0, "", text );
-				}
+				// update physical line head indexes
+				string text = Document.Text;
+				_PLHI.Clear();
+				_PLHI.Add( 0 );
+				UpdatePLHI( 0, "", text );
 			}
 		}
 		#endregion
