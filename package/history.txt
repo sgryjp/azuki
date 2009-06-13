@@ -1,4 +1,5 @@
 == 1.3.3 (2009-06-  ) ==
+ * fix: fixed a problem that pressing backspace key at the char just after a surrogate pair breaks the surrogate pair
  * fix: fixed a degrade problem made in 1.3.2 (line management data will be corrupted)
  * fix: fixed a problem that selection range cannot be shurinked to left of a surrogate pair if we select the surrogate pair from left to right
 
