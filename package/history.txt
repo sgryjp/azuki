@@ -1,4 +1,4 @@
-== 1.3.4 (2009-06-  ) ==
+== 1.3.4 (2009-06-20) ==
  * fix: fixed a problem that an exception will be thrown on changing selection range just after switching active document under certain condition
  * fix: fixed a problem that if the final line was line-wrapped, the line will not be redrawn correctly on inputting characters
 
