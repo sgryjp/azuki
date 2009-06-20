@@ -61,11 +61,10 @@ namespace Sgry.Azuki
 
 		#region Content Access
 		/// <summary>
-		/// Gets or sets the size of the internal buffer.
+		/// Sets the size of the internal buffer.
 		/// </summary>
 		public override int Capacity
 		{
-			get{ return base.Capacity; }
 			set
 			{
 				base.Capacity = value;

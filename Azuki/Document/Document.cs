@@ -1,7 +1,7 @@
 // file: Document.cs
 // brief: Document of Azuki engine.
 // author: YAMAMOTO Suguru
-// update: 2009-05-30
+// update: 2009-04-13
 //=========================================================
 using System;
 using System.Collections;
@@ -22,7 +22,11 @@ namespace Sgry.Azuki
 	public class Document : IEnumerable
 	{
 		#region Fields
-		TextBuffer _Buffer = new TextBuffer( 512, 256 );
+#		if DEBUG
+		TextBuffer _Buffer = new TextBuffer( 4, 4 );
+#		else
+		TextBuffer _Buffer = new TextBuffer( 1024, 256 );
+#		endif
 		SplitArray<int> _LHI = new SplitArray<int>( 64 ); // line head indexes
 		EditHistory _History = new EditHistory();
 		int _CaretIndex = 0;
@@ -32,9 +36,6 @@ namespace Sgry.Azuki
 		bool _IsReadOnly = false;
 		bool _IsDirty = false;
 		IHighlighter _Highlighter = null;
-		ViewParam _ViewParam = new ViewParam();
-		DateTime _LastModifiedTime = DateTime.Now;
-		object _Tag = null;
 		#endregion
 
 		#region Init / Dispose
@@ -109,33 +110,15 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets or sets the size of the internal buffer.
+		/// Sets the size of the internal buffer.
 		/// </summary>
 		public int Capacity
 		{
-			get{ return _Buffer.Capacity; }
-			set{ _Buffer.Capacity = value; }
-		}
-
-		/// <summary>
-		/// Gets the time when this document was last modified.
-		/// </summary>
-		public DateTime LastModifiedTime
-		{
-			get{ return _LastModifiedTime; }
-		}
-
-		/// <summary>
-		/// Gets view specific parameters associated with this document.
-		/// </summary>
-		/// <remarks>
-		/// There are some parameters that are dependent on each document
-		/// but are not parameters about document content.
-		/// This property contains such parameters.
-		/// </remarks>
-		internal ViewParam ViewParam
-		{
-			get{ return _ViewParam; }
+			set
+			{
+				_Buffer.Capacity = value;
+				_LHI.Capacity = value;
+			}
 		}
 		#endregion
 
@@ -610,7 +593,6 @@ namespace Sgry.Azuki
 				undo = new EditAction( this, begin, oldText, text );
 				_History.Add( undo );
 			}
-			_LastModifiedTime = DateTime.Now;
 
 			Debug.Assert( begin <= Length );
 
@@ -1039,109 +1021,6 @@ namespace Sgry.Azuki
 
 			return _Buffer.FindPrev( regex, begin, end );
 		}
-
-		/// <summary>
-		/// Finds matched bracket from specified index.
-		/// </summary>
-		/// <param name="index">The index to start searching matched bracket.</param>
-		/// <returns>Index of the matched bracket if found. Otherwise -1.</returns>
-		/// <remarks>
-		/// This method searches the matched bracket from specified index.
-		/// If the character at specified index was not a sort of bracket,
-		/// this method returns -1.
-		/// </remarks>
-		public int FindMatchedBracket( int index )
-		{
-			if( index < 0 || Length < index )
-				throw new ArgumentOutOfRangeException( "index" );
-
-			char bracket, pairBracket;
-			bool isOpenBracket;
-			int depth;
-
-			// if given index is the end position,
-			// there is no char at the index so search must be fail
-			if( Length == index )
-			{
-				return -1;
-			}
-
-			// get bracket character at the specified index
-			bracket = this[index];
-			switch( bracket )
-			{
-				case '(':
-					pairBracket = ')';
-					isOpenBracket = true;
-					break;
-				case ')':
-					pairBracket = '(';
-					isOpenBracket = false;
-					break;
-				case '{':
-					pairBracket = '}';
-					isOpenBracket = true;
-					break;
-				case '}':
-					pairBracket = '{';
-					isOpenBracket = false;
-					break;
-				case '[':
-					pairBracket = ']';
-					isOpenBracket = true;
-					break;
-				case ']':
-					pairBracket = '[';
-					isOpenBracket = false;
-					break;
-				default:
-					// not a bracket
-					return -1;
-			}
-
-			// search matched one
-			depth = 0;
-			if( isOpenBracket )
-			{
-				for( int i=index; i<this.Length; i++ )
-				{
-					if( this[i] == bracket )
-					{
-						depth++;
-					}
-					else if( this[i] == pairBracket )
-					{
-						depth--;
-						if( depth == 0 )
-						{
-							return i;
-						}
-					}
-				}
-			}
-			else
-			{
-				// search matched one
-				for( int i=index; 0<=i; i-- )
-				{
-					if( this[i] == bracket )
-					{
-						depth++;
-					}
-					else if( this[i] == pairBracket )
-					{
-						depth--;
-						if( depth == 0 )
-						{
-							return i;
-						}
-					}
-				}
-			}
-
-			// not found
-			return -1;
-		}
 		#endregion
 
 		#region Highlighter
@@ -1211,35 +1090,11 @@ namespace Sgry.Azuki
 
 		#region Utilities
 		/// <summary>
-		/// Gets or sets an object associated with this document.
-		/// </summary>
-		public object Tag
-		{
-			get{ return _Tag; }
-			set{ _Tag = value; }
-		}
-
-		/// <summary>
 		/// Gets line content enumerator.
 		/// </summary>
 		public IEnumerator GetEnumerator()
 		{
 			return _Buffer.GetEnumerator();
-		}
-
-		/// <summary>
-		/// Gets estimated memory size used by this document.
-		/// </summary>
-		public int MemoryUsage
-		{
-			get
-			{
-				int usage = 0;
-				usage += _Buffer.Capacity * ( sizeof(char) + sizeof(CharClass) );
-				usage += _LHI.Capacity * sizeof(int);
-				usage += _History.MemoryUsage;
-				return usage;
-			}
 		}
 
 		/// <summary>

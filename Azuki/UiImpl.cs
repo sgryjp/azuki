@@ -1,7 +1,7 @@
 ﻿// file: UiImpl.cs
 // brief: User interface logic that independent from platform.
 // author: YAMAMOTO Suguru
-// update: 2009-06-07
+// update: 2009-04-25
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace Sgry.Azuki
 	using IHighlighter = Highlighter.IHighlighter;
 
 	/// <summary>
-	/// User interface logic that independent from platform.
+	/// User inteface logic that independent from platform.
 	/// </summary>
 	class UiImpl : IDisposable
 	{
@@ -26,8 +26,7 @@ namespace Sgry.Azuki
 #		endif
 		IUserInterface _UI;
 		View _View = null;
-		Document _Document = null;
-		ViewType _ViewType = ViewType.Proportional;
+		ViewType _ViewType = ViewType.Propotional;
 
 		IDictionary< uint, ActionProc > _KeyMap = new Dictionary< uint, ActionProc >( 32 );
 		AutoIndentHook _AutoIndentHook = null;
@@ -81,30 +80,26 @@ namespace Sgry.Azuki
 		#region View and Document
 		public Document Document
 		{
-			get{ return _Document; }
+			get{ return View.Document; }
 			set
 			{
 				if( value == null )
 					throw new ArgumentNullException();
 
-				Document prevDoc = _Document;
-
 				// uninstall event handlers
-				if( Document != null )
+				if( View.Document != null
+					&& View.Document != value )
 				{
-					Document.SelectionChanged -= Doc_SelectionChanged;
-					Document.ContentChanged -= Doc_ContentChanged;
+					View.Document.SelectionChanged -= Doc_SelectionChanged;
+					View.Document.ContentChanged -= Doc_ContentChanged;
 				}
 
 				// replace document
-				_Document = value;
+				View.Document = value;
 
 				// install event handlers
-				value.SelectionChanged += Doc_SelectionChanged;
-				value.ContentChanged += Doc_ContentChanged;
-
-				// delegate to View
-				View.HandleDocumentChanged( prevDoc );
+				View.Document.SelectionChanged += Doc_SelectionChanged;
+				View.Document.ContentChanged += Doc_ContentChanged;
 
 				// redraw graphic
 				_UI.Invalidate();
@@ -119,11 +114,12 @@ namespace Sgry.Azuki
 		public View View
 		{
 			get{ return _View; }
+			set{ _View = value; }
 		}
 		
 		/// <summary>
 		/// Gets or sets type of the view.
-		/// View type determines how to render text content.
+		/// View type determine how to render text content.
 		/// </summary>
 		public ViewType ViewType
 		{
@@ -135,17 +131,17 @@ namespace Sgry.Azuki
 				// switch to new view object
 				switch( value )
 				{
-					case ViewType.WrappedProportional:
-						_View = new PropWrapView( View );
+					case ViewType.WrappedPropotional:
+						View = new PropWrapView( View );
 						break;
-					//case ViewType.Proportional:
+					//case ViewType.Propotional:
 					default:
-						_View = new PropView( View );
+						View = new PropView( View );
 						break;
 				}
 				_ViewType = value;
 
-				// dispose old view object
+				// dispose using view object
 				oldView.Dispose();
 
 				// re-install event handlers
@@ -157,9 +153,6 @@ namespace Sgry.Azuki
 					Document.SelectionChanged -= Doc_SelectionChanged;
 					Document.SelectionChanged += Doc_SelectionChanged;
 				}
-
-				// tell new view object that the document object was changed
-				View.HandleDocumentChanged( Document );
 
 				// refresh GUI
 				_UI.Invalidate();
@@ -566,11 +559,8 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Event Handlers
-		void Doc_SelectionChanged( object sender, SelectionChangedEventArgs e )
+		void Doc_SelectionChanged( object sender, EventArgs e )
 		{
-			// delegate to view object
-			View.HandleSelectionChanged( sender, e );
-
 			// update caret graphic
 			_UI.UpdateCaretGraphic();
 
@@ -580,9 +570,6 @@ namespace Sgry.Azuki
 
 		public void Doc_ContentChanged( object sender, ContentChangedEventArgs e )
 		{
-			// delegate to view object
-			View.HandleContentChanged( sender, e );
-
 			// redraw caret graphic
 			_UI.UpdateCaretGraphic();
 			

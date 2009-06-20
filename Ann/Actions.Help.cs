@@ -1,6 +1,5 @@
-// 2009-05-16
+// 2009-04-25
 using System;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Windows.Forms;
@@ -10,26 +9,6 @@ namespace Sgry.Ann
 {
 	static partial class Actions
 	{
-		/// <summary>
-		/// Shows current memory usage.
-		/// </summary>
-		public static AnnAction ShowMemoryUsage
-			= delegate( AppLogic app )
-		{
-			StringBuilder message = new StringBuilder( 256 );
-
-			// make message (getting total memory also invokes GC)
-			message.AppendFormat( null, "Total memory: {0} KB\n", GC.GetTotalMemory(true)/1024 );
-			message.AppendFormat( null, "----\n" );
-			foreach( Document doc in app.Documents )
-			{
-				message.AppendFormat( null, "  {0}: {1} KB\n", doc.DisplayName, doc.AzukiDoc.MemoryUsage/1024 );
-			}
-
-			// show usage
-			MessageBox.Show( message.ToString(), "Estimated memory usage" );
-		};
-
 		/// <summary>
 		/// Shows the "About" dialog.
 		/// </summary>

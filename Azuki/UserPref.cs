@@ -1,5 +1,5 @@
 // file: UserPref.cs
-// brief: User preferences that affects all Azuki instances.
+// brief: The singleton class represents user preference.
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
 // update: 2008-05-03
