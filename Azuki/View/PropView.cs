@@ -1,7 +1,7 @@
 ﻿// file: PropView.cs
 // brief: Platform independent view (propotional).
 // author: YAMAMOTO Suguru
-// update: 2009-03-02
+// update: 2009-06-20
 //=========================================================
 //#define DRAW_SLOWLY
 using System;
@@ -45,6 +45,30 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Properties
+		/// <summary>
+		/// Gets or sets the document displayed in this view.
+		/// </summary>
+		public override Document Document
+		{
+			//get{ return base.Document; }
+			set
+			{
+				// [only before v1.4] before switching document, reset _PrevXxxLine
+				if( value != null )
+				{
+					int dummy;
+					value.GetLineColumnIndexFromCharIndex(
+							value.CaretIndex, out _PrevCaretLine, out dummy
+						);
+					value.GetLineColumnIndexFromCharIndex(
+							value.AnchorIndex, out _PrevAnchorLine, out dummy
+						);
+				}
+
+				base.Document = value;
+			}
+		}
+
 		/// <summary>
 		/// Gets number of the physical lines.
 		/// </summary>
