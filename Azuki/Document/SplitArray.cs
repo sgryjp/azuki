@@ -1,10 +1,9 @@
 // file: SplitArray.cs
 // brief: Data structure holding a 'gap' in it for efficient insert/delete operation.
 // author: YAMAMOTO Suguru
-// update: 2009-05-23
+// update: 2009-04-25
 //=========================================================
-//#define SPLIT_ARRAY_ENABLE_SANITY_CHECK
-//#define SPLIT_ARRAY_ENABLE_TRACE
+//#define ENABLE_TRACE_WITH_DUMP
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -160,7 +159,9 @@ namespace Sgry.Azuki
 			{
 				_Data[ _GapLen + index ] = value;
 			}
-			__dump__( String.Format("SetAt({0}, {1})", value, index) );
+#			if ENABLE_TRACE_WITH_DUMP
+			Dump(String.Format("SetAt({0}, {1})", value, index));
+#			endif
 			__check_sanity__();
 		}
 
@@ -214,7 +215,9 @@ namespace Sgry.Azuki
 			_Count += 1;
 			_GapPos += 1;
 			_GapLen -= 1;
-			__dump__( String.Format("Insert({0}, {1})", index, value) );
+#			if ENABLE_TRACE_WITH_DUMP
+			Dump(String.Format("Insert({0}, {1})", index, value));
+#			endif
 			__check_sanity__();
 		}
 
@@ -252,7 +255,9 @@ namespace Sgry.Azuki
 			_Count += values.Length;
 			_GapPos += values.Length;
 			_GapLen -= values.Length;
-			__dump__( String.Format("Insert({0}, {1}...)", insertIndex, values[0]) );
+#			if ENABLE_TRACE_WITH_DUMP
+			Dump(String.Format("Insert({0}, {1}...)", insertIndex, values[0]));
+#			endif
 			__check_sanity__();
 		}
 
@@ -301,7 +306,9 @@ namespace Sgry.Azuki
 			_Count += insertLen;
 			_GapPos += insertLen;
 			_GapLen -= insertLen;
-			__dump__( String.Format("Insert({0}, {1}..., {2}, {3})", insertIndex, values[0], valueBegin, valueEnd) );
+#			if ENABLE_TRACE_WITH_DUMP
+			Dump(String.Format("Insert({0}, {1}..., {2}, {3})", insertIndex, values[0], valueBegin, valueEnd));
+#			endif
 			__check_sanity__();
 		}
 
@@ -327,7 +334,9 @@ namespace Sgry.Azuki
 
 			// overwrite elements
 			Array.Copy( values, valueBegin, _Data, replaceIndex, replaceLen );
-			__dump__( String.Format("Replace({0}, {1}..., {2}, {3})", replaceIndex, values[0], valueBegin, valueEnd) );
+#			if ENABLE_TRACE_WITH_DUMP
+			Dump(String.Format("Replace({0}, {1}..., {2}, {3})", replaceIndex, values[0], valueBegin, valueEnd));
+#			endif
 			__check_sanity__();
 		}
 
@@ -368,7 +377,9 @@ namespace Sgry.Azuki
 			
 			// update info
 			_Count -= deleteLen;
-			__dump__( String.Format("Delete({0}, {1})", begin, end) );
+#			if ENABLE_TRACE_WITH_DUMP
+			Dump(String.Format("Delete({0}, {1})", begin, end));
+#			endif
 			__check_sanity__();
 		}
 
@@ -381,7 +392,9 @@ namespace Sgry.Azuki
 			_GapPos = 0;
 			_GapLen = _Data.Length;
 
-			__dump__( String.Format("Clear()") );
+#			if ENABLE_TRACE_WITH_DUMP
+			Dump(String.Format("Clear()"));
+#			endif
 			__set_insanity_data__( 0, _Data.Length );
 			__check_sanity__();
 		}
@@ -505,7 +518,7 @@ namespace Sgry.Azuki
 		const char INSANITY = '\x65e0'; // 'wu'; a Kanji meaning "nothing" 
 		//const char INSANITY = '?';
 		
-		[Conditional("SPLIT_ARRAY_ENABLE_SANITY_CHECK")]
+		[Conditional("DEBUG")]
 		void __check_sanity__()
 		{
 			if( 'a' is T )
@@ -516,14 +529,16 @@ namespace Sgry.Azuki
 					ch = (char)_Data.GetValue( i );
 					if( ch != INSANITY )
 					{
-						__dump__( "##SANITY CHECK##" );
+#						if DEBUG
+						Dump( "##SANITY CHECK##" );
+#						endif
 						DebugUtl.Fail( "SplitArray lost sanity!! (_Data["+i+"] is "+(int)(char)_Data.GetValue(i)+")" );
 					}
 				}
 			}
 		}
 
-		[Conditional("SPLIT_ARRAY_ENABLE_SANITY_CHECK")]
+		[Conditional("DEBUG")]
 		void __set_insanity_data__( int begin, int end )
 		{
 			if( 'a' is T )
@@ -533,8 +548,8 @@ namespace Sgry.Azuki
 			}
 		}
 
-		[Conditional("SPLIT_ARRAY_ENABLE_TRACE")]
-		internal void __dump__( string msgHeader )
+#		if DEBUG
+		internal void Dump(string msgHeader)
 		{
 			if( 'a' is T )
 			{
@@ -551,7 +566,6 @@ namespace Sgry.Azuki
 			}
 		}
 
-#		if SPLIT_ARRAY_ENABLE_TRACE
 		/// <summary>
 		/// ToString for debug.
 		/// </summary>

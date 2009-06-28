@@ -1,7 +1,7 @@
 ﻿// file: AzukiControl.cs
 // brief: User interface for Windows platform (both Desktop and CE).
 // author: YAMAMOTO Suguru
-// update: 2009-06-07
+// update: 2009-06-28
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -38,7 +38,6 @@ namespace Sgry.Azuki.Windows
 		bool _UseCtrlTabToMoveFocus = true;
 #		endif
 		int _WheelPos = 0;
-		BorderStyle _BorderStyle = BorderStyle.Fixed3D;
 		
 		InvalidateProc1 _invalidateProc1 = null;
 		InvalidateProc2 _invalidateProc2 = null;
@@ -86,7 +85,6 @@ namespace Sgry.Azuki.Windows
 			this.Font = base.Font;
 			WinApi.CreateCaret( Handle, _CaretSize );
 			WinApi.SetCaretPos( 0, 0 );
-			this.BorderStyle = _BorderStyle;
 
 			// install GUI event handlers
 			HandleDestroyed += Control_Destroyed;
@@ -99,7 +97,7 @@ namespace Sgry.Azuki.Windows
 
 			// setup document event handler
 			Document = new Document();
-			ViewType = ViewType.Proportional; // (setting ViewType installs document event handlers)
+			ViewType = ViewType.Propotional; // (setting ViewType installs document event handlers)
 
 			// setup default keybind
 			ResetKeyBind();
@@ -131,29 +129,7 @@ namespace Sgry.Azuki.Windows
 		public Document Document
 		{
 			get{ return _Impl.Document; }
-			set
-			{
-				if( value == null )
-					throw new ArgumentNullException();
-
-				// uninstall event handler
-				if( _Impl.Document != null )
-				{
-					_Impl.Document.ContentChanged -= Document_ContentChanged;
-				}
-
-				// switch to the new document
-				_Impl.Document = value;
-
-				// install event handler
-				_Impl.Document.ContentChanged += Document_ContentChanged;
-			}
-		}
-
-		void Document_ContentChanged( object sender, ContentChangedEventArgs e )
-		{
-			// just invoke TextChanged event of this Control.
-			base.OnTextChanged( e );
+			set{ _Impl.Document = value; }
 		}
 
 		/// <summary>
@@ -174,8 +150,8 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 #		if !PocketPC
 		[Category("Drawing")]
-		[DefaultValue(ViewType.Proportional)]
-		[Description("Specify how to draw text content. Wrapped proportional view shows text wrapped within the width specified as ViewWidth property. Proportional view do not wrap text but draws faster.")]
+		[DefaultValue(ViewType.Propotional)]
+		[Description("Specify how to draw text content. Wrapped propotional view shows text wrapped within the width specified as ViewWidth property. Propotional view do not wrap text but draws faster.")]
 #		endif
 		public ViewType ViewType
 		{
@@ -190,9 +166,6 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		public void ResetKeyBind()
 		{
-			const int VK_OEM4 = 219; // key code of '['
-			const int VK_OEM6 = 221; // key code of ']'
-
 			_Impl.ClearKeyBind();
 
 			SetKeyBind( Keys.Right, Actions.MoveRight );
@@ -232,9 +205,6 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.Z|Keys.Control, Actions.Undo );
 			SetKeyBind( Keys.Z|Keys.Control|Keys.Shift, Actions.Redo );
 			SetKeyBind( Keys.Y|Keys.Control, Actions.Redo );
-
-			SetKeyBind( (Keys)VK_OEM4|Keys.Control, Actions.GoToMatchedBracket );
-			SetKeyBind( (Keys)VK_OEM6|Keys.Control, Actions.GoToMatchedBracket );
 
 			SetKeyBind( Keys.Insert, Actions.ToggleOverwriteMode );
 			SetKeyBind( Keys.F5, Actions.Refresh );
@@ -352,86 +322,6 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Gets or sets graphical style of border of this control.
-		/// </summary>
-#		if !PocketPC
-		[Category("Appearance")]
-		[DefaultValue(BorderStyle.Fixed3D)]
-#		endif
-		public BorderStyle BorderStyle
-		{
-			get{ return _BorderStyle; }
-			set
-			{
-				long style, exStyle;
-
-				if( value == BorderStyle.FixedSingle )
-				{
-					// enable WS_BORDER window style
-					style = WinApi.GetWindowLong( Handle, WinApi.GWL_STYLE ).ToInt64();
-					style |= WinApi.WS_BORDER;
-					WinApi.SetWindowLong( Handle, WinApi.GWL_STYLE, new IntPtr(style) );
-
-					// disable WS_EX_CLIENTEDGE window style
-					exStyle = WinApi.GetWindowLong( Handle, WinApi.GWL_EXSTYLE ).ToInt64();
-					exStyle &= ~(WinApi.WS_EX_CLIENTEDGE);
-					WinApi.SetWindowLong( Handle, WinApi.GWL_EXSTYLE, new IntPtr(exStyle) );
-				}
-				else if( value == BorderStyle.Fixed3D )
-				{
-					// disable WS_BORDER window style
-					style = WinApi.GetWindowLong( Handle, WinApi.GWL_STYLE ).ToInt64();
-					style &= ~(WinApi.WS_BORDER);
-					WinApi.SetWindowLong( Handle, WinApi.GWL_STYLE, new IntPtr(style) );
-
-					// enable WS_EX_CLIENTEDGE window style
-					exStyle = WinApi.GetWindowLong( Handle, WinApi.GWL_EXSTYLE ).ToInt64();
-					exStyle |= WinApi.WS_EX_CLIENTEDGE;
-					WinApi.SetWindowLong( Handle, WinApi.GWL_EXSTYLE, new IntPtr(exStyle) );
-				}
-				else// if( value == BorderStyle.None )
-				{
-					// disable WS_BORDER window style
-					style = WinApi.GetWindowLong( Handle, WinApi.GWL_STYLE ).ToInt64();
-					style &= ~(WinApi.WS_BORDER);
-					WinApi.SetWindowLong( Handle, WinApi.GWL_STYLE, new IntPtr(style) );
-
-					// disable WS_EX_CLIENTEDGE window style
-					exStyle = WinApi.GetWindowLong( Handle, WinApi.GWL_EXSTYLE ).ToInt64();
-					exStyle &= ~(WinApi.WS_EX_CLIENTEDGE);
-					WinApi.SetWindowLong( Handle, WinApi.GWL_EXSTYLE, new IntPtr(exStyle) );
-				}
-
-				// remember the last style
-				// and force to redraw border by recalculating window dimension
-				_BorderStyle = value;
-				WinApi.SetWindowPos( Handle, IntPtr.Zero, Left, Top, Width, Height, WinApi.SWP_FRAMECHANGED );
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the index of the first visible (graphically top most) line
-		/// of currently active document.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property gets or sets the index of the first visible (graphically top most) line
-		/// of currently active document.
-		/// </para>
-		/// <para>
-		/// This property is just a synonym of Document.ViewParam.FirstVisibleLine
-		/// so changing Document property will also changes this property value.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.ViewParam">Document.ViewParam</seealso>
-		/// <seealso cref="Sgry.Azuki.ViewParam.FirstVisibleLine">ViewParam.FirstVisibleLine</seealso>
-		public int FirstVisibleLine
-		{
-			get{ return Document.ViewParam.FirstVisibleLine; }
-			set{ Document.ViewParam.FirstVisibleLine = value; }
-		}
-
-		/// <summary>
 		/// Color set used for displaying text.
 		/// </summary>
 #		if !PocketPC
@@ -489,6 +379,8 @@ namespace Sgry.Azuki.Windows
 			get{ return _ShowsHScrollBar; }
 			set
 			{
+				const int SWP_FRAMECHANGED = 0x0020;
+
 				_ShowsHScrollBar = value;
 
 				// make new style bits
@@ -500,7 +392,7 @@ namespace Sgry.Azuki.Windows
 
 				// apply
 				WinApi.SetWindowLong( Handle, WinApi.GWL_STYLE, new IntPtr(style) );
-				WinApi.SetWindowPos( Handle, IntPtr.Zero, Left, Top, Width, Height, WinApi.SWP_FRAMECHANGED );
+				WinApi.SetWindowPos( Handle, IntPtr.Zero, Left, Top, Width, Height, SWP_FRAMECHANGED );
 				UpdateScrollBarRange();
 			}
 		}
@@ -600,7 +492,7 @@ namespace Sgry.Azuki.Windows
 #		if !PocketPC
 		[Browsable(true)]
 		[Category("Drawing")]
-		[Description("Width of the text content area. In proportional view, highlight line will be drawn in this width and this will be automatically expanded to enough width to show the input text. In wrapped-proportional view, text will be wrapped in this width.")]
+		[Description("Width of the text content area. In proportional view, highlight line will be drawn in this width and this will be automatically expanded to enough width to show the input text. In wrapped-propotional view, text will be wrapped in this width.")]
 #		endif
 		public int ViewWidth
 		{
@@ -608,9 +500,8 @@ namespace Sgry.Azuki.Windows
 			set
 			{
 				_Impl.View.TextAreaWidth = value - _Impl.View.TextAreaX;
-				UpdateCaretGraphic();
-				UpdateScrollBarRange(); // (needed for PropWrapView)
 				Refresh();
+				UpdateCaretGraphic();
 			}
 		}
 
@@ -803,7 +694,7 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public bool CanRedo
 		{
-			get{ return View.Document.CanUndo; }
+			get{ return View.Document.CanRedo; }
 		}
 
 		/// <summary>
@@ -856,17 +747,6 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		/// <param name="anchor">the position where the selection begins</param>
 		/// <param name="caret">the position where the caret is</param>
-		/// <remarks>
-		/// <para>
-		/// This method sets the selection range and also updates
-		/// the desired column.
-		/// </para>
-		/// <para>
-		/// The desired column is the column index
-		/// that Azuki tries to set next caret position
-		/// when the caret moves up or down.
-		/// </para>
-		/// </remarks>
 		public void SetSelection( int anchor, int caret )
 		{
 			View.Document.SetSelection( anchor, caret );
@@ -901,17 +781,19 @@ namespace Sgry.Azuki.Windows
 		{
 			get
 			{
-				if( Document == null )
+				// under unknown condition, Text property was called when a Form was disposed.
+				// take care of that case.
+				if( View == null || View.Document == null )
 					return null;
 
-				return Document.Text;
+				return View.Document.Text;
 			}
 			set
 			{
-				if( Document == null )
-					return;
+				//if( View == null || View.Document == null )
+				//	return;
 
-				Document.Text = value;
+				View.Document.Text = value;
 				View.SetDesiredColumn();
 				ScrollToCaret();
 			}
@@ -1300,168 +1182,6 @@ namespace Sgry.Azuki.Windows
 		}
 		#endregion
 
-		#region IME Reconversion
-		unsafe int HandleImeReconversion( WinApi.RECONVERTSTRING* reconv )
-		{
-			/*
-			 * There are three 'string's on executing IME reconversion.
-			 * First is target string.
-			 * This string will be reconverted.
-			 * Second is composition string.
-			 * This contains target string and MAY be the target string.
-			 * Third is, string body.
-			 * This contains composition string and MAY be the composition string.
-			 * Typical usage is set each range as next:
-			 * 
-			 * - target string: selected text or adjusted by IME
-			 * - composition string: selected text or adjusted by IME
-			 * - string body: selected text or current line or entire text buffer it self.
-			 * 
-			 * IME reconversion takes two steps to be executed.
-			 * On first step, IME sends WM_IME_REQUEST with IMR_RECONVERTSTRING parameter to a window
-			 * to query size of string body (plus RECONVERTSTRING structure).
-			 * This time, Azuki returns selected text length or length of current line if nothing selected.
-			 * On second step, IME allocates memory block to store
-			 * RECONVERTSTRING structure and string body for the application.
-			 * This time, Azuki copies string body to the buffer and
-			 * set structure members and return non-zero value (meaning OK).
-			 * Then, IME will execute reconversion.
-			 */
-			const int MaxRangeLength = 40;
-			int		rc;
-			int		selBegin, selEnd;
-			string	stringBody;
-			int		stringBodyIndex;
-			IntPtr	ime;
-			char*	strPos;
-			int		infoBufSize;
-
-			// determine string body
-			Document.GetSelection( out selBegin, out selEnd );
-			if( selBegin != selEnd )
-			{
-				// something selected.
-				// set them as string body, composition string, and target string.
-				int end;
-
-				// shurink range if it is unreasonably big
-				end = selEnd;
-				if( MaxRangeLength < end - selBegin )
-				{
-					end = selBegin + MaxRangeLength;
-					if( end < Document.Length
-						&& Document.IsLowSurrogate(Document[end]) )
-					{
-						end--;
-					}
-				}
-
-				// get selected text
-				stringBody = Document.GetTextInRange( selBegin, end );
-				stringBodyIndex = selBegin;
-			}
-			else
-			{
-				// nothing selected.
-				// set current line as string body
-				// and let IME to determine composition string and target string.
-				int lineIndex, lineHeadIndex, lineEndIndex;
-				int begin, end;
-
-				// get current line range
-				lineIndex = Document.GetLineIndexFromCharIndex( selBegin );
-				lineHeadIndex = Document.GetLineHeadIndex( lineIndex );
-				lineEndIndex = lineHeadIndex + Document.GetLineLength( lineIndex );
-				begin = Math.Max( lineHeadIndex, selBegin - (MaxRangeLength / 2) );
-				end = Math.Min( selBegin + (MaxRangeLength / 2), lineEndIndex );
-				if( end < Document.Length && Document.IsLowSurrogate(Document[end]) )
-				{
-					end--;
-				}
-
-				// get current line content
-				stringBody = Document.GetTextInRange( begin, end );
-				stringBodyIndex = begin;
-			}
-
-			// calculate size of information buffer to communicate with IME
-			infoBufSize = sizeof(WinApi.RECONVERTSTRING)
-					+ Encoding.Unicode.GetByteCount(stringBody) + 1;
-			if( reconv == null )
-			{
-				// this is the first call for re-conversion.
-				// just inform IME the size of information buffer this time.
-				return infoBufSize;
-			}
-
-			// validate parameters
-			if( reconv->dwSize != (UInt32)infoBufSize
-				|| reconv->dwVersion != 0 )
-			{
-				return 0;
-			}
-
-			// get IME context
-			ime = WinApi.ImmGetContext( this.Handle );
-			if( ime == IntPtr.Zero )
-			{
-				return 0;
-			}
-
-			// copy string body
-			reconv->dwStrLen = (UInt32)stringBody.Length;
-			reconv->dwStrOffset = (UInt32)sizeof(WinApi.RECONVERTSTRING);
-			strPos = (char*)( (byte*)reconv + reconv->dwStrOffset );
-			for( int i=0; i<stringBody.Length; i++ )
-			{
-				strPos[i] = stringBody[i];
-			}
-			strPos[stringBody.Length] = '\0';
-
-			// calculate range of composition string and target string
-			if( selBegin != selEnd )
-			{
-				// set selected range as reconversion target
-				reconv->dwCompStrLen = (UInt32)( stringBody.Length );
-				reconv->dwCompStrOffset = 0;
-				reconv->dwTargetStrLen = reconv->dwCompStrLen;
-				reconv->dwTargetStrOffset = reconv->dwCompStrOffset;
-			}
-			else
-			{
-				// let IME adjust RECONVERTSTRING parameters
-				reconv->dwCompStrLen = 0;
-				reconv->dwCompStrOffset = (UInt32)( (selBegin - stringBodyIndex) * 2);
-				reconv->dwTargetStrLen = 0;
-				reconv->dwTargetStrOffset = reconv->dwCompStrOffset;
-				rc = WinApi.ImmSetCompositionStringW(
-						ime,
-						WinApi.SCS_QUERYRECONVERTSTRING,
-						reconv, (uint)infoBufSize, null, 0
-					);
-				if( rc == 0 )
-				{
-					return 0;
-				}
-			}
-
-			// select target string to make it being replaced by reconverted new string
-			selBegin = stringBodyIndex + (int)(reconv->dwTargetStrOffset / 2);
-			selEnd = selBegin + (int)reconv->dwTargetStrLen;
-			Document.SetSelection( selBegin, selEnd );
-
-			// adjust position of IME composition window
-			WinApi.SetImeWindowPos( this.Handle,
-					GetPositionFromIndex(selBegin)
-				);
-
-			// release context object
-			WinApi.ImmReleaseContext( this.Handle, ime );
-
-			return infoBufSize;
-		}
-		#endregion
-
 		#region Behavior as a .NET Control
 		/// <summary>
 		/// Gets or sets default text color.
@@ -1617,12 +1337,10 @@ namespace Sgry.Azuki.Windows
 						_Impl.HandlePaint( rect );
 
 						WinApi.EndPaint( window, &ps );
+						// (note that calling BeginPaint here effects something
+						// to original paint logic of Control class;
+						// "background will not drawn" and something.)
 					}
-
-					// return zero here to prevent executing original painting logic of Control class.
-					// (if the original logic runs,
-					// we will get invalid(?) update region from BeginPaint API in Windows XP or former.)
-					return IntPtr.Zero;
 				}
 #				if !PocketPC
 				else if( DesignMode )
@@ -1729,17 +1447,6 @@ namespace Sgry.Azuki.Windows
 					// move IMM window to caret position
 					WinApi.SetImeWindowFont( Handle, Font );
 				}
-				else if( message == WinApi.WM_IME_REQUEST
-					&& wParam.ToInt64() == (long)WinApi.IMR_RECONVERTSTRING )
-				{
-					int rc;
-
-					unsafe {
-						rc = HandleImeReconversion( (WinApi.RECONVERTSTRING*)lParam.ToPointer() );
-					}
-
-					return new IntPtr( rc );
-				}
 			}
 			catch( Exception ex )
 			{
@@ -1747,9 +1454,7 @@ namespace Sgry.Azuki.Windows
 				// exceptions thrown in this method can not be handled well.
 				// so we catch them here.
 				Console.Error.WriteLine( ex );
-#				if DEBUG
-				MessageBox.Show( ex.ToString(), "azuki bug" );
-#				endif
+				//MessageBox.Show( ex.ToString(), "azuki bug" );
 			}
 
 			return WinApi.CallWindowProc( _OriginalWndProcObj, window, message, wParam, lParam );

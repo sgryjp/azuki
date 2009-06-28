@@ -479,51 +479,6 @@ namespace Sgry.Azuki
 		{
 			ui.View.Scroll( -1 );
 		}
-
-		/// <summary>
-		/// Moves caret to the matched bracket.
-		/// </summary>
-		public static void GoToMatchedBracket( IUserInterface ui )
-		{
-			int caretIndex;
-			int pairIndex;
-
-			// find pair and go there
-			caretIndex = ui.CaretIndex;
-			pairIndex = ui.Document.FindMatchedBracket( caretIndex );
-			if( pairIndex != -1 )
-			{
-				// found.
-				ui.SetSelection( pairIndex, pairIndex );
-				ui.ScrollToCaret();
-				return;
-			}
-
-			// not found.
-			// if the char at CaretIndex (at right of the caret) is not a bracket,
-			// then we try again for the char at CaretIndex-1 (at left of the caret.)
-			if( 1 <= caretIndex )
-			{
-				char ch = ui.Document[ caretIndex-1 ];
-				if( ch != '(' && ch != ')'
-					|| ch != '{' && ch != '}'
-					|| ch != '[' && ch != ']' )
-				{
-					pairIndex = ui.Document.FindMatchedBracket( caretIndex-1 );
-					if( pairIndex != -1 )
-					{
-						// found.
-						ui.SetSelection( pairIndex, pairIndex );
-						ui.ScrollToCaret();
-						return;
-					}
-				}
-			}
-
-			// not found.
-			Plat.Inst.MessageBeep();
-			return;
-		}
 		#endregion
 	}
 }

@@ -1,7 +1,7 @@
 // file: WinApi.cs
 // brief: Sgry's Win32API glues.
 // author: YAMAMOTO Suguru
-// update: 2009-06-07
+// update: 2008-11-30
 //=========================================================
 using System;
 using System.Text;
@@ -15,7 +15,7 @@ namespace Sgry.Azuki.Windows
 	/// <summary>
 	/// Win32API wrapper for modules which is used only in the Windows environment.
 	/// </summary>
-	static class WinApi
+	internal static class WinApi
 	{
 #		if !PocketPC
 		const string kernel32_dll = "kernel32";
@@ -46,21 +46,9 @@ namespace Sgry.Azuki.Windows
 		public const int WM_IME_STARTCOMPOSITION =  0x010D;
 		public const int WM_IME_ENDCOMPOSITION = 0x010E;
 		public const int WM_IME_NOTIFY = 0x0282;
-		public const int WM_IME_REQUEST = 0x0288;
-		public const int IMR_RECONVERTSTRING = 0x0004;
-		public const int SCS_QUERYRECONVERTSTRING = 0x00020000;
-		public const int SCS_SETRECONVERTSTRING = 0x00010000;
-		public const int SCS_CAP_SETRECONVERTSTRING = 0x00000004;
-		public const int IME_PROP_UNICODE = 0x00080000;
-		public const int IGP_PROPERTY = 0x00000004;
-		public const int IGP_SETCOMPSTR = 0x00000014;
 
-		public const long WS_HSCROLL = 0x00100000L;
-		public const long WS_BORDER = 0x00800000L;
-		public const long WS_EX_CLIENTEDGE = 0x00000200L;
+		public const int WS_HSCROLL = 0x00100000;
 		public const int GWL_STYLE = -16;
-		public const int GWL_EXSTYLE = -20;
-		public const int SWP_FRAMECHANGED = 0x0020;
 
 		public const int SB_LINEUP = 0;
 		public const int SB_LINEDOWN = 1;
@@ -197,43 +185,6 @@ namespace Sgry.Azuki.Windows
 			[MarshalAs(UnmanagedType.ByValTStr, SizeConst=32)]
 			public string faceName;
 		}
-
-		[StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)]
-		public struct RECONVERTSTRING
-		{
-			/// <summary>Size of this instance.</summary>
-			public UInt32 dwSize;
-
-			/// <summary>Version (must be 0).</summary>
-			public UInt32 dwVersion;
-
-			/// <summary>Length of the string given to IME.</summary>
-			public UInt32 dwStrLen;
-
-			/// <summary>
-			/// Byte-offset of the string given to IME
-			/// from the memory address of this structure.
-			/// </summary>
-			public UInt32 dwStrOffset;
-
-			/// <summary>Length of the string that will be able to be reconverted.</summary>
-			public UInt32 dwCompStrLen;
-
-			/// <summary>
-			/// Byte-offset of the string that will be able to be reconverted
-			/// from the start position of where specified with dwStrOffset.
-			/// </summary>
-			public UInt32 dwCompStrOffset;
-
-			/// <summary>Length of the exact string that will be reconverted.</summary>
-			public UInt32 dwTargetStrLen;
-
-			/// <summary>
-			/// Byte-offset of the exact string that will be reconverted
-			/// from the start position of where specified with dwStrOffset.
-			/// </summary>
-			public UInt32 dwTargetStrOffset;
-		}
 		#endregion
 
 		#region Caret
@@ -256,10 +207,13 @@ namespace Sgry.Azuki.Windows
 			}
 		}
 
-		public static bool SetCaretPos( int x, int y )
+		public static void SetCaretPos( int x, int y )
 		{
 			Int32 rc = SetCaretPos_( x, y );
-			return (rc != 0);
+			if( rc == 0 )
+			{
+				throw new Exception( "failed to set caret location" );
+			}
 		}
 
 		[DllImport(user32_dll)]
@@ -281,21 +235,7 @@ namespace Sgry.Azuki.Windows
 		public static extern Int32 HideCaret( IntPtr window );
 		#endregion
 
-		#region Core
-		[DllImport(kernel32_dll)]
-		public static extern UInt32 GetLastError();
-		#endregion
-
 		#region GDI - Device Context Manipulation
-		[DllImport(gdi32_dll)]
-		public static extern Int32 GetDeviceCaps( IntPtr dc, Int32 index );
-
-		[DllImport(user32_dll)]
-		public static extern IntPtr GetDC( IntPtr hWnd );
-
-		[DllImport(user32_dll)]
-		public static extern Int32 ReleaseDC( IntPtr hWnd, IntPtr dc );
-
 		[DllImport(user32_dll)]
 		public static unsafe extern IntPtr BeginPaint( IntPtr hWnd, PAINTSTRUCT* ps );
 
@@ -561,20 +501,11 @@ namespace Sgry.Azuki.Windows
 		/// <summary>Sets location of the IME composition window (pre-edit window) </summary>
 		public static void SetImeWindowPos( IntPtr window, Point screenPos )
 		{
-			IntPtr imContext = ImmGetContext( window );
-			unsafe
-			{
-				SetImeWindowPos( imContext, window, screenPos );
-			}
-			ImmReleaseContext( window, imContext );
-		}
-
-		/// <summary>Sets location of the IME composition window (pre-edit window) </summary>
-		public static void SetImeWindowPos( IntPtr imContext, IntPtr window, Point screenPos )
-		{
 			const int CFS_POINT = 0x0002;
 			COMPOSITIONFORM compForm = new COMPOSITIONFORM();
+			IntPtr imContext;
 
+			imContext = ImmGetContext( window );
 			unsafe
 			{
 				compForm.style = CFS_POINT;
@@ -583,6 +514,7 @@ namespace Sgry.Azuki.Windows
 
 				ImmSetCompositionWindow( imContext, &compForm );
 			}
+			ImmReleaseContext( window, imContext );
 		}
 
 		/// <summary>Sets font of the IME composition window (pre-edit window) </summary>
@@ -608,19 +540,19 @@ namespace Sgry.Azuki.Windows
 		public static extern Int32 ImmReleaseContext( IntPtr hWnd, IntPtr context );
 
 		[DllImport(imm32_dll)]
-		public static unsafe extern Int32 ImmSetCompositionStringW( IntPtr imContext, UInt32 index, void* lpComp, UInt32 dwCompLen, void* lpRead, UInt32 readLen );
-
-		[DllImport(imm32_dll)]
 		static unsafe extern Int32 ImmSetCompositionWindow( IntPtr imContext, COMPOSITIONFORM* compForm );
 
 		[DllImport(imm32_dll)]
 		static unsafe extern Int32 ImmSetCompositionFontW( IntPtr imContext,  [In, MarshalAs(UnmanagedType.LPStruct)] LogFont logFont );
 
-		[DllImport(imm32_dll)]
-		public static extern UInt32 ImmGetProperty( IntPtr inputLocale, UInt32 index );
+		[DllImport(gdi32_dll)]
+		public static extern Int32 GetDeviceCaps( IntPtr dc, Int32 index );
 
 		[DllImport(user32_dll)]
-		public static extern IntPtr GetKeyboardLayout( UInt32 threadID );
+		public static extern IntPtr GetDC( IntPtr hWnd );
+
+		[DllImport(user32_dll)]
+		public static extern Int32 ReleaseDC( IntPtr hWnd, IntPtr dc );
 		#endregion
 
 		#region Window Position

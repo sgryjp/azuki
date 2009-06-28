@@ -8,9 +8,10 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>
     </AppDesignerFolder>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <RootNamespace>Sgry.Azuki</RootNamespace>
     <AssemblyName>Azuki</AssemblyName>
+    <StartupObject>
+    </StartupObject>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>Azuki.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
@@ -22,7 +23,6 @@
     <DefineConstants>DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <NoStdLib>true</NoStdLib>
@@ -32,59 +32,60 @@
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\package\</OutputPath>
-    <DefineConstants></DefineConstants>
-    <NoStdLib>true</NoStdLib>
-    <NoConfig>true</NoConfig>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>..\package\Azuki.xml</DocumentationFile>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <DocumentationFile>..\package\Azuki.xml</DocumentationFile>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Actions.cs" />
     <Compile Include="Actions.Selection.cs" />
+    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="AutoIndentHooks.cs" />
     <Compile Include="CaretMoveLogic.cs" />
+    <Compile Include="Document\CharClass.cs" />
+    <Compile Include="Document\SearchResult.cs" />
+    <Compile Include="Document\TextBuffer.cs" />
+    <Compile Include="Highlighter\HighlighterUtl.cs" />
+    <Compile Include="Highlighter\JavaHighlighter.cs" />
+    <Compile Include="Highlighter\RubyHighlighter.cs" />
+    <Compile Include="Highlighter\CSharpHighlighter.cs" />
     <Compile Include="IUserInterface.cs" />
+    <Compile Include="Test\KeywordHighlighterTest.cs" />
     <Compile Include="UiImpl.cs" />
+    <Compile Include="UserPref.cs" />
+    <Compile Include="DebugUtl.cs" />
     <Compile Include="LineLogic.cs" />
     <Compile Include="Platform.cs" />
-    <Compile Include="UserPref.cs" />
-    <Compile Include="WordLogic.cs" />
-    <Compile Include="DebugUtl.cs" />
     <Compile Include="View\DrawingOption.cs" />
     <Compile Include="View\IView.cs" />
-    <Compile Include="Document\CharClass.cs" />
+    <Compile Include="WordLogic.cs" />
     <Compile Include="Document\Document.cs" />
-    <Compile Include="Document\TextBuffer.cs" />
-    <Compile Include="Document\SearchResult.cs" />
     <Compile Include="Document\EditAction.cs" />
     <Compile Include="Document\EditHistory.cs" />
     <Compile Include="Document\SplitArray.cs" />
-    <Compile Include="Document\ViewParam.cs" />
     <Compile Include="Highlighter\IHighlighter.cs" />
     <Compile Include="Highlighter\Highlighters.cs" />
-    <Compile Include="Highlighter\HighlighterUtl.cs" />
     <Compile Include="Highlighter\KeywordHighlighter.cs" />
     <Compile Include="Highlighter\CppHighlighter.cs" />
-    <Compile Include="Highlighter\CSharpHighlighter.cs" />
-    <Compile Include="Highlighter\JavaHighlighter.cs" />
     <Compile Include="Highlighter\XmlHighlighter.cs" />
-    <Compile Include="Highlighter\RubyHighlighter.cs" />
     <Compile Include="Test\DocumentTest.cs" />
     <Compile Include="Test\EditHistoryTest.cs" />
     <Compile Include="Test\LineLogicTest.cs" />
     <Compile Include="Test\SplitArrayTest.cs" />
     <Compile Include="Test\TestDriver.cs" />
-    <Compile Include="Test\KeywordHighlighterTest.cs" />
     <Compile Include="View\ColorScheme.cs" />
     <Compile Include="View\PropView.cs" />
     <Compile Include="View\PropWrapView.cs" />
