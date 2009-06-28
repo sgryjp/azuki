@@ -5,75 +5,75 @@
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{2A084F07-8BE9-4175-833F-25D1347755E2}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>
+    </AppDesignerFolder>
     <RootNamespace>Sgry.Ann</RootNamespace>
     <AssemblyName>Ann</AssemblyName>
+    <StartupObject>Sgry.Ann.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\package\</OutputPath>
-    <DefineConstants>DEBUG;$(PlatformFamilyName)</DefineConstants>
-    <NoStdLib>true</NoStdLib>
-    <NoConfig>true</NoConfig>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\package\</OutputPath>
-    <DefineConstants>
-    </DefineConstants>
-    <NoStdLib>true</NoStdLib>
-    <NoConfig>true</NoConfig>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <DocumentationFile>
+    </DocumentationFile>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Azuki">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\package\Azuki.dll</HintPath>
-    </Reference>
+    <Reference Include="Azuki" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Actions.File.cs" />
-    <Compile Include="Actions.Edit.cs" />
-    <Compile Include="Actions.View.cs" />
-    <Compile Include="Actions.Tool.cs" />
-    <Compile Include="Actions.Window.cs" />
     <Compile Include="Actions.Help.cs" />
-    <Compile Include="AppConfig.cs" />
-    <Compile Include="AppLogic.cs" />
-    <Compile Include="Document.cs" />
+    <Compile Include="Actions.Edit.cs" />
+    <Compile Include="Actions.File.cs" />
+    <Compile Include="Actions.Tool.cs" />
+    <Compile Include="Actions.View.cs" />
+    <Compile Include="Actions.Window.cs" />
     <Compile Include="AnnForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="AppConfig.cs" />
+    <Compile Include="AppLogic.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Document.cs" />
     <Compile Include="DocumentListForm.cs">
       <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="SearchPanel.cs">
-      <SubType>Component</SubType>
     </Compile>
     <Compile Include="DrawingOptionForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="EncodingAnalyzer.cs" />
     <Compile Include="FileType.cs" />
+    <Compile Include="SearchPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Ini.cs" />
+    <Compile Include="Program.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

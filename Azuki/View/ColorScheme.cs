@@ -1,7 +1,7 @@
 ﻿// file: ColorScheme.cs
 // brief: color set
 // author: YAMAMOTO Suguru
-// update: 2009-06-17
+// update: 2009-01-12
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -100,11 +100,10 @@ namespace Sgry.Azuki
 			SetColor( CharClass.Property, Color.Blue, bgcolor );
 			SetColor( CharClass.Value, Color.Red, bgcolor );
 			SetColor( CharClass.ElementName, Color.Maroon, bgcolor );
-			SetColor( CharClass.Entity, Color.Gray, bgcolor );
 			SetColor( CharClass.Attribute, Color.Navy, bgcolor );
 			SetColor( CharClass.AttributeValue, Color.Navy, bgcolor );
 			SetColor( CharClass.EmbededScript, Color.Gray, bgcolor );
-			SetColor( CharClass.Delimiter, Color.Blue, bgcolor );
+			SetColor( CharClass.Delimitter, Color.Blue, bgcolor );
 			SetColor( CharClass.CDataSection, Color.Silver, bgcolor );
 
 			this.SelectionFore = Color.White;

@@ -1,7 +1,7 @@
 // file: View.Paint.cs
 // brief: Common painting logic
 // author: YAMAMOTO Suguru
-// update: 2009-05-24
+// update: 2009-01-12
 //=========================================================
 //DEBUG//#define DRAW_SLOWLY
 using System;
@@ -91,7 +91,7 @@ namespace Sgry.Azuki
 				Point p = tokenPos;
 				ScreenToVirtual( ref p );
 				bgRight = Utl.CalcNextTabStop( p.X, TabWidthInPx );
-				bgRight -= ScrollPosX - TextAreaX;
+				bgRight -= _ScrollPosX - TextAreaX;
 				
 				// calc desired foreground graphic position
 				fgLeft = tokenPos.X + 2;
@@ -192,15 +192,15 @@ namespace Sgry.Azuki
 			
 			// fill line number area
 			_Gra.BackColor = ColorScheme.LineNumberBack;
-			_Gra.FillRectangle( 0, pos.Y, _LineNumAreaWidth+2, LineSpacing );
+			_Gra.FillRectangle( 0, pos.Y, _LineNumWidth+2, LineSpacing );
 			_Gra.BackColor = ColorScheme.BackColor;
-			_Gra.FillRectangle( _LineNumAreaWidth+2, pos.Y, 2, LineSpacing );
+			_Gra.FillRectangle( _LineNumWidth+2, pos.Y, 2, LineSpacing );
 			
 			// draw line number text
 			if( 0 < lineNumber )
 			{
 				string lineNumText = lineNumber.ToString();
-				pos.X = _LineNumAreaWidth - _Gra.MeasureText( lineNumText ).Width;
+				pos.X = _LineNumWidth - _Gra.MeasureText( lineNumText ).Width;
 				_Gra.ForeColor = ColorScheme.LineNumberFore;
 				_Gra.DrawText( lineNumText, ref pos, ColorScheme.LineNumberFore );
 			}
@@ -354,12 +354,12 @@ namespace Sgry.Azuki
 
 		#region Utilities
 		/// <summary>
-		/// Distinguishes whether specified index is in selection or not.
+		/// Distinguishs whether specified index is in selection or not.
 		/// </summary>
 		protected bool IsInSelection( int index )
 		{
 			int begin, end;
-			Document.GetSelection( out begin, out end );
+			_Document.GetSelection( out begin, out end );
 			return (begin <= index && index < end);
 		}
 
@@ -368,7 +368,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		protected int NextPaintToken( TextBuffer buf, int index, int nextLineHead, out CharClass out_klass )
 		{
-			DebugUtl.Assert( nextLineHead <= buf.Count, "param 'nextLineHead'("+nextLineHead+") must not be greater than 'buf.Count'("+buf.Count+")." );
+			DebugUtl.Assert( nextLineHead <= buf.Count );
 
 			char firstCh, ch;
 			CharClass firstKlass, klass;
@@ -460,7 +460,6 @@ namespace Sgry.Azuki
 			/// <param name="tabWidthInPx">tab width (in pixel)</param>
 			public static int CalcNextTabStop( int x, int tabWidthInPx )
 			{
-				DebugUtl.Assert( 0 < tabWidthInPx );
 				return ((x / tabWidthInPx) + 1) * tabWidthInPx;
 			}
 
