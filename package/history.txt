@@ -1,13 +1,7 @@
-== 1.5.0 (2009-  -  ) ==
- * add: rectangler selection by both mouse and keyboard
- * add: added AzukiControl.LineSpacing
- * add: now copied special (line, rectangle) text data can be paste in Visual Studio (and vice-versa)
- * add: added UsesTabForIndent property
- * mod: changed argument of AutoIndentHook.
- * mod: ConvertsTabToSpaces property of both AzukiControl and IUserInterface is now obsoleted
- * add: [Ann] now Ann remembers last window size
- * add: [Ann] now Ann remembers drawing options
- * add: [Ann] now Ann opens a file in appropriate mode by file extension
+== 1.4.1 (2009-08-23) ==
+ * fix: fixed a problem that "converting input tab to spaces" feature inserts wrong number of spaces (mis-calculation)
+ * fix: fixed a problem that XML highlighter treats the character '\' as escape character in quoted strings
+ * fix: [Ann] tagged as version 1.3.1
 
 == 1.4.0 (2009-07-12) ==
  * add: built-in highlighter for LaTeX

@@ -1,14 +1,14 @@
 // file: CaretMoveLogic.cs
 // brief: Implementation of caret movement.
 // author: YAMAMOTO Suguru
-// update: 2009-08-10
+// update: 2009-06-13
 //=========================================================
 using System;
 using System.Drawing;
 
 namespace Sgry.Azuki
 {
-	static class CaretMoveLogic
+	internal static class CaretMoveLogic
 	{
 		#region Public interface
 		public delegate int CalcMethod( IView view );
@@ -16,11 +16,9 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Moves caret to the index where the specified method calculates.
 		/// </summary>
-		public static void MoveCaret( CalcMethod calculater, IUserInterface ui )
+		public static void MoveCaret( CalcMethod calculater, IView view )
 		{
-			Document doc = ui.Document;
-			IView view = ui.View;
-
+			Document doc = view.Document;
 			int nextIndex = calculater( view );
 			if( nextIndex == doc.CaretIndex )
 			{
@@ -31,51 +29,29 @@ namespace Sgry.Azuki
 			{
 				// set new selection and scroll to caret
 				doc.SetSelection( nextIndex, nextIndex );
-				ui.IsRectSelectMode = false;
 				view.ScrollToCaret();
 			}
 		}
 
 		/// <summary>
 		/// Expand selection to the index where the specified method calculates
-		/// (selection anchor will not be changed).
+		/// (selection anchor will not changed).
 		/// </summary>
-		public static void SelectTo( CalcMethod calculater, IUserInterface ui )
+		public static void SelectTo( CalcMethod calculater, IView view )
 		{
-			Document doc = ui.Document;
-			IView view = ui.View;
-			int nextIndex;
-
-			// calculate where to expand selection
-			nextIndex = calculater( view );
+			Document doc = view.Document;
+			int nextIndex = calculater( view );
 			if( nextIndex == doc.CaretIndex )
 			{
 				// notify that the caret not moved
 				Plat.Inst.MessageBeep();
 			}
-
-			// set new selection
-			if( ui.IsRectSelectMode )
-			{
-				//--- case of rectangle selection ---
-				// calculate graphical position of both anchor and new caret
-				Point anchorPos = view.GetVirPosFromIndex( doc.AnchorIndex );
-				Point newCaretPos = view.GetVirPosFromIndex( nextIndex );
-				
-				// calculate ranges selected by the rectangle made with the two points
-				doc.RectSelectRanges = view.GetRectSelectRanges(
-						UiImpl.MakeRectFromTwoPoints(anchorPos, newCaretPos)
-					);
-
-				// set selection
-				doc.SetSelection_Impl( doc.AnchorIndex, nextIndex, false );
-			}
 			else
 			{
-				//--- case of normal selection ---
+				// set new selection and scroll to caret
 				doc.SetSelection( doc.AnchorIndex, nextIndex );
+				view.ScrollToCaret();
 			}
-			view.ScrollToCaret();
 		}
 		#endregion
 

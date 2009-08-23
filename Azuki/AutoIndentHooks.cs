@@ -1,46 +1,35 @@
 ﻿// file: AutoIndentLogic.cs
 // brief: Logic around auto-indentation.
 // author: YAMAMOTO Suguru
-// update: 2009-08-23
+// update: 2009-07-05
 //=========================================================
 using System;
 using System.Text;
-using Point = System.Drawing.Point;
 
 namespace Sgry.Azuki
 {
 	/// <summary>
 	/// Hook delegate called every time a character was inserted.
 	/// </summary>
-	/// <param name="ui">User interface object such as AzukiControl.</param>
+	/// <param name="doc">Document object.</param>
 	/// <param name="ch">Character about to be inserted.</param>
 	/// <returns>
 	/// Whether this hook delegate successfully executed or not.
 	/// If true, Azuki itself will input nothing.
 	/// </returns>
-	public delegate bool AutoIndentHook( IUserInterface ui, char ch );
+	public delegate bool AutoIndentHook( Document doc, char ch );
 
 	/// <summary>
 	/// Static class containing hook delegates for auto-indentation.
 	/// </summary>
-	/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.AutoIndentHook">AzukiControl.AutoIndentHook property</seealso>
 	public static class AutoIndentHooks
 	{
 		/// <summary>
 		/// Hook delegate to execute basic auto-indentation;
 		/// indent same amount of spaces as the previous line.
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This member is a hook delegate to execute auto-indentation.
-		/// This delegate just copies previous indentation characters
-		/// on making a new line.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.AutoIndentHook">AzukiControl.AutoIndentHook property</seealso>
-		public static readonly AutoIndentHook GenericHook = delegate( IUserInterface ui, char ch )
+		public static AutoIndentHook GenericHook = delegate( Document doc, char ch )
 		{
-			Document doc = ui.Document;
 			StringBuilder str = new StringBuilder();
 			int lineHead;
 			int newCaretIndex;
@@ -73,27 +62,9 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Hook delegate to execute auto-indentation for C styled source code.
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This member is a hook delegate to execute auto-indentation for C styled source code.
-		/// Here 'C style' means that curly brackets are used to enclose each logical block.
-		/// </para>
-		/// <para>
-		/// Note that if user hits the Enter key on a line
-		///	that ends with a closing curly bracket (<c> } </c>),
-		///	newly generated line will be indented one more level
-		///	by inserting additional indent characters.
-		///	The additional indent characters will be chosen according to the value of
-		///	<see cref="Sgry.Azuki.Windows.AzukiControl.UsesTabForIndent">AzukiControl.UsesTabForIndent</see>
-		/// property.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.AutoIndentHook">AzukiControl.AutoIndentHook property</seealso>
-		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.UsesTabForIndent">AzukiControl.UsesTabForIndent property</seealso>
-		public static readonly AutoIndentHook CHook = delegate( IUserInterface ui, char ch )
+		public static AutoIndentHook CHook = delegate( Document doc, char ch )
 		{
-			Document doc = ui.Document;
-			StringBuilder buf = new StringBuilder();
+			StringBuilder str = new StringBuilder();
 			int lineHead, lineEnd;
 			int newCaretIndex;
 			int selBegin, selEnd;
@@ -116,10 +87,7 @@ namespace Sgry.Azuki
 			// user hit Enter key?
 			if( LineLogic.IsEolChar(ch) )
 			{
-				int i;
-				int firstNonWsCharIndex;
-
-				buf.Append( doc.EolCode );
+				str.Append( doc.EolCode );
 
 				// if the line is empty, do nothing
 				if( lineHead == lineEnd )
@@ -128,17 +96,24 @@ namespace Sgry.Azuki
 				}
 
 				// get indent chars
-				for( i=lineHead; i<selBegin; i++ )
+				for( int i=lineHead; i<selBegin; i++ )
 				{
 					if( doc[i] == ' ' || doc[i] == '\t' )
-						buf.Append( doc[i] );
+						str.Append( doc[i] );
 					else
 						break;
 				}
-				firstNonWsCharIndex = i;
+
+				// if there is an '{' without pair before caret
+				// and is no '}' after caret, add indentation
+				if( Utl.FindPairedBracket_Backward( doc, selBegin, lineHead, '}', '{' ) != -1
+					&& Utl.IndexOf(doc, '}', selBegin, lineEnd) == -1 )
+				{
+					str.Append( '\t' );
+				}
 
 				// if there are following white spaces, remove them
-				for( i=selEnd; i<lineEnd; i++ )
+				for( int i=selEnd; i<lineEnd; i++ )
 				{
 					if( doc[i] == ' ' || doc[i] == '\t' || doc[i] == '\x3000' )
 						selEnd++;
@@ -147,23 +122,8 @@ namespace Sgry.Azuki
 				}
 
 				// replace selection
-				newCaretIndex = Math.Min( doc.AnchorIndex, selBegin ) + buf.Length;
-				doc.Replace( buf.ToString(), selBegin, selEnd );
-
-				// if there is a '{' without pair before caret
-				// and is no '}' after caret, add indentation
-				if( Utl.FindPairedBracket_Backward(doc, selBegin, lineHead, '}', '{') != -1
-					&& Utl.IndexOf(doc, '}', selBegin, lineEnd) == -1 )
-				{
-					// make indentation characters
-					string extraPadding;
-					Point pos = ui.View.GetVirPosFromIndex( newCaretIndex );
-					pos.X += ui.View.TabWidthInPx;
-					extraPadding = UiImpl.GetNeededPaddingChars( ui, pos, true );
-					doc.Replace( extraPadding, newCaretIndex, newCaretIndex );
-					newCaretIndex += extraPadding.Length;
-				}
-
+				newCaretIndex = Math.Min( doc.AnchorIndex, selBegin ) + str.Length;
+				doc.Replace( str.ToString(), selBegin, selEnd );
 				doc.SetSelection( newCaretIndex, newCaretIndex );
 
 				return true;

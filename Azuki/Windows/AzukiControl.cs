@@ -1,7 +1,7 @@
 ﻿// file: AzukiControl.cs
 // brief: User interface for Windows platform (both Desktop and CE).
 // author: YAMAMOTO Suguru
-// update: 2009-08-09
+// update: 2009-07-08
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -234,7 +234,6 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( (Keys)VK_OEM4|Keys.Control, Actions.GoToMatchedBracket );
 			SetKeyBind( (Keys)VK_OEM6|Keys.Control, Actions.GoToMatchedBracket );
 
-			SetKeyBind( Keys.B|Keys.Control, Actions.ToggleRectSelectMode );
 			SetKeyBind( Keys.Insert, Actions.ToggleOverwriteMode );
 			SetKeyBind( Keys.F5, Actions.Refresh );
 
@@ -245,30 +244,6 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.Up|Keys.Control, Actions.MovePageUp );
 			SetKeyBind( Keys.Down|Keys.Control, Actions.MovePageDown );
 #			endif
-		}
-
-		/// <summary>
-		/// Gets whether Azuki is in rectangle selection mode or not.
-		/// </summary>
-		public bool IsRectSelectMode
-		{
-			get{ return _Impl.IsRectSelectMode; }
-			set
-			{
-				_Impl.IsRectSelectMode = value;
-
-#				if !PocketPC
-				// update mouse cursor graphic
-				if( _Impl.IsRectSelectMode )
-				{
-					Cursor = Cursors.Arrow;
-				}
-				else
-				{
-					Cursor = Cursors.IBeam;
-				}
-#				endif
-			}
 		}
 
 		/// <summary>
@@ -594,7 +569,7 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Gets or sets tab width in count of space characters.
+		/// Gets or sets tab width in count of space chars.
 		/// </summary>
 #		if !PocketPC
 		[Category("Drawing")]
@@ -615,17 +590,6 @@ namespace Sgry.Azuki.Windows
 		public int LineHeight
 		{
 			get{ return View.LineHeight; }
-		}
-
-		/// <summary>
-		/// Gets distance between lines in pixel.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-#		endif
-		public int LineSpacing
-		{
-			get{ return View.LineSpacing; }
 		}
 
 		/// <summary>
@@ -671,7 +635,7 @@ namespace Sgry.Azuki.Windows
 		}
 		#endregion
 		
-		#region IUserInterface - Behavior
+		#region IUserInterface - Editing Behavior
 		/// <summary>
 		/// Gets or sets whether this document is read-only or not.
 		/// </summary>
@@ -706,17 +670,7 @@ namespace Sgry.Azuki.Windows
 		/// Gets or sets hook delegate to execute auto-indentation.
 		/// If null, auto-indentation will not be performed.
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property gets or sets a delegate object to execute auto-indentation.
-		/// There are some built-in auto-indentation hook delegates
-		/// declared as members of
-		/// <see cref="Sgry.Azuki.AutoIndentHooks">AutoIndentHooks</see> class.
-		/// Use one of the member of AutoIndentHooks or user-made hook to enable auto-indentation,
-		/// otherwise, set null to this property to disable auto-indentation.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.AutoIndentHooks">AutoIndentHooks</seealso>
+		/// <seealso cref="AutoIndentHooks">AutoIndentHooks</seealso>
 #		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -728,78 +682,18 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Gets or sets whether tab characters are used for indentation, instead of space characters.
+		/// Gets or sets whether to automatically convert
+		/// an input tab character to equivalent amount of spaces.
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property is replaced with
-		/// <see cref="Sgry.Azuki.Windows.AzukiControl.UsesTabForIndent">UsesTabForIndent</see>
-		/// property and is now obsoleted.
-		/// Use
-		/// <see cref="Sgry.Azuki.Windows.AzukiControl.UsesTabForIndent">UsesTabForIndent</see>
-		/// property instead.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.UsesTabForIndent">UsesTabForIndent</seealso>
 #		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(false)]
-		[Description("If false, tab characters are used for indentation, instead of space characters.")]
+		[Description("If true, an input tab character will be automatically converted into equivalent amount of spaces.")]
 #		endif
-		[Obsolete("Please use UsesTabForIndent property instead.", false)]
 		public bool ConvertsTabToSpaces
 		{
-			get{ return !UsesTabForIndent; }
-			set{ UsesTabForIndent = !(value); }
-		}
-
-		/// <summary>
-		/// Gets or sets whether tab characters are used for indentation, instead of space characters.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property gets or sets whether tab characters are used for indentation,
-		/// instead of space characters.
-		/// </para>
-		/// <para>
-		/// In addition to the case of inserting a new tab character,
-		/// This property affects some other cases like next:
-		/// </para>
-		/// <list type="bullet">
-		///		<item>
-		///		When executing block-indent.
-		///		</item>
-		///		<item>
-		///		When additional indent characters are needed.
-		///		This case is about auto-indentation for specific syntax such as C/C++ language
-		///		(term <term>smart-indentation</term> is more appropriate here.)
-		///		In C/C++, if user hits the Enter key on a line
-		///		that ends with a closing curly bracket (<c> } </c>),
-		///		newly generated line will be indented one more level
-		///		by inserting additional indent characters.
-		///		</item>
-		///		<item>
-		///		When pasting rectangle selection data.
-		///		Let's suppose pasting the text data
-		///		when the caret is at end of a long line
-		///		and the lines below is shorter than the line caret is at.
-		///		In this case, whitespaces will be appended automatically
-		///		for the lines below as a padding to make pasted result a 'rectangle.'
-		///		</item>
-		/// </list>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.TabWidth">AzukiControl.TabWidth property</seealso>
-		/// <seealso cref="Sgry.Azuki.Actions.BlockIndent">Actions.BlockIndent action</seealso>
-		/// <seealso cref="Sgry.Azuki.Actions.BlockUnIndent">Actions.BlockUnIndent action</seealso>
-#		if !PocketPC
-		[Category("Behavior")]
-		[DefaultValue(true)]
-		[Description("If true, tab characters are used for indentation, instead of space characters.")]
-#		endif
-		public bool UsesTabForIndent
-		{
-			get{ return _Impl.UsesTabForIndent; }
-			set{ _Impl.UsesTabForIndent = value; }
+			get{ return _Impl.ConvertsTabToSpaces; }
+			set{ _Impl.ConvertsTabToSpaces = value; }
 		}
 
 		/// <summary>
@@ -858,18 +752,6 @@ namespace Sgry.Azuki.Windows
 		/// <summary>
 		/// Executes UNDO.
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This method restores the modification lastly done for currently active document.
-		/// If there is no UNDOable action, this method will do nothing.
-		/// </para>
-		/// <para>
-		/// To get whether any UNDOable action exists or not,
-		/// use <see cref="Sgry.Azuki.Windows.AzukiControl.CanUndo">CanUndo</see> property.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.CanUndo">AzukiControl.CanUndo property</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.Undo">Document.Undo method</seealso>
 		public void Undo()
 		{
 			Actions.Undo( this );
@@ -878,23 +760,13 @@ namespace Sgry.Azuki.Windows
 		/// <summary>
 		/// Gets whether an available UNDO action exists or not.
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property gets whether one or more UNDOable action exists or not.
-		/// </para>
-		/// <para>
-		/// To execute UNDO, use <see cref="Sgry.Azuki.Windows.AzukiControl.Undo">Undo</see> method.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.Undo">AzukiControl.Undo method</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.CanUndo">Document.CanUndo property</seealso>
 #		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 #		endif
 		public bool CanUndo
 		{
-			get{ return Document.CanUndo; }
+			get{ return View.Document.CanUndo; }
 		}
 
 		/// <summary>
@@ -902,7 +774,7 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		public void ClearHistory()
 		{
-			Document.ClearHistory();
+			View.Document.ClearHistory();
 		}
 
 		/// <summary>
@@ -914,8 +786,8 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public bool IsRecordingHistory
 		{
-			get{ return Document.IsRecordingHistory; }
-			set{ Document.IsRecordingHistory = value; }
+			get{ return View.Document.IsRecordingHistory; }
+			set{ View.Document.IsRecordingHistory = value; }
 		}
 
 		/// <summary>
@@ -935,7 +807,7 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public bool CanRedo
 		{
-			get{ return Document.CanRedo; }
+			get{ return View.Document.CanRedo; }
 		}
 
 		/// <summary>
@@ -980,7 +852,7 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public int CaretIndex
 		{
-			get{ return Document.CaretIndex; }
+			get{ return View.Document.CaretIndex; }
 		}
 
 		/// <summary>
@@ -1001,7 +873,7 @@ namespace Sgry.Azuki.Windows
 		/// </remarks>
 		public void SetSelection( int anchor, int caret )
 		{
-			Document.SetSelection( anchor, caret );
+			View.Document.SetSelection( anchor, caret );
 			View.SetDesiredColumn();
 		}
 
@@ -1013,7 +885,7 @@ namespace Sgry.Azuki.Windows
 		/// <param name="end">index of where the selection ends (selection do not includes the char at this index).</param>
 		public void GetSelection( out int begin, out int end )
 		{
-			Document.GetSelection( out begin, out end );
+			View.Document.GetSelection( out begin, out end );
 		}
 
 		/// <summary>
@@ -1059,7 +931,7 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public int TextLength
 		{
-			get{ return Document.Length; }
+			get{ return View.Document.Length; }
 		}
 
 		/// <summary>
@@ -1077,22 +949,7 @@ namespace Sgry.Azuki.Windows
 		/// <exception cref="ArgumentOutOfRangeException">Specified range was invalid.</exception>
 		public string GetTextInRange( int begin, int end )
 		{
-			return Document.GetTextInRange( begin, end );
-		}
-
-		/// <summary>
-		/// Gets currently selected text.
-		/// </summary>
-		/// <returns>Currently selected text.</returns>
-		/// <remarks>
-		/// This method gets currently selected text.
-		/// If current selection is rectangle selection,
-		/// return value will be a text that are consisted with selected partial lines (rows)
-		/// joined with CR-LF.
-		/// </remarks>
-		public string GetSelectedText()
-		{
-			return _Impl.GetSelectedText();
+			return View.Document.GetTextInRange( begin, end );
 		}
 
 		/// <summary>
@@ -1104,7 +961,7 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public int LineCount
 		{
-			get{ return Document.LineCount; }
+			get{ return View.Document.LineCount; }
 		}
 		#endregion
 
@@ -1340,7 +1197,7 @@ namespace Sgry.Azuki.Windows
 			else if( scrollType == WinApi.SB_TOP )
 				newPos = 0;
 			else if( scrollType == WinApi.SB_BOTTOM )
-				newPos = Document.LineCount - 1;
+				newPos = View.Document.LineCount - 1;
 			else if( scrollType == WinApi.SB_THUMBPOSITION
 				|| scrollType == WinApi.SB_THUMBTRACK )
 				newPos = WinApi.GetScrollTrackPos( Handle, false );
@@ -1861,18 +1718,9 @@ namespace Sgry.Azuki.Windows
 					{
 						this.Focus();
 						_Impl.HandleMouseDown( buttonIndex, pos, shift, ctrl, alt, win );
-#						if !PocketPC
-						if( alt )
-						{
-							this.Cursor = Cursors.Arrow;
-						}
-#						endif
 					}
 					else if( message == WinApi.WM_LBUTTONUP || message == WinApi.WM_RBUTTONUP )
 					{
-#						if !PocketPC
-						this.Cursor = Cursors.IBeam;
-#						endif
 						_Impl.HandleMouseUp( buttonIndex, pos, shift, ctrl, alt, win );
 					}
 				}

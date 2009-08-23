@@ -1,7 +1,7 @@
 // file: IUserInterface.cs
 // brief: interface of user interface module (platform dependent)
 // author: YAMAMOTO Suguru
-// update: 2009-08-09
+// update: 2009-01-10
 //=========================================================
 using System;
 using System.Drawing;
@@ -151,25 +151,9 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets or sets tab width in count of space characters.
-		/// </summary>
-		int TabWidth
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets height of each lines in pixel.
+		/// Height of each lines in pixel.
 		/// </summary>
 		int LineHeight
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets distance between lines in pixel.
-		/// </summary>
-		int LineSpacing
 		{
 			get;
 		}
@@ -195,7 +179,7 @@ namespace Sgry.Azuki
 		void Invalidate( Rectangle rect );
 		#endregion
 
-		#region Behavior and Modes
+		#region Editing Behavior
 		/// <summary>
 		/// Gets or sets whether this document is read-only or not.
 		/// </summary>
@@ -215,64 +199,10 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets or sets whether tab characters are used for indentation, instead of space characters.
+		/// Gets or sets whether to automatically convert
+		/// an input tab character to equivalent amount of spaces.
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property is replaced with
-		/// <see cref="Sgry.Azuki.IUserInterface.UsesTabForIndent">UsesTabForIndent</see>
-		/// property and is now obsoleted.
-		/// Use
-		/// <see cref="Sgry.Azuki.IUserInterface.UsesTabForIndent">UsesTabForIndent</see>
-		/// property instead.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.IUserInterface.UsesTabForIndent">UsesTabForIndent</seealso>
-		[Obsolete("Please use UsesTabForIndent property instead.", false)]
 		bool ConvertsTabToSpaces
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets or sets whether tab characters are used for indentation, instead of space characters.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property gets or sets whether tab characters are used for indentation,
-		/// instead of space characters.
-		/// </para>
-		/// <para>
-		/// In addition to the case of inserting a new tab character,
-		/// This property affects some other cases like next:
-		/// </para>
-		/// <list type="bullet">
-		///		<item>
-		///		When executing block-indent.
-		///		</item>
-		///		<item>
-		///		When additional indent characters are needed.
-		///		This case is about auto-indentation for specific syntax such as C/C++ language
-		///		(term <term>smart-indentation</term> is more appropriate here.)
-		///		In C/C++, if user hits the Enter key on a line
-		///		that ends with a closing curly bracket (<c> } </c>),
-		///		newly generated line will be indented one more level
-		///		by inserting additional indent characters.
-		///		</item>
-		///		<item>
-		///		When pasting rectangle selection data.
-		///		Let's suppose pasting the text data
-		///		when the caret is at end of a long line
-		///		and the lines below is shorter than the line caret is at.
-		///		In this case, whitespaces will be appended automatically
-		///		for the lines below as a padding to make pasted result a 'rectangle.'
-		///		</item>
-		/// </list>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.IUserInterface.TabWidth">IUserInterface.TabWidth property</seealso>
-		/// <seealso cref="Sgry.Azuki.Actions.BlockIndent">Actions.BlockIndent action</seealso>
-		/// <seealso cref="Sgry.Azuki.Actions.BlockUnIndent">Actions.BlockUnIndent action</seealso>
-		bool UsesTabForIndent
 		{
 			get; set;
 		}
@@ -282,14 +212,6 @@ namespace Sgry.Azuki
 		/// an input full-width space to a space.
 		/// </summary>
 		bool ConvertsFullWidthSpaceToSpace
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets whether Azuki is in rectangle selection mode or not.
-		/// </summary>
-		bool IsRectSelectMode
 		{
 			get; set;
 		}
@@ -411,18 +333,6 @@ namespace Sgry.Azuki
 		string GetTextInRange( int begin, int end );
 
 		/// <summary>
-		/// Gets currently selected text.
-		/// </summary>
-		/// <returns>Currently selected text.</returns>
-		/// <remarks>
-		/// This method gets currently selected text.
-		/// If current selection is rectangle selection,
-		/// return value will be a text that are consisted with selected partial lines (rows)
-		/// joined with CR-LF.
-		/// </remarks>
-		string GetSelectedText();
-
-		/// <summary>
 		/// Gets number of lines currently inputted.
 		/// </summary>
 		int LineCount
@@ -445,6 +355,7 @@ namespace Sgry.Azuki
 		{
 			get; set;
 		}
+		#endregion
 
 		/// <summary>
 		/// Gets this component is focused by user or not.
@@ -453,7 +364,6 @@ namespace Sgry.Azuki
 		{
 			get;
 		}
-		#endregion
 
 		#region Position / Index Conversion
 		/// <summary>

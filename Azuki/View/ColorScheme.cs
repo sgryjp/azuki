@@ -11,15 +11,8 @@ using Debug = System.Diagnostics.Debug;
 namespace Sgry.Azuki
 {
 	/// <summary>
-	/// Color set used for drawing text.
+	/// Color set used for drawing.
 	/// </summary>
-	/// <remarks>
-	/// <para>
-	/// ColorScheme is a set of pairs of foreground color and background color
-	/// and is used to draw tokens of document.
-	/// </para>
-	/// </remarks>
-	/// <seealso cref="Sgry.Azuki.CharClass">CharClass enum</seealso>
 	public class ColorScheme
 	{
 		Color[] _ForeColors = new Color[ Byte.MaxValue ];
@@ -39,11 +32,11 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets color pair for a char-class.
 		/// </summary>
-		/// <param name="klass">The color-pair associated with this char-class will be got.</param>
-		/// <param name="fore">Foreground color used to draw characters marked as the char-class.</param>
-		/// <param name="back">Background color used to draw characters marked as the char-class.</param>
+		/// <exception cref="ArgumentOutOfRangeException">Specified class ID is out of range.</exception>
 		public void GetColor( CharClass klass, out Color fore, out Color back )
 		{
+			Debug.Assert( (byte)klass <= _ForeColors.Length );
+
 			fore = _ForeColors[ (byte)klass ];
 			back = _BackColors[ (byte)klass ];
 		}
@@ -51,11 +44,10 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Sets color pair for a char-class.
 		/// </summary>
-		/// <param name="klass">The color-pair associated with this char-class will be got.</param>
-		/// <param name="fore">Foreground color used to draw characters marked as the char-class.</param>
-		/// <param name="back">Background color used to draw characters marked as the char-class.</param>
 		public void SetColor( CharClass klass, Color fore, Color back )
 		{
+			Debug.Assert( (byte)klass <= _ForeColors.Length );
+
 			_ForeColors[ (byte)klass ] = fore;
 			_BackColors[ (byte)klass ] = back;
 		}

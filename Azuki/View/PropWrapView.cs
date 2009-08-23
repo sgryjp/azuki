@@ -626,7 +626,6 @@ namespace Sgry.Azuki
 			int begin, end; // range of the token in the text
 			CharClass klass;
 			Point tokenEndPos = pos;
-			bool inSelection;
 
 			int physTextAreaRight = TextAreaWidth + (TextAreaX - ScrollPosX);
 
@@ -681,7 +680,7 @@ namespace Sgry.Azuki
 
 			// draw line text
 			begin = lineHead;
-			end = NextPaintToken( Document, begin, lineEnd, out klass, out inSelection );
+			end = NextPaintToken( Document.InternalBuffer, begin, lineEnd, out klass );
 			while( end <= lineEnd && end != -1 )
 			{
 				// get this token
@@ -766,13 +765,13 @@ namespace Sgry.Azuki
 				}
 
 				// draw this token
-				DrawToken( token, klass, inSelection, ref pos, ref tokenEndPos, ref clipRect );
+				DrawToken( token, klass, ref pos, ref tokenEndPos, ref clipRect );
 
 			next_token:
 				// get next token
 				pos.X = tokenEndPos.X;
 				begin = end;
-				end = NextPaintToken( Document, begin, lineEnd, out klass, out inSelection );
+				end = NextPaintToken( Document.InternalBuffer, begin, lineEnd, out klass );
 			}
 
 			// fill right of the line text
