@@ -1,11 +1,12 @@
 ﻿// file: UiImpl.cs
 // brief: User interface logic that independent from platform.
 // author: YAMAMOTO Suguru
-// update: 2009-06-07
+// update: 2009-08-23
 //=========================================================
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Text;
 using System.Threading;
 using Debug = System.Diagnostics.Debug;
 
@@ -323,7 +324,18 @@ namespace Sgry.Azuki
 			}
 			else if( ch == '\t' && _ConvertsTabToSpaces )
 			{
-				int spaceCount = NextTabStop( selBegin ) - selBegin;
+				StringBuilder buf = new StringBuilder( 32 );
+				
+				// get x-coord of caret index
+				Point newCaretPos = View.GetVirPosFromIndex( selBegin );
+
+				// calc next tab stop
+				Point nextTabStopPos = newCaretPos;
+				nextTabStopPos.X += View.TabWidthInPx;
+				nextTabStopPos.X = nextTabStopPos.X - (nextTabStopPos.X % View.TabWidthInPx);
+
+				// make padding spaces
+				int spaceCount = (nextTabStopPos.X - newCaretPos.X) / View.SpaceWidthInPx;
 				str = String.Empty;
 				for( int i=0; i<spaceCount; i++ )
 				{
@@ -602,13 +614,6 @@ namespace Sgry.Azuki
 				_DirtyRangeEnd = e.Index + e.NewText.Length;
 			}
 			_ShouldBeHighlighted = true;
-		}
-		#endregion
-
-		#region Utilitites
-		int NextTabStop( int index )
-		{
-			return ((index / _View.TabWidth) + 1) * _View.TabWidth;
 		}
 		#endregion
 	}
