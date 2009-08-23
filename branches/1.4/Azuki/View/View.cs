@@ -1,7 +1,7 @@
 ﻿// file: View.cs
 // brief: Platform independent view implementation of Azuki engine.
 // author: YAMAMOTO Suguru
-// update: 2009-06-07
+// update: 2009-08-23
 //=========================================================
 using System;
 using System.Drawing;
@@ -351,6 +351,14 @@ namespace Sgry.Azuki
 		public int TabWidthInPx
 		{
 			get{ return _TabWidthInPx; }
+		}
+
+		/// <summary>
+		/// Gets width of space character in pixel.
+		/// </summary>
+		public int SpaceWidthInPx
+		{
+			get{ return _SpaceWidth; }
 		}
 
 		internal int DragThresh
