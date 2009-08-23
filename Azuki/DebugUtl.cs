@@ -1,6 +1,6 @@
 // file: DebugUtl.cs
 // brief: Sgry's utilities for debug
-// update: 2009-08-10
+// update: 2009-07-07
 //=========================================================
 using System;
 using System.IO;
@@ -62,16 +62,27 @@ namespace Sgry
 		/// </summary>
 		public static void LogOut( string format, params object[] p )
 		{
-			LogOutEx( "", format, p );
+			try
+			{
+				lock( LockKey )
+				{
+					DateTime now = DateTime.Now;
+
+					using( StreamWriter file = new StreamWriter(LogFilePath, true) )
+					{
+						file.Write( now.ToString(LogDateHeader) );
+						file.Write( _IndentStr.ToString() );
+						file.WriteLine( String.Format(format, p) );
+					}
+				}
+			}
+			catch{}
 		}
 
 		/// <summary>
-		/// Outputs message to debug log file.
+		/// Writs message to a log file with precise time and process/thread ID.
 		/// </summary>
-		/// <param name="flags">i=indent, u=unindent, p=PID, t=TID</param>
-		/// <param name="format">Format of log message to write.</param>
-		/// <param name="p">Parameters to be used in the given message format.</param>
-		public static void LogOutEx( string flags, string format, params object[] p )
+		public static void LogOutEx( string format, params object[] p )
 		{
 			try
 			{
@@ -80,51 +91,21 @@ namespace Sgry
 					int pid;
 					int tid = 0;
 					DateTime now = DateTime.Now;
-					StringBuilder pidPart = new StringBuilder( 32 );
+					
+					pid = Process.GetCurrentProcess().Id;
+					tid = Thread.CurrentThread.ManagedThreadId;
 
-					// handle message flags
-					if( 0 <= flags.IndexOf('p') )
-					{
-						pid = Process.GetCurrentProcess().Id;
-						tid = Thread.CurrentThread.ManagedThreadId;
-						pidPart.Append( "[" + pid.ToString("X4") );
-						if( 0 <= flags.IndexOf('t') )
-						{
-							pidPart.Append( "," + tid.ToString("X2") );
-						}
-						pidPart.Append( "] " );
-					}
-
-					// write log
 					using( StreamWriter file = new StreamWriter(LogFilePath, true) )
 					{
-						file.Write( now.ToString(LogDateHeader) );
-						file.Write( pidPart.ToString() );
-						file.Write( _IndentStr.ToString() );
+						file.Write(
+								now.ToString(LogDateHeader)
+								+ String.Format("[{0},{1}] {2}", pid.ToString("X4"), tid.ToString("X2"), _IndentStr.ToString())
+							);
 						file.WriteLine( String.Format(format, p) );
-					}
-
-					// handle indentation flags
-					if( 0 <= flags.IndexOf('i') )
-					{
-						_IndentStr.Append( "  " );
-					}
-					if( 0 <= flags.IndexOf('u') )
-					{
-						_IndentStr.Length = Math.Max( 0, _IndentStr.Length - 2 );
 					}
 				}
 			}
-			catch( IOException )
-			{}
-			catch( UnauthorizedAccessException )
-			{}
-			catch( System.Security.SecurityException )
-			{}
-			catch( Exception ex )
-			{
-				Debug.Fail( ex.ToString() );
-			}
+			catch{}
 		}
 
 		/// <summary>

@@ -1,4 +1,4 @@
-// 2009-08-23
+// 2009-07-12
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -62,7 +62,6 @@ namespace Sgry.Ann
 				_MainForm = value;
 				_MainForm.Load += MainForm_Load;
 				_MainForm.Closing += MainForm_Closing;
-				_MainForm.Closed += MainForm_Closed;
 				_MainForm.Azuki.Resize += Azuki_Resize;
 				_MainForm.SearchPanel.PatternUpdated += SearchPanel_PatternUpdated;
 
@@ -73,6 +72,9 @@ namespace Sgry.Ann
 
 				// give find panel reference to find context object 
 				_MainForm.SearchPanel.SetContextRef( _SearchContext );
+
+				// apply config
+				MainForm.Azuki.Font = AppConfig.Font;
 			}
 		}
 
@@ -375,9 +377,9 @@ namespace Sgry.Ann
 		{
 			Document doc;
 
+			// load the file
 			try
 			{
-				// load the file
 				doc = CreateDocumentFromFile( filePath, null, false );
 				if( Documents.Contains(doc) == false )
 				{
@@ -386,7 +388,6 @@ namespace Sgry.Ann
 
 				// activate it
 				ActiveDocument = doc;
-				SetFileType( doc, FileType.GetFileTypeByFileName(filePath) );
 				MainForm.Azuki.SetSelection( 0, 0 );
 				MainForm.Azuki.ScrollToCaret();
 			}
@@ -686,55 +687,6 @@ namespace Sgry.Ann
 		}
 		#endregion
 
-		#region Config
-		public void LoadConfig()
-		{
-			// load config file
-			AppConfig.Load();
-
-			// apply config
-			MainForm.Azuki.Font					= AppConfig.Font;
-			MainForm.ClientSize					= AppConfig.WindowSize;
-
-			MainForm.Azuki.DrawsEolCode			= AppConfig.DrawsEolCode;
-			MainForm.Azuki.DrawsFullWidthSpace	= AppConfig.DrawsFullWidthSpace;
-			MainForm.Azuki.DrawsSpace			= AppConfig.DrawsSpace;
-			MainForm.Azuki.DrawsTab				= AppConfig.DrawsTab;
-			MainForm.Azuki.HighlightsCurrentLine= AppConfig.HighlightsCurrentLine;
-			MainForm.Azuki.ShowsLineNumber		= AppConfig.ShowsLineNumber;
-			MainForm.Azuki.TabWidth				= AppConfig.TabWidth;
-			MainForm.Azuki.ViewType				= AppConfig.ViewType;
-
-			MainForm.Azuki.UsesTabForIndent		= AppConfig.UsesTabForIndent;
-			MainForm.Azuki.ConvertsFullWidthSpaceToSpace = AppConfig.ConvertsFullWidthSpaceToSpace;
-
-			// update UI
-			MainForm.UpdateUI();
-		}
-
-		public void SaveConfig()
-		{
-			// update config fields
-			AppConfig.Font					= MainForm.Azuki.Font;
-			AppConfig.WindowSize			= MainForm.ClientSize;
-
-			AppConfig.DrawsEolCode			= MainForm.Azuki.DrawsEolCode;
-			AppConfig.DrawsFullWidthSpace	= MainForm.Azuki.DrawsFullWidthSpace;
-			AppConfig.DrawsSpace			= MainForm.Azuki.DrawsSpace;
-			AppConfig.DrawsTab				= MainForm.Azuki.DrawsTab;
-			AppConfig.HighlightsCurrentLine	= MainForm.Azuki.HighlightsCurrentLine;
-			AppConfig.ShowsLineNumber		= MainForm.Azuki.ShowsLineNumber;
-			AppConfig.TabWidth				= MainForm.Azuki.TabWidth;
-			AppConfig.ViewType				= MainForm.Azuki.ViewType;
-
-			AppConfig.UsesTabForIndent		= MainForm.Azuki.UsesTabForIndent;
-			AppConfig.ConvertsFullWidthSpaceToSpace = MainForm.Azuki.ConvertsFullWidthSpaceToSpace;
-
-			// save to file
-			AppConfig.Save();
-		}
-		#endregion
-
 		#region UI Event Handlers
 		void MainForm_Load( object sender, EventArgs e )
 		{
@@ -789,11 +741,6 @@ namespace Sgry.Ann
 					}
 				}
 			}
-		}
-
-		void MainForm_Closed( object sender, EventArgs e )
-		{
-			SaveConfig();
 		}
 
 		void Azuki_Resize( object sender, EventArgs e )
