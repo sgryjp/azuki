@@ -1,4 +1,4 @@
-// 2009-07-12
+// 2009-09-05
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -289,6 +289,7 @@ namespace Sgry.Ann
 				Utl.AnalyzeEncoding( filePath, out encoding, out withBom );
 			}
 			doc.Encoding = encoding;
+			doc.WithBom = withBom;
 
 			// load file content
 			using( file = new StreamReader(filePath, encoding) )
@@ -402,7 +403,7 @@ namespace Sgry.Ann
 		/// </summary>
 		public void SaveDocument( Document doc )
 		{
-			StreamWriter writer = null;
+			FileStream file = null;
 			string dirPath;
 
 			// if the document is read-only, do nothing
@@ -445,9 +446,26 @@ namespace Sgry.Ann
 			// overwrite
 			try
 			{
-				using( writer = new StreamWriter(doc.FilePath, false, doc.Encoding) )
+				byte[] bomBytes = new byte[]{};
+				byte[] contentBytes = null;
+
+				// decode content to native encoding
+				contentBytes = doc.Encoding.GetBytes( doc.Text );
+				if( doc.WithBom )
 				{
-					writer.Write( doc.Text );
+					if( doc.Encoding == Encoding.BigEndianUnicode
+						|| doc.Encoding == Encoding.Unicode
+						|| doc.Encoding == Encoding.UTF8 )
+					{
+						bomBytes = doc.Encoding.GetBytes( "\xFEFF" );
+					}
+				}
+
+				// write file bytes
+				using( file = File.OpenWrite(doc.FilePath) )
+				{
+					file.Write( bomBytes, 0, bomBytes.Length );
+					file.Write( contentBytes, 0, contentBytes.Length );
 				}
 				doc.IsDirty = false;
 			}
