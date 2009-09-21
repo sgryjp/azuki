@@ -1,3 +1,6 @@
+== 1.4.3 (    -  -  ) ==
+ * fix: [Ann] file will be improperly saved in case of that the file will be shorten (this problem exists only in Ann 1.3.2)
+
 == 1.4.2 (2009-09-05) ==
  * fix: fixed a problem that executing block-indent to non empty final line causes an exception
  * fix: now Azuki always scrolls to caret after releasing selection with left key or right key
