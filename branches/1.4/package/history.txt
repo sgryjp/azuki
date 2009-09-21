@@ -1,4 +1,5 @@
 == 1.4.3 (    -  -  ) ==
+ * fix: in particular condition, pressing tab key inserts nothing if "converting input tab to spaces" feature is enabled
  * fix: [Ann] file will be improperly saved in case of that the file will be shorten (this problem exists only in Ann 1.3.2)
 
 == 1.4.2 (2009-09-05) ==
