@@ -1,7 +1,7 @@
 ﻿// file: AzukiControl.cs
 // brief: User interface for Windows platform (both Desktop and CE).
 // author: YAMAMOTO Suguru
-// update: 2009-07-08
+// update: 2009-11-14
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -86,15 +86,6 @@ namespace Sgry.Azuki.Windows
 			WinApi.SetCaretPos( 0, 0 );
 			this.BorderStyle = _BorderStyle;
 
-			// install GUI event handlers
-			HandleDestroyed += Control_Destroyed;
-			//DO_NOT//Paint += Control_Paint;
-			KeyDown += Control_KeyDown;
-			KeyPress += Control_KeyPress;
-			GotFocus += Control_GotFocus;
-			LostFocus += Control_LostFocus;
-			Resize += Control_Resized;
-
 			// setup document event handler
 			Document = new Document();
 			ViewType = ViewType.Proportional; // (setting ViewType installs document event handlers)
@@ -109,8 +100,13 @@ namespace Sgry.Azuki.Windows
 			}
 		}
 
-		void Control_Destroyed( object sender, EventArgs e )
+		/// <summary>
+		/// Invokes HandleDestroyed event.
+		/// </summary>
+		protected override void OnHandleDestroyed( EventArgs e )
 		{
+			base.OnHandleDestroyed( e );
+
 			_Impl.Dispose();
 
 			// destroy caret
@@ -1247,24 +1243,52 @@ namespace Sgry.Azuki.Windows
 			View.HScroll( delta );
 		}
 
-		void Control_GotFocus( object sender, EventArgs e )
+		/// <summary>
+		/// Invokes GotFocus event.
+		/// </summary>
+		protected override void OnGotFocus( EventArgs e )
 		{
+			base.OnGotFocus( e );
+
 			WinApi.CreateCaret( Handle, _CaretSize );
 			UpdateCaretGraphic();
 		}
 
-		void Control_LostFocus( object sender, EventArgs e )
+		/// <summary>
+		/// Invokes LostFocus event.
+		/// </summary>
+		protected override void OnLostFocus( EventArgs e )
 		{
+			base.OnLostFocus( e );
+
 			WinApi.HideCaret( Handle );
 		}
 
-		void Control_KeyDown( object sender, KeyEventArgs e )
+		/// <summary>
+		/// Invokes KeyDown event.
+		/// </summary>
+		protected override void OnKeyDown( KeyEventArgs e )
 		{
+			base.OnKeyDown( e );
+			if( e.Handled )
+			{
+				return;
+			}
+
 			_Impl.HandleKeyDown( (uint)e.KeyData );
 		}
 
-		void Control_KeyPress( object sender, KeyPressEventArgs e )
+		/// <summary>
+		/// Invokes KeyPress event.
+		/// </summary>
+		protected override void OnKeyPress( KeyPressEventArgs e )
 		{
+			base.OnKeyPress( e );
+			if( e.Handled )
+			{
+				return;
+			}
+
 			// TranslateMessage API (I think) treats some key combination specially
 			// (Ctrl+I as an a HT(HorizontalTab), Ctrl+M as a LF(LineFeed) for example).
 			// These behavior should not be expected by editor component users
@@ -1308,8 +1332,13 @@ namespace Sgry.Azuki.Windows
 			e.Handled = true;
 		}
 
-		void Control_Resized( object sender, EventArgs e )
+		/// <summary>
+		/// Invokes Resize event.
+		/// </summary>
+		protected override void OnResize( EventArgs e )
 		{
+			base.OnResize( e );
+
 			_Impl.View.HandleSizeChanged( ClientSize );
 			Invalidate();
 		}
