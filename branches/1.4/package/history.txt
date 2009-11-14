@@ -1,3 +1,6 @@
+== 1.4.4 (2009-  -  ) ==
+ * fix: now AzukiControl ignores key events if an outer event handler set true for Handled property of KeyEventArgs (KeyPressEvent)
+
 == 1.4.3 (2009-09-21) ==
  * fix: in particular condition, pressing tab key inserts nothing if "converting input tab to spaces" feature is enabled
  * fix: caret movement stops inproper position when pressing Ctrl+Left on paticular condition (ex. pressing Ctrl+Left when caret is at right of "5ii")
