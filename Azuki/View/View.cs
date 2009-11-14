@@ -1,7 +1,7 @@
 ﻿// file: View.cs
 // brief: Platform independent view implementation of Azuki engine.
 // author: YAMAMOTO Suguru
-// update: 2009-08-23
+// update: 2009-11-14
 //=========================================================
 using System;
 using System.Drawing;
@@ -517,10 +517,17 @@ namespace Sgry.Azuki
 			// calculate threshold to do ScrollToCaret
 			if( UserPref.AutoScrollNearWindowBorder )
 			{
-				threshRect.X += _SpaceWidth;
-				threshRect.Width -= _SpaceWidth << 1;
-				threshRect.Y += LineSpacing;
-				threshRect.Height -= LineSpacing + (LineSpacing >> 1); // (*1.5)
+				if( (this is PropWrapView) == false )
+				{
+					threshRect.X += _SpaceWidth;
+					threshRect.Width -= _SpaceWidth << 1;
+				}
+				if( 0 < FirstVisibleLine )
+				{
+					threshRect.Y += LineSpacing;
+					threshRect.Height -= LineSpacing;
+				}
+				threshRect.Height -= (LineSpacing >> 1); // (*1.5)
 			}
 
 			// calculate caret position
