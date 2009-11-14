@@ -1,9 +1,10 @@
-== 1.4.4 (2009-  -  ) ==
+== 1.4.4 (2009-11-14) ==
  * fix: using built-in Ruby highlighter always causes an exception
  * fix: in line-wrapping mode, inserting character at near right end of the view now does not scrolls
  * fix: in not line-wrapping mode, underline to highlight current line was not always drawn to right end
  * fix: now AzukiControl ignores key events if an outer event handler set true for Handled property of KeyEventArgs (KeyPressEvent)
  * fix: [Ann] Ann freezes when opening a file whose size is exactly 1 byte
+ * fix: [Ann] tagged as version 1.3.4
 
 == 1.4.3 (2009-09-21) ==
  * fix: in particular condition, pressing tab key inserts nothing if "converting input tab to spaces" feature is enabled
