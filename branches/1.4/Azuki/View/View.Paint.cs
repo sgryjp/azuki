@@ -1,7 +1,7 @@
 // file: View.Paint.cs
 // brief: Common painting logic
 // author: YAMAMOTO Suguru
-// update: 2009-05-24
+// update: 2009-11-14
 //=========================================================
 //DEBUG//#define DRAW_SLOWLY
 using System;
@@ -170,15 +170,15 @@ namespace Sgry.Azuki
 		/// <param name="color">Color to be used for drawing the underline.</param>
 		protected void DrawUnderLine( int lineTopY, Color color )
 		{
-			int textAreaRight = _TextAreaWidth + (TextAreaX - ScrollPosX);
+			if( lineTopY < 0 )
+				return;
 
 			// calculate position to underline
-			int right = Math.Min( _VisibleSize.Width, textAreaRight );
 			int bottom = lineTopY + _LineHeight;
 
 			// draw underline
 			_Gra.ForeColor = color;
-			_Gra.DrawLine( TextAreaX, bottom, right - 2, bottom );
+			_Gra.DrawLine( TextAreaX, bottom, _VisibleSize.Width, bottom );
 		}
 
 		/// <summary>
