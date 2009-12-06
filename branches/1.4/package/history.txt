@@ -1,3 +1,6 @@
+== 1.4.5 (2009-  -  ) ==
+ * fix: in ReadOnly mode, pressing BackSpace key deletes selected text
+
 == 1.4.4 (2009-11-14) ==
  * fix: using built-in Ruby highlighter always causes an exception
  * fix: in line-wrapping mode, inserting character at near right end of the view now does not scrolls

@@ -2,7 +2,7 @@
 // brief: Actions for Azuki engine.
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// update: 2009-07-12
+// update: 2009-12-06
 //=========================================================
 using System;
 
@@ -27,11 +27,18 @@ namespace Sgry.Azuki
 			Document doc = ui.Document;
 			IView view = ui.View;
 
+			// do nothing if the document is read-only
+			if( doc.IsReadOnly )
+			{
+				Plat.Inst.MessageBeep();
+				return;
+			}
+
 			// nothing selected?
 			if( doc.AnchorIndex == doc.CaretIndex )
 			{
-				if( doc.CaretIndex <= 0
-					|| doc.IsReadOnly )
+				// if the caret is at document head, there is no chars to delete
+				if( doc.CaretIndex <= 0 )
 				{
 					Plat.Inst.MessageBeep();
 					return;
