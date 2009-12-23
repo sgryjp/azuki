@@ -1,7 +1,7 @@
 ﻿// file: PropView.cs
 // brief: Platform independent view (proportional).
 // author: YAMAMOTO Suguru
-// update: 2009-06-07
+// update: 2009-12-23
 //=========================================================
 //#define DRAW_SLOWLY
 using System;
@@ -233,9 +233,9 @@ namespace Sgry.Azuki
 				if( PrevCaretLine == caretLine )
 				{
 					if( e.OldCaret < caret )
-						HandleSelectionChanged_OnExpandSelInLine( e.OldCaret, caret, PrevCaretLine );
+						HandleSelectionChanged_OnExpandSelInLine( e, e.OldCaret, caret, PrevCaretLine );
 					else
-						HandleSelectionChanged_OnExpandSelInLine( caret, e.OldCaret, caretLine );
+						HandleSelectionChanged_OnExpandSelInLine( e, caret, e.OldCaret, caretLine );
 				}
 				else
 				{
@@ -264,12 +264,23 @@ namespace Sgry.Azuki
 			DrawUnderLine( newCaretY, ColorScheme.HighlightColor );
 		}
 
-		void HandleSelectionChanged_OnExpandSelInLine( int begin, int end, int beginL )
+		void HandleSelectionChanged_OnExpandSelInLine( SelectionChangedEventArgs e, int begin, int end, int beginL )
 		{
 			DebugUtl.Assert( beginL < LineCount );
+			Document doc = Document;
 			Rectangle rect = new Rectangle();
 			int beginLineHead;
 			string token = String.Empty;
+
+			// if anchor was moved, invalidate largest range made with four indexes
+			if( e.OldAnchor != doc.AnchorIndex )
+			{
+				begin = Utl.Min( e.OldAnchor, e.OldCaret, doc.AnchorIndex, doc.CaretIndex );
+				end = Utl.Max( e.OldAnchor, e.OldCaret, doc.AnchorIndex, doc.CaretIndex );
+				Invalidate( begin, end );
+
+				return;
+			}
 
             // get chars at left of invalid rect
 			beginLineHead = GetLineHeadIndex( beginL );
@@ -296,6 +307,16 @@ namespace Sgry.Azuki
 			int begin, beginL;
 			int end, endL;
 			int beginLineHead, endLineHead;
+
+			// if anchor was moved, invalidate largest range made with four indexes
+			if( e.OldAnchor != doc.AnchorIndex )
+			{
+				begin = Utl.Min( e.OldAnchor, e.OldCaret, doc.AnchorIndex, doc.CaretIndex );
+				end = Utl.Max( e.OldAnchor, e.OldCaret, doc.AnchorIndex, doc.CaretIndex );
+				Invalidate( begin, end );
+
+				return;
+			}
 
 			// get range between old caret and current caret
 			if( e.OldCaret < doc.CaretIndex )
