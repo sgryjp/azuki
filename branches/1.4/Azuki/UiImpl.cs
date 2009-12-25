@@ -1,7 +1,7 @@
 ﻿// file: UiImpl.cs
 // brief: User interface logic that independent from platform.
 // author: YAMAMOTO Suguru
-// update: 2009-09-21
+// update: 2009-12-23
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -37,7 +37,9 @@ namespace Sgry.Azuki
 		bool _ConvertsTabToSpaces = false;
 		bool _ConvertsFullWidthSpaceToSpace = false;
 
-		Point _MouseDownPos = new Point( -1, 0 ); // this X coordinate also be used as a flag to determine whether the mouse button is down or not
+		// X coordinate of this also be used as a flag to determine
+		// whether the mouse button is down or not.
+		Point _MouseDownPos = new Point( Int32.MinValue, 0 );
 		bool _MouseDragging = false;
 
 		Thread _HighlighterThread;
@@ -481,6 +483,18 @@ namespace Sgry.Azuki
 			_View.Paint( clipRect );
 		}
 
+		public void HandleLostFocus()
+		{
+			_MouseDownPos.X = Int32.MinValue;
+			_MouseDragging = false;
+		}
+
+		internal void HandleMouseUp( int buttonIndex, Point pos, bool shift, bool ctrl, bool alt, bool win )
+		{
+			_MouseDownPos.X = Int32.MinValue;
+			_MouseDragging = false;
+		}
+
 		internal void HandleMouseDown( int buttonIndex, Point pos, bool shift, bool ctrl, bool alt, bool win )
 		{
 			// if mouse-down coordinate is out of window, this is not a normal event so ignore this
@@ -508,12 +522,6 @@ namespace Sgry.Azuki
 				View.SetDesiredColumn();
 				View.ScrollToCaret();
 			}
-		}
-
-		internal void HandleMouseUp( int buttonIndex, Point pos, bool shift, bool ctrl, bool alt, bool win )
-		{
-			_MouseDownPos.X = -1;
-			_MouseDragging = false;
 		}
 
 		internal void HandleDoubleClick( int buttonIndex, Point pos, bool shift, bool ctrl, bool alt, bool win )
