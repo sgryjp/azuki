@@ -1,7 +1,7 @@
 ﻿// file: PropView.cs
 // brief: Platform independent view (proportional).
 // author: YAMAMOTO Suguru
-// update: 2009-12-23
+// update: 2010-01-02
 //=========================================================
 //#define DRAW_SLOWLY
 using System;
@@ -640,7 +640,7 @@ namespace Sgry.Azuki
 
 					// calculate how many chars will not be in the clip-rect
 					invisibleWidth = MeasureTokenEndX( token, 0, rightLimit, out invisibleCharCount );
-					if( invisibleCharCount < token.Length )
+					if( 0 < invisibleCharCount && invisibleCharCount < token.Length )
 					{
 						// cut extra (invisible) part of the token
 						token = token.Substring( invisibleCharCount );
@@ -659,18 +659,20 @@ namespace Sgry.Azuki
 					MeasureTokenEndX( token, pos.X, clipRect.Right, out visibleCharCount );
 
 					// set the position to cut extra trailings of this token
-					if( visibleCharCount == token.Length )
+					if( visibleCharCount+1 <= token.Length )
+					{
+						if( Document.IsDividableIndex(token, visibleCharCount+1) == false )
+						{
+							token = token.Substring( 0, visibleCharCount + 2 );
+						}
+						else
+						{
+							token = token.Substring( 0, visibleCharCount + 1 );
+						}
+					}
+					else
 					{
 						token = token.Substring( 0, visibleCharCount );
-					}
-					else if( visibleCharCount+2 < token.Length
-						&& Document.IsHighSurrogate(token[visibleCharCount]) )
-					{
-						token = token.Substring( 0, visibleCharCount + 2 );
-					}
-					else if( visibleCharCount+1 < token.Length )
-					{
-						token = token.Substring( 0, visibleCharCount + 1 );
 					}
 
 					// set token end position to the right limit to terminate loop

@@ -1,7 +1,7 @@
 // file: PropWrapView.cs
 // brief: Platform independent view (proportional, line-wrap).
 // author: YAMAMOTO Suguru
-// update: 2009-06-20
+// update: 2010-01-02
 //=========================================================
 //DEBUG//#define PLHI_DEBUG
 //DEBUG//#define DRAW_SLOWLY
@@ -714,7 +714,7 @@ namespace Sgry.Azuki
 
 					// calculate how many chars will not be in the clip-rect
 					invisWidth = MeasureTokenEndX( token, 0, rightLimit, out invisCharCount );
-					if( invisCharCount < token.Length )
+					if( 0 < invisCharCount && invisCharCount < token.Length )
 					{
 						// cut extra (invisible) part of the token
 						token = token.Substring( invisCharCount );
@@ -740,18 +740,20 @@ namespace Sgry.Azuki
 
 					// try to get graphically peeking (drawn over the border line) char
 					peekingChar = String.Empty;
-					if( visCharCount+2 <= token.Length
-						&& Document.IsHighSurrogate(token[visCharCount]) )
+					if( visCharCount+1 <= token.Length )
 					{
-						peekingChar = token.Substring( visCharCount, 2 );
-					}
-					else if( visCharCount+1 <= token.Length )
-					{
-						peekingChar = token.Substring( visCharCount, 1 );
+						if( Document.IsDividableIndex(token, visCharCount+1) == false )
+						{
+							peekingChar = token.Substring( visCharCount, 2 );
+						}
+						else
+						{
+							peekingChar = token.Substring( visCharCount, 1 );
+						}
 					}
 
-					// if there is a peeking char
-					if( peekingChar != null )
+					// calculate right end coordinate of the peeking char
+					if( peekingChar != String.Empty )
 					{
 						peekingCharRight = MeasureTokenEndX( peekingChar, visPartRight );
 					}
