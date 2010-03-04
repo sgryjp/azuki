@@ -1,3 +1,6 @@
+== 1.4.7 (2010-  -  ) ==
+ * fix: setting TabWidth property of AzukiControl to 4 in Visual Studio's visual designer resets actual tab width to 8
+
 == 1.4.6 (2010-01-02) ==
  * fix: graphic will not be redrawn correctly if selection anchor was changed by API
  * fix: after losting focus while dragging text with mouse, Azuki looses track of the state of the button
