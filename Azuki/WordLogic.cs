@@ -1,7 +1,7 @@
 ﻿// file: WordLogic.cs
 // brief: Word detection logic for well Japanese handling
 // author: YAMAMOTO Suguru
-// update: 2010-04-17
+// update: 2009-05-01
 //=========================================================
 using System;
 using System.Text;
@@ -415,14 +415,7 @@ namespace Sgry.Azuki
 				if( 0 <= index-1
 					&& ('0' <= text[index-1] && text[index-1] <= '9') )
 				{
-					if( index+1 < text.Count && IsAlphabet(text, index+1) )
-					{
-						return true;
-					}
-					else
-					{
-						return false;
-					}
+					return false;
 				}
 			}
 
@@ -460,26 +453,7 @@ namespace Sgry.Azuki
 			{
 				char ch2 = text[ index-1 ];
 				if( '0' <= ch2 && ch2 <= '9' )
-				{
-					if( index+1 < text.Count && IsAlphabet(text, index+1) )
-					{
-						return false;
-					}
-					else
-					{
-						return true;
-					}
-				}
-			}
-
-			// include '#' of '#fff'
-			if( ch == '#'
-				&& index+1 < text.Count
-				&& ('0' <= text[index+1] && text[index+1] <= '9'
-					|| 'A' <= text[index+1] && text[index+1] <= 'Z'
-					|| 'a' <= text[index+1] && text[index+1] <= 'a') )
-			{
-				return true;
+					return true;
 			}
 
 			// include 'x' of '0x'
@@ -501,10 +475,6 @@ namespace Sgry.Azuki
 					i--;
 					ch = text[i];
 					if( ch == 'x' && text[i-1] == '0' )
-					{
-						return true;
-					}
-					else if( ch == '#' )
 					{
 						return true;
 					}
@@ -531,10 +501,8 @@ namespace Sgry.Azuki
 				return true;
 			if( 0x7b <= ch && ch <= 0x7f )
 				return true;
-			if( 0x3001 <= ch && ch <= 0x303f && ch != 0x3005 )
-				return true; // CJK punctuation marks except Ideographic iteration mark
-			if( ch == 0x30fb )
-				return true; // Katakana middle dot
+			if( 0x3001 <= ch && ch <= 0x303f )
+				return true; // CJK punctuation marks
 			if( 0xff01 <= ch && ch <= 0xff0f )
 				return true; // "Full width" forms (1)
 			if( 0xff1a <= ch && ch <= 0xff20 )
@@ -589,8 +557,6 @@ namespace Sgry.Azuki
 		{
 			char ch = text[index];
 
-			if( ch == 0x30fb )
-				return false; // Katakana middle dot is punctuation mark
 			if( 0x30a0 <= ch && ch <= 0x30ff )
 				return true;
 			

@@ -1,11 +1,10 @@
 ﻿// file: HighlighterUtl.cs
 // brief: common utility for built-in highlighters.
 // author: YAMAMOTO Suguru
-// update: 2009-10-24
+// update: 2008-05-31
 //=========================================================
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 
 namespace Sgry.Azuki.Highlighter
@@ -27,9 +26,6 @@ namespace Sgry.Azuki.Highlighter
 		/// <summary>Escape char used in the enclosing pair.</summary>
 		public char escape;
 
-		/// <summary>Whether this enclosure must exist in a line or not.</summary>
-		public bool multiLine;
-
 #		if DEBUG
 		public override string ToString()
 		{
@@ -47,7 +43,7 @@ namespace Sgry.Azuki.Highlighter
 		/// <returns>Index of next parse point if a pair was highlighted or 'begin' index</returns>
 		public static int TryHighlightNumberToken( Document doc, int startIndex, int endIndex )
 		{
-			Debug.Assert( endIndex <= doc.Length, "param endIndex is out of range (endIndex:"+endIndex+", doc.Length:"+doc.Length+")" );
+			DebugUtl.Assert( endIndex <= doc.Length, "param endIndex is out of range (endIndex:"+endIndex+", doc.Length:"+doc.Length+")" );
 			int begin = startIndex;
 			int end = begin;
 			char postfixCh;
@@ -104,14 +100,12 @@ namespace Sgry.Azuki.Highlighter
 		/// <summary>
 		/// Find next token beginning position and return it's index.
 		/// </summary>
-		public static int FindNextToken( Document doc, int index, string wordCharSet )
+		public static int FindNextToken( Document doc, int index )
 		{
-			Debug.Assert( doc != null );
-
 			if( doc.Length <= index+1 )
 				return doc.Length;
 
-			if( IsWordChar(wordCharSet, doc[index]) )
+			if( Utl.IsAlnum(doc[index]) )
 			{
 				do
 				{
@@ -119,11 +113,18 @@ namespace Sgry.Azuki.Highlighter
 					if( doc.Length <= index )
 						return doc.Length;
 				}
-				while( IsWordChar(wordCharSet, doc[index]) );
+				while( Utl.IsAlnum(doc[index]) );
 			}
 			else
 			{
 				index++;
+			}
+			
+			while( Char.IsWhiteSpace(doc[index]) )
+			{
+				index++;
+				if( doc.Length <= index )
+					return doc.Length;
 			}
 			
 			return index;
@@ -142,9 +143,9 @@ namespace Sgry.Azuki.Highlighter
 		/// </summary>
 		public static int Find( Document doc, string token, int startIndex, int endIndex )
 		{
-			Debug.Assert( doc != null && token != null );
-			Debug.Assert( 0 <= startIndex && startIndex <= doc.Length );
-			Debug.Assert( 0 <= endIndex && startIndex <= endIndex );
+			DebugUtl.Assert( doc != null && token != null );
+			DebugUtl.Assert( 0 <= startIndex && startIndex <= doc.Length );
+			DebugUtl.Assert( 0 <= endIndex && startIndex <= endIndex );
 
 			for( int i=startIndex; i<endIndex; i++ )
 			{
@@ -171,9 +172,9 @@ namespace Sgry.Azuki.Highlighter
 		/// </summary>
 		public static int FindLast( Document doc, string token, int startIndex )
 		{
-			Debug.Assert( doc != null && token != null );
-			Debug.Assert( 0 <= startIndex );
-			Debug.Assert( (doc.Length == 0 && startIndex == 0) || startIndex < doc.Length );
+			DebugUtl.Assert( doc != null && token != null );
+			DebugUtl.Assert( 0 <= startIndex );
+			DebugUtl.Assert( (doc.Length == 0 && startIndex == 0) || startIndex < doc.Length );
 
 			for( int i=startIndex; 0<=i; i-- )
 			{
@@ -196,68 +197,28 @@ namespace Sgry.Azuki.Highlighter
 		}
 
 		/// <summary>
-		/// Returns closer pos or line-end if closer is null.
+		/// return closer pos or line-end if closer is null.
 		/// </summary>
 		public static int FindCloser( Document doc, Enclosure pair, int startIndex, int endIndex )
 		{
-			Debug.Assert( doc != null );
-			Debug.Assert( pair != null );
-			Debug.Assert( pair.opener != null && 0 < pair.opener.Length );
-			Debug.Assert( 1 <= startIndex );
-			Debug.Assert( endIndex <= doc.Length );
-			int i;
-			int lineEndIndex;
+			int index;
 
-			// calculate line-end index
-			lineEndIndex = GetLineEndIndexFromCharIndex( doc, startIndex );
 			if( pair.closer == null )
 			{
-				// if closer is not specified, the line end is the end position
-				return Math.Min( lineEndIndex, endIndex );
+				// return line-end
+				return GetLineEndIndexFromCharIndex( doc, startIndex );
 			}
-
-			// find closer
-			for( i=startIndex; i<endIndex; i++ )
+			else
 			{
-				// if a closer was found, stop here
-				if( StartsWith(doc, pair.closer, i) )
+				// treat escape
+				index = Find( doc, pair.closer, startIndex, endIndex );
+				while( Utl.IsEscapedCloser(doc, pair, index) )
 				{
-					// but, if closer is exactly escape character it self,
-					// this may be not closer but escape character to escape a closer.
-					// if that case, skip this
-					if( pair.closer == pair.escape.ToString()
-						&& doc[i+1] == pair.escape )
-					{
-						i++;
-						continue;
-					}
-					break;
+					index++;
+					index = Find( doc, pair.closer, index, endIndex );
 				}
-
-				// if an escape char was found, skip this and following escaped character(s).
-				if( doc[i] == pair.escape )
-				{
-					if( i+2 < endIndex && doc[i+1] == '\r' && doc[i+2] == '\n' )
-					{
-						i++;
-					}
-					i++;
-					continue;
-				}
-
-				// if an EOL char was found and it is single-line enclosure, stop here
-				if( pair.multiLine == false && LineLogic.IsEolChar(doc[i]) )
-				{
-					i--;
-					break;
-				}
+				return index;
 			}
-			if( i == endIndex )
-			{
-				i = endIndex - 1;
-			}
-
-			return i;
 		}
 
 		/// <summary>
@@ -304,32 +265,43 @@ namespace Sgry.Azuki.Highlighter
 			return null;
 		}
 
-		public static bool IsWordChar( string wordChars, char ch )
+		static class Utl
 		{
-			if( wordChars == null )
+			public static bool IsEscapedCloser( Document doc, Enclosure pair, int foundCloserTokenIndex )
 			{
-				//--- use default word character set ---
-				if( 'a' <= ch && ch <= 'z' )
-					return true;
-				if( 'A' <= ch && ch <= 'Z' )
+				int index = foundCloserTokenIndex;
+
+				// previous char is an escape char?
+				if( 1 <= index && doc[index-1] == pair.escape )
+				{
+					// previous char of the previous char is an escape char?
+					if( 2 <= index && doc[index-2] == pair.escape )
+					{
+						// the escape char just before the closer token is escaped;
+						// so the closer token is not escaped
+						return false;
+					}
+					else
+					{
+						// found closer char is a closer
+						return true;
+					}
+				}
+
+				// it is a closer because it is not escaped
+				return false;
+			}
+
+			public static bool IsAlnum( char ch )
+			{
+				if( IsAlphabet(ch) )
 					return true;
 				if( '0' <= ch && ch <= '9' )
-					return true;
-				if( ch == '_' )
 					return true;
 
 				return false;
 			}
-			else
-			{
-				//--- use custom word character set ---
-				int index = Array.BinarySearch<char>( wordChars.ToCharArray(), ch );
-				return (0 <= index && index < wordChars.Length);
-			}
-		}
 
-		static class Utl
-		{
 			public static bool IsAlphabet( char ch )
 			{
 				if( 'a' <= ch && ch <= 'z' )

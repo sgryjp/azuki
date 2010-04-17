@@ -1,7 +1,7 @@
 // file: IUserInterface.cs
 // brief: interface of user interface module (platform dependent)
 // author: YAMAMOTO Suguru
-// update: 2010-03-20
+// update: 2009-01-10
 //=========================================================
 using System;
 using System.Drawing;
@@ -66,32 +66,6 @@ namespace Sgry.Azuki
 
 		#region Appearance
 		/// <summary>
-		/// Gets or sets top margin of the view in pixel.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">A negative number was set.</exception>
-		int TopMargin
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets or sets left margin of the view in pixel.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">A negative number was set.</exception>
-		int LeftMargin
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets or sets type of the indicator on the horizontal ruler.
-		/// </summary>
-		HRulerIndicatorType HRulerIndicatorType
-		{
-			get; set;
-		}
-
-		/// <summary>
 		/// Updates size and position of the caret graphic.
 		/// </summary>
 		void UpdateCaretGraphic();
@@ -100,14 +74,6 @@ namespace Sgry.Azuki
 		/// Font to be used for displaying text.
 		/// </summary>
 		Font Font
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Font information to be used for displaying text.
-		/// </summary>
-		FontInfo FontInfo
 		{
 			get; set;
 		}
@@ -185,25 +151,9 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets or sets tab width in count of space characters.
-		/// </summary>
-		int TabWidth
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets height of each lines in pixel.
+		/// Height of each lines in pixel.
 		/// </summary>
 		int LineHeight
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets distance between lines in pixel.
-		/// </summary>
-		int LineSpacing
 		{
 			get;
 		}
@@ -229,7 +179,7 @@ namespace Sgry.Azuki
 		void Invalidate( Rectangle rect );
 		#endregion
 
-		#region Behavior and Modes
+		#region Editing Behavior
 		/// <summary>
 		/// Gets or sets whether this document is read-only or not.
 		/// </summary>
@@ -249,60 +199,10 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets or sets whether tab characters are used for indentation, instead of space characters.
+		/// Gets or sets whether to automatically convert
+		/// an input tab character to equivalent amount of spaces.
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property is a synonym of
-		/// <see cref="Sgry.Azuki.IUserInterface.UsesTabForIndent">UsesTabForIndent</see>
-		/// property.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.IUserInterface.UsesTabForIndent">UsesTabForIndent</seealso>
 		bool ConvertsTabToSpaces
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets or sets whether tab characters are used for indentation, instead of space characters.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property gets or sets whether tab characters are used for indentation,
-		/// instead of space characters.
-		/// </para>
-		/// <para>
-		/// In addition to the case of inserting a new tab character,
-		/// This property affects some other cases like next:
-		/// </para>
-		/// <list type="bullet">
-		///		<item>
-		///		When executing block-indent.
-		///		</item>
-		///		<item>
-		///		When additional indent characters are needed.
-		///		This case is about auto-indentation for specific syntax such as C/C++ language
-		///		(term <term>smart-indentation</term> is more appropriate here.)
-		///		In C/C++, if user hits the Enter key on a line
-		///		that ends with a closing curly bracket (<c> } </c>),
-		///		newly generated line will be indented one more level
-		///		by inserting additional indent characters.
-		///		</item>
-		///		<item>
-		///		When pasting rectangle selection data.
-		///		Let's suppose pasting the text data
-		///		when the caret is at end of a long line
-		///		and the lines below is shorter than the line caret is at.
-		///		In this case, whitespaces will be appended automatically
-		///		for the lines below as a padding to make pasted result a 'rectangle.'
-		///		</item>
-		/// </list>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.IUserInterface.TabWidth">IUserInterface.TabWidth property</seealso>
-		/// <seealso cref="Sgry.Azuki.Actions.BlockIndent">Actions.BlockIndent action</seealso>
-		/// <seealso cref="Sgry.Azuki.Actions.BlockUnIndent">Actions.BlockUnIndent action</seealso>
-		bool UsesTabForIndent
 		{
 			get; set;
 		}
@@ -312,14 +212,6 @@ namespace Sgry.Azuki
 		/// an input full-width space to a space.
 		/// </summary>
 		bool ConvertsFullWidthSpaceToSpace
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets whether Azuki is in rectangle selection mode or not.
-		/// </summary>
-		bool IsRectSelectMode
 		{
 			get; set;
 		}
@@ -384,27 +276,6 @@ namespace Sgry.Azuki
 		/// Executes delete action.
 		/// </summary>
 		void Delete();
-
-		/// <summary>
-		/// Processes specified text as an input by user.
-		/// </summary>
-		/// <param name="text">The string to be processed.</param>
-		/// <exception cref="System.InvalidOperationException">This object is already disposed.</exception>
-		/// <exception cref="System.ArgumentNullException">Parameter 'text' is null.</exception>
-		/// <remarks>
-		/// <para>
-		/// This method processes specified text as an input by user.
-		/// Because this method is the implementation of user input,
-		/// some special pre-processes will be done.
-		/// The example of pre-processes are next:
-		/// </para>
-		/// <list type="bullet">
-		///		<item>If Document.ReadOnly property is true, this method will do nothing.</item>
-		///		<item>This method applies AutoIndentHook for each characters in the text.</item>
-		///		<item>This method applies built-in hook processes such as converting tab to spaces.</item>
-		/// </list>
-		/// </remarks>
-		void HandleTextInput( string text );
 		#endregion
 
 		#region Selection
@@ -462,26 +333,6 @@ namespace Sgry.Azuki
 		string GetTextInRange( int begin, int end );
 
 		/// <summary>
-		/// Gets currently selected text.
-		/// </summary>
-		/// <returns>Currently selected text.</returns>
-		/// <remarks>
-		/// This method gets currently selected text.
-		/// If current selection is rectangle selection,
-		/// return value will be a text that are consisted with selected partial lines (rows)
-		/// joined with CR-LF.
-		/// </remarks>
-		string GetSelectedText();
-
-		/// <summary>
-		/// Gets length of the specified line.
-		/// </summary>
-		/// <param name="lineIndex">Index of the line of which to get the length.</param>
-		/// <returns>Length of the specified line in character count.</returns>
-		/// <exception cref="System.ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		int GetLineLength( int lineIndex );
-
-		/// <summary>
 		/// Gets number of lines currently inputted.
 		/// </summary>
 		int LineCount
@@ -497,13 +348,14 @@ namespace Sgry.Azuki
 		IGraphics GetIGraphics();
 
 		/// <summary>
-		/// Gets or sets highlighter object to highlight currently active document
-		/// or null to disable highlighting.
+		/// Gets or sets highlighter for currently active document.
+		/// Setting null to this property will disable highlighting.
 		/// </summary>
 		IHighlighter Highlighter
 		{
 			get; set;
 		}
+		#endregion
 
 		/// <summary>
 		/// Gets this component is focused by user or not.
@@ -512,7 +364,6 @@ namespace Sgry.Azuki
 		{
 			get;
 		}
-		#endregion
 
 		#region Position / Index Conversion
 		/// <summary>
@@ -548,14 +399,6 @@ namespace Sgry.Azuki
 		int GetLineHeadIndexFromCharIndex( int charIndex );
 
 		/// <summary>
-		/// Calculates physical line index from char-index.
-		/// </summary>
-		/// <param name="charIndex">The index of the line which contains the char at this parameter will be calculated.</param>
-		/// <returns>The index of the line which contains the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		int GetLineIndexFromCharIndex( int charIndex );
-
-		/// <summary>
 		/// Calculates physical line/column index from char-index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
@@ -573,21 +416,6 @@ namespace Sgry.Azuki
 		/// Occurs soon after the document's caret was moved.
 		/// </summary>
 		event EventHandler CaretMoved;
-
-		/// <summary>
-		/// Invokes CaretMoved event.
-		/// </summary>
-		void InvokeCaretMoved();
-
-		/// <summary>
-		/// Occures soon after rectangular selection mode was changed.
-		/// </summary>
-		event EventHandler IsRectSelectModeChanged;
-
-		/// <summary>
-		/// Invokes IsRectSelectModeChanged event.
-		/// </summary>
-		void InvokeIsRectSelectModeChanged();
 		#endregion
 
 		#region Scroll

@@ -1,7 +1,7 @@
-﻿// file: XmlHighlighter.cs
+// file: XmlHighlighter.cs
 // brief: Highlighter for XML.
 // author: YAMAMOTO Suguru
-// update: 2009-10-31
+// update: 2009-08-23
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,6 @@ namespace Sgry.Azuki.Highlighter
 	class XmlHighlighter : IHighlighter
 	{
 		#region Fields
-		static readonly string DefaultWordCharSet = null;
 		List<Enclosure> _Enclosures = new List<Enclosure>();
 		#endregion
 
@@ -29,20 +28,17 @@ namespace Sgry.Azuki.Highlighter
 			Enclosure doubleQuote = new Enclosure();
 			doubleQuote.opener = doubleQuote.closer = "\"";
 			doubleQuote.klass = CharClass.String;
-			doubleQuote.multiLine = true;
 			_Enclosures.Add( doubleQuote );
 
 			Enclosure singleQuote = new Enclosure();
 			singleQuote.opener = singleQuote.closer = "'";
 			singleQuote.klass = CharClass.String;
-			singleQuote.multiLine = true;
 			_Enclosures.Add( singleQuote );
 
 			Enclosure comment = new Enclosure();
 			comment.opener = "<!--";
 			comment.closer = "-->";
 			comment.klass = CharClass.Comment;
-			comment.multiLine = true;
 			_Enclosures.Add( comment );
 		}
 		#endregion
@@ -74,12 +70,6 @@ namespace Sgry.Azuki.Highlighter
 
 			char nextCh;
 			int index, nextIndex;
-
-			// if there are no characters to be highlighted, do nothing
-			if( dirtyBegin == doc.Length )
-			{
-				return;
-			}
 
 			// get index to start highlighting
 			dirtyBegin = HighlighterUtl.FindLast( doc, "<", dirtyBegin );
@@ -134,7 +124,7 @@ namespace Sgry.Azuki.Highlighter
 					}
 
 					// highlight element name
-					nextIndex = HighlighterUtl.FindNextToken( doc, index, DefaultWordCharSet );
+					nextIndex = HighlighterUtl.FindNextToken( doc, index );
 					for( int i=index; i<nextIndex; i++ )
 					{
 						doc.SetCharClass( i, CharClass.ElementName );
@@ -154,7 +144,7 @@ namespace Sgry.Azuki.Highlighter
 						}
 
 						// this token is normal class; reset classes and seek to next token
-						nextIndex = HighlighterUtl.FindNextToken( doc, index, DefaultWordCharSet );
+						nextIndex = HighlighterUtl.FindNextToken( doc, index );
 						for( int i=index; i<nextIndex; i++ )
 						{
 							doc.SetCharClass( i, CharClass.Attribute );
@@ -241,7 +231,6 @@ namespace Sgry.Azuki.Highlighter
 		{
 			Enclosure pair;
 			int closePos;
-			int highlightEndIndex;
 
 			// get pair which begins from this position
 			pair = HighlighterUtl.StartsWith( doc, pairs, startIndex );
@@ -266,17 +255,10 @@ namespace Sgry.Azuki.Highlighter
 				return startIndex;
 			}
 
-			// calculate end index of the enclosed part
-			highlightEndIndex = Math.Min( endIndex, closePos + pair.closer.Length );
-			if( doc.Length <= highlightEndIndex )
-			{
-				highlightEndIndex = doc.Length - 1;
-			}
-
 			// highlight enclosed part
-			for( int i=startIndex; i<highlightEndIndex; i++ )
+			for( int i = 0; i < closePos + pair.closer.Length - startIndex; i++ )
 			{
-				doc.SetCharClass( i, pair.klass );
+				doc.SetCharClass( startIndex+i, pair.klass );
 			}
 			return closePos + pair.closer.Length;
 		}

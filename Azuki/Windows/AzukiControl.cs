@@ -1,7 +1,7 @@
 ﻿// file: AzukiControl.cs
 // brief: User interface for Windows platform (both Desktop and CE).
 // author: YAMAMOTO Suguru
-// update: 2010-03-22
+// update: 2009-07-08
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -37,11 +37,6 @@ namespace Sgry.Azuki.Windows
 		bool _UseCtrlTabToMoveFocus = true;
 		int _WheelPos = 0;
 		BorderStyle _BorderStyle = BorderStyle.Fixed3D;
-#		if !PocketPC
-		bool _LastAltWasForRectSelect = false;
-#		else
-		bool _IsHandleCreated = false;
-#		endif
 		
 		InvalidateProc1 _invalidateProc1 = null;
 		InvalidateProc2 _invalidateProc2 = null;
@@ -68,61 +63,44 @@ namespace Sgry.Azuki.Windows
 				throw new PlatformNotSupportedException( "Not supported platform", ex );
 			}
 
+			// rewrite window procedure at first
+			// (force to create window by accessing Handle property)
+			IntPtr dummy = this.Handle;
+			dummy.ToInt32(); // (suppress warning to unreferenced variable)
+			RewriteWndProc();
+			
 			// generate core implementation
 			_Impl = new UiImpl( this );
-			Document = new Document();
-			ViewType = ViewType.Proportional; // (setting ViewType installs document event handlers)
 
-			// setup default keybind
-			ResetKeyBind();
-		}
-
-		/// <summary>
-		/// Disposes resources used by this AzukiControl.
-		/// </summary>
-		protected override void Dispose( bool disposing )
-		{
-			base.Dispose( disposing );
-			if( _Impl != null )
-			{
-				_Impl.Dispose();
-				_Impl = null;
-			}
-		}
-
-		/// <summary>
-		/// Invokes HandleCreated event.
-		/// </summary>
-		protected override void OnHandleCreated( EventArgs e )
-		{
-			base.OnHandleCreated( e );
-
-			if( _Impl != null && _Impl.View != null )
-			{
-				_Impl.View.HandleGraphicContextChanged();
-			}
-
-#			if PocketPC
-			// remember that handle is associated
-			_IsHandleCreated = true;
+#			if !PocketPC
+			base.Cursor = Cursors.IBeam;
 #			endif
-
-			// rewrite window procedure at first
-			RewriteWndProc();
 
 			// set default value for each scroll bar
 			// (setting scroll bar range forces the window to have style of WS_VSCROLL/WS_HSCROLL)
 			WinApi.SetScrollRange( Handle, false, 0, 1, 1 );
 			WinApi.SetScrollRange( Handle, true, 0, 1, 1 );
 			
-#			if !PocketPC
-			base.Cursor = Cursors.IBeam;
-#			endif
 			this.Font = base.Font;
-			this.BorderStyle = _BorderStyle;
-
 			WinApi.CreateCaret( Handle, _CaretSize );
 			WinApi.SetCaretPos( 0, 0 );
+			this.BorderStyle = _BorderStyle;
+
+			// install GUI event handlers
+			HandleDestroyed += Control_Destroyed;
+			//DO_NOT//Paint += Control_Paint;
+			KeyDown += Control_KeyDown;
+			KeyPress += Control_KeyPress;
+			GotFocus += Control_GotFocus;
+			LostFocus += Control_LostFocus;
+			Resize += Control_Resized;
+
+			// setup document event handler
+			Document = new Document();
+			ViewType = ViewType.Proportional; // (setting ViewType installs document event handlers)
+
+			// setup default keybind
+			ResetKeyBind();
 
 			// calculate scrollbar width
 			using( ScrollBar sb = new VScrollBar() )
@@ -131,17 +109,9 @@ namespace Sgry.Azuki.Windows
 			}
 		}
 
-		/// <summary>
-		/// Invokes HandleDestroyed event.
-		/// </summary>
-		protected override void OnHandleDestroyed( EventArgs e )
+		void Control_Destroyed( object sender, EventArgs e )
 		{
-			base.OnHandleDestroyed( e );
-
-#			if PocketPC
-			// remember that no handle is associated now
-			_IsHandleCreated = false;
-#			endif
+			_Impl.Dispose();
 
 			// destroy caret
 			WinApi.DestroyCaret();
@@ -158,17 +128,7 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public Document Document
 		{
-			get
-			{
-				if( _Impl == null )
-				{
-					return null;
-				}
-				else
-				{
-					return _Impl.Document;
-				}
-			}
+			get{ return _Impl.Document; }
 			set
 			{
 				if( value == null )
@@ -203,13 +163,7 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public IView View
 		{
-			get
-			{
-				if( _Impl == null )
-					return null;
-
-				return _Impl.View;
-			}
+			get{ return _Impl.View; }
 		}
 
 		/// <summary>
@@ -217,7 +171,7 @@ namespace Sgry.Azuki.Windows
 		/// View type determine how to render text content.
 		/// </summary>
 #		if !PocketPC
-		[Category("Appearance")]
+		[Category("Drawing")]
 		[DefaultValue(ViewType.Proportional)]
 		[Description("Specify how to draw text content. Wrapped proportional view shows text wrapped within the width specified as ViewWidth property. Proportional view do not wrap text but draws faster.")]
 #		endif
@@ -239,7 +193,6 @@ namespace Sgry.Azuki.Windows
 
 			_Impl.ClearKeyBind();
 
-			// bind keys to move caret
 			SetKeyBind( Keys.Right, Actions.MoveRight );
 			SetKeyBind( Keys.Left, Actions.MoveLeft );
 			SetKeyBind( Keys.Down, Actions.MoveDown );
@@ -253,7 +206,6 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.Home|Keys.Control, Actions.MoveToFileHead );
 			SetKeyBind( Keys.End|Keys.Control, Actions.MoveToFileEnd );
 
-			// bind keys to set selection
 			SetKeyBind( Keys.Right|Keys.Shift, Actions.SelectToRight );
 			SetKeyBind( Keys.Left|Keys.Shift, Actions.SelectToLeft );
 			SetKeyBind( Keys.Down|Keys.Shift, Actions.SelectToDown );
@@ -266,30 +218,22 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.PageUp|Keys.Shift, Actions.SelectToPageUp );
 			SetKeyBind( Keys.Home|Keys.Control|Keys.Shift, Actions.SelectToFileHead );
 			SetKeyBind( Keys.End|Keys.Control|Keys.Shift, Actions.SelectToFileEnd );
-			SetKeyBind( Keys.Right|Keys.Alt, Actions.RectSelectToRight );
-			SetKeyBind( Keys.Left|Keys.Alt, Actions.RectSelectToLeft );
-			SetKeyBind( Keys.Up|Keys.Alt, Actions.RectSelectToUp );
-			SetKeyBind( Keys.Down|Keys.Alt, Actions.RectSelectToDown );
-			SetKeyBind( Keys.A|Keys.Control, Actions.SelectAll );
-
-			// bind keys to edit document
+			
 			SetKeyBind( Keys.Back, Actions.BackSpace );
 			SetKeyBind( Keys.Back|Keys.Control, Actions.BackSpaceWord );
 			SetKeyBind( Keys.Delete, Actions.Delete );
 			SetKeyBind( Keys.Delete|Keys.Control, Actions.DeleteWord );
+			SetKeyBind( Keys.A|Keys.Control, Actions.SelectAll );
 			SetKeyBind( Keys.V|Keys.Control, Actions.Paste );
 			SetKeyBind( Keys.C|Keys.Control, Actions.Copy );
 			SetKeyBind( Keys.X|Keys.Control, Actions.Cut );
 			SetKeyBind( Keys.Z|Keys.Control, Actions.Undo );
 			SetKeyBind( Keys.Z|Keys.Control|Keys.Shift, Actions.Redo );
 			SetKeyBind( Keys.Y|Keys.Control, Actions.Redo );
-			SetKeyBind( Keys.Enter|Keys.Control, Actions.BreakPreviousLine );
-			SetKeyBind( Keys.Enter|Keys.Shift|Keys.Control, Actions.BreakNextLine );
 
-			// bind misc keys
 			SetKeyBind( (Keys)VK_OEM4|Keys.Control, Actions.GoToMatchedBracket );
 			SetKeyBind( (Keys)VK_OEM6|Keys.Control, Actions.GoToMatchedBracket );
-			SetKeyBind( Keys.B|Keys.Control, Actions.ToggleRectSelectMode );
+
 			SetKeyBind( Keys.Insert, Actions.ToggleOverwriteMode );
 			SetKeyBind( Keys.F5, Actions.Refresh );
 
@@ -300,34 +244,6 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.Up|Keys.Control, Actions.MovePageUp );
 			SetKeyBind( Keys.Down|Keys.Control, Actions.MovePageDown );
 #			endif
-		}
-
-		/// <summary>
-		/// Gets whether Azuki is in rectangle selection mode or not.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
-		public bool IsRectSelectMode
-		{
-			get{ return _Impl.IsRectSelectMode; }
-			set
-			{
-				_Impl.IsRectSelectMode = value;
-
-#				if !PocketPC
-				// update mouse cursor graphic
-				if( _Impl.IsRectSelectMode )
-				{
-					Cursor = Cursors.Arrow;
-				}
-				else
-				{
-					Cursor = Cursors.IBeam;
-				}
-#				endif
-			}
 		}
 
 		/// <summary>
@@ -375,102 +291,42 @@ namespace Sgry.Azuki.Windows
 
 		#region IUserInterface - Appearance
 		/// <summary>
-		/// Gets or sets top margin of the view in pixel.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">A negative number was set.</exception>
-#		if !PocketPC
-		[Category("Appearance")]
-		[DefaultValue(1)]
-		[Description("Specify margin at top of the text area in pixel.")]
-#		endif
-		public int TopMargin
-		{
-			get{ return View.TopMargin; }
-			set
-			{
-				View.TopMargin = value;
-				UpdateCaretGraphic();
-				Invalidate();
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets left margin of the view in pixel.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">A negative number was set.</exception>
-#		if !PocketPC
-		[Category("Appearance")]
-		[DefaultValue(1)]
-		[Description("Specify margin at left of the text area in pixel.")]
-#		endif
-		public int LeftMargin
-		{
-			get{ return View.LeftMargin; }
-			set
-			{
-				View.LeftMargin = value;
-				UpdateCaretGraphic();
-				Invalidate();
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets type of the indicator on the horizontal ruler.
-		/// </summary>
-#		if !PocketPC
-		[Category("Appearance")]
-		[DefaultValue(HRulerIndicatorType.Segment)]
-		[Description("Specify type of the indicator on the horizontal ruler.")]
-#		endif
-		public HRulerIndicatorType HRulerIndicatorType
-		{
-			get{ return View.HRulerIndicatorType; }
-			set{ View.HRulerIndicatorType = value; }
-		}
-
-		/// <summary>
 		/// Updates size and position of the caret graphic.
 		/// </summary>
 		public void UpdateCaretGraphic()
 		{
+			if( Document == null )
+				throw new InvalidOperationException( "Document was not set yet." );
+
 #			if !PocketPC
 			if( DesignMode )
 				return;
 #			endif
-
-			// do nothing if not focused
 			if( Focused == false )
 				return;
 
-			// update caret size
-			_CaretSize.Height = View.LineHeight;
+			// calculate caret size
+			_CaretSize.Width = Utl.CalcOverwriteCaretWidth( Document, _Impl.View, CaretIndex, IsOverwriteMode );
 
-			// if document is already set, update caret size according to the state
-			if( Document != null )
+			// calculate caret position and show/hide caret
+			Point newCaretPos = GetPositionFromIndex( Document.CaretIndex );
+			if( newCaretPos.X < _Impl.View.TextAreaX
+				|| newCaretPos.Y < 0 )
 			{
-				// calculate caret size
-				_CaretSize.Width = Utl.CalcOverwriteCaretWidth( Document, _Impl.View, CaretIndex, IsOverwriteMode );
-
-				// calculate caret position and show/hide caret
-				Point newCaretPos = GetPositionFromIndex( Document.CaretIndex );
-				if( newCaretPos.X < _Impl.View.XofTextArea
-					|| newCaretPos.Y < _Impl.View.YofTextArea )
-				{
-					WinApi.SetCaretPos( newCaretPos.X, newCaretPos.Y );
-					WinApi.HideCaret( Handle );
-				}
-				else
-				{
-					//NO_NEED//_Caret.Destroy();
-					WinApi.CreateCaret( Handle, _CaretSize );
-					WinApi.SetCaretPos( newCaretPos.X, newCaretPos.Y ); // must be called after creation in CE
-					
-					WinApi.ShowCaret( Handle );
-				}
-
-				// move IMM window to there if exists
-				WinApi.SetImeWindowPos( Handle, newCaretPos );
+				WinApi.SetCaretPos( newCaretPos.X, newCaretPos.Y );
+				WinApi.HideCaret( Handle );
 			}
+			else
+			{
+				//NO_NEED//_Caret.Destroy();
+				WinApi.CreateCaret( Handle, _CaretSize );
+				WinApi.SetCaretPos( newCaretPos.X, newCaretPos.Y ); // must be called after creation in CE
+				
+				WinApi.ShowCaret( Handle );
+			}
+
+			// move IMM window to there if exists
+			WinApi.SetImeWindowPos( Handle, newCaretPos );
 		}
 
 		/// <summary>
@@ -485,34 +341,11 @@ namespace Sgry.Azuki.Windows
 					throw new ArgumentException( "invalid operation; AzukiControl.Font was set to null." );
 
 				base.Font = value;
-				if( View != null )
-				{
-					View.FontInfo = new FontInfo( value );
-				}
-			}
-		}
+				View.Font = value;
 
-		/// <summary>
-		/// Gets or sets raw font information to be used for displaying text.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-#		endif
-		public FontInfo FontInfo
-		{
-			get{ return View.FontInfo; }
-			set
-			{
-				if( value == null )
-					throw new ArgumentException( "invalid operation; AzukiControl.Font was set to null." );
-
-				try
-				{
-					base.Font = value.ToFont();
-				}
-				catch
-				{}
-				View.FontInfo = new FontInfo( value.Name, value.Size, value.Style );
+				// update caret height
+				_CaretSize.Height = View.LineHeight;
+				WinApi.CreateCaret( Handle, _CaretSize );
 			}
 		}
 
@@ -590,9 +423,6 @@ namespace Sgry.Azuki.Windows
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.Document.ViewParam">Document.ViewParam</seealso>
 		/// <seealso cref="Sgry.Azuki.ViewParam.FirstVisibleLine">ViewParam.FirstVisibleLine</seealso>
-#		if !PocketPC
-		[Browsable(false)]
-#		endif
 		public int FirstVisibleLine
 		{
 			get{ return Document.ViewParam.FirstVisibleLine; }
@@ -628,9 +458,8 @@ namespace Sgry.Azuki.Windows
 		/// Gets or sets whether to show line number or not.
 		/// </summary>
 #		if !PocketPC
-		[Category("Appearance")]
+		[Category("Drawing")]
 		[DefaultValue(true)]
-		[Description("Set true to show line number area.")]
 #		endif
 		public bool ShowsLineNumber
 		{
@@ -646,33 +475,12 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Gets or sets whether to show horizontal ruler or not.
-		/// </summary>
-#		if !PocketPC
-		[Category("Appearance")]
-		[DefaultValue(false)]
-		[Description("Set true to show horizontal ruler.")]
-#		endif
-		public bool ShowsHRuler
-		{
-			get{ return View.ShowsHRuler; }
-			set
-			{
-				if( View.ShowsHRuler != value )
-				{
-					View.ShowsHRuler = value;
-					Invalidate();
-				}
-			}
-		}
-
-		/// <summary>
 		/// Whether to show horizontal scroll bar or not.
 		/// </summary>
 #		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(true)]
-		[Description("Set true to show horizontal scroll bar.")]
+		[Description("If true, horizontal scrollbar will appear.")]
 #		endif
 		public bool ShowsHScrollBar
 		{
@@ -696,43 +504,10 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Gets or sets whether to show 'dirt bar' or not.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property gets or sets whether to show 'dirt bar' or not.
-		/// The dirt bar is graphically a thin bar at right end of the line number area
-		/// that indicates the dirty state of each text line.
-		/// The state of line is one of the following states.
-		/// </para>
-		/// <list>
-		///		<item>LineDirtyState.Clean: the line is not modified yet.</item>
-		///		<item>LineDirtyState.Dirty: the line is modified and not saved.</item>
-		///		<item>LineDirtyState.Cleaned: the line is modified but saved.</item>
-		/// </list>
-		/// <para>
-		/// Color of each line dirty state can be customized by setting
-		/// ColorScheme.DirtyLineBar, ColorScheme.CleanedLineBar.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.LineDirtyState">LineDirtyState enum</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.GetLineDirtyState">Document.GetLineDirtyState method</seealso>
-#		if !PocketPC
-		[Category("Appearance")]
-		[DefaultValue(true)]
-		[Description("Set true to show a thin bar at right end of the line number area which indicates the dirty state of each text line.")]
-#		endif
-		public bool ShowsDirtBar
-		{
-			get{ return View.ShowsDirtBar; }
-			set{ View.ShowsDirtBar = value; }
-		}
-
-		/// <summary>
 		/// Gets or sets whether the current line would be drawn with underline or not.
 		/// </summary>
 #		if !PocketPC
-		[Category("Appearance")]
+		[Category("Drawing")]
 		[DefaultValue(true)]
 #		endif
 		public bool HighlightsCurrentLine
@@ -745,7 +520,7 @@ namespace Sgry.Azuki.Windows
 		/// Gets or sets whether to show half-width space with special graphic or not.
 		/// </summary>
 #		if !PocketPC
-		[Category("Appearance")]
+		[Category("Drawing")]
 		[DefaultValue(false)]
 #		endif
 		public bool DrawsSpace
@@ -758,7 +533,7 @@ namespace Sgry.Azuki.Windows
 		/// Gets or sets whether to show full-width space with special graphic or not.
 		/// </summary>
 #		if !PocketPC
-		[Category("Appearance")]
+		[Category("Drawing")]
 		[DefaultValue(true)]
 #		endif
 		public bool DrawsFullWidthSpace
@@ -771,7 +546,7 @@ namespace Sgry.Azuki.Windows
 		/// Gets or sets whether to show tab character with special graphic or not.
 		/// </summary>
 #		if !PocketPC
-		[Category("Appearance")]
+		[Category("Drawing")]
 		[DefaultValue(true)]
 #		endif
 		public bool DrawsTab
@@ -781,23 +556,10 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Gets or sets whether to show EOF mark or not.
-		/// </summary>
-#		if !PocketPC
-		[Category("Appearance")]
-		[DefaultValue(false)]
-#		endif
-		public bool DrawsEofMark
-		{
-			get{ return View.DrawsEofMark; }
-			set{ View.DrawsEofMark = value; }
-		}
-
-		/// <summary>
 		/// Gets or sets whether to show EOL code with special graphic or not.
 		/// </summary>
 #		if !PocketPC
-		[Category("Appearance")]
+		[Category("Drawing")]
 		[DefaultValue(true)]
 #		endif
 		public bool DrawsEolCode
@@ -807,29 +569,16 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Gets or sets tab width in count of space characters.
+		/// Gets or sets tab width in count of space chars.
 		/// </summary>
 #		if !PocketPC
-		[Category("Appearance")]
-		[DefaultValue(8)]
+		[Category("Drawing")]
+		[DefaultValue(4)]
 #		endif
 		public int TabWidth
 		{
 			get{ return View.TabWidth; }
 			set{ View.TabWidth = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets whether to scroll beyond the last line of the document or not.
-		/// </summary>
-#		if !PocketPC
-		[Category("Appearance")]
-		[DefaultValue(true)]
-#		endif
-		public bool ScrollsBeyondLastLine
-		{
-			get{ return View.ScrollsBeyondLastLine; }
-			set{ View.ScrollsBeyondLastLine = value; }
 		}
 
 		/// <summary>
@@ -844,44 +593,19 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Gets or sets size of padding between lines in pixel.
-		/// </summary>
-#		if !PocketPC
-		[Category("Appearance")]
-		[DefaultValue(1)]
-		[Description("Height of padding between lines.")]
-#		endif
-		public int LinePadding
-		{
-			get{ return View.LinePadding; }
-			set{ View.LinePadding = value; }
-		}
-
-		/// <summary>
-		/// Gets distance between lines in pixel.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-#		endif
-		public int LineSpacing
-		{
-			get{ return View.LineSpacing; }
-		}
-
-		/// <summary>
 		/// Sets width of the content area (including line number area).
 		/// </summary>
 #		if !PocketPC
 		[Browsable(true)]
-		[Category("Appearance")]
+		[Category("Drawing")]
 		[Description("Width of the text content area. In proportional view, highlight line will be drawn in this width and this will be automatically expanded to enough width to show the input text. In wrapped-proportional view, text will be wrapped in this width.")]
 #		endif
 		public int ViewWidth
 		{
-			get{ return _Impl.View.TextAreaWidth + _Impl.View.XofTextArea; }
+			get{ return _Impl.View.TextAreaWidth + _Impl.View.TextAreaX; }
 			set
 			{
-				_Impl.View.TextAreaWidth = value - _Impl.View.XofTextArea;
+				_Impl.View.TextAreaWidth = value - _Impl.View.TextAreaX;
 				UpdateCaretGraphic();
 				UpdateScrollBarRange(); // (needed for PropWrapView)
 				Refresh();
@@ -894,12 +618,9 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		public new void Invalidate()
 		{
-			if( IsHandleCreated )
-			{
-				if( _invalidateProc1 == null )
-					_invalidateProc1 = base.Invalidate;
-				Invoke( _invalidateProc1 );
-			}
+			if( _invalidateProc1 == null )
+				_invalidateProc1 = base.Invalidate;
+			Invoke( _invalidateProc1 );
 		}
 
 		/// <summary>
@@ -908,16 +629,13 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		public new void Invalidate( Rectangle rect )
 		{
-			if( IsHandleCreated )
-			{
-				if( _invalidateProc2 == null )
-					_invalidateProc2 = base.Invalidate;
-				Invoke( _invalidateProc2, new object[]{rect} );
-			}
+			if( _invalidateProc2 == null )
+				_invalidateProc2 = base.Invalidate;
+			Invoke( _invalidateProc2, new object[]{rect} );
 		}
 		#endregion
-
-		#region IUserInterface - Behavior
+		
+		#region IUserInterface - Editing Behavior
 		/// <summary>
 		/// Gets or sets whether this document is read-only or not.
 		/// </summary>
@@ -952,17 +670,7 @@ namespace Sgry.Azuki.Windows
 		/// Gets or sets hook delegate to execute auto-indentation.
 		/// If null, auto-indentation will not be performed.
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property gets or sets a delegate object to execute auto-indentation.
-		/// There are some built-in auto-indentation hook delegates
-		/// declared as members of
-		/// <see cref="Sgry.Azuki.AutoIndentHooks">AutoIndentHooks</see> class.
-		/// Use one of the member of AutoIndentHooks or user-made hook to enable auto-indentation,
-		/// otherwise, set null to this property to disable auto-indentation.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.AutoIndentHooks">AutoIndentHooks</seealso>
+		/// <seealso cref="AutoIndentHooks">AutoIndentHooks</seealso>
 #		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -974,74 +682,18 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Gets or sets whether tab characters are used for indentation, instead of space characters.
+		/// Gets or sets whether to automatically convert
+		/// an input tab character to equivalent amount of spaces.
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property is a synonym of
-		/// <see cref="Sgry.Azuki.Windows.AzukiControl.UsesTabForIndent">UsesTabForIndent</see>
-		/// property.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.UsesTabForIndent">UsesTabForIndent</seealso>
 #		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(false)]
-		[Description("If false, tab characters are used for indentation, instead of space characters.")]
+		[Description("If true, an input tab character will be automatically converted into equivalent amount of spaces.")]
 #		endif
 		public bool ConvertsTabToSpaces
 		{
-			get{ return !UsesTabForIndent; }
-			set{ UsesTabForIndent = !(value); }
-		}
-
-		/// <summary>
-		/// Gets or sets whether tab characters are used for indentation, instead of space characters.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property gets or sets whether tab characters are used for indentation,
-		/// instead of space characters.
-		/// </para>
-		/// <para>
-		/// In addition to the case of inserting a new tab character,
-		/// This property affects some other cases like next:
-		/// </para>
-		/// <list type="bullet">
-		///		<item>
-		///		When executing block-indent.
-		///		</item>
-		///		<item>
-		///		When additional indent characters are needed.
-		///		This case is about auto-indentation for specific syntax such as C/C++ language
-		///		(term <term>smart-indentation</term> is more appropriate here.)
-		///		In C/C++, if user hits the Enter key on a line
-		///		that ends with a closing curly bracket (<c> } </c>),
-		///		newly generated line will be indented one more level
-		///		by inserting additional indent characters.
-		///		</item>
-		///		<item>
-		///		When pasting rectangle selection data.
-		///		Let's suppose pasting the text data
-		///		when the caret is at end of a long line
-		///		and the lines below is shorter than the line caret is at.
-		///		In this case, whitespaces will be appended automatically
-		///		for the lines below as a padding to make pasted result a 'rectangle.'
-		///		</item>
-		/// </list>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.TabWidth">AzukiControl.TabWidth property</seealso>
-		/// <seealso cref="Sgry.Azuki.Actions.BlockIndent">Actions.BlockIndent action</seealso>
-		/// <seealso cref="Sgry.Azuki.Actions.BlockUnIndent">Actions.BlockUnIndent action</seealso>
-#		if !PocketPC
-		[Category("Behavior")]
-		[DefaultValue(true)]
-		[Description("If true, tab characters are used for indentation, instead of space characters.")]
-#		endif
-		public bool UsesTabForIndent
-		{
-			get{ return _Impl.UsesTabForIndent; }
-			set{ _Impl.UsesTabForIndent = value; }
+			get{ return _Impl.ConvertsTabToSpaces; }
+			set{ _Impl.ConvertsTabToSpaces = value; }
 		}
 
 		/// <summary>
@@ -1100,18 +752,6 @@ namespace Sgry.Azuki.Windows
 		/// <summary>
 		/// Executes UNDO.
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This method restores the modification lastly done for currently active document.
-		/// If there is no UNDOable action, this method will do nothing.
-		/// </para>
-		/// <para>
-		/// To get whether any UNDOable action exists or not,
-		/// use <see cref="Sgry.Azuki.Windows.AzukiControl.CanUndo">CanUndo</see> property.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.CanUndo">AzukiControl.CanUndo property</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.Undo">Document.Undo method</seealso>
 		public void Undo()
 		{
 			Actions.Undo( this );
@@ -1120,23 +760,13 @@ namespace Sgry.Azuki.Windows
 		/// <summary>
 		/// Gets whether an available UNDO action exists or not.
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property gets whether one or more UNDOable action exists or not.
-		/// </para>
-		/// <para>
-		/// To execute UNDO, use <see cref="Sgry.Azuki.Windows.AzukiControl.Undo">Undo</see> method.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.Undo">AzukiControl.Undo method</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.CanUndo">Document.CanUndo property</seealso>
 #		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 #		endif
 		public bool CanUndo
 		{
-			get{ return Document.CanUndo; }
+			get{ return View.Document.CanUndo; }
 		}
 
 		/// <summary>
@@ -1144,7 +774,7 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		public void ClearHistory()
 		{
-			Document.ClearHistory();
+			View.Document.ClearHistory();
 		}
 
 		/// <summary>
@@ -1156,8 +786,8 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public bool IsRecordingHistory
 		{
-			get{ return Document.IsRecordingHistory; }
-			set{ Document.IsRecordingHistory = value; }
+			get{ return View.Document.IsRecordingHistory; }
+			set{ View.Document.IsRecordingHistory = value; }
 		}
 
 		/// <summary>
@@ -1177,7 +807,7 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public bool CanRedo
 		{
-			get{ return Document.CanRedo; }
+			get{ return View.Document.CanRedo; }
 		}
 
 		/// <summary>
@@ -1211,30 +841,6 @@ namespace Sgry.Azuki.Windows
 		{
 			Actions.Delete( this );
 		}
-
-		/// <summary>
-		/// Processes specified text as an input by user.
-		/// </summary>
-		/// <param name="text">The string to be processed.</param>
-		/// <exception cref="System.InvalidOperationException">This object is already disposed.</exception>
-		/// <exception cref="System.ArgumentNullException">Parameter 'text' is null.</exception>
-		/// <remarks>
-		/// <para>
-		/// This method processes specified text as an input by user.
-		/// Because this method is the implementation of user input,
-		/// some special pre-processes will be done.
-		/// The example of pre-processes are next:
-		/// </para>
-		/// <list type="bullet">
-		///		<item>If Document.ReadOnly property is true, this method will do nothing.</item>
-		///		<item>This method applies AutoIndentHook for each characters in the text.</item>
-		///		<item>This method applies built-in hook processes such as converting tab to spaces.</item>
-		/// </list>
-		/// </remarks>
-		public void HandleTextInput( string text )
-		{
-			_Impl.HandleTextInput( text );
-		}
 		#endregion
 
 		#region IUserInterface - Selection
@@ -1246,7 +852,7 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public int CaretIndex
 		{
-			get{ return Document.CaretIndex; }
+			get{ return View.Document.CaretIndex; }
 		}
 
 		/// <summary>
@@ -1267,7 +873,7 @@ namespace Sgry.Azuki.Windows
 		/// </remarks>
 		public void SetSelection( int anchor, int caret )
 		{
-			Document.SetSelection( anchor, caret );
+			View.Document.SetSelection( anchor, caret );
 			View.SetDesiredColumn();
 		}
 
@@ -1279,7 +885,7 @@ namespace Sgry.Azuki.Windows
 		/// <param name="end">index of where the selection ends (selection do not includes the char at this index).</param>
 		public void GetSelection( out int begin, out int end )
 		{
-			Document.GetSelection( out begin, out end );
+			View.Document.GetSelection( out begin, out end );
 		}
 
 		/// <summary>
@@ -1325,7 +931,7 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public int TextLength
 		{
-			get{ return Document.Length; }
+			get{ return View.Document.Length; }
 		}
 
 		/// <summary>
@@ -1343,35 +949,7 @@ namespace Sgry.Azuki.Windows
 		/// <exception cref="ArgumentOutOfRangeException">Specified range was invalid.</exception>
 		public string GetTextInRange( int begin, int end )
 		{
-			return Document.GetTextInRange( begin, end );
-		}
-
-		/// <summary>
-		/// Gets currently selected text.
-		/// </summary>
-		/// <returns>Currently selected text.</returns>
-		/// <remarks>
-		/// <para>
-		/// This method gets currently selected text.
-		/// If current selection is rectangle selection,
-		/// return value will be a text that are consisted with selected partial lines (rows)
-		/// joined with CR-LF.
-		/// </para>
-		/// </remarks>
-		public string GetSelectedText()
-		{
-			return _Impl.GetSelectedText();
-		}
-
-		/// <summary>
-		/// Gets length of the specified line.
-		/// </summary>
-		/// <param name="lineIndex">Index of the line of which to get the length.</param>
-		/// <returns>Length of the specified line in character count.</returns>
-		/// <exception cref="System.ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		public int GetLineLength( int lineIndex )
-		{
-			return Document.GetLineLength( lineIndex );
+			return View.Document.GetTextInRange( begin, end );
 		}
 
 		/// <summary>
@@ -1383,7 +961,7 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public int LineCount
 		{
-			get{ return Document.LineCount; }
+			get{ return View.Document.LineCount; }
 		}
 		#endregion
 
@@ -1391,7 +969,6 @@ namespace Sgry.Azuki.Windows
 		/// <summary>
 		/// Calculates screen location of the character at specified index.
 		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
 		/// <exception cref="ArgumentOutOfRangeException">Invalid index was given.</exception>
 		public Point GetPositionFromIndex( int index )
 		{
@@ -1403,7 +980,6 @@ namespace Sgry.Azuki.Windows
 		/// <summary>
 		/// Calculates screen location of the character at specified index.
 		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
 		/// <exception cref="ArgumentOutOfRangeException">Invalid index was given.</exception>
 		public Point GetPositionFromIndex( int lineIndex, int columnIndex )
 		{
@@ -1415,56 +991,10 @@ namespace Sgry.Azuki.Windows
 		/// <summary>
 		/// Gets char-index of the char at the point specified by screen location.
 		/// </summary>
-		/// <returns>The index of the character at specified location.</returns>
 		public int GetIndexFromPosition( Point pt )
 		{
 			View.ScreenToVirtual( ref pt );
 			return View.GetIndexFromVirPos( pt );
-		}
-
-		/// <summary>
-		/// Calculates location of character at specified index in horizontal ruler index.
-		/// </summary>
-		/// <param name="charIndex">The index of the character to calculate its location.</param>
-		/// <returns>Horizontal ruler index of the character.</returns>
-		/// <remarks>
-		/// <para>
-		/// This method calculates location of character at specified index
-		/// in horizontal ruler index.
-		/// </para>
-		/// <para>
-		/// 'Horizontal ruler index' here means how many small lines drawn on the horizontal ruler
-		/// exist between left-end of the text area
-		/// and the character at index specified by <paramref name="charIndex"/>.
-		/// This value is zero-based index.
-		/// </para>
-		/// </remarks>
-		public int GetHRulerIndex( int charIndex )
-		{
-			return View.GetHRulerIndex( charIndex );
-		}
-
-		/// <summary>
-		/// Calculates location of character at specified index in horizontal ruler index.
-		/// </summary>
-		/// <param name="lineIndex">The line index of the character to calculate its location.</param>
-		/// <param name="columnIndex">The column index of the character to calculate its location.</param>
-		/// <returns>Horizontal ruler index of the character.</returns>
-		/// <remarks>
-		/// <para>
-		/// This method calculates location of character at specified index
-		/// in horizontal ruler index.
-		/// </para>
-		/// <para>
-		/// 'Horizontal ruler index' here means how many small lines drawn on the horizontal ruler
-		/// exist between left-end of the text area
-		/// and the character at index specified by <paramref name="charIndex"/>.
-		/// This value is zero-based index.
-		/// </para>
-		/// </remarks>
-		public int GetHRulerIndex( int lineIndex, int columnIndex )
-		{
-			return View.GetHRulerIndex( lineIndex, columnIndex );
 		}
 		#endregion
 
@@ -1486,17 +1016,6 @@ namespace Sgry.Azuki.Windows
 		public int GetLineHeadIndexFromCharIndex( int charIndex )
 		{
 			return View.GetLineHeadIndexFromCharIndex( charIndex );
-		}
-
-		/// <summary>
-		/// Calculates physical line index from char-index.
-		/// </summary>
-		/// <param name="charIndex">The index of the line which contains the char at this parameter will be calculated.</param>
-		/// <returns>The index of the line which contains the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public int GetLineIndexFromCharIndex( int charIndex )
-		{
-			return View.GetLineIndexFromCharIndex( charIndex );
 		}
 
 		/// <summary>
@@ -1523,31 +1042,11 @@ namespace Sgry.Azuki.Windows
 		/// Occurs soon after the document's caret was moved.
 		/// </summary>
 		public event EventHandler CaretMoved;
-
-		/// <summary>
-		/// Invokes CaretMoved event.
-		/// </summary>
-		public void InvokeCaretMoved()
+		internal void InvokeCaretMoved()
 		{
 			if( CaretMoved != null )
 			{
 				CaretMoved( this, EventArgs.Empty );
-			}
-		}
-
-		/// <summary>
-		/// Occures soon after rectangular selection mode was changed.
-		/// </summary>
-		public event EventHandler IsRectSelectModeChanged;
-
-		/// <summary>
-		/// Invokes IsRectSelectModeChanged event.
-		/// </summary>
-		public void InvokeIsRectSelectModeChanged()
-		{
-			if( IsRectSelectModeChanged != null )
-			{
-				IsRectSelectModeChanged( this, EventArgs.Empty );
 			}
 		}
 		#endregion
@@ -1581,34 +1080,31 @@ namespace Sgry.Azuki.Windows
 			int vPageSize, hPageSize;
 			int visibleLineCount;
 
-			if( Document == null )
-				return;
-
 			// calculate vertical range and page size
 			visibleLineCount = View.VisibleSize.Height / View.LineSpacing;
-			vPageSize = Math.Max( 0, visibleLineCount-1 );
-			vMax = View.LineCount - 1;
-			if( ScrollsBeyondLastLine )
+			if( View.LineCount >> 3 <= visibleLineCount )
 			{
-				vMax += vPageSize - 1;
+				vPageSize = visibleLineCount;
 			}
+			else
+			{
+				vPageSize = View.LineCount >> 3;
+			}
+			vMax = View.LineCount - 1;
+			vMax += vPageSize - 1;
 
 			// calculate horizontal range and page size
 			hMax = View.TextAreaWidth;
-			hPageSize = Math.Max( 0, View.VisibleTextAreaSize.Width );
+			hPageSize = View.VisibleSize.Width;
 
 			// update the range of vertical scrollbar
 			WinApi.SetScrollRange( Handle, false, 0, vMax, vPageSize );
 			
 			// update the range of horizontal scrollbar
-			if( ShowsHScrollBar == false || ViewType == ViewType.WrappedProportional )
+			if( ShowsHScrollBar == false )
 				WinApi.SetScrollRange( Handle, true, 0, 0, hPageSize ); // bar will be hidden
 			else
 				WinApi.SetScrollRange( Handle, true, 0, hMax, hPageSize );
-
-			// then, update scroll position and caret graphic
-			WinApi.SetScrollPos( Handle, false, _Impl.View.FirstVisibleLine );
-			WinApi.SetScrollPos( Handle, true, _Impl.View.ScrollPosX );
 		}
 		#endregion
 
@@ -1622,40 +1118,22 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Gets or sets highlighter object to highlight currently active document
-		/// or null to disable highlighting.
+		/// Gets or sets highlighter for currently active document.
+		/// Setting null to this property will disable highlighting.
+		/// See built-in highlighters for
+		/// <see cref="Sgry.Azuki.Highlighter.Highlighters">Highlighter.Highlighters</see>.
 		/// </summary>
+		/// <seealso cref="Sgry.Azuki.Highlighter.Highlighters">Highlighter.Highlighters</seealso>
 		/// <remarks>
-		/// <para>
-		/// This property gets or sets highlighter for this document.
-		/// </para>
-		/// <para>
-		/// Highlighter objects are used to highlight syntax of documents.
-		/// They implements
-		/// <see cref="Sgry.Azuki.Highlighter.IHighlighter">IHighlighter</see>
-		/// interface and called
-		/// <see cref="Sgry.Azuki.Highlighter.IHighlighter.Highlight(Sgry.Azuki.Document, ref int, ref int)">Highlight</see>
-		/// method every time slightly after user input stopped to execute own highlighting logic.
-		/// If null was set to this property, highlighting feature will be disabled.
-		/// </para>
-		/// <para>
-		/// Azuki provides some built-in highlighters.
-		/// See
-		/// <see cref="Sgry.Azuki.Highlighter.Highlighters">Highlighter.Highlighters</see>
-		/// class members.
-		/// </para>
-		/// <para>
-		/// User can create and use custom highlighter object.
+		/// Note that user can create and specify custom highlighter object.
 		/// If you want to create a keyword-based highlighter,
-		/// you can extend
+		/// you can customize or extend
 		/// <see cref="Sgry.Azuki.Highlighter.KeywordHighlighter">KeywordHighlighter</see>.
 		/// If you want ot create not a keyword based one,
 		/// create a class which implements
 		/// <see cref="Sgry.Azuki.Highlighter.IHighlighter">IHighlighter</see>
 		/// and write your own highlighting logic.
-		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Highlighter.Highlighters">Highlighter.Highlighters</seealso>
 #		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -1669,10 +1147,6 @@ namespace Sgry.Azuki.Windows
 		/// <summary>
 		/// Gets version of Azuki.dll.
 		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
 		public Version Version
 		{
 			get
@@ -1723,7 +1197,7 @@ namespace Sgry.Azuki.Windows
 			else if( scrollType == WinApi.SB_TOP )
 				newPos = 0;
 			else if( scrollType == WinApi.SB_BOTTOM )
-				newPos = View.LineCount - 1;
+				newPos = View.Document.LineCount - 1;
 			else if( scrollType == WinApi.SB_THUMBPOSITION
 				|| scrollType == WinApi.SB_THUMBTRACK )
 				newPos = WinApi.GetScrollTrackPos( Handle, false );
@@ -1743,7 +1217,7 @@ namespace Sgry.Azuki.Windows
 				newPos -= scrollUnit;
 			else if( scrollType == WinApi.SB_LINEDOWN )
 				newPos += scrollUnit;
-			else if( scrollType == WinApi.SB_PAGEUP )
+			if( scrollType == WinApi.SB_PAGEUP )
 				newPos -= (Width - _ScrollBarWidth);
 			else if( scrollType == WinApi.SB_PAGEDOWN )
 				newPos += (Width - _ScrollBarWidth);
@@ -1773,80 +1247,31 @@ namespace Sgry.Azuki.Windows
 			View.HScroll( delta );
 		}
 
-		/// <summary>
-		/// Invokes GotFocus event.
-		/// </summary>
-		protected override void OnGotFocus( EventArgs e )
+		void Control_GotFocus( object sender, EventArgs e )
 		{
-			base.OnGotFocus( e );
-			if( _Impl == null )
-			{
-				return;
-			}
-
 			WinApi.CreateCaret( Handle, _CaretSize );
 			UpdateCaretGraphic();
 		}
 
-		/// <summary>
-		/// Invokes LostFocus event.
-		/// </summary>
-		protected override void OnLostFocus( EventArgs e )
+		void Control_LostFocus( object sender, EventArgs e )
 		{
-			base.OnLostFocus( e );
-			if( _Impl == null )
-			{
-				return;
-			}
-
 			WinApi.HideCaret( Handle );
-			_Impl.HandleLostFocus();
 		}
 
-		/// <summary>
-		/// Invokes KeyDown event.
-		/// </summary>
-		protected override void OnKeyDown( KeyEventArgs e )
+		void Control_KeyDown( object sender, KeyEventArgs e )
 		{
-			base.OnKeyDown( e );
-			if( e.Handled )
-			{
-				return;
-			}
-			if( _Impl == null )
-			{
-				return;
-			}
-
 			_Impl.HandleKeyDown( (uint)e.KeyData );
 		}
 
-		/// <summary>
-		/// Invokes KeyPress event.
-		/// </summary>
-		protected override void OnKeyPress( KeyPressEventArgs e )
+		void Control_KeyPress( object sender, KeyPressEventArgs e )
 		{
-			base.OnKeyPress( e );
-			if( e.Handled )
-			{
-				return;
-			}
-			if( _Impl == null )
-			{
-				return;
-			}
-
 			// TranslateMessage API (I think) treats some key combination specially
 			// (Ctrl+I as an a HT(HorizontalTab), Ctrl+M as a LF(LineFeed) for example).
 			// These behavior should not be expected by editor component users
 			// and thus such char event is ignored here
-			if( (e.KeyChar == '\t' && WinApi.IsKeyDown(Keys.I))
-				|| (e.KeyChar == '\r' && WinApi.IsKeyDown(Keys.M))
-				|| (e.KeyChar == '\n' && WinApi.IsKeyDown(Keys.J))
-				|| (e.KeyChar == '\r' && WinApi.IsKeyDown(Keys.ShiftKey))
-				|| (e.KeyChar == '\n' && WinApi.IsKeyDown(Keys.ControlKey))
-				|| (e.KeyChar == '\r' && WinApi.IsKeyDown(Keys.LWin))
-				|| (e.KeyChar == '\r' && WinApi.IsKeyDown(Keys.RWin)) )
+			if( (e.KeyChar == '\t' && WinApi.IsKeyDownAsync(Keys.I))
+				|| (e.KeyChar == '\r' && WinApi.IsKeyDownAsync(Keys.M))
+				|| (e.KeyChar == '\n' && WinApi.IsKeyDownAsync(Keys.J)) )
 			{
 				return;
 			}
@@ -1883,22 +1308,9 @@ namespace Sgry.Azuki.Windows
 			e.Handled = true;
 		}
 
-		/// <summary>
-		/// Invokes Resize event.
-		/// </summary>
-		protected override void OnResize( EventArgs e )
+		void Control_Resized( object sender, EventArgs e )
 		{
-			base.OnResize( e );
-			if( _Impl == null )
-			{
-				return;
-			}
-
-			if( _Impl.View != null )
-			{
-				_Impl.View.HandleSizeChanged( ClientSize );
-			}
-			UpdateScrollBarRange();
+			_Impl.View.HandleSizeChanged( ClientSize );
 			Invalidate();
 		}
 		#endregion
@@ -2176,26 +1588,6 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Pre-processes window messages to override
-		/// system default behavior.
-		/// </summary>
-		public override bool PreProcessMessage( ref Message msg )
-		{
-			if( WinApi.WM_KEYFIRST <= msg.Msg && msg.Msg <= WinApi.WM_KEYLAST )
-			{
-				if( msg.Msg == WinApi.WM_SYSKEYUP
-					&& msg.WParam.ToInt32() == (int)Keys.Menu
-					&& _LastAltWasForRectSelect )
-				{
-					_LastAltWasForRectSelect = false;
-					return true;
-				}
-			}
-
-			return base.PreProcessMessage( ref msg );
-		}
-
-		/// <summary>
 		/// This overrides focusing strategy.
 		/// </summary>
 		protected override bool ProcessDialogKey( Keys keyData )
@@ -2234,23 +1626,10 @@ namespace Sgry.Azuki.Windows
 
 			return false;
 		}
-
-#		if PocketPC
-		/// <summary>
-		/// Gets a value indicating whether the control has a handle associated with it.
-		/// </summary>
-		public bool IsHandleCreated
-		{
-			get
-			{
-				return this._IsHandleCreated;
-			}
-		}
-#		endif
 		#endregion
 
 		#region Custom Window Procedure (handling v/h scroll and paint event etc.)
-		IntPtr CustomWndProc( IntPtr window, UInt32 message, IntPtr wParam, IntPtr lParam )
+		IntPtr CustomWndProc( IntPtr window, Int32 message, IntPtr wParam, IntPtr lParam )
 		{
 			try
 			{
@@ -2334,43 +1713,14 @@ namespace Sgry.Azuki.Windows
 					else if( message == WinApi.WM_MOUSEMOVE )
 					{
 						_Impl.HandleMouseMove( buttonIndex, pos, shift, ctrl, alt, win );
-#						if !PocketPC
-						if( pos.X < View.XofLeftMargin )
-						{
-							this.Cursor = Cursors.Arrow;
-						}
-						else
-						{
-							this.Cursor = Cursors.IBeam;
-						}
-#						endif
 					}
 					else if( message == WinApi.WM_LBUTTONDOWN || message == WinApi.WM_RBUTTONDOWN )
 					{
-						// set focus manually (this is needed to get focus by mouse click)
 						this.Focus();
-
-						// handle mouse down event
 						_Impl.HandleMouseDown( buttonIndex, pos, shift, ctrl, alt, win );
-#						if !PocketPC
-						if( alt )
-						{
-							this.Cursor = Cursors.Arrow;
-
-							// set flag to prevent opening menu
-							// by Alt key for rectangular selection mode
-							if( IsRectSelectMode )
-							{
-								_LastAltWasForRectSelect = true;
-							}
-						}
-#						endif
 					}
 					else if( message == WinApi.WM_LBUTTONUP || message == WinApi.WM_RBUTTONUP )
 					{
-#						if !PocketPC
-						this.Cursor = Cursors.IBeam;
-#						endif
 						_Impl.HandleMouseUp( buttonIndex, pos, shift, ctrl, alt, win );
 					}
 				}
@@ -2406,41 +1756,10 @@ namespace Sgry.Azuki.Windows
 						HandleWheelEvent( -(linesPerWheel * scrollCount) );
 					}
 				}
-				else if( message == WinApi.WM_IME_CHAR )
-				{
-					if( IsOverwriteMode == false )
-						return IntPtr.Zero;
-				}
-				else if( message == WinApi.WM_IME_COMPOSITION )
-				{
-					if( IsOverwriteMode == false
-						&& (lParam.ToInt32() & WinApi.GCS_RESULTSTR) != 0 )
-					{
-						string text;
-
-						unsafe
-						{
-							IntPtr ime;
-							int len;
-
-							ime = WinApi.ImmGetContext( Handle );
-							len = WinApi.ImmGetCompositionStringW( ime, WinApi.GCS_RESULTSTR, null, 0 );
-							fixed( char* buf = new char[len+1] )
-							{
-								WinApi.ImmGetCompositionStringW( ime, WinApi.GCS_RESULTSTR, (void*)buf, (uint)len );
-								buf[len] = '\0';
-								text = new String( buf );
-							}
-							WinApi.ImmReleaseContext( Handle, ime );
-						}
-
-						_Impl.HandleTextInput( text );
-					}
-				}
 				else if( message == WinApi.WM_IME_STARTCOMPOSITION )
 				{
 					// move IMM window to caret position
-					WinApi.SetImeWindowFont( Handle, View.FontInfo );
+					WinApi.SetImeWindowFont( Handle, Font );
 				}
 				else if( message == WinApi.WM_IME_REQUEST
 					&& wParam.ToInt64() == (long)WinApi.IMR_RECONVERTSTRING )
@@ -2464,17 +1783,17 @@ namespace Sgry.Azuki.Windows
 					if( keyData == (Keys.Tab)
 						&& AcceptsTab )
 					{
-						OnKeyDown( new KeyEventArgs(keyData) );
+						base.OnKeyDown( new KeyEventArgs(keyData) );
 						return IntPtr.Zero;
 					}
 					if( keyData == (Keys.Tab | Keys.Control)
 						&& UseCtrlTabToMoveFocus == false )
 					{
-						OnKeyDown( new KeyEventArgs(keyData) );
+						base.OnKeyDown( new KeyEventArgs(keyData) );
 						return IntPtr.Zero;
 					}
 				}
-#				endif
+#			endif
 			}
 			catch( Exception ex )
 			{
@@ -2503,8 +1822,11 @@ namespace Sgry.Azuki.Windows
 		void RewriteWndProc()
 		{
 			const int GWL_WNDPROC = -4;
-
-			_OriginalWndProcObj = WinApi.GetWindowLong( Handle, GWL_WNDPROC );
+			
+			if( _OriginalWndProcObj == IntPtr.Zero )
+			{
+				_OriginalWndProcObj = WinApi.GetWindowLong( Handle, GWL_WNDPROC );
+			}
 			if( _CustomWndProcObj == null )
 			{
 				_CustomWndProcObj = new WinApi.WNDPROC( this.CustomWndProc );
