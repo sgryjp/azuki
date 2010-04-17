@@ -1,7 +1,7 @@
 ﻿// file: AzukiControl.cs
 // brief: User interface for Windows platform (both Desktop and CE).
 // author: YAMAMOTO Suguru
-// update: 2010-03-22
+// update: 2009-11-28
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -37,11 +37,6 @@ namespace Sgry.Azuki.Windows
 		bool _UseCtrlTabToMoveFocus = true;
 		int _WheelPos = 0;
 		BorderStyle _BorderStyle = BorderStyle.Fixed3D;
-#		if !PocketPC
-		bool _LastAltWasForRectSelect = false;
-#		else
-		bool _IsHandleCreated = false;
-#		endif
 		
 		InvalidateProc1 _invalidateProc1 = null;
 		InvalidateProc2 _invalidateProc2 = null;
@@ -68,61 +63,35 @@ namespace Sgry.Azuki.Windows
 				throw new PlatformNotSupportedException( "Not supported platform", ex );
 			}
 
+			// rewrite window procedure at first
+			// (force to create window by accessing Handle property)
+			IntPtr dummy = this.Handle;
+			dummy.ToInt32(); // (suppress warning to unreferenced variable)
+			RewriteWndProc();
+			
 			// generate core implementation
 			_Impl = new UiImpl( this );
-			Document = new Document();
-			ViewType = ViewType.Proportional; // (setting ViewType installs document event handlers)
 
-			// setup default keybind
-			ResetKeyBind();
-		}
-
-		/// <summary>
-		/// Disposes resources used by this AzukiControl.
-		/// </summary>
-		protected override void Dispose( bool disposing )
-		{
-			base.Dispose( disposing );
-			if( _Impl != null )
-			{
-				_Impl.Dispose();
-				_Impl = null;
-			}
-		}
-
-		/// <summary>
-		/// Invokes HandleCreated event.
-		/// </summary>
-		protected override void OnHandleCreated( EventArgs e )
-		{
-			base.OnHandleCreated( e );
-
-			if( _Impl != null && _Impl.View != null )
-			{
-				_Impl.View.HandleGraphicContextChanged();
-			}
-
-#			if PocketPC
-			// remember that handle is associated
-			_IsHandleCreated = true;
+#			if !PocketPC
+			base.Cursor = Cursors.IBeam;
 #			endif
-
-			// rewrite window procedure at first
-			RewriteWndProc();
 
 			// set default value for each scroll bar
 			// (setting scroll bar range forces the window to have style of WS_VSCROLL/WS_HSCROLL)
 			WinApi.SetScrollRange( Handle, false, 0, 1, 1 );
 			WinApi.SetScrollRange( Handle, true, 0, 1, 1 );
 			
-#			if !PocketPC
-			base.Cursor = Cursors.IBeam;
-#			endif
 			this.Font = base.Font;
-			this.BorderStyle = _BorderStyle;
-
 			WinApi.CreateCaret( Handle, _CaretSize );
 			WinApi.SetCaretPos( 0, 0 );
+			this.BorderStyle = _BorderStyle;
+
+			// setup document event handler
+			Document = new Document();
+			ViewType = ViewType.Proportional; // (setting ViewType installs document event handlers)
+
+			// setup default keybind
+			ResetKeyBind();
 
 			// calculate scrollbar width
 			using( ScrollBar sb = new VScrollBar() )
@@ -138,10 +107,7 @@ namespace Sgry.Azuki.Windows
 		{
 			base.OnHandleDestroyed( e );
 
-#			if PocketPC
-			// remember that no handle is associated now
-			_IsHandleCreated = false;
-#			endif
+			_Impl.Dispose();
 
 			// destroy caret
 			WinApi.DestroyCaret();
@@ -203,13 +169,7 @@ namespace Sgry.Azuki.Windows
 #		endif
 		public IView View
 		{
-			get
-			{
-				if( _Impl == null )
-					return null;
-
-				return _Impl.View;
-			}
+			get{ return _Impl.View; }
 		}
 
 		/// <summary>
@@ -283,8 +243,6 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.Z|Keys.Control, Actions.Undo );
 			SetKeyBind( Keys.Z|Keys.Control|Keys.Shift, Actions.Redo );
 			SetKeyBind( Keys.Y|Keys.Control, Actions.Redo );
-			SetKeyBind( Keys.Enter|Keys.Control, Actions.BreakPreviousLine );
-			SetKeyBind( Keys.Enter|Keys.Shift|Keys.Control, Actions.BreakNextLine );
 
 			// bind misc keys
 			SetKeyBind( (Keys)VK_OEM4|Keys.Control, Actions.GoToMatchedBracket );
@@ -478,17 +436,14 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		public override Font Font
 		{
-			get{ return base.Font; }
+			get{ return View.FontInfo; }
 			set
 			{
 				if( value == null )
 					throw new ArgumentException( "invalid operation; AzukiControl.Font was set to null." );
 
 				base.Font = value;
-				if( View != null )
-				{
-					View.FontInfo = new FontInfo( value );
-				}
+				View.FontInfo = new FontInfo( value );
 			}
 		}
 
@@ -811,25 +766,12 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 #		if !PocketPC
 		[Category("Appearance")]
-		[DefaultValue(8)]
+		[DefaultValue(4)]
 #		endif
 		public int TabWidth
 		{
 			get{ return View.TabWidth; }
 			set{ View.TabWidth = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets whether to scroll beyond the last line of the document or not.
-		/// </summary>
-#		if !PocketPC
-		[Category("Appearance")]
-		[DefaultValue(true)]
-#		endif
-		public bool ScrollsBeyondLastLine
-		{
-			get{ return View.ScrollsBeyondLastLine; }
-			set{ View.ScrollsBeyondLastLine = value; }
 		}
 
 		/// <summary>
@@ -894,12 +836,9 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		public new void Invalidate()
 		{
-			if( IsHandleCreated )
-			{
-				if( _invalidateProc1 == null )
-					_invalidateProc1 = base.Invalidate;
-				Invoke( _invalidateProc1 );
-			}
+			if( _invalidateProc1 == null )
+				_invalidateProc1 = base.Invalidate;
+			Invoke( _invalidateProc1 );
 		}
 
 		/// <summary>
@@ -908,12 +847,9 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		public new void Invalidate( Rectangle rect )
 		{
-			if( IsHandleCreated )
-			{
-				if( _invalidateProc2 == null )
-					_invalidateProc2 = base.Invalidate;
-				Invoke( _invalidateProc2, new object[]{rect} );
-			}
+			if( _invalidateProc2 == null )
+				_invalidateProc2 = base.Invalidate;
+			Invoke( _invalidateProc2, new object[]{rect} );
 		}
 		#endregion
 
@@ -978,9 +914,12 @@ namespace Sgry.Azuki.Windows
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This property is a synonym of
+		/// This property is replaced with
 		/// <see cref="Sgry.Azuki.Windows.AzukiControl.UsesTabForIndent">UsesTabForIndent</see>
-		/// property.
+		/// property and is now obsoleted.
+		/// Use
+		/// <see cref="Sgry.Azuki.Windows.AzukiControl.UsesTabForIndent">UsesTabForIndent</see>
+		/// property instead.
 		/// </para>
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.UsesTabForIndent">UsesTabForIndent</seealso>
@@ -989,6 +928,7 @@ namespace Sgry.Azuki.Windows
 		[DefaultValue(false)]
 		[Description("If false, tab characters are used for indentation, instead of space characters.")]
 #		endif
+		[Obsolete("Please use UsesTabForIndent property instead.", false)]
 		public bool ConvertsTabToSpaces
 		{
 			get{ return !UsesTabForIndent; }
@@ -1210,30 +1150,6 @@ namespace Sgry.Azuki.Windows
 		public void Delete()
 		{
 			Actions.Delete( this );
-		}
-
-		/// <summary>
-		/// Processes specified text as an input by user.
-		/// </summary>
-		/// <param name="text">The string to be processed.</param>
-		/// <exception cref="System.InvalidOperationException">This object is already disposed.</exception>
-		/// <exception cref="System.ArgumentNullException">Parameter 'text' is null.</exception>
-		/// <remarks>
-		/// <para>
-		/// This method processes specified text as an input by user.
-		/// Because this method is the implementation of user input,
-		/// some special pre-processes will be done.
-		/// The example of pre-processes are next:
-		/// </para>
-		/// <list type="bullet">
-		///		<item>If Document.ReadOnly property is true, this method will do nothing.</item>
-		///		<item>This method applies AutoIndentHook for each characters in the text.</item>
-		///		<item>This method applies built-in hook processes such as converting tab to spaces.</item>
-		/// </list>
-		/// </remarks>
-		public void HandleTextInput( string text )
-		{
-			_Impl.HandleTextInput( text );
 		}
 		#endregion
 
@@ -1534,22 +1450,6 @@ namespace Sgry.Azuki.Windows
 				CaretMoved( this, EventArgs.Empty );
 			}
 		}
-
-		/// <summary>
-		/// Occures soon after rectangular selection mode was changed.
-		/// </summary>
-		public event EventHandler IsRectSelectModeChanged;
-
-		/// <summary>
-		/// Invokes IsRectSelectModeChanged event.
-		/// </summary>
-		public void InvokeIsRectSelectModeChanged()
-		{
-			if( IsRectSelectModeChanged != null )
-			{
-				IsRectSelectModeChanged( this, EventArgs.Empty );
-			}
-		}
 		#endregion
 
 		#region IUserInterface - Scroll
@@ -1586,16 +1486,24 @@ namespace Sgry.Azuki.Windows
 
 			// calculate vertical range and page size
 			visibleLineCount = View.VisibleSize.Height / View.LineSpacing;
-			vPageSize = Math.Max( 0, visibleLineCount-1 );
-			vMax = View.LineCount - 1;
-			if( ScrollsBeyondLastLine )
+			if( View.LineCount >> 3 <= visibleLineCount )
 			{
-				vMax += vPageSize - 1;
+				vPageSize = visibleLineCount;
 			}
+			else
+			{
+				vPageSize = View.LineCount >> 3;
+			}
+			vMax = View.LineCount - 1;
+			vMax += vPageSize - 1;
 
 			// calculate horizontal range and page size
 			hMax = View.TextAreaWidth;
-			hPageSize = Math.Max( 0, View.VisibleTextAreaSize.Width );
+			hPageSize = View.VisibleTextAreaSize.Width;
+			if( hPageSize < 0 )
+			{
+				hPageSize = 0;
+			}
 
 			// update the range of vertical scrollbar
 			WinApi.SetScrollRange( Handle, false, 0, vMax, vPageSize );
@@ -1723,7 +1631,7 @@ namespace Sgry.Azuki.Windows
 			else if( scrollType == WinApi.SB_TOP )
 				newPos = 0;
 			else if( scrollType == WinApi.SB_BOTTOM )
-				newPos = View.LineCount - 1;
+				newPos = Document.LineCount - 1;
 			else if( scrollType == WinApi.SB_THUMBPOSITION
 				|| scrollType == WinApi.SB_THUMBTRACK )
 				newPos = WinApi.GetScrollTrackPos( Handle, false );
@@ -1779,10 +1687,6 @@ namespace Sgry.Azuki.Windows
 		protected override void OnGotFocus( EventArgs e )
 		{
 			base.OnGotFocus( e );
-			if( _Impl == null )
-			{
-				return;
-			}
 
 			WinApi.CreateCaret( Handle, _CaretSize );
 			UpdateCaretGraphic();
@@ -1794,13 +1698,8 @@ namespace Sgry.Azuki.Windows
 		protected override void OnLostFocus( EventArgs e )
 		{
 			base.OnLostFocus( e );
-			if( _Impl == null )
-			{
-				return;
-			}
 
 			WinApi.HideCaret( Handle );
-			_Impl.HandleLostFocus();
 		}
 
 		/// <summary>
@@ -1810,10 +1709,6 @@ namespace Sgry.Azuki.Windows
 		{
 			base.OnKeyDown( e );
 			if( e.Handled )
-			{
-				return;
-			}
-			if( _Impl == null )
 			{
 				return;
 			}
@@ -1831,22 +1726,14 @@ namespace Sgry.Azuki.Windows
 			{
 				return;
 			}
-			if( _Impl == null )
-			{
-				return;
-			}
 
 			// TranslateMessage API (I think) treats some key combination specially
 			// (Ctrl+I as an a HT(HorizontalTab), Ctrl+M as a LF(LineFeed) for example).
 			// These behavior should not be expected by editor component users
 			// and thus such char event is ignored here
-			if( (e.KeyChar == '\t' && WinApi.IsKeyDown(Keys.I))
-				|| (e.KeyChar == '\r' && WinApi.IsKeyDown(Keys.M))
-				|| (e.KeyChar == '\n' && WinApi.IsKeyDown(Keys.J))
-				|| (e.KeyChar == '\r' && WinApi.IsKeyDown(Keys.ShiftKey))
-				|| (e.KeyChar == '\n' && WinApi.IsKeyDown(Keys.ControlKey))
-				|| (e.KeyChar == '\r' && WinApi.IsKeyDown(Keys.LWin))
-				|| (e.KeyChar == '\r' && WinApi.IsKeyDown(Keys.RWin)) )
+			if( (e.KeyChar == '\t' && WinApi.IsKeyDownAsync(Keys.I))
+				|| (e.KeyChar == '\r' && WinApi.IsKeyDownAsync(Keys.M))
+				|| (e.KeyChar == '\n' && WinApi.IsKeyDownAsync(Keys.J)) )
 			{
 				return;
 			}
@@ -1889,15 +1776,8 @@ namespace Sgry.Azuki.Windows
 		protected override void OnResize( EventArgs e )
 		{
 			base.OnResize( e );
-			if( _Impl == null )
-			{
-				return;
-			}
 
-			if( _Impl.View != null )
-			{
-				_Impl.View.HandleSizeChanged( ClientSize );
-			}
+			_Impl.View.HandleSizeChanged( ClientSize );
 			UpdateScrollBarRange();
 			Invalidate();
 		}
@@ -2176,26 +2056,6 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Pre-processes window messages to override
-		/// system default behavior.
-		/// </summary>
-		public override bool PreProcessMessage( ref Message msg )
-		{
-			if( WinApi.WM_KEYFIRST <= msg.Msg && msg.Msg <= WinApi.WM_KEYLAST )
-			{
-				if( msg.Msg == WinApi.WM_SYSKEYUP
-					&& msg.WParam.ToInt32() == (int)Keys.Menu
-					&& _LastAltWasForRectSelect )
-				{
-					_LastAltWasForRectSelect = false;
-					return true;
-				}
-			}
-
-			return base.PreProcessMessage( ref msg );
-		}
-
-		/// <summary>
 		/// This overrides focusing strategy.
 		/// </summary>
 		protected override bool ProcessDialogKey( Keys keyData )
@@ -2234,19 +2094,6 @@ namespace Sgry.Azuki.Windows
 
 			return false;
 		}
-
-#		if PocketPC
-		/// <summary>
-		/// Gets a value indicating whether the control has a handle associated with it.
-		/// </summary>
-		public bool IsHandleCreated
-		{
-			get
-			{
-				return this._IsHandleCreated;
-			}
-		}
-#		endif
 		#endregion
 
 		#region Custom Window Procedure (handling v/h scroll and paint event etc.)
@@ -2334,35 +2181,15 @@ namespace Sgry.Azuki.Windows
 					else if( message == WinApi.WM_MOUSEMOVE )
 					{
 						_Impl.HandleMouseMove( buttonIndex, pos, shift, ctrl, alt, win );
-#						if !PocketPC
-						if( pos.X < View.XofLeftMargin )
-						{
-							this.Cursor = Cursors.Arrow;
-						}
-						else
-						{
-							this.Cursor = Cursors.IBeam;
-						}
-#						endif
 					}
 					else if( message == WinApi.WM_LBUTTONDOWN || message == WinApi.WM_RBUTTONDOWN )
 					{
-						// set focus manually (this is needed to get focus by mouse click)
 						this.Focus();
-
-						// handle mouse down event
 						_Impl.HandleMouseDown( buttonIndex, pos, shift, ctrl, alt, win );
 #						if !PocketPC
 						if( alt )
 						{
 							this.Cursor = Cursors.Arrow;
-
-							// set flag to prevent opening menu
-							// by Alt key for rectangular selection mode
-							if( IsRectSelectMode )
-							{
-								_LastAltWasForRectSelect = true;
-							}
 						}
 #						endif
 					}
@@ -2404,37 +2231,6 @@ namespace Sgry.Azuki.Windows
 					if( 0 != scrollCount )
 					{
 						HandleWheelEvent( -(linesPerWheel * scrollCount) );
-					}
-				}
-				else if( message == WinApi.WM_IME_CHAR )
-				{
-					if( IsOverwriteMode == false )
-						return IntPtr.Zero;
-				}
-				else if( message == WinApi.WM_IME_COMPOSITION )
-				{
-					if( IsOverwriteMode == false
-						&& (lParam.ToInt32() & WinApi.GCS_RESULTSTR) != 0 )
-					{
-						string text;
-
-						unsafe
-						{
-							IntPtr ime;
-							int len;
-
-							ime = WinApi.ImmGetContext( Handle );
-							len = WinApi.ImmGetCompositionStringW( ime, WinApi.GCS_RESULTSTR, null, 0 );
-							fixed( char* buf = new char[len+1] )
-							{
-								WinApi.ImmGetCompositionStringW( ime, WinApi.GCS_RESULTSTR, (void*)buf, (uint)len );
-								buf[len] = '\0';
-								text = new String( buf );
-							}
-							WinApi.ImmReleaseContext( Handle, ime );
-						}
-
-						_Impl.HandleTextInput( text );
 					}
 				}
 				else if( message == WinApi.WM_IME_STARTCOMPOSITION )
@@ -2503,8 +2299,11 @@ namespace Sgry.Azuki.Windows
 		void RewriteWndProc()
 		{
 			const int GWL_WNDPROC = -4;
-
-			_OriginalWndProcObj = WinApi.GetWindowLong( Handle, GWL_WNDPROC );
+			
+			if( _OriginalWndProcObj == IntPtr.Zero )
+			{
+				_OriginalWndProcObj = WinApi.GetWindowLong( Handle, GWL_WNDPROC );
+			}
 			if( _CustomWndProcObj == null )
 			{
 				_CustomWndProcObj = new WinApi.WNDPROC( this.CustomWndProc );

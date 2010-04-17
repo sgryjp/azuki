@@ -1,57 +1,7 @@
-== 1.5.4 (2010-04-17) ==
- * add: now anti-alias method applied to text rendering can be changed through UserPref.Antialias property
- * add: now color value literal used in HTML such as #E0C184 is treated as one word
- * fix: dragging mouse cursor from text area to line number area makes selection anchor invalid
- * fix: [Ann] tagged as version 1.4.4
-
-== 1.5.3 (2010-04-06) ==
- * fix: in line-wrapping mode, deleting a character at beginning of line with BackSpace key corrupts line management data
- * fix: in line-wrapping mode, dragging mouse on line number area toward document head may make selection range invalid
- * fix: dragging mouse on text area near left border turns line selection mode on
- * fix: [Ann] many dialogs will appear when main window was activated if multiple files editing are update by other programs
- * fix: [Ann] tagged as version 1.4.3
-
-== 1.5.2 (2010-03-22) ==
- * fix: fixed a degrade problem in 1.5.1 (AzukiControl cannot be focused by mouse click)
- * fix: now line number area will properly be widen when a figure of maximum line number increases
- * fix: improved automatic range expansion function of horizontal scroll bar for very long line (only in non-line-wrapping mode)
- * fix: now Azuki properly updates line wrapping information when editing text at head of a line made by line wrapping
- * fix: [Ann] tagged as version 1.4.2
-
-== 1.5.1 (2010-03-21) ==
- * add: clicking or dragging line number area now selects physical lines
- * add: added an action to insert new line above the caret (implemented as Actions.BreakPreviousLine, default key-bind is Ctrl+Enter)
- * add: added an action to insert new line below the caret (implemented as Actions.BreakNextLine, default key-bind is Ctrl+Shift+Enter)
- * add: now scrolling beyond final line can be prevented with AzukiControl.ScrollsBeyondLastLine property
- * add: added IsRectSelectModeChanged event for AzukiControl
- * add: added IView.GetLineLength method for retrieving length of a physical line
- * add: now Azuki accepts text input from IME at once, not one character by one character
- * mod: now Azuki draws line number area and dirt bar area for (non-existing) lines beyond EOF
- * mod: now Azuki does not break line on pressing Enter key with Shift, Ctrl or Windows
- * mod: now AzukiControl.ConvertsTabToSpaces property is not attributed as obsoleted
- * mod: now Katakana middle dot (U+30fb) is treated not as katakana but as symbol/punctuation character
- * mod: now Ideographic iteration mark (U+3005) is treated not as symbol/punctuation but kanji/other character
- * mod: now Azuki respects system setting of font rendering method (enabling anti-alias or not, etc.)
- * fix: in WPF application, menu is activated after rectangular selection by alt+mouse if using AzukiControl through WindowsFormsHost window
- * fix: now AzukiControl can be used with DockPanel Suite
- * fix: FindNext(string, int, bool matchCase) method always ignores 'matchCase' parameter
- * fix: calling Document.ClearHistory now properly resets Document.IsDirty property
- * fix: now dragging on left margin area correctly selects text
- * fix: in line-wrapping mode, DirtBar area for final line will not be redrawn after editing
- * fix: improved drawing logic of horizontal ruler to avoid drawing numbers on long column lines 
- * add: [Ann] created application icon
- * add: [Ann] now multiple instances cannot be launched
- * add: [Ann] now Ann can detect modification of files by other programs
- * add: [Ann] now Ann automatically chooses EOL code for input when opening file by first EOL code in the file
- * fix: [Ann] one extra EOL code is inserted on unifying EOL code of document
- * fix: [Ann] tab graphic would not be not redrawn under certain condition
- * fix: [Ann] giving directory path as command line argument causes exception
- * fix: [Ann] tagged as version 1.4.1
-
 == 1.5.0 (2009-12-12) ==
  * add: rectangular selection feature by both mouse and keyboard
  * add: horizontal ruler can be used by AzukiControl.ShowsHRuler
- * add: added AzukiControl.ShowsDirtBar property to display 'DirtBar'; special area which indicates whether each line is modified or not
+ * add: added AzukiControl.ShowsDirtBar property to display special area indicating whether each line is modified or not
  * add: now copied special (line, rectangle) text data can be paste in Visual Studio (and vice-versa)
  * add: added AzukiControl.UsesTabForIndent property
  * add: enhanced KeywordHighlighter; now keyword matching can be case insensitive (ignore case option)
@@ -85,16 +35,6 @@
  * mod: [Ann] now mnemonic of "Select all" menu item is A, not L
  * mod: [Ann] now Ann shows revision version number of Ann and Azuki in "About" dialog
  * fix: [Ann] tagged as version 1.4.0
-
-== 1.4.7 (2010-  -  ) ==
- * fix: setting TabWidth property of AzukiControl to 4 in Visual Studio's visual designer resets actual tab width to 8
-
-== 1.4.6 (2010-01-02) ==
- * fix: graphic will not be redrawn correctly if selection anchor was changed by API
- * fix: after losting focus while dragging text with mouse, Azuki looses track of the state of the button
- * fix: selecting 'Bottom' in a menu appeared by clicking vertical scrollbar may not scrolls window properly
- * fix: surrogate pair character or CR+LF symbol was not redrawn correctly under specific condition
- * fix: [Ann] tagged as version 1.3.6
 
 == 1.4.5 (2009-12-06) ==
  * fix: in ReadOnly mode, pressing BackSpace key deletes selected text

@@ -1,7 +1,7 @@
 // file: IUserInterface.cs
 // brief: interface of user interface module (platform dependent)
 // author: YAMAMOTO Suguru
-// update: 2010-03-20
+// update: 2009-11-11
 //=========================================================
 using System;
 using System.Drawing;
@@ -100,14 +100,6 @@ namespace Sgry.Azuki
 		/// Font to be used for displaying text.
 		/// </summary>
 		Font Font
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Font information to be used for displaying text.
-		/// </summary>
-		FontInfo FontInfo
 		{
 			get; set;
 		}
@@ -253,12 +245,16 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This property is a synonym of
+		/// This property is replaced with
 		/// <see cref="Sgry.Azuki.IUserInterface.UsesTabForIndent">UsesTabForIndent</see>
-		/// property.
+		/// property and is now obsoleted.
+		/// Use
+		/// <see cref="Sgry.Azuki.IUserInterface.UsesTabForIndent">UsesTabForIndent</see>
+		/// property instead.
 		/// </para>
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.IUserInterface.UsesTabForIndent">UsesTabForIndent</seealso>
+		[Obsolete("Please use UsesTabForIndent property instead.", false)]
 		bool ConvertsTabToSpaces
 		{
 			get; set;
@@ -384,27 +380,6 @@ namespace Sgry.Azuki
 		/// Executes delete action.
 		/// </summary>
 		void Delete();
-
-		/// <summary>
-		/// Processes specified text as an input by user.
-		/// </summary>
-		/// <param name="text">The string to be processed.</param>
-		/// <exception cref="System.InvalidOperationException">This object is already disposed.</exception>
-		/// <exception cref="System.ArgumentNullException">Parameter 'text' is null.</exception>
-		/// <remarks>
-		/// <para>
-		/// This method processes specified text as an input by user.
-		/// Because this method is the implementation of user input,
-		/// some special pre-processes will be done.
-		/// The example of pre-processes are next:
-		/// </para>
-		/// <list type="bullet">
-		///		<item>If Document.ReadOnly property is true, this method will do nothing.</item>
-		///		<item>This method applies AutoIndentHook for each characters in the text.</item>
-		///		<item>This method applies built-in hook processes such as converting tab to spaces.</item>
-		/// </list>
-		/// </remarks>
-		void HandleTextInput( string text );
 		#endregion
 
 		#region Selection
@@ -578,16 +553,6 @@ namespace Sgry.Azuki
 		/// Invokes CaretMoved event.
 		/// </summary>
 		void InvokeCaretMoved();
-
-		/// <summary>
-		/// Occures soon after rectangular selection mode was changed.
-		/// </summary>
-		event EventHandler IsRectSelectModeChanged;
-
-		/// <summary>
-		/// Invokes IsRectSelectModeChanged event.
-		/// </summary>
-		void InvokeIsRectSelectModeChanged();
 		#endregion
 
 		#region Scroll

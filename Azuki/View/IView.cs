@@ -1,7 +1,7 @@
 ﻿// file: IView.cs
 // brief: Interface for view implementations.
 // author: YAMAMOTO Suguru
-// update: 2010-03-20
+// update: 2009-11-14
 //=========================================================
 using System;
 using System.Drawing;
@@ -40,14 +40,6 @@ namespace Sgry.Azuki
 			get;
 		}
 		#endregion
-
-		/// <summary>
-		/// Gets length of the pysical line.
-		/// </summary>
-		/// <param name="lineIndex">Index of the line of which to get the length.</param>
-		/// <returns>Length of the specified line in character count.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		int GetLineLength( int lineIndex );
 
 		#region Drawing Options
 		/// <summary>
@@ -516,72 +508,6 @@ namespace Sgry.Azuki
 		/// Gets or sets size of the currently visible size of the text area (line number area is not included).
 		/// </summary>
 		Size VisibleTextAreaSize
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets or sets whether to scroll beyond the last line of the document or not.
-		/// </summary>
-		bool ScrollsBeyondLastLine
-		{
-			get; set;
-		}
-		#endregion
-
-		#region Coordinates of Graphical Parts
-		/// <summary>
-		/// Gets X coordinate in client area of line number area.
-		/// </summary>
-		int XofLineNumberArea
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets X coordinate in client area of dirt bar area.
-		/// </summary>
-		int XofDirtBar
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets X coordinate in client area of left margin.
-		/// </summary>
-		int XofLeftMargin
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets X coordinate in client area of text area.
-		/// </summary>
-		int XofTextArea
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets Y coordinate in client area of horizontal ruler.
-		/// </summary>
-		int YofHRuler
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets Y coordinate in client area of top margin.
-		/// </summary>
-		int YofTopMargin
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets Y coordinate in client area of text area.
-		/// </summary>
-		int YofTextArea
 		{
 			get;
 		}

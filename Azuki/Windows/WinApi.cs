@@ -1,7 +1,7 @@
 // file: WinApi.cs
 // brief: Sgry's Win32API glues.
 // author: YAMAMOTO Suguru
-// update: 2010-02-13
+// update: 2009-10-18
 //=========================================================
 using System;
 using System.Text;
@@ -40,9 +40,6 @@ namespace Sgry.Azuki.Windows
 		public const int WM_KEYDOWN = 0x0100;
 		public const int WM_KEYUP = 0x0101;
 		public const int WM_CHAR = 0x0102;
-		public const int WM_SYSKEYDOWN = 0x0104;
-		public const int WM_SYSKEYUP = 0x0105;
-		public const int WM_SYSCHAR = 0x0106;
 		public const int WM_UNICHAR = 0x0109;
 		public const int WM_KEYLAST = 0x0109;
 
@@ -408,7 +405,7 @@ namespace Sgry.Azuki.Windows
 				fixed( int* pExtents = extents )
 				fixed( int* pFitLength = &fitLength )
 					bOk = GetTextExtentExPointW( hdc, text, textLen, maxWidth, pFitLength, pExtents, &size );
-				Debug.Assert( bOk != 0, "failed to calculate text width (LE:"+WinApi.GetLastError()+")" );
+				Debug.Assert( bOk != 0, "failed to calculate text width" );
 				return new Size( size.width, size.height );
 			}
 		}
@@ -455,7 +452,7 @@ namespace Sgry.Azuki.Windows
 			lf.charSet = 1; // DEFAULT_CHARSET
 			lf.outPrecision = 0; // OUT_DEFAULT_PRECIS
 			lf.clipPrecision = 0; // CLIP_DEFAULT_PRECIS
-			lf.quality = 0; // DEFAULT_QUALITY
+			lf.quality = 5; // CLEARTYPE_QUALITY
 			lf.pitchAndFamily = 0; // DEFAULT_PITCH
 
 			// set font name

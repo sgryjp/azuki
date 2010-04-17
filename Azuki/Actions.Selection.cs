@@ -523,7 +523,7 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Expands rectangle selection down.
+		/// Expands selection down.
 		/// </summary>
 		/// <remarks>
 		/// <para>
@@ -542,7 +542,7 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Expands rectangle selection up.
+		/// Expands selection up.
 		/// </summary>
 		/// <remarks>
 		/// <para>

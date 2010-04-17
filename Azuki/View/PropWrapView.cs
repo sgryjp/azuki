@@ -1,7 +1,7 @@
 // file: PropWrapView.cs
 // brief: Platform independent view (proportional, line-wrap).
 // author: YAMAMOTO Suguru
-// update: 2010-04-06
+// update: 2009-11-29
 //=========================================================
 //DEBUG//#define PLHI_DEBUG
 //DEBUG//#define DRAW_SLOWLY
@@ -85,16 +85,6 @@ namespace Sgry.Azuki
 					SetDesiredColumn();
 				}
 			}
-		}
-
-		/// <summary>
-		/// Re-calculates and updates x-coordinate of the right end of the virtual text area.
-		/// </summary>
-		/// <param name="desiredX">X-coordinate of scroll destination desired.</param>
-		/// <returns>The largest X-coordinate which Azuki can scroll to.</returns>
-		protected override int ReCalcRightEndOfTextArea( int desiredX )
-		{
-			return TextAreaWidth - VisibleTextAreaSize.Width;
 		}
 		#endregion
 
@@ -286,14 +276,10 @@ namespace Sgry.Azuki
 			Point oldCaretVirPos;
 			Rectangle invalidRect1 = new Rectangle();
 			Rectangle invalidRect2 = new Rectangle();
-			bool changedTargetPosition;
-
-			// get position of the replacement before re-calculating PLHI
-			oldCaretVirPos = GetVirPosFromIndex( e.Index );
 
 			// update physical line head indexes
 			prevLineCount = LineCount;
-			UpdatePLHI( e.Index, e.OldText, e.NewText, out changedTargetPosition );
+			UpdatePLHI( e.Index, e.OldText, e.NewText );
 #			if PLHI_DEBUG
 			string __result_of_new_logic__ = PLHI.ToString();
 			DoLayout();
@@ -306,12 +292,8 @@ namespace Sgry.Azuki
 			}
 #			endif
 
-			// re-get position of the replacement
-			// if the position was changed dualing updating PLHI
-			if( changedTargetPosition )
-			{
-				oldCaretVirPos = GetVirPosFromIndex( e.Index );
-			}
+			// get position of the word replacement occured
+			oldCaretVirPos = GetVirPosFromIndex( e.Index );
 
 			// update indicator graphic on horizontal ruler
 			UpdateHRuler();
@@ -364,48 +346,43 @@ namespace Sgry.Azuki
 				Invalidate( invalidRect2 );
 			}
 
-			// update left side of text area
-			UpdateDirtBar( doc.GetLineIndexFromCharIndex(e.Index) );
-			UpdateLineNumberWidth();
+			// update dirt bar
+			{
+				int logLineIndex, logLineHeadIndex, logLineEndIndex;
+				Point top, bottom;
+
+				// calculate beginning and ending index of the modified logical line
+				logLineIndex = Document.GetLineIndexFromCharIndex( e.Index );
+				logLineHeadIndex = Document.GetLineHeadIndex( logLineIndex );
+				if( logLineIndex+1 < Document.LineCount )
+				{
+					logLineEndIndex = Document.GetLineHeadIndex( logLineIndex+1 );
+				}
+				else
+				{
+					logLineEndIndex = doc.Length;
+				}
+
+				// get the screen position of both beginning and ending character
+				top = this.GetVirPosFromIndex( logLineHeadIndex );
+				bottom = this.GetVirPosFromIndex( logLineEndIndex );
+				VirtualToScreen( ref top );
+				VirtualToScreen( ref bottom );
+				if( top.Y < YofTextArea )
+				{
+					top.Y = YofTextArea;
+				}
+
+				// overdraw dirt bar
+				top.Y -= (LinePadding >> 1);
+				bottom.Y -= (LinePadding >> 1);
+				for( int y=top.Y; y<bottom.Y; y+=LineSpacing )
+				{
+					DrawDirtBar( y, logLineIndex );
+				}
+			}
 
 			//DO_NOT//base.HandleContentChanged( sender, e );
-		}
-
-		/// <summary>
-		/// Update dirt bar area.
-		/// </summary>
-		/// <param name="logLineIndex">dirt bar area for the line indicated by this index will be updated.</param>
-		void UpdateDirtBar( int logLineIndex )
-		{
-			int logLineHeadIndex, logLineEndIndex;
-			Point top, bottom;
-			Document doc = this.Document;
-
-			// calculate beginning and ending index of the modified logical line
-			logLineHeadIndex = doc.GetLineHeadIndex( logLineIndex );
-			logLineEndIndex = logLineHeadIndex + doc.GetLineLength( logLineIndex );
-
-			// get the screen position of both beginning and ending character
-			top = this.GetVirPosFromIndex( logLineHeadIndex );
-			bottom = this.GetVirPosFromIndex( logLineEndIndex );
-			VirtualToScreen( ref top );
-			VirtualToScreen( ref bottom );
-			if( bottom.Y < YofTextArea )
-			{
-				return;
-			}
-			bottom.Y += LineSpacing;
-
-			// adjust drawing position for line padding
-			// (move it up, a half of line height)
-			top.Y -= (LinePadding >> 1);
-			bottom.Y -= (LinePadding >> 1);
-
-			// overdraw dirt bar
-			for( int y=top.Y; y<bottom.Y; y+=LineSpacing )
-			{
-				DrawDirtBar( y, logLineIndex );
-			}
 		}
 
 		internal override void HandleDocumentChanged( Document prevDocument )
@@ -489,19 +466,6 @@ namespace Sgry.Azuki
 		/// </summary>
 		void UpdatePLHI( int index, string oldText, string newText )
 		{
-			bool dummy;
-			UpdatePLHI( index, oldText, newText, out dummy );
-		}
-
-		/// <summary>
-		/// Maintain line head indexes.
-		/// </summary>
-		/// <param name="index">The index of the place where replacement was occurred.</param>
-		/// <param name="oldText">The text which is removed by the replacement.</param>
-		/// <param name="newText">The text which is inserted by the replacement.</param>
-		/// <param name="changedTargetPosition">This will be true if virtual position of the replacement target specified by 'index' was changed dualing updating PLHI.</param>
-		void UpdatePLHI( int index, string oldText, string newText, out bool changedTargetPosition )
-		{
 			Debug.Assert( 0 < this.TabWidth );
 			Document doc = Document;
 			int delBeginL, delEndL;
@@ -512,29 +476,11 @@ namespace Sgry.Azuki
 			int replaceEnd;
 			int preTargetEndL;
 
-			// (preparation)
-			changedTargetPosition = false;
-
 			int firstDirtyLineIndex = LineLogic.GetLineIndexFromCharIndex( PLHI, index );
 			if( firstDirtyLineIndex < 0 )
 			{
 				Debug.Fail( "unexpected error" );
 				return;
-			}
-
-			// in some special cases, re-calculate PLHI from previous line
-			if( 0 < index && index == PLHI[firstDirtyLineIndex] )
-			{
-				// case 1) if an EOL code is at head of line as a result of line wrapping,
-				// and if there is a character graphically narrower than an EOL mark just after it,
-				// removing the EOL code should moves the following character to previous line end.
-				// 
-				// case 2) if a character was inserted to the head of a line made by wrapping,
-				// and if the width of the character was narrower than the graphical 'gap'
-				// at right end of the previous line,
-				// the character must be inserted to previous line.
-				firstDirtyLineIndex--;
-				changedTargetPosition = true;
 			}
 
 			// [phase 3] calculate range of indexes to be deleted
@@ -709,10 +655,6 @@ namespace Sgry.Azuki
 			// fill area below of the text
 			_Gra.BackColor = ColorScheme.BackColor;
 			_Gra.FillRectangle( 0, pos.Y, VisibleSize.Width, VisibleSize.Height-pos.Y );
-			for( int y=pos.Y; y<VisibleSize.Height; y+=LineSpacing )
-			{
-				DrawLeftOfLine( y, -1, false );
-			}
 
 			// flush drawing results BEFORE updating current line highlight
 			// because the highlight graphic is never limited to clipping rect
@@ -779,7 +721,7 @@ namespace Sgry.Azuki
 					drawsText = false;
 				}
 
-				DrawLeftOfLine( pos.Y, logicalLineIndex+1, drawsText );
+				DrawLineNumber( pos.Y, logicalLineIndex+1, drawsText );
 				clipRect.Width -= (XofTextArea - clipRect.X);
 				clipRect.X = XofTextArea;
 			}
@@ -843,7 +785,7 @@ namespace Sgry.Azuki
 
 					// calculate how many chars will not be in the clip-rect
 					invisWidth = MeasureTokenEndX( token, 0, rightLimit, out invisCharCount );
-					if( 0 < invisCharCount && invisCharCount < token.Length )
+					if( invisCharCount < token.Length )
 					{
 						// cut extra (invisible) part of the token
 						token = token.Substring( invisCharCount );
@@ -869,20 +811,18 @@ namespace Sgry.Azuki
 
 					// try to get graphically peeking (drawn over the border line) char
 					peekingChar = String.Empty;
-					if( visCharCount+1 <= token.Length )
+					if( visCharCount+2 <= token.Length
+						&& Document.IsHighSurrogate(token[visCharCount]) )
 					{
-						if( Document.IsDividableIndex(token, visCharCount+1) == false )
-						{
-							peekingChar = token.Substring( visCharCount, 2 );
-						}
-						else
-						{
-							peekingChar = token.Substring( visCharCount, 1 );
-						}
+						peekingChar = token.Substring( visCharCount, 2 );
+					}
+					else if( visCharCount+1 <= token.Length )
+					{
+						peekingChar = token.Substring( visCharCount, 1 );
 					}
 
-					// calculate right end coordinate of the peeking char
-					if( peekingChar != String.Empty )
+					// if there is a peeking char
+					if( peekingChar != null )
 					{
 						peekingCharRight = MeasureTokenEndX( peekingChar, visPartRight );
 					}
@@ -941,11 +881,6 @@ namespace Sgry.Azuki
 				Debug.Assert( Document != null );
 				return Document.ViewParam.PLHI;
 			}
-		}
-
-		bool IsEolCode( string str )
-		{
-			return (str == "\r" || str == "\n" || str == "\r\n");
 		}
 		#endregion
 	}

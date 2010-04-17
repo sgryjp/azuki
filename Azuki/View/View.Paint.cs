@@ -1,7 +1,7 @@
 // file: View.Paint.cs
 // brief: Common painting logic
 // author: YAMAMOTO Suguru
-// update: 2010-01-13
+// update: 2009-11-29
 //=========================================================
 //DEBUG//#define DRAW_SLOWLY
 using System;
@@ -127,7 +127,7 @@ namespace Sgry.Azuki
 					_Gra.BackColor = ColorScheme.BackColor;
 
 				// draw background
-				width = EolCodeWidthInPx;
+				width = EolCodeWithInPx;
 				_Gra.FillRectangle( tokenPos.X, tokenPos.Y, width, LineSpacing );
 
 				if( DrawsEolCode == false )
@@ -199,13 +199,7 @@ namespace Sgry.Azuki
 			Debug.Assert( ((lineTopY-YofTextArea) % LineSpacing) == 0, "((lineTopY-YofTextArea) % LineSpacing) is not 0 but " + (lineTopY-YofTextArea) % LineSpacing );
 			LineDirtyState dirtyState;
 
-			// get dirty state of the line
-			if( 0 <= logicalLineIndex && logicalLineIndex < Document.LineCount )
-				dirtyState = Document.GetLineDirtyState( logicalLineIndex );
-			else
-				dirtyState = LineDirtyState.Clean;
-
-			// choose color
+			dirtyState = Document.GetLineDirtyState( logicalLineIndex );
 			if( dirtyState == LineDirtyState.Cleaned )
 			{
 				_Gra.BackColor = ColorScheme.CleanedLineBar;
@@ -218,8 +212,6 @@ namespace Sgry.Azuki
 			{
 				_Gra.BackColor = ColorScheme.LineNumberBack;
 			}
-
-			// fill
 			_Gra.FillRectangle( XofDirtBar, lineTopY, DirtBarWidth, LineSpacing );
 		}
 
@@ -229,7 +221,7 @@ namespace Sgry.Azuki
 		/// <param name="lineTopY">Y-coordinate of the target line.</param>
 		/// <param name="lineNumber">line number to be drawn.</param>
 		/// <param name="drawsText">specify true if line number text should be drawn.</param>
-		protected void DrawLeftOfLine( int lineTopY, int lineNumber, bool drawsText )
+		protected void DrawLineNumber( int lineTopY, int lineNumber, bool drawsText )
 		{
 			DebugUtl.Assert( (lineTopY % LineSpacing) == (YofTextArea % LineSpacing), "lineTopY:"+lineTopY+", LineSpacing:"+LineSpacing+", YofTextArea:"+YofTextArea );
 			Point pos = new Point( XofLineNumberArea, lineTopY );
@@ -285,6 +277,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		protected void DrawHRuler( Rectangle clipRect )
 		{
+			Point pos = new Point( 0, YofHRuler );
 			string columnNumberText;
 			int lineX, rulerIndex;
 			int leftMostLineX, leftMostRulerIndex;
@@ -336,14 +329,12 @@ namespace Sgry.Azuki
 				// draw ruler line
 				if( (rulerIndex % 10) == 0 )
 				{
-					Point pos;
-
 					// draw largest line
 					_Gra.DrawLine( lineX, YofHRuler, lineX, YofHRuler+HRulerHeight );
 
 					// draw column text
 					columnNumberText = (rulerIndex / 10).ToString();
-					pos = new Point( lineX+2, YofHRuler );
+					pos.X = lineX;
 					_Gra.DrawText( columnNumberText, ref pos, ColorScheme.LineNumberFore );
 				}
 				else if( (rulerIndex % 5) == 0 )
@@ -683,12 +674,12 @@ Debug.Assert( drawableLength == i );
 					}
 
 					// check whether this EOL code can be drawn or not
-					if( rightLimitX <= x + EolCodeWidthInPx )
+					if( rightLimitX <= x + EolCodeWithInPx )
 					{
 						// this EOL code hit the right limit.
 						return x;
 					}
-					x += EolCodeWidthInPx;
+					x += EolCodeWithInPx;
 
 					// treat this EOL code
 					drawableLength++;

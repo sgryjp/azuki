@@ -1,7 +1,7 @@
 ﻿// file: View.cs
 // brief: Platform independent view implementation of Azuki engine.
 // author: YAMAMOTO Suguru
-// update: 2010-03-22
+// update: 2009-11-25
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -64,7 +64,6 @@ namespace Sgry.Azuki
 			| DrawingOption.HighlightCurrentLine
 			| DrawingOption.ShowsLineNumber
 			| DrawingOption.ShowsDirtBar;
-		bool _ScrollsBeyondLastLine = true;
 		#endregion
 
 		#region Init / Dispose
@@ -74,8 +73,8 @@ namespace Sgry.Azuki
 		/// <param name="ui">Implementation of the platform dependent UI module.</param>
 		internal View( IUserInterface ui )
 		{
-			Debug.Assert( ui != null );
 			_UI = ui;
+			_Gra = ui.GetIGraphics();
 		}
 
 		/// <summary>
@@ -84,42 +83,37 @@ namespace Sgry.Azuki
 		/// <param name="other">another view object to inherit settings</param>
 		internal View( View other )
 		{
-			Debug.Assert( other != null );
-
 			// inherit reference to the UI module
 			this._UI = other._UI;
 			this._Gra = _UI.GetIGraphics();
 
 			// inherit other parameters
-			if( other != null )
-			{
-				this._ColorScheme = other._ColorScheme;
-				this._DrawingOption = other._DrawingOption;
-				//DO_NOT//this._DirtBarWidth = other._DirtBarWidth;
-				//DO_NOT//this._Gra = other._Gra;
-				//DO_NOT//this._HRulerFont = other._HRulerFont;
-				//DO_NOT//this._LCharWidth = other._LCharWidth;
-				//DO_NOT//this._LineHeight = other._LineHeight;
-				//DO_NOT//this._LineNumAreaWidth = other._LineNumAreaWidth;
-				//DO_NOT//this._SpaceWidth = other._SpaceWidth;
-				this._TabWidth = other._TabWidth;
-				this._LinePadding = other._LinePadding;
-				this._LeftMargin = other._LeftMargin;
-				this._TopMargin = other.TopMargin;
-				//DO_NOT//this._TabWidthInPx = other._TabWidthInPx;
-				this._TextAreaWidth = other._TextAreaWidth;
-				//DO_NOT//this._UI = other._UI;
-				this._VisibleSize = other._VisibleSize;
+			this._ColorScheme = other._ColorScheme;
+			this._DrawingOption = other._DrawingOption;
+			//DO_NOT//this._DirtBarWidth = other._DirtBarWidth;
+			//DO_NOT//this._Gra = other._Gra;
+			//DO_NOT//this._HRulerFont = other._HRulerFont;
+			//DO_NOT//this._LCharWidth = other._LCharWidth;
+			//DO_NOT//this._LineHeight = other._LineHeight;
+			//DO_NOT//this._LineNumAreaWidth = other._LineNumAreaWidth;
+			//DO_NOT//this._SpaceWidth = other._SpaceWidth;
+			this._TabWidth = other._TabWidth;
+			this._LinePadding = other._LinePadding;
+			this._LeftMargin = other._LeftMargin;
+			this._TopMargin = other.TopMargin;
+			//DO_NOT//this._TabWidthInPx = other._TabWidthInPx;
+			this._TextAreaWidth = other._TextAreaWidth;
+			//DO_NOT//this._UI = other._UI;
+			this._VisibleSize = other._VisibleSize;
 
-				// set Font through property
-				if( other.FontInfo != null )
-					this.FontInfo = other.FontInfo;
+			// set Font through property
+			if( other.FontInfo != null )
+				this.FontInfo = other.FontInfo;
 
-				// re-calculate graphic metrics
-				// (because there is a metric which needs a reference to Document to be calculated
-				// but it cannnot be set Document before setting Font by structural reason)
-				UpdateMetrics();
-			}
+			// re-calculate graphic metrics
+			// (because there is a metric which needs a reference to Document to be calculated
+			// but it cannnot be set Document before setting Font by structural reason)
+			UpdateMetrics();
 		}
 
 #		if DEBUG
@@ -135,11 +129,8 @@ namespace Sgry.Azuki
 		public virtual void Dispose()
 		{
 			// dispose graphic resources
-			if( _Gra != null )
-			{
-				_Gra.Dispose();
-				_Gra = null;
-			}
+			_Gra.Dispose();
+			_Gra = null;
 		}
 		#endregion
 
@@ -177,13 +168,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Re-calculates and updates x-coordinate of the right end of the virtual text area.
-		/// </summary>
-		/// <param name="desiredX">X-coordinate of scroll destination desired.</param>
-		/// <returns>The largest X-coordinate which Azuki can scroll to.</returns>
-		protected abstract int ReCalcRightEndOfTextArea( int desiredX );
-
-		/// <summary>
 		/// Gets or sets size of the currently visible area (line number area is included).
 		/// </summary>
 		public Size VisibleSize
@@ -204,15 +188,6 @@ namespace Sgry.Azuki
 				size.Height -= YofTextArea;
 				return size;
 			}
-		}
-
-		/// <summary>
-		/// Gets or sets whether to scroll beyond the last line of the document or not.
-		/// </summary>
-		public bool ScrollsBeyondLastLine
-		{
-			get{ return _ScrollsBeyondLastLine; }
-			set{ _ScrollsBeyondLastLine = value; }
 		}
 
 		/// <summary>
@@ -280,42 +255,6 @@ namespace Sgry.Azuki
 			_MinimumTextAreaWidth = Math.Max( _FullSpaceWidth, TabWidthInPx ) << 1;
 		}
 		#endregion
-
-		/// <summary>
-		/// Gets length of the pysical line.
-		/// </summary>
-		/// <param name="lineIndex">Index of the line of which to get the length.</param>
-		/// <returns>Length of the specified line in character count.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		public int GetLineLength( int lineIndex )
-		{
-			if( lineIndex < 0 || LineCount <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
-
-			Document doc = Document;
-			int lineHeadIndex, lineEndIndex;
-
-			lineHeadIndex = GetLineHeadIndex( lineIndex );
-			if( lineIndex+1 < LineCount )
-			{
-				lineEndIndex = GetLineHeadIndex( lineIndex + 1 );
-				if( 0 <= lineEndIndex-1 && doc.GetCharAt(lineEndIndex-1) == '\n'
-					&& 0 <= lineEndIndex-2 && doc.GetCharAt(lineEndIndex-2) == '\r' )
-				{
-					lineEndIndex -= 2; // CR+LF
-				}
-				else
-				{
-					lineEndIndex -= 1; // CR or LF
-				}
-			}
-			else
-			{
-				lineEndIndex = doc.Length;
-			}
-
-			return lineEndIndex - lineHeadIndex;
-		}
 
 		#region Drawing Options
 		/// <summary>
@@ -1033,33 +972,18 @@ namespace Sgry.Azuki
 		{
 			int delta;
 			Rectangle clipRect;
-			int destLineIndex;
-			int maxLineIndex;
-			int visibleLineCount;
 
 			if( lineDelta == 0 )
 				return;
 
-			// calculate specified index of new FirstVisibleLine and biggest acceptable value of it
-			destLineIndex = FirstVisibleLine + lineDelta;
-			if( ScrollsBeyondLastLine )
-			{
-				maxLineIndex = LineCount - 1;
-			}
-			else
-			{
-				visibleLineCount = VisibleSize.Height / LineSpacing;
-				maxLineIndex = Math.Max( 0, LineCount-visibleLineCount+1 );
-			}
-
 			// calculate scroll distance
-			if( destLineIndex < 0 )
+			if( FirstVisibleLine + lineDelta < 0 )
 			{
 				delta = -FirstVisibleLine;
 			}
-			else if( maxLineIndex < destLineIndex )
+			else if( LineCount-1 < FirstVisibleLine + lineDelta )
 			{
-				delta = maxLineIndex - FirstVisibleLine;
+				delta = LineCount - 1 - FirstVisibleLine;
 			}
 			else
 			{
@@ -1083,21 +1007,19 @@ namespace Sgry.Azuki
 			int deltaInPx;
 			Rectangle clipRect = new Rectangle();
 			int rightLimit;
-			int desiredX;
 
 			if( columnDelta == 0 )
 				return;
 
 			// calculate the x-coord of right most scroll position
-			desiredX = ScrollPosX + columnDelta;
-			rightLimit = ReCalcRightEndOfTextArea( desiredX );
+			rightLimit = TextAreaWidth - VisibleTextAreaSize.Width;
 			if( rightLimit <= 0 )
 			{
 				return; // virtual text area is narrower than visible area. no need to scroll
 			}
 
 			// calculate scroll distance
-			if( desiredX < 0 )
+			if( ScrollPosX + columnDelta < 0 )
 			{
 				//--- scrolling to left of the text area ---
 				// do nothing if already at left most position
@@ -1107,7 +1029,7 @@ namespace Sgry.Azuki
 				// scroll to left most position
 				deltaInPx = -ScrollPosX;
 			}
-			else if( rightLimit <= desiredX )
+			else if( rightLimit <= ScrollPosX+columnDelta )
 			{
 				//--- scrolling to right of the text area ---
 				// do nothing if already at right most position
@@ -1175,7 +1097,6 @@ namespace Sgry.Azuki
 
 			// apply new font size
 			FontInfo = new FontInfo( FontInfo.Name, newSize, FontInfo.Style );
-			_UI.FontInfo = FontInfo;
 
 			// reset text area to sustain total width of view
 			// because changing font size also changes width of line number area,
@@ -1201,7 +1122,6 @@ namespace Sgry.Azuki
 
 			// apply new font size
 			FontInfo = new FontInfo( FontInfo.Name, newSize, FontInfo.Style );
-			_UI.FontInfo = FontInfo;
 
 			// reset text area to sustain total width of view
 			// because changing font size also changes width of line number area,
@@ -1266,30 +1186,17 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// This method will be called when the content was changed.
 		/// </summary>
-		internal abstract void HandleContentChanged( object sender, ContentChangedEventArgs e );
-
-		internal void HandleGraphicContextChanged()
+		internal virtual void HandleContentChanged( object sender, ContentChangedEventArgs e )
 		{
-			if( _Gra != null )
-			{
-				_Gra.Dispose();
-			}
-			_Gra = _UI.GetIGraphics();
-			_Gra.FontInfo = this.FontInfo;
+			UpdateLineNumberWidth();
 		}
 
 		/// <summary>
 		/// Updates width of the line number area.
 		/// </summary>
-		protected void UpdateLineNumberWidth()
+		void UpdateLineNumberWidth()
 		{
 			DebugUtl.Assert( this.Document != null );
-
-			// if current width of line number area is appropriate, do nothing
-			if( Document.LineCount <= Document.ViewParam.MaxLineNumber )
-			{
-				return;
-			}
 
 			// find minimum value from samples for calculating width of line number area
 			for( int i=0; i<_LineNumberSamples.Length; i++ )
@@ -1308,27 +1215,18 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
-		#region Coordinates of Graphical Parts
-		/// <summary>
-		/// Gets X coordinate in client area of line number area.
-		/// </summary>
-		public int XofLineNumberArea
+		#region Utilities
+		internal int XofLineNumberArea
 		{
 			get{ return 0; }
 		}
 
-		/// <summary>
-		/// Gets X coordinate in client area of dirt bar area.
-		/// </summary>
-		public int XofDirtBar
+		internal int XofDirtBar
 		{
 			get{ return XofLineNumberArea + LineNumAreaWidth; }
 		}
 
-		/// <summary>
-		/// Gets X coordinate in client area of left margin.
-		/// </summary>
-		public int XofLeftMargin
+		internal int XofLeftMargin
 		{
 			get
 			{
@@ -1340,10 +1238,7 @@ namespace Sgry.Azuki
 			}
 		}
 
-		/// <summary>
-		/// Gets X coordinate in client area of text area.
-		/// </summary>
-		public int XofTextArea
+		internal int XofTextArea
 		{
 			get
 			{
@@ -1355,32 +1250,21 @@ namespace Sgry.Azuki
 			}
 		}
 
-		/// <summary>
-		/// Gets Y coordinate in client area of horizontal ruler.
-		/// </summary>
-		public int YofHRuler
+		internal int YofHRuler
 		{
 			get{ return 0; }
 		}
 
-		/// <summary>
-		/// Gets Y coordinate in client area of top margin.
-		/// </summary>
-		public int YofTopMargin
+		internal int YofTopMargin
 		{
 			get{ return YofHRuler + HRulerHeight; }
 		}
 
-		/// <summary>
-		/// Gets Y coordinate in client area of text area.
-		/// </summary>
-		public int YofTextArea
+		internal int YofTextArea
 		{
 			get{ return YofTopMargin + TopMargin; }
 		}
-		#endregion
 
-		#region Utilities
 		/// <summary>
 		/// Gets Y coordinate in client area of specified line.
 		/// </summary>
@@ -1389,7 +1273,7 @@ namespace Sgry.Azuki
 			return (  (lineIndex - FirstVisibleLine) * LineSpacing  ) + YofTextArea;
 		}
 
-		internal int EolCodeWidthInPx
+		internal int EolCodeWithInPx
 		{
 			get{ return (_LineHeight >> 1) + (_LineHeight >> 2); }
 		}

@@ -1,4 +1,4 @@
-// 2010-02-13
+// 2009-10-10
 using System;
 using System.Text;
 using Sgry.Azuki;
@@ -15,7 +15,6 @@ namespace Sgry.Ann
 		bool _WithBom = false;
 		FileType _FileType;
 		string _DisplayName = null;
-		DateTime _LastSavedTime;
 		#endregion
 
 		#region Init / Dispose
@@ -104,15 +103,6 @@ namespace Sgry.Ann
 		{
 			get{ return _WithBom; }
 			set{ _WithBom = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets time this document was saved.
-		/// </summary>
-		public DateTime LastSavedTime
-		{
-			get{ return _LastSavedTime; }
-			set{ _LastSavedTime = value; }
 		}
 		#endregion
 
