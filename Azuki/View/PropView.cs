@@ -1,7 +1,7 @@
 // file: PropView.cs
 // brief: Platform independent view (proportional).
 // author: YAMAMOTO Suguru
-// update: 2010-03-22
+// update: 2010-01-02
 //=========================================================
 //DEBUG//#define DRAW_SLOWLY
 using System;
@@ -61,21 +61,6 @@ namespace Sgry.Azuki
 		public override int LineCount
 		{
 			get{ return base.Document.LineCount; }
-		}
-
-		/// <summary>
-		/// Re-calculates and updates x-coordinate of the right end of the virtual text area.
-		/// </summary>
-		/// <param name="desiredX">X-coordinate of scroll destination desired.</param>
-		/// <returns>The largest X-coordinate which Azuki can scroll to.</returns>
-		protected override int ReCalcRightEndOfTextArea( int desiredX )
-		{
-			if( TextAreaWidth < desiredX )
-			{
-				TextAreaWidth = desiredX + (VisibleTextAreaSize.Width >> 3);
-				_UI.UpdateScrollBarRange();
-			}
-			return TextAreaWidth;
 		}
 		#endregion
 
@@ -531,11 +516,8 @@ namespace Sgry.Azuki
 				Invalidate( invalidRect2 );
 			}
 
-			// update left side of text area
-			DrawDirtBar( invalidRect1.Top, Document.GetLineIndexFromCharIndex(e.Index) );
-			UpdateLineNumberWidth();
-
 			//DO_NOT//base.HandleContentChanged( sender, e );
+			DrawDirtBar( invalidRect1.Top, Document.GetLineIndexFromCharIndex(e.Index) );
 		}
 
 		/// <summary>
@@ -671,7 +653,6 @@ namespace Sgry.Azuki
 
 			int selBegin, selEnd;
 			Point pos = new Point();
-			int longestLineLength = 0;
 
 			// prepare off-screen buffer
 #			if !DRAW_SLOWLY && !PocketPC
@@ -700,14 +681,11 @@ namespace Sgry.Azuki
 			{
 				if( pos.Y < clipRect.Bottom && clipRect.Top <= pos.Y+LineSpacing )
 				{
-					DrawLine( i, pos, clipRect, ref longestLineLength );
+					DrawLine( i, pos, clipRect );
 				}
 				pos.Y += LineSpacing;
 			}
 			_Gra.RemoveClipRect();
-
-			// expand text area width for longest line
-			ReCalcRightEndOfTextArea( longestLineLength );
 
 			// fill area below of the text
 			_Gra.BackColor = ColorScheme.BackColor;
@@ -743,7 +721,7 @@ namespace Sgry.Azuki
 			}
 		}
 
-		void DrawLine( int lineIndex, Point pos, Rectangle clipRect, ref int longestLineLength )
+		void DrawLine( int lineIndex, Point pos, Rectangle clipRect )
 		{
 			// note that given pos is NOT virtual position BUT screen position.
 			string token;
@@ -752,7 +730,6 @@ namespace Sgry.Azuki
 			CharClass klass;
 			Point tokenEndPos = pos;
 			bool inSelection;
-			int lastlyDrawnTokenEndIndex;
 
 			// calc position of head/end of this line
 			lineHead = Document.GetLineHeadIndex( lineIndex );
@@ -841,7 +818,6 @@ namespace Sgry.Azuki
 				begin = end;
 				end = NextPaintToken( Document, begin, lineEnd, out klass, out inSelection );
 			}
-			lastlyDrawnTokenEndIndex = end;
 
 			// draw EOF mark
 			if( DrawsEofMark && lineEnd == Document.Length )
@@ -869,23 +845,28 @@ namespace Sgry.Azuki
 			// calculate full width of this line and make it the width of virtual space.
 			Point virPos = pos;
 			ScreenToVirtual( ref virPos );
-			if( TextAreaWidth < virPos.X + (VisibleSize.Width >> 3) )
+			if( TextAreaWidth - TabWidthInPx < virPos.X )
 			{
 				string lineContent;
-				int lineWidth;
+				int lineWidth, newWidth;
 
 				// calculate full length of this line, in pixel
 				lineContent = Document.GetTextInRange( lineHead, lineEnd );
 				lineWidth = MeasureTokenEndX( lineContent, 0 );
 
-				// remember length of this line if it is the longest ever
-				if( longestLineLength < lineWidth )
+				// calculate new text area width
+				newWidth = lineWidth;
+				while( newWidth < lineWidth+512 )
 				{
-					longestLineLength = lineWidth;
+					newWidth += 1024;
 				}
+
+				// apply
+				TextAreaWidth = newWidth;
+				_UI.UpdateScrollBarRange();
 			}
 
-			// draw graphics at left of text
+			// draw line number
 			DrawLeftOfLine( pos.Y, lineIndex+1, true );
 		}
 		#endregion

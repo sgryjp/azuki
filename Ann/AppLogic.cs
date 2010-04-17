@@ -1,4 +1,4 @@
-// 2010-03-30
+// 2010-03-20
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -1025,9 +1025,8 @@ namespace Sgry.Ann
 		internal void MainForm_DelayedActivated()
 		{
 			List<Document> docsToBeReloaded;
-			DialogResult result;
 
-			if( InterlockedSetFlag(ref _AskingUserToReloadOrNot, true) == false )
+			if( InterlockedSetFlag(ref _AskingUserToReloadOrNot, true) )
 			{
 				// list up documents to be reloaded
 				docsToBeReloaded = new List<Document>( Documents.Count );
@@ -1041,16 +1040,9 @@ namespace Sgry.Ann
 				}
 
 				// ask user to reload each document
-				result = DialogResult.OK;
 				foreach( Document doc in docsToBeReloaded )
 				{
-					// once user canceled reloading,
-					// silently ignore the update of last documents
-					if( result == DialogResult.Cancel )
-					{
-						doc.LastSavedTime = File.GetLastWriteTime(doc.FilePath);
-						continue;
-					}
+					DialogResult result;
 
 					// activate the document
 					ActiveDocument = doc;
@@ -1060,10 +1052,13 @@ namespace Sgry.Ann
 						""+doc.FilePath+" was updated by other program. Do you want to reload?",
 						MessageBoxButtons.YesNoCancel, MessageBoxIcon.Asterisk
 					);
-					if( result != DialogResult.Yes )
+					if( result == DialogResult.No )
 					{
-						doc.LastSavedTime = File.GetLastWriteTime(doc.FilePath);
 						continue;
+					}
+					else if( result == DialogResult.Cancel )
+					{
+						break;
 					}
 
 					// reload it

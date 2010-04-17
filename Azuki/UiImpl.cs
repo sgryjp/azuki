@@ -1,7 +1,7 @@
 ﻿// file: UiImpl.cs
 // brief: User interface logic that independent from platform.
 // author: YAMAMOTO Suguru
-// update: 2010-04-10
+// update: 2010-03-20
 //=========================================================
 using System;
 using System.Text;
@@ -42,7 +42,7 @@ namespace Sgry.Azuki
 		// whether the mouse button is down or not.
 		Point _MouseDownVirPos = new Point( Int32.MinValue, 0 );
 		bool _MouseDragging = false;
-		TextDataType _SelectionMode = TextDataType.Normal;
+		bool _IsRectSelectMode = false;
 
 		Thread _HighlighterThread;
 		bool _ShouldBeHighlighted = false;
@@ -250,28 +250,15 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets whether Azuki is in line selection mode or not.
-		/// </summary>
-		public bool IsLineSelectMode
-		{
-			get{ return (_SelectionMode == TextDataType.Line); }
-			set
-			{
-				Debug.Assert( _IsDisposed == false );
-				_SelectionMode = (value == true) ? TextDataType.Line : TextDataType.Normal;
-			}
-		}
-
-		/// <summary>
 		/// Gets whether Azuki is in rectangle selection mode or not.
 		/// </summary>
 		public bool IsRectSelectMode
 		{
-			get{ return (_SelectionMode == TextDataType.Rectangle); }
+			get{ return _IsRectSelectMode; }
 			set
 			{
 				Debug.Assert( _IsDisposed == false );
-				_SelectionMode = (value == true) ? TextDataType.Rectangle : TextDataType.Normal;
+				_IsRectSelectMode = value;
 				_UI.InvokeIsRectSelectModeChanged();
 			}
 		}
@@ -665,7 +652,6 @@ namespace Sgry.Azuki
 				// set selection
 				if( onLineNumberArea )
 				{
-					IsLineSelectMode = true;
 					if( !shift )
 					{
 						Document.LineSelectionAnchor = -1;
@@ -725,6 +711,7 @@ namespace Sgry.Azuki
 				return;
 
 			int xOffset, yOffset;
+			bool onLineNumberArea = false;
 
 			// if mouse button was not down, ignore
 			if( _MouseDownVirPos.X == Int32.MinValue )
@@ -734,6 +721,12 @@ namespace Sgry.Azuki
 			pos.X = Math.Max( 0, pos.X );
 			pos.Y = Math.Max( 0, pos.Y );
 			View.ScreenToVirtual( ref pos );
+
+			// check whether the mouse position is on the line number area or not
+			if( pos.X < View.XofLeftMargin )
+			{
+				onLineNumberArea = true;
+			}
 
 			// if it was slight movement, ignore
 			if( _MouseDragging == false )
@@ -769,7 +762,7 @@ namespace Sgry.Azuki
 						);
 					Document.SetSelection_Impl( Document.AnchorIndex, curPosIndex, false );
 				}
-				else if( IsLineSelectMode )
+				else if( onLineNumberArea )
 				{
 					SelectLines( curPosIndex );
 				}
@@ -1030,7 +1023,7 @@ namespace Sgry.Azuki
 
 				caret = View.GetLineHeadIndex( toLineIndex );
 				anchorLineIndex = View.GetLineIndexFromCharIndex( doc.LineSelectionAnchor );
-				if( anchorLineIndex+1 < View.LineCount )
+				if( anchorLineIndex+1 < doc.LineCount )
 				{
 					anchor = View.GetLineHeadIndex( anchorLineIndex + 1 );
 				}
@@ -1043,7 +1036,7 @@ namespace Sgry.Azuki
 
 			// apply new selection
 			// (and restore LineSelectionAnchor property because SetSelection clears it)
-			doc.SetSelection_Impl( anchor, caret, false );
+			doc.SetSelection( anchor, caret );
 			doc.LineSelectionAnchor = lineSelectionAnchor;
 		}
 		#endregion

@@ -1,7 +1,7 @@
 // file: PropWrapView.cs
 // brief: Platform independent view (proportional, line-wrap).
 // author: YAMAMOTO Suguru
-// update: 2010-04-06
+// update: 2010-03-20
 //=========================================================
 //DEBUG//#define PLHI_DEBUG
 //DEBUG//#define DRAW_SLOWLY
@@ -85,16 +85,6 @@ namespace Sgry.Azuki
 					SetDesiredColumn();
 				}
 			}
-		}
-
-		/// <summary>
-		/// Re-calculates and updates x-coordinate of the right end of the virtual text area.
-		/// </summary>
-		/// <param name="desiredX">X-coordinate of scroll destination desired.</param>
-		/// <returns>The largest X-coordinate which Azuki can scroll to.</returns>
-		protected override int ReCalcRightEndOfTextArea( int desiredX )
-		{
-			return TextAreaWidth - VisibleTextAreaSize.Width;
 		}
 		#endregion
 
@@ -286,14 +276,10 @@ namespace Sgry.Azuki
 			Point oldCaretVirPos;
 			Rectangle invalidRect1 = new Rectangle();
 			Rectangle invalidRect2 = new Rectangle();
-			bool changedTargetPosition;
-
-			// get position of the replacement before re-calculating PLHI
-			oldCaretVirPos = GetVirPosFromIndex( e.Index );
 
 			// update physical line head indexes
 			prevLineCount = LineCount;
-			UpdatePLHI( e.Index, e.OldText, e.NewText, out changedTargetPosition );
+			UpdatePLHI( e.Index, e.OldText, e.NewText );
 #			if PLHI_DEBUG
 			string __result_of_new_logic__ = PLHI.ToString();
 			DoLayout();
@@ -306,12 +292,8 @@ namespace Sgry.Azuki
 			}
 #			endif
 
-			// re-get position of the replacement
-			// if the position was changed dualing updating PLHI
-			if( changedTargetPosition )
-			{
-				oldCaretVirPos = GetVirPosFromIndex( e.Index );
-			}
+			// get position of the word replacement occured
+			oldCaretVirPos = GetVirPosFromIndex( e.Index );
 
 			// update indicator graphic on horizontal ruler
 			UpdateHRuler();
@@ -364,10 +346,9 @@ namespace Sgry.Azuki
 				Invalidate( invalidRect2 );
 			}
 
-			// update left side of text area
+			// update dirt bar
 			UpdateDirtBar( doc.GetLineIndexFromCharIndex(e.Index) );
-			UpdateLineNumberWidth();
-
+			
 			//DO_NOT//base.HandleContentChanged( sender, e );
 		}
 
@@ -489,19 +470,6 @@ namespace Sgry.Azuki
 		/// </summary>
 		void UpdatePLHI( int index, string oldText, string newText )
 		{
-			bool dummy;
-			UpdatePLHI( index, oldText, newText, out dummy );
-		}
-
-		/// <summary>
-		/// Maintain line head indexes.
-		/// </summary>
-		/// <param name="index">The index of the place where replacement was occurred.</param>
-		/// <param name="oldText">The text which is removed by the replacement.</param>
-		/// <param name="newText">The text which is inserted by the replacement.</param>
-		/// <param name="changedTargetPosition">This will be true if virtual position of the replacement target specified by 'index' was changed dualing updating PLHI.</param>
-		void UpdatePLHI( int index, string oldText, string newText, out bool changedTargetPosition )
-		{
 			Debug.Assert( 0 < this.TabWidth );
 			Document doc = Document;
 			int delBeginL, delEndL;
@@ -512,29 +480,11 @@ namespace Sgry.Azuki
 			int replaceEnd;
 			int preTargetEndL;
 
-			// (preparation)
-			changedTargetPosition = false;
-
 			int firstDirtyLineIndex = LineLogic.GetLineIndexFromCharIndex( PLHI, index );
 			if( firstDirtyLineIndex < 0 )
 			{
 				Debug.Fail( "unexpected error" );
 				return;
-			}
-
-			// in some special cases, re-calculate PLHI from previous line
-			if( 0 < index && index == PLHI[firstDirtyLineIndex] )
-			{
-				// case 1) if an EOL code is at head of line as a result of line wrapping,
-				// and if there is a character graphically narrower than an EOL mark just after it,
-				// removing the EOL code should moves the following character to previous line end.
-				// 
-				// case 2) if a character was inserted to the head of a line made by wrapping,
-				// and if the width of the character was narrower than the graphical 'gap'
-				// at right end of the previous line,
-				// the character must be inserted to previous line.
-				firstDirtyLineIndex--;
-				changedTargetPosition = true;
 			}
 
 			// [phase 3] calculate range of indexes to be deleted
@@ -941,11 +891,6 @@ namespace Sgry.Azuki
 				Debug.Assert( Document != null );
 				return Document.ViewParam.PLHI;
 			}
-		}
-
-		bool IsEolCode( string str )
-		{
-			return (str == "\r" || str == "\n" || str == "\r\n");
 		}
 		#endregion
 	}

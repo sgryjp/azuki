@@ -1,7 +1,7 @@
 ﻿// file: View.cs
 // brief: Platform independent view implementation of Azuki engine.
 // author: YAMAMOTO Suguru
-// update: 2010-03-22
+// update: 2010-03-20
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -175,13 +175,6 @@ namespace Sgry.Azuki
 				_TextAreaWidth = value;
 			}
 		}
-
-		/// <summary>
-		/// Re-calculates and updates x-coordinate of the right end of the virtual text area.
-		/// </summary>
-		/// <param name="desiredX">X-coordinate of scroll destination desired.</param>
-		/// <returns>The largest X-coordinate which Azuki can scroll to.</returns>
-		protected abstract int ReCalcRightEndOfTextArea( int desiredX );
 
 		/// <summary>
 		/// Gets or sets size of the currently visible area (line number area is included).
@@ -1083,21 +1076,19 @@ namespace Sgry.Azuki
 			int deltaInPx;
 			Rectangle clipRect = new Rectangle();
 			int rightLimit;
-			int desiredX;
 
 			if( columnDelta == 0 )
 				return;
 
 			// calculate the x-coord of right most scroll position
-			desiredX = ScrollPosX + columnDelta;
-			rightLimit = ReCalcRightEndOfTextArea( desiredX );
+			rightLimit = TextAreaWidth - VisibleTextAreaSize.Width;
 			if( rightLimit <= 0 )
 			{
 				return; // virtual text area is narrower than visible area. no need to scroll
 			}
 
 			// calculate scroll distance
-			if( desiredX < 0 )
+			if( ScrollPosX + columnDelta < 0 )
 			{
 				//--- scrolling to left of the text area ---
 				// do nothing if already at left most position
@@ -1107,7 +1098,7 @@ namespace Sgry.Azuki
 				// scroll to left most position
 				deltaInPx = -ScrollPosX;
 			}
-			else if( rightLimit <= desiredX )
+			else if( rightLimit <= ScrollPosX+columnDelta )
 			{
 				//--- scrolling to right of the text area ---
 				// do nothing if already at right most position
@@ -1266,7 +1257,10 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// This method will be called when the content was changed.
 		/// </summary>
-		internal abstract void HandleContentChanged( object sender, ContentChangedEventArgs e );
+		internal virtual void HandleContentChanged( object sender, ContentChangedEventArgs e )
+		{
+			UpdateLineNumberWidth();
+		}
 
 		internal void HandleGraphicContextChanged()
 		{
@@ -1281,15 +1275,9 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Updates width of the line number area.
 		/// </summary>
-		protected void UpdateLineNumberWidth()
+		void UpdateLineNumberWidth()
 		{
 			DebugUtl.Assert( this.Document != null );
-
-			// if current width of line number area is appropriate, do nothing
-			if( Document.LineCount <= Document.ViewParam.MaxLineNumber )
-			{
-				return;
-			}
 
 			// find minimum value from samples for calculating width of line number area
 			for( int i=0; i<_LineNumberSamples.Length; i++ )
