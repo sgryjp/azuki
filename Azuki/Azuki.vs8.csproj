@@ -32,8 +32,7 @@
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\package\</OutputPath>
-    <DefineConstants>
-    </DefineConstants>
+    <DefineConstants></DefineConstants>
     <NoStdLib>true</NoStdLib>
     <NoConfig>true</NoConfig>
     <ErrorReport>prompt</ErrorReport>
@@ -54,8 +53,6 @@
     <Compile Include="Actions.Selection.cs" />
     <Compile Include="AutoIndentHooks.cs" />
     <Compile Include="CaretMoveLogic.cs" />
-    <Compile Include="Document\LineDirtyState.cs" />
-    <Compile Include="Document\TextDataType.cs" />
     <Compile Include="Highlighter\Coco\Buffer.cs" />
     <Compile Include="Highlighter\Coco\LatexParser.cs" />
     <Compile Include="Highlighter\Coco\LatexScanner.cs" />
@@ -67,6 +64,8 @@
     <Compile Include="UserPref.cs" />
     <Compile Include="WordLogic.cs" />
     <Compile Include="DebugUtl.cs" />
+    <Compile Include="View\DrawingOption.cs" />
+    <Compile Include="View\IView.cs" />
     <Compile Include="Document\CharClass.cs" />
     <Compile Include="Document\Document.cs" />
     <Compile Include="Document\TextBuffer.cs" />
@@ -84,10 +83,13 @@
     <Compile Include="Highlighter\JavaHighlighter.cs" />
     <Compile Include="Highlighter\XmlHighlighter.cs" />
     <Compile Include="Highlighter\RubyHighlighter.cs" />
+    <Compile Include="Test\DocumentTest.cs" />
+    <Compile Include="Test\EditHistoryTest.cs" />
+    <Compile Include="Test\LineLogicTest.cs" />
+    <Compile Include="Test\SplitArrayTest.cs" />
+    <Compile Include="Test\TestDriver.cs" />
+    <Compile Include="Test\KeywordHighlighterTest.cs" />
     <Compile Include="View\ColorScheme.cs" />
-    <Compile Include="View\DrawingOption.cs" />
-    <Compile Include="View\HRulerIndicatorType.cs" />
-    <Compile Include="View\IView.cs" />
     <Compile Include="View\PropView.cs" />
     <Compile Include="View\PropWrapView.cs" />
     <Compile Include="View\View.cs" />

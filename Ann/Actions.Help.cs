@@ -1,4 +1,4 @@
-// 2009-11-14
+// 2009-07-11
 using System;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -51,18 +51,16 @@ namespace Sgry.Ann
 				annNameStr = annAsmName.Name;
 				annVerStr = annAsmName.Version.Major
 					+ "." + annAsmName.Version.Minor
-					+ "." + annAsmName.Version.Build
-					+ " rev. " + annAsmName.Version.Revision;
+					+ "." + annAsmName.Version.Build;
 
 				// extract file name and version of Azuki
 				azukiAsmVer = app.MainForm.Azuki.Version;
 				azukiNameStr = typeof(Azuki.Document).Module.Name;
 				azukiVerStr = azukiAsmVer.Major
 					+ "." + azukiAsmVer.Minor
-					+ "." + azukiAsmVer.Build
-					+ " rev. " + azukiAsmVer.Revision;
+					+ "." + azukiAsmVer.Build;
 
-				message = String.Format( "{0} {1}\nwith {2} {3}",
+				message = String.Format( "{0} version {1}\n(with {2} {3})",
 						annNameStr, annVerStr,
 						azukiNameStr, azukiVerStr
 					);
