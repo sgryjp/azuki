@@ -2,7 +2,7 @@
 // brief: User preferences that affects all Azuki instances.
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// update: 2010-04-15
+// update: 2009-10-21
 //=========================================================
 using System;
 using System.Text;
@@ -23,7 +23,6 @@ namespace Sgry.Azuki
 		static bool _CopyLineWhenNoSelection = true;
 		static bool _AutoScrollNearWindowBorder = true;
 		static bool _UseTextForEofMark = true;
-		static Antialias _TextRenderingMode = Antialias.Default;
 
 		/// <summary>
 		/// If true, cut/copy action targets the current line if nothing selected.
@@ -70,21 +69,6 @@ namespace Sgry.Azuki
 		{
 			get{ return _UseTextForEofMark; }
 			set{ _UseTextForEofMark = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets how Azuki anti-aliases text.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property determines the anti-aliase method that Azuki uses
-		/// on rendering text.
-		/// </para>
-		/// </remarks>
-		public static Antialias Antialias
-		{
-			get{ return _TextRenderingMode; }
-			set{ _TextRenderingMode = value; }
 		}
 	}
 }
