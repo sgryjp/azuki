@@ -1,7 +1,7 @@
 ﻿// file: ColorScheme.cs
 // brief: color set
 // author: YAMAMOTO Suguru
-// update: 2009-11-01
+// update: 2009-07-05
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -11,15 +11,8 @@ using Debug = System.Diagnostics.Debug;
 namespace Sgry.Azuki
 {
 	/// <summary>
-	/// Color set used for drawing text.
+	/// Color set used for drawing.
 	/// </summary>
-	/// <remarks>
-	/// <para>
-	/// ColorScheme is a set of pairs of foreground color and background color
-	/// and is used to draw tokens of document.
-	/// </para>
-	/// </remarks>
-	/// <seealso cref="Sgry.Azuki.CharClass">CharClass enum</seealso>
 	public class ColorScheme
 	{
 		Color[] _ForeColors = new Color[ Byte.MaxValue ];
@@ -39,11 +32,11 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets color pair for a char-class.
 		/// </summary>
-		/// <param name="klass">The color-pair associated with this char-class will be got.</param>
-		/// <param name="fore">Foreground color used to draw characters marked as the char-class.</param>
-		/// <param name="back">Background color used to draw characters marked as the char-class.</param>
+		/// <exception cref="ArgumentOutOfRangeException">Specified class ID is out of range.</exception>
 		public void GetColor( CharClass klass, out Color fore, out Color back )
 		{
+			Debug.Assert( (byte)klass <= _ForeColors.Length );
+
 			fore = _ForeColors[ (byte)klass ];
 			back = _BackColors[ (byte)klass ];
 		}
@@ -51,11 +44,10 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Sets color pair for a char-class.
 		/// </summary>
-		/// <param name="klass">The color-pair associated with this char-class will be got.</param>
-		/// <param name="fore">Foreground color used to draw characters marked as the char-class.</param>
-		/// <param name="back">Background color used to draw characters marked as the char-class.</param>
 		public void SetColor( CharClass klass, Color fore, Color back )
 		{
+			Debug.Assert( (byte)klass <= _ForeColors.Length );
+
 			_ForeColors[ (byte)klass ] = fore;
 			_BackColors[ (byte)klass ] = back;
 		}
@@ -86,11 +78,9 @@ namespace Sgry.Azuki
 		void SetDefault()
 		{
 			Color bgcolor = Color.FromArgb( 0xff, 0xfa, 0xf0 );
-			Color azuki = Color.FromArgb( 0x92, 0x62, 0x57 ); // azuki iro (japanese)
+			Color azuki = Color.FromArgb( 0x92, 0x62, 0x57 ); // azuki iro
 			Color shin_bashi = Color.FromArgb( 0x74, 0xa9, 0xd6 ); // shin-bashi iro (japanese)
 			Color hana_asagi = Color.FromArgb( 0x1b, 0x77, 0x92 ); // hana-asagi iro (japanese)
-			Color waka_midori = Color.FromArgb( 0xa8, 0xef, 0xaf ); // waka-midori iro (japanese)
-			Color himawari = Color.FromArgb( 0xff, 0xf1, 0x0f ); // himawari iro (japanese)
 			Color sax_blue = Color.FromArgb( 0x46, 0x48, 0xb8 );
 			
 			SetColor( CharClass.Normal, Color.Black, bgcolor );
@@ -131,12 +121,9 @@ namespace Sgry.Azuki
 			this.SelectionBack = azuki;
 			this.WhiteSpaceColor = Color.Silver;
 			this.EolColor = shin_bashi;
-			this.EofColor = shin_bashi;
 			this.HighlightColor = azuki;
 			this.LineNumberFore = hana_asagi;
 			this.LineNumberBack = Color.FromArgb( 0xef, 0xef, 0xff );
-			this.DirtyLineBar = himawari;
-			this.CleanedLineBar = waka_midori;
 		}
 		#endregion
 
@@ -180,11 +167,6 @@ namespace Sgry.Azuki
 		public Color EolColor;
 
 		/// <summary>
-		/// Color of EOF chars.
-		/// </summary>
-		public Color EofColor;
-
-		/// <summary>
 		/// Underline color of the line which the caret is on.
 		/// </summary>
 		public Color HighlightColor;
@@ -198,16 +180,6 @@ namespace Sgry.Azuki
 		/// Background color of the line number text.
 		/// </summary>
 		public Color LineNumberBack;
-
-		/// <summary>
-		/// Color of the dirt bar at left of a modified line.
-		/// </summary>
-		public Color DirtyLineBar;
-
-		/// <summary>
-		/// Color of the dirt bar at left of a modified but saved (cleaned) line.
-		/// </summary>
-		public Color CleanedLineBar;
 		#endregion
 	}
 }

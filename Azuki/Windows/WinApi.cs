@@ -1,7 +1,7 @@
 // file: WinApi.cs
 // brief: Sgry's Win32API glues.
 // author: YAMAMOTO Suguru
-// update: 2010-02-13
+// update: 2009-07-07
 //=========================================================
 using System;
 using System.Text;
@@ -17,7 +17,6 @@ namespace Sgry.Azuki.Windows
 	/// </summary>
 	static class WinApi
 	{
-		#region DLL Names
 #		if !PocketPC
 		const string kernel32_dll = "kernel32";
 		const string user32_dll = "user32";
@@ -29,7 +28,6 @@ namespace Sgry.Azuki.Windows
 		const string gdi32_dll = "coredll";
 		const string imm32_dll = "coredll";
 #		endif
-		#endregion
 
 		#region Constants
 		public const int WM_PAINT = 0x000F;
@@ -39,11 +37,8 @@ namespace Sgry.Azuki.Windows
 		public const int WM_KEYFIRST = 0x0100;
 		public const int WM_KEYDOWN = 0x0100;
 		public const int WM_KEYUP = 0x0101;
-		public const int WM_CHAR = 0x0102;
-		public const int WM_SYSKEYDOWN = 0x0104;
-		public const int WM_SYSKEYUP = 0x0105;
-		public const int WM_SYSCHAR = 0x0106;
-		public const int WM_UNICHAR = 0x0109;
+		public const int WM_KEYCHAR = 0x0102;
+		public const int WM_KEYUNICHAR = 0x0109;
 		public const int WM_KEYLAST = 0x0109;
 
 		public const int WM_MOUSEMOVE = 0x0200;
@@ -57,9 +52,7 @@ namespace Sgry.Azuki.Windows
 
 		public const int WM_IME_STARTCOMPOSITION =  0x010D;
 		public const int WM_IME_ENDCOMPOSITION = 0x010E;
-		public const int WM_IME_COMPOSITION = 0x010F;
 		public const int WM_IME_NOTIFY = 0x0282;
-		public const int WM_IME_CHAR = 0x0286;
 		public const int WM_IME_REQUEST = 0x0288;
 		public const int IMR_RECONVERTSTRING = 0x0004;
 		public const int SCS_QUERYRECONVERTSTRING = 0x00020000;
@@ -86,16 +79,6 @@ namespace Sgry.Azuki.Windows
 		public const int SB_BOTTOM = 7;
 		public const int SB_ENDSCROLL = 8;
 
-		public const UInt32 CF_TEXT = 1;
-		public const UInt32 CF_UNICODETEXT = 13;
-		public const UInt32 CF_PRIVATEFIRST = 0x200;
-		public const UInt32 CF_PRIVATELAST = 0x2ff;
-
-		public const Int32 GCS_COMPREADSTR = 0x0001;
-		public const Int32 GCS_COMPSTR = 0x0008;
-		public const Int32 GCS_RESULTSTR = 0x0800;
-		public const Int32 SCS_SETSTR = (GCS_COMPREADSTR|GCS_COMPSTR);
-
 		const int SIF_RANGE = 0x01;
 		const int SIF_PAGE  = 0x02;
 		const int SIF_POS   = 0x04;
@@ -108,11 +91,16 @@ namespace Sgry.Azuki.Windows
 		const uint TA_CENTER = 6;
 		const uint TA_NOUPDATECP = 0;
 		const uint TA_TOP = 0;
+		const uint CF_TEXT = 1;
+		const uint CF_UNICODETEXT = 13;
+		//const uint CF_PRIVATEFIRST = 0x200;
+		const uint CF_LINEOBJECT = 0x201;
+		//const uint CF_PRIVATELAST = 0x2ff;
 		const int PATINVERT = 0x005A0049;
 		#endregion
 
 		#region Types
-		public delegate IntPtr WNDPROC( IntPtr window, UInt32 message, IntPtr wParam, IntPtr lParam );
+		public delegate IntPtr WNDPROC( IntPtr window, Int32 message, IntPtr wParam, IntPtr lParam );
 
 		[StructLayout(LayoutKind.Sequential)]
 		struct SIZE
@@ -197,14 +185,14 @@ namespace Sgry.Azuki.Windows
 			public byte charSet;
 		}
 
-		[StructLayout(LayoutKind.Sequential)]
-		public unsafe struct LOGFONTW
+		[StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)]
+		public class LogFont
 		{
-			public Int32 height;
-			public Int32 width;
-			public Int32 escapement;
-			public Int32 orientation;
-			public Int32 weight;
+			public int height;
+			public int width;
+			public int escapement;
+			public int orientation;
+			public int weight;
 			public byte italic;
 			public byte underline;
 			public byte strikeOut;
@@ -213,7 +201,8 @@ namespace Sgry.Azuki.Windows
 			public byte clipPrecision;
 			public byte quality;
 			public byte pitchAndFamily;
-			public fixed char faceName[32];
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst=32)]
+			public string faceName;
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)]
@@ -302,38 +291,6 @@ namespace Sgry.Azuki.Windows
 		#region Core
 		[DllImport(kernel32_dll)]
 		public static extern UInt32 GetLastError();
-
-		[DllImport(kernel32_dll)]
-		public static extern IntPtr GlobalLock( IntPtr handle );
-
-		[DllImport(kernel32_dll)]
-		public static extern Int32 GlobalUnlock( IntPtr handle );
-
-		[DllImport(user32_dll)]
-		public static extern int MessageBeep( Int32 type );
-		#endregion
-
-		#region Clipboard
-		[DllImport(user32_dll, CharSet=CharSet.Unicode)]
-		public static extern UInt32 RegisterClipboardFormatW( string format );
-
-		[DllImport(user32_dll)]
-		public static extern Int32 IsClipboardFormatAvailable( UInt32 format );
-
-		[DllImport(user32_dll)]
-		public static extern Int32 OpenClipboard( IntPtr ownerWnd );
-
-		[DllImport(user32_dll)]
-		public static extern Int32 EmptyClipboard();
-
-		[DllImport(user32_dll)]
-		public static extern Int32 CloseClipboard();
-
-		[DllImport(user32_dll)]
-		public static extern IntPtr GetClipboardData( UInt32 format );
-
-		[DllImport(user32_dll)]
-		public static extern IntPtr SetClipboardData( UInt32 format, IntPtr data );
 		#endregion
 
 		#region GDI - Device Context Manipulation
@@ -408,7 +365,7 @@ namespace Sgry.Azuki.Windows
 				fixed( int* pExtents = extents )
 				fixed( int* pFitLength = &fitLength )
 					bOk = GetTextExtentExPointW( hdc, text, textLen, maxWidth, pFitLength, pExtents, &size );
-				Debug.Assert( bOk != 0, "failed to calculate text width (LE:"+WinApi.GetLastError()+")" );
+				Debug.Assert( bOk != 0, "failed to calculate text width" );
 				return new Size( size.width, size.height );
 			}
 		}
@@ -433,10 +390,10 @@ namespace Sgry.Azuki.Windows
 			Debug.Assert( rc != UInt32.MaxValue, "failed to set text alignment by SetTextAlign." );
 		}
 
-		public static unsafe void CreateLogFont( IntPtr window, FontInfo font, out LOGFONTW lf )
+		public static unsafe LogFont CreateLogFont( IntPtr window, Font font )
 		{
 			const int LOGPIXELSY = 90;
-			lf = new LOGFONTW();
+			LogFont lf = new LogFont();
 			IntPtr dc;
 			int dpi_y;
 
@@ -445,39 +402,19 @@ namespace Sgry.Azuki.Windows
 				dpi_y = GetDeviceCaps( dc, LOGPIXELSY );
 			}
 			ReleaseDC( window, dc );
-			lf.escapement = 0;
-			lf.orientation = 0;
 			lf.height = -(int)( font.Size * dpi_y / 72 );
 			lf.weight = (font.Style & FontStyle.Bold) != 0 ? 700 : 400; // FW_BOLD or FW_NORMAL
 			lf.italic = (byte)( (font.Style & FontStyle.Italic) != 0 ? 1 : 0 );
-			lf.underline = 0;
-			lf.strikeOut = 0;
-			lf.charSet = 1; // DEFAULT_CHARSET
-			lf.outPrecision = 0; // OUT_DEFAULT_PRECIS
-			lf.clipPrecision = 0; // CLIP_DEFAULT_PRECIS
-			lf.quality = 0; // DEFAULT_QUALITY
-			lf.pitchAndFamily = 0; // DEFAULT_PITCH
+//			lf.quality = 5; // CLEARTYPE_QUALITY
 
 			// set font name
-			fixed( char* p = lf.faceName )
-			{
-				for( int i=0; i<32; i++ )
-				{
-					if( font.Name.Length <= i || font.Name[i] == '\0' )
-					{
-						return;
-					}
-					p[i] = font.Name[i];
-				}
-				p[31] = '\0';
-			}
+			lf.faceName = font.Name;
+
+			return lf;
 		}
 
 		[DllImport(gdi32_dll)]
-		public unsafe static extern IntPtr CreateFontIndirectW( void* logFont );
-
-		[DllImport(gdi32_dll)]
-		public unsafe static extern Int32 GetTextFaceW( IntPtr hdc, Int32 maxFaceNameLen, char* out_faceName );
+		public unsafe static extern IntPtr CreateFontIndirectW( [In, MarshalAs(UnmanagedType.LPStruct)] LogFont lf );
 
 		[DllImport(gdi32_dll)]
 		public static extern Int32 SetTextColor( IntPtr hdc, Int32 color );
@@ -667,16 +604,17 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>Sets font of the IME composition window (pre-edit window) </summary>
-		public static void SetImeWindowFont( IntPtr window, FontInfo font )
+		public static void SetImeWindowFont( IntPtr window, Font font )
 		{
 			IntPtr imContext;
-			LOGFONTW logicalFont;
+			LogFont logFont;
 
 			imContext = ImmGetContext( window );
 			unsafe
 			{
-				CreateLogFont( window, font, out logicalFont );
-				ImmSetCompositionFontW( imContext, &logicalFont );
+				logFont = CreateLogFont( window, font );
+				
+				ImmSetCompositionFontW( imContext, logFont );
 			}
 			ImmReleaseContext( window, imContext );
 		}
@@ -688,16 +626,13 @@ namespace Sgry.Azuki.Windows
 		public static extern Int32 ImmReleaseContext( IntPtr hWnd, IntPtr context );
 
 		[DllImport(imm32_dll)]
-		public static unsafe extern Int32 ImmGetCompositionStringW( IntPtr imContext, UInt32 index, void* out_string, UInt32 maxStringLen );
-
-		[DllImport(imm32_dll)]
 		public static unsafe extern Int32 ImmSetCompositionStringW( IntPtr imContext, UInt32 index, void* lpComp, UInt32 dwCompLen, void* lpRead, UInt32 readLen );
 
 		[DllImport(imm32_dll)]
 		static unsafe extern Int32 ImmSetCompositionWindow( IntPtr imContext, COMPOSITIONFORM* compForm );
 
 		[DllImport(imm32_dll)]
-		static unsafe extern Int32 ImmSetCompositionFontW( IntPtr imContext,  void* logFont );
+		static unsafe extern Int32 ImmSetCompositionFontW( IntPtr imContext,  [In, MarshalAs(UnmanagedType.LPStruct)] LogFont logFont );
 
 		[DllImport(imm32_dll)]
 		public static extern UInt32 ImmGetProperty( IntPtr inputLocale, UInt32 index );
@@ -755,7 +690,7 @@ namespace Sgry.Azuki.Windows
 		}
 		
 		[DllImport(user32_dll)]
-		public static extern IntPtr CallWindowProc( IntPtr wndProc, IntPtr window, UInt32 message, IntPtr wParam, IntPtr lParam );
+		public static extern IntPtr CallWindowProc( IntPtr wndProc, IntPtr window, Int32 message, IntPtr wParam, IntPtr lParam );
 		#endregion
 	}
 }

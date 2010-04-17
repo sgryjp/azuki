@@ -1,7 +1,7 @@
 ﻿// file: ViewParam.cs
 // brief: View parameters associated with each document.
 // author: YAMAMOTO Suguru
-// update: 2009-11-14
+// update: 2009-06-10
 //=========================================================
 using System;
 
@@ -22,12 +22,11 @@ namespace Sgry.Azuki
 		const int MinLineNumber = 1000;
 		int _FirstVisibleLine = 0;
 		int _ScrollPosX = 0;
-		int _DesiredColumnX = 0;
+		int _DesiredColumn = 0;
 		int _MaxLineNumber = 9999;
 
 		// for PropView
 		int _PrevCaretLine, _PrevAnchorLine;
-		int _PrevHRulerVirX;
 
 		// for PropWrapView
 		SplitArray<int> _PLHI = new SplitArray<int>( 128, 128 );
@@ -48,12 +47,12 @@ namespace Sgry.Azuki
 
 		#region View common properties
 		/// <summary>
-		/// Gets or sets current X-coordinate of the "desired column."
+		/// Gets or sets current "desired column."
 		/// </summary>
-		public int DesiredColumnX
+		public int DesiredColumn
 		{
-			get{ return _DesiredColumnX; }
-			set{ _DesiredColumnX = value; }
+			get{ return _DesiredColumn; }
+			set{ _DesiredColumn = value; }
 		}
 
 		/// <summary>
@@ -106,15 +105,6 @@ namespace Sgry.Azuki
 			get{ return _PrevCaretLine; }
 			set{ _PrevCaretLine = value; }
 		}
-
-		/// <summary>
-		/// Gets or sets lastly drawn horizontal ruler bar position.
-		/// </summary>
-		public int PrevHRulerVirX
-		{
-			get{ return _PrevHRulerVirX; }
-			set{ _PrevHRulerVirX = value; }
-		}
 		#endregion
 
 		#region PropWrapView specific parameters
@@ -137,8 +127,8 @@ namespace Sgry.Azuki
 
 		public DateTime LastModifiedTime
 		{
-			get{ return _LastModifiedTime; }
-			set{ _LastModifiedTime = value; }
+			get { return _LastModifiedTime; }
+			set { _LastModifiedTime = value; }
 		}
 		#endregion
 	}

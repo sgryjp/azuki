@@ -1,5 +1,5 @@
-﻿// 2009-10-24
-#if TEST
+﻿// 2009-01-12
+#if DEBUG
 using System;
 
 namespace Sgry.Azuki.Test
@@ -37,10 +37,6 @@ namespace Sgry.Azuki.Test
 			// around enclosing pairs
 			Console.WriteLine("test {0} - Enclosing Pairs", testNum++);
 			TestUtl.Do( Test_EnclosingPairs );
-
-			// word character
-			Console.WriteLine("test {0} - Word Character", testNum++);
-			TestUtl.Do( Test_WordChar );
 
 			Console.WriteLine( "done." );
 			Console.WriteLine();
@@ -90,7 +86,7 @@ ho//ge";
 			KeywordHighlighter h = new KeywordHighlighter();
 			h.AddEnclosure( "\"", "\"", CharClass.String, '\\' );
 			h.AddEnclosure( "/*", "*/", CharClass.Comment );
-			h.AddKeywordSet( new string[]{
+			h.SetKeywords( new string[]{
 				"for", "if", "int", "interface", "join"
 			}, CharClass.Keyword );
 			doc.Highlighter = h;
@@ -486,7 +482,7 @@ ho//ge";
 				begin_ = begin; end_ = doc.Length;
 				h.Highlight( doc, ref begin_, ref end_ );
 				TestUtl.AssertEquals( "The XXXXEPI\" method is \"currently \"main target.", doc.Text );
-				TestUtl.AssertEquals( "11 24 34 47", epi.ToString() );
+				TestUtl.AssertEquals( "11 24 34", epi.ToString() );
 
 				// odd number of pairs
 				doc.Text = initText;
@@ -504,7 +500,7 @@ ho//ge";
 				begin_ = begin; end_ = doc.Length;
 				h.Highlight( doc, ref begin_, ref end_ );
 				TestUtl.AssertEquals( "The X\"X\"EPI\" method is \"currently \"main target.", doc.Text );
-				TestUtl.AssertEquals( "5 8 11 24 34 47", epi.ToString() );
+				TestUtl.AssertEquals( "5 8 11 24 34", epi.ToString() );
 			}
 
 			// replace from in to in
@@ -527,7 +523,7 @@ ho//ge";
 				begin_ = begin; end_ = doc.Length;
 				h.Highlight( doc, ref begin_, ref end_ );
 				TestUtl.AssertEquals( "The \"Uph\"og/eEPI\" method is \"currently \"main target.", doc.Text );
-				TestUtl.AssertEquals( "4 9 16 29 39 52", epi.ToString() );
+				TestUtl.AssertEquals( "4 9 16 29 39", epi.ToString() );
 
 				// even number of pairs
 				doc.Text = initText;
@@ -550,7 +546,7 @@ ho//ge";
 				begin_ = begin; end_ = doc.Length;
 				h.Highlight( doc, ref begin_, ref end_ );
 				TestUtl.AssertEquals( "The \"UpdateXXXX method is \"currently \"main target.", doc.Text );
-				TestUtl.AssertEquals( "4 27 37 50", epi.ToString() );
+				TestUtl.AssertEquals( "4 27 37", epi.ToString() );
 
 				// odd number of pairs
 				doc.Text = initText;
@@ -568,7 +564,7 @@ ho//ge";
 				begin_ = begin; end_ = doc.Length;
 				h.Highlight( doc, ref begin_, ref end_ );
 				TestUtl.AssertEquals( "The \"Update\"XX\" method is \"currently \"main target.", doc.Text );
-				TestUtl.AssertEquals( "4 12 14 27 37 50", epi.ToString() );
+				TestUtl.AssertEquals( "4 12 14 27 37", epi.ToString() );
 			}
 
 			// replace from out to out
@@ -591,7 +587,7 @@ ho//ge";
 				begin_ = begin; end_ = doc.Length;
 				h.Highlight( doc, ref begin_, ref end_ );
 				TestUtl.AssertEquals( "The \"UpdateEPI\" mh\"og/ed is \"currently \"main target.", doc.Text );
-				TestUtl.AssertEquals( "4 15 18 29 39 52", epi.ToString() );
+				TestUtl.AssertEquals( "4 15 18 29 39", epi.ToString() );
 
 				// even number of pairs
 				doc.Text = initText;
@@ -608,56 +604,30 @@ ho//ge";
 		{
 			Document doc = new Document();
 			KeywordHighlighter h = new KeywordHighlighter();
-			h.AddEnclosure( "\"", "\"", CharClass.String, false, '\\' );
-			h.AddEnclosure( "'", "'", CharClass.String, true, '\'' );
+			h.AddEnclosure( "\"", "\"", CharClass.String, '\\' );
+			h.AddEnclosure( "/*", "*/", CharClass.Comment );
 			doc.Highlighter = h;
+			int i;
 
-			// AB"abcd"CD
-			doc.Text = "AB\"abcd\"CD";
+			// syn
+			doc.Text = "A\"B\\\"C\"D";
 			h.Highlight( doc );
-			TestUtl.AssertEquals( "2 8", h._EPI.ToString() );
-
-			// AB"ab\cd"CD
-			doc.Text = "AB\"ab\\cd\"CD";
-			h.Highlight( doc );
-			TestUtl.AssertEquals( "2 9", h._EPI.ToString() );
-
-			// AB"ab\"cd"CD
-			doc.Text = "AB\"ab\\\"cd\"CD";
-			h.Highlight( doc );
-			TestUtl.AssertEquals( "2 10", h._EPI.ToString() );
-
-			// AB"ab
-			// cd"CD
-			doc.Text = "AB\"ab\r\ncd\"CD";
-			h.Highlight( doc );
-			TestUtl.AssertEquals( "2 5 9 12", h._EPI.ToString() );
-
-			// AB"ab\
-			// cd"CD
-			doc.Text = "AB\"ab\\\r\ncd\"CD";
-			h.Highlight( doc );
-			TestUtl.AssertEquals( "2 11", h._EPI.ToString() );
-
-			// AB'ab''cd'CD
-			doc.Text = "AB'ab''cd'CD";
-			h.Highlight( doc );
-			TestUtl.AssertEquals( "2 10", h._EPI.ToString() );
-
-			// AB'ab'Z'cd'CD
-			doc.Text = "AB'ab'Z'cd'CD";
-			h.Highlight( doc );
-			TestUtl.AssertEquals( "2 6 7 11", h._EPI.ToString() );
+			for( i=0; i<1; i++ )
+				TestUtl.AssertEquals( CharClass.Normal, doc.GetCharClass(i) );
+			for( ; i<7; i++ )
+				TestUtl.AssertEquals( CharClass.String, doc.GetCharClass(i) );
+			for( ; i<8; i++ )
+				TestUtl.AssertEquals( CharClass.Normal, doc.GetCharClass(i) );
 		}
 
 		static void Test_EnclosingPairs()
 		{
 			Document doc = new Document();
 			KeywordHighlighter h = new KeywordHighlighter();
-			int begin, end;
+			int begin_, end_;
 			h.AddEnclosure( "\"", "\"", CharClass.String );
 			h.AddEnclosure( "/*", "*/", CharClass.Comment );
-			h.AddKeywordSet( new string[]{
+			h.SetKeywords( new string[]{
 				"for", "if", "int", "interface", "join"
 			}, CharClass.Keyword );
 			doc.Highlighter = h;
@@ -674,56 +644,12 @@ ho//ge";
 				TestUtl.AssertEquals( CharClass.Normal, doc.GetCharClass(20) );
 
 				doc.Replace( "Z", 7, 8 ); // printf(Z%s\n", name);
-				begin = 7; end = doc.Length;
-				h.Highlight( doc, ref begin, ref end );
+				begin_ = 7; end_ = doc.Length;
+				h.Highlight( doc, ref begin_, ref end_ );
 				TestUtl.AssertEquals( CharClass.Normal, doc.GetCharClass(0) );
 				TestUtl.AssertEquals( CharClass.Normal, doc.GetCharClass(11) );
 				TestUtl.AssertEquals( CharClass.String, doc.GetCharClass(12) );
 				TestUtl.AssertEquals( CharClass.String, doc.GetCharClass(20) );
-			}
-		}
-
-		static void Test_WordChar()
-		{
-			Document doc = new Document();
-			KeywordHighlighter h;
-
-			//---------------------------------------------
-			h = new KeywordHighlighter();
-			{
-				h.AddKeywordSet( new string[]{"SELECT"}, CharClass.Keyword );
-				doc.Highlighter = h;
-
-				doc.Text = @"SELECT ABC-SELECT SELECT-ABC";
-				h.Highlight( doc );
-				TestUtl.AssertEquals( CharClass.Keyword, doc.GetCharClass(0) );		// S<--
-				TestUtl.AssertEquals( CharClass.Keyword, doc.GetCharClass(5) );		// SELECT<--
-				TestUtl.AssertEquals( CharClass.Normal,  doc.GetCharClass(6) );		// SELECT <--
-				TestUtl.AssertEquals( CharClass.Normal,  doc.GetCharClass(7) );		// SELECT A<--
-				TestUtl.AssertEquals( CharClass.Keyword, doc.GetCharClass(11) );	// SELECT ABC-S<--
-				TestUtl.AssertEquals( CharClass.Keyword, doc.GetCharClass(16) );	// SELECT ABC-SELECT<--
-				TestUtl.AssertEquals( CharClass.Normal,  doc.GetCharClass(17) );	// SELECT ABC-SELECT <--
-				TestUtl.AssertEquals( CharClass.Keyword, doc.GetCharClass(23) );	// SELECT ABC-SELECT SELECT<--
-				TestUtl.AssertEquals( CharClass.Normal,  doc.GetCharClass(26) );	// SELECT ABC-SELECT SELECT-ABC<--
-			}
-
-			h = new KeywordHighlighter();
-			{
-				h.AddKeywordSet( new string[]{"SELECT"}, CharClass.Keyword );
-				h.WordCharSet = "-ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-				doc.Highlighter = h;
-
-				doc.Text = @"SELECT ABC-SELECT SELECT-ABC";
-				h.Highlight( doc );
-				TestUtl.AssertEquals( CharClass.Keyword, doc.GetCharClass(0) );	// S<--
-				TestUtl.AssertEquals( CharClass.Keyword, doc.GetCharClass(5) );	// SELECT<--
-				TestUtl.AssertEquals( CharClass.Normal, doc.GetCharClass(6) );	// SELECT <--
-				TestUtl.AssertEquals( CharClass.Normal, doc.GetCharClass(7) );	// SELECT A<--
-				TestUtl.AssertEquals( CharClass.Normal, doc.GetCharClass(11) );	// SELECT ABC-S<--
-				TestUtl.AssertEquals( CharClass.Normal, doc.GetCharClass(16) );	// SELECT ABC-SELECT<--
-				TestUtl.AssertEquals( CharClass.Normal, doc.GetCharClass(17) );	// SELECT ABC-SELECT <--
-				TestUtl.AssertEquals( CharClass.Normal, doc.GetCharClass(23) );	// SELECT ABC-SELECT SELECT<--
-				TestUtl.AssertEquals( CharClass.Normal, doc.GetCharClass(26) );	// SELECT ABC-SELECT SELECT-ABC<--
 			}
 		}
 	}

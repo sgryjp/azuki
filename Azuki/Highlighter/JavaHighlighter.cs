@@ -1,7 +1,7 @@
 ﻿// file: JavaHighlighter.cs
 // brief: Java highlighter.
 // author: YAMAMOTO Suguru
-// update: 2009-09-27
+// update: 2008-11-03
 //=========================================================
 using System;
 using Color = System.Drawing.Color;
@@ -18,7 +18,7 @@ namespace Sgry.Azuki.Highlighter
 		/// </summary>
 		public JavaHighlighter()
 		{
-			AddKeywordSet( new string[] {
+			SetKeywords( new string[] {
 				"abstract", "assert", "boolean", "break", "byte",
 				"case", "catch", "char", "class", "const", "continue",
 				"default", "do", "double", "else", "enum", "extends",
@@ -30,9 +30,9 @@ namespace Sgry.Azuki.Highlighter
 				"try", "void", "volatile", "while"
 			}, CharClass.Keyword );
 
-			AddEnclosure( "'", "'", CharClass.String, false, '\\' );
-			AddEnclosure( "\"", "\"", CharClass.String, false, '\\' );
-			AddEnclosure( "/**", "*/", CharClass.DocComment, true );
+			AddEnclosure( "'", "'", CharClass.String, '\\' );
+			AddEnclosure( "\"", "\"", CharClass.String, '\\' );
+			AddEnclosure( "/**", "*/", CharClass.DocComment );
 			AddEnclosure( "/*", "*/", CharClass.Comment );
 			AddLineHighlight( "//", CharClass.Comment );
 		}

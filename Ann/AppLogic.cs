@@ -1,22 +1,19 @@
-// 2010-03-30
+// 2009-09-21
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Sgry.Azuki;
-using Sgry.Azuki.Highlighter;
 using Sgry.Azuki.Windows;
-using Assembly = System.Reflection.Assembly;
-using CancelEventArgs = System.ComponentModel.CancelEventArgs;
 using Debug = System.Diagnostics.Debug;
 using AzukiDocument = Sgry.Azuki.Document;
+using CancelEventArgs = System.ComponentModel.CancelEventArgs;
 
 namespace Sgry.Ann
 {
-	class AppLogic : IDisposable
+	class AppLogic
 	{
 		#region Fields
 		const string OpenFileFilter =
@@ -38,60 +35,18 @@ namespace Sgry.Ann
 			+ "|VB script(*.vbs)|*.vbs"
 			+ "|Batch file(*.bat)|*.bat";
 
-		static string _AppInstanceMutexName = null;
-		static string _IpcFilePath = null;
-
 		AnnForm _MainForm = null;
 		List<Document> _DAD_Documents = new List<Document>(); // Dont Access Directly
 		Document _DAD_ActiveDocument = null; // Dont Access Directly
 		int _UntitledFileCount = 1;
 		string _InitOpenFilePath = null;
 		SearchContext _SearchContext = new SearchContext();
-		Thread _MonitorThread;
-		bool _MonitorThreadCanContinue;
-		PseudoPipe _IpcPipe = new PseudoPipe();
-		bool _AskingUserToReloadOrNot = false;
 		#endregion
 
 		#region Init / Dispose
 		public AppLogic( string initOpenFilePath )
 		{
 			_InitOpenFilePath = initOpenFilePath;
-			_MonitorThreadCanContinue = true;
-			_MonitorThread = new Thread( MonitorThreadProc );
-			_MonitorThread.Start();
-		}
-
-		~AppLogic()
-		{
-			Dispose();
-		}
-
-		public void Dispose()
-		{
-			_MonitorThreadCanContinue = false;
-			if( _MonitorThread != null )
-			{
-				if( _MonitorThread.Join(1000) == false )
-				{
-					_MonitorThread.Abort();
-				}
-				_MonitorThread = null;
-			}
-
-			if( _IpcPipe != null )
-			{
-				_IpcPipe.Dispose();
-				_IpcPipe = null;
-			}
-
-			try
-			{
-				if( File.Exists(IpcFilePath) )
-					File.Delete( IpcFilePath );
-			}
-			catch
-			{}
 		}
 		#endregion
 
@@ -107,11 +62,8 @@ namespace Sgry.Ann
 				_MainForm = value;
 				_MainForm.Load += MainForm_Load;
 				_MainForm.Closing += MainForm_Closing;
-				_MainForm.Closed += MainForm_Closed;
 				_MainForm.Azuki.Resize += Azuki_Resize;
 				_MainForm.SearchPanel.PatternUpdated += SearchPanel_PatternUpdated;
-				_MainForm.TabPanel.Items = Documents;
-				_MainForm.TabPanel.TabSelected += TabPanel_TabSelected;
 
 				// handle initially set document
 				Document doc = new Document();
@@ -120,6 +72,9 @@ namespace Sgry.Ann
 
 				// give find panel reference to find context object 
 				_MainForm.SearchPanel.SetContextRef( _SearchContext );
+
+				// apply config
+				MainForm.Azuki.Font = AppConfig.Font;
 			}
 		}
 
@@ -152,41 +107,9 @@ namespace Sgry.Ann
 				MainForm.Azuki.Document = value;
 				MainForm.Azuki.ScrollToCaret();
 				MainForm.Azuki.UpdateCaretGraphic();
-				MainForm.TabPanel.SelectedItem = value;
 
 				// update UI
 				MainForm.UpdateUI();
-				MainForm.TabPanel.Invalidate();
-			}
-		}
-
-		public static string AppInstanceMutexName
-		{
-			get
-			{
-				if( _AppInstanceMutexName == null )
-				{
-					Assembly exe = Assembly.GetExecutingAssembly();
-					string exePath = exe.GetModules()[0].FullyQualifiedName;
-					exePath = exePath.Replace( '\\', '.' );
-					_AppInstanceMutexName = "Sgry.Ann." + exePath;
-				}
-				return _AppInstanceMutexName;
-			}
-		}
-
-		public static string IpcFilePath
-		{
-			get
-			{
-				if( _IpcFilePath == null )
-				{
-					Assembly exe = Assembly.GetExecutingAssembly();
-					string exePath = exe.GetModules()[0].FullyQualifiedName;
-					string exeDirPath = Path.GetDirectoryName( exePath );
-					_IpcFilePath = Path.Combine( exeDirPath, "Ann.ipc" );
-				}
-				return _IpcFilePath;
 			}
 		}
 		#endregion
@@ -318,52 +241,6 @@ namespace Sgry.Ann
 				_MainForm.Azuki.Invalidate();
 			}
 		}
-
-		/// <summary>
-		/// Sets EOL code for input
-		/// and unify existing EOL code to the one if user choses so.
-		/// </summary>
-		public void SetEolCode( string eolCode )
-		{
-			DialogResult reply;
-
-			if( eolCode != "\r\n" && eolCode != "\r" && eolCode != "\n" )
-				throw new ArgumentException( "EOL code must be one of the CR+LF, CR, LF.", "eolCode" );
-
-			// if newly specified EOL code is same as currently set one, do nothing
-			if( MainForm.Azuki.Document.EolCode == eolCode )
-			{
-				return;
-			}
-
-			// set input EOL code
-			MainForm.Azuki.Document.EolCode = eolCode;
-
-			// ask user whether to unify currently existing all EOL codes to the new one
-			reply = AskUserToUnifyExistingEolOrNot( eolCode );
-			if( reply == DialogResult.Yes )
-			{
-				//--- unify EOL code ---
-				Document doc = ActiveDocument;
-				StringBuilder newContent = new StringBuilder( doc.Length*2 );
-
-				// make copy of lines and set EOL to specified one
-				for( int i=0; i<doc.LineCount-1; i++ )
-				{
-					newContent.Append( doc.GetLineContent(i) );
-					newContent.Append( eolCode );
-				}
-				if( 0 < doc.LineCount )
-				{
-					newContent.Append( doc.GetLineContent(doc.LineCount - 1) );
-				}
-
-				// then replace whole content
-				doc.Replace( newContent.ToString(), 0, doc.Length );
-			}
-
-			MainForm.UpdateUI();
-		}
 		#endregion
 
 		#region I/O
@@ -384,11 +261,15 @@ namespace Sgry.Ann
 		/// Opens a file with specified encoding and create a Document object.
 		/// Give null as 'encoding' parameter to detect encoding automatically.
 		/// </summary>
-		/// <returns>A Document object or null if failed.</returns>
+		/// <exception cref="DirectoryNotFoundException">The specified path is invalid, such as being on an unmapped drive.</exception>
+		/// <exception cref="FileNotFoundException">The file cannot be found.</exception>
+		/// <exception cref="IOException">Other I/O error has occured.</exception>
 		Document CreateDocumentFromFile( string filePath, Encoding encoding, bool withBom )
 		{
-			Debug.Assert( filePath != null );
 			Document doc;
+			StreamReader file = null;
+			char[] buf = null;
+			int readCount = 0;
 
 			// if specified file was already opened, just return the document
 			foreach( Document d in Documents )
@@ -400,30 +281,59 @@ namespace Sgry.Ann
 			}
 
 			// create new document
-			try
-			{
-				doc = new Document();
-				LoadFileContentToDocument( doc, filePath, encoding, withBom );
-				return doc;
-			}
-			catch( NotSupportedException ex )
-			{
-				Alert( ex );
-			}
-			catch( UnauthorizedAccessException ex )
-			{
-				Alert( ex );
-			}
-			catch( IOException ex )
-			{
-				Alert( ex );
-			}
-			catch( System.Security.SecurityException ex )
-			{
-				Alert( ex );
-			}
+			doc = new Document();
 			
-			return null;
+			// analyze encoding
+			if( encoding == null )
+			{
+				Utl.AnalyzeEncoding( filePath, out encoding, out withBom );
+			}
+			doc.Encoding = encoding;
+			doc.WithBom = withBom;
+
+			// load file content
+			using( file = new StreamReader(filePath, encoding) )
+			{
+				// expand internal buffer size before loading file
+				// (estimating needed buffer size by a half of byte-count of file)
+				doc.Capacity = (int)( file.BaseStream.Length / 2 );
+
+				// prepare load buffer
+				// (if the file is larger than 1MB, separate by 10 and load for each)
+				if( file.BaseStream.Length < 1024*1024 )
+				{
+					buf = new char[ file.BaseStream.Length ];
+				}
+				else
+				{
+					buf = new char[ (file.BaseStream.Length+10) / 10 ];
+				}
+
+				// read
+				while( !file.EndOfStream )
+				{
+					readCount = file.Read( buf, 0, buf.Length-1 );
+					buf[ readCount ] = '\0';
+					unsafe
+					{
+						fixed( char* p = buf )
+						{
+							doc.Replace( new String(p), doc.Length, doc.Length );
+						}
+					}
+				}
+			}
+
+			// set document properties
+			doc.ClearHistory();
+			doc.IsDirty = false;
+			doc.FilePath = filePath;
+			if( (new FileInfo(filePath).Attributes & FileAttributes.ReadOnly) != 0 )
+			{
+				doc.IsReadOnly = true;
+			}
+
+			return doc;
 		}
 
 		/// <summary>
@@ -457,35 +367,35 @@ namespace Sgry.Ann
 				}
 
 				// open the file
-				OpenDocument( dialog.FileName );
+				OpenDocument( dialog.FileName, null, false );
 			}
 		}
 
 		/// <summary>
 		/// Open existing file.
 		/// </summary>
-		public void OpenDocument( string filePath )
+		public void OpenDocument( string filePath, Encoding encoding, bool withBom )
 		{
 			Document doc;
 
 			// load the file
-			doc = CreateDocumentFromFile( filePath, null, false );
-			if( doc == null )
+			try
 			{
-				return;
-			}
+				doc = CreateDocumentFromFile( filePath, null, false );
+				if( Documents.Contains(doc) == false )
+				{
+					AddDocument( doc );
+				}
 
-			// add this file to document list unless it is loaded already
-			if( Documents.Contains(doc) == false )
+				// activate it
+				ActiveDocument = doc;
+				MainForm.Azuki.SetSelection( 0, 0 );
+				MainForm.Azuki.ScrollToCaret();
+			}
+			catch( IOException ex )
 			{
-				AddDocument( doc );
+				AlertException( ex );
 			}
-
-			// activate it
-			ActiveDocument = doc;
-			SetFileType( doc, FileType.GetFileTypeByFileName(filePath) );
-			MainForm.Azuki.SetSelection( 0, 0 );
-			MainForm.Azuki.ScrollToCaret();
 		}
 
 		/// <summary>
@@ -521,14 +431,14 @@ namespace Sgry.Ann
 				{
 					// case ex: opened file has been on a removable drive
 					// and the drive was ejected now
-					Alert( ex );
+					AlertException( ex );
 					return;
 				}
 				catch( UnauthorizedAccessException ex )
 				{
 					// case example: permission of parent directory was changed
 					// and current user lost right to create directory
-					Alert( ex );
+					AlertException( ex );
 					return;
 				}
 			}
@@ -552,25 +462,24 @@ namespace Sgry.Ann
 				}
 
 				// write file bytes
-				using( file = File.Open(doc.FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite) )
+				using( file = File.OpenWrite(doc.FilePath) )
 				{
 					file.SetLength( 0 );
 					file.Write( bomBytes, 0, bomBytes.Length );
 					file.Write( contentBytes, 0, contentBytes.Length );
 				}
 				doc.IsDirty = false;
-				doc.LastSavedTime = File.GetLastWriteTime( doc.FilePath );
 			}
 			catch( UnauthorizedAccessException ex )
 			{
 				// case example: target file is readonly.
 				// case example: target file was deleted and now there is a directory having same name
-				Alert( ex );
+				AlertException( ex );
 			}
 			catch( IOException ex )
 			{
 				// case example: another process is opening the file and does not allow to write
-				Alert( ex );
+				AlertException( ex );
 			}
 		}
 
@@ -637,64 +546,6 @@ namespace Sgry.Ann
 		}
 
 		/// <summary>
-		/// Reloads a document.
-		/// </summary>
-		public void ReloadDocument( Document doc )
-		{
-			ReloadDocument( doc, null, false );
-		}
-
-		/// <summary>
-		/// Reloads document.
-		/// </summary>
-		public void ReloadDocument( Document doc, Encoding encoding, bool withBom )
-		{
-			Debug.Assert( doc != null );
-
-			try
-			{
-				IHighlighter highlighter;
-				int line, column;
-
-				// remember caret position
-				doc.GetCaretIndex( out line, out column );
-
-				// detach highlighter temporarily
-				highlighter = doc.Highlighter;
-				doc.Highlighter = null;
-
-				// reload content
-				LoadFileContentToDocument( doc, doc.FilePath, encoding, withBom );
-
-				// attach the highlighter again
-				doc.Highlighter = highlighter;
-
-				// restore caret position and scroll to it
-				line = Math.Min( line, doc.LineCount-1 );
-				column = Math.Min( column, doc.GetLineLength(line) );
-				doc.SetCaretIndex( line, column );
-
-				_MainForm.UpdateUI();
-			}
-			catch( NotSupportedException ex )
-			{
-				Alert( ex );
-			}
-			catch( UnauthorizedAccessException ex )
-			{
-				Alert( ex );
-			}
-			catch( IOException ex )
-			{
-				Alert( ex );
-			}
-			catch( System.Security.SecurityException ex )
-			{
-				Alert( ex );
-			}
-		}
-
-		/// <summary>
 		/// Closes a document.
 		/// </summary>
 		public void CloseDocument( Document doc )
@@ -723,61 +574,26 @@ namespace Sgry.Ann
 			}
 		}
 
-		void LoadFileContentToDocument( Document doc, string filePath, Encoding encoding, bool withBom )
+		void AlertException( Exception ex )
 		{
-			Debug.Assert( doc != null );
-			Debug.Assert( filePath != null );
+			MessageBox.Show(
+					ex.Message,
+					"Ann",
+					MessageBoxButtons.OK,
+					MessageBoxIcon.Exclamation,
+					MessageBoxDefaultButton.Button1
+				);
+		}
 
-			StreamReader file = null;
-			char[] buf = null;
-			int readCount = 0;
-
-			// analyze encoding
-			if( encoding == null )
-			{
-				Utl.AnalyzeEncoding( filePath, out encoding, out withBom );
-			}
-			doc.Encoding = encoding;
-			doc.WithBom = withBom;
-
-			// load file content
-			using( file = new StreamReader(filePath, encoding) )
-			{
-				// make the document content empty first
-				doc.Replace( "", 0, doc.Length );
-
-				// expand internal buffer size before loading file
-				// (estimating needed buffer size by a half of byte-count of file)
-				doc.Capacity = (int)( file.BaseStream.Length / 2 );
-
-				// prepare load buffer
-				// (if the file is larger than 1MB, separate by 10 and load for each)
-				if( file.BaseStream.Length < 1024*1024 )
-				{
-					buf = new char[ file.BaseStream.Length ];
-				}
-				else
-				{
-					buf = new char[ (file.BaseStream.Length+10) / 10 ];
-				}
-
-				// read
-				while( !file.EndOfStream )
-				{
-					readCount = file.Read( buf, 0, buf.Length );
-					doc.Replace( new String(buf, 0, readCount), doc.Length, doc.Length );
-				}
-			}
-
-			// set document properties
-			doc.ClearHistory();
-			doc.FilePath = filePath;
-			doc.EolCode = Utl.AnalyzeEolCode( doc );
-			doc.LastSavedTime = File.GetLastWriteTime( filePath );
-			if( (new FileInfo(filePath).Attributes & FileAttributes.ReadOnly) != 0 )
-			{
-				doc.IsReadOnly = true;
-			}
+		public DialogResult AlertDiscardModification( Document doc )
+		{
+			return MessageBox.Show(
+					doc.DisplayName + " is modified but not saved. Save changes?",
+					"Ann",
+					MessageBoxButtons.YesNoCancel,
+					MessageBoxIcon.Exclamation,
+					MessageBoxDefaultButton.Button2
+				);
 		}
 		#endregion
 
@@ -890,77 +706,6 @@ namespace Sgry.Ann
 		}
 		#endregion
 
-		#region Config
-		public void LoadConfig()
-		{
-			// load config file
-			AppConfig.Load();
-
-			// apply config
-			MainForm.Azuki.FontInfo				= AppConfig.FontInfo;
-			MainForm.ClientSize					= AppConfig.WindowSize;
-			if( AppConfig.WindowMaximized )
-			{
-				MainForm.WindowState = FormWindowState.Maximized;
-			}
-			MainForm.TabPanelEnabled			= AppConfig.TabPanelEnabled;
-
-			MainForm.Azuki.DrawsEolCode			= AppConfig.DrawsEolCode;
-			MainForm.Azuki.DrawsFullWidthSpace	= AppConfig.DrawsFullWidthSpace;
-			MainForm.Azuki.DrawsSpace			= AppConfig.DrawsSpace;
-			MainForm.Azuki.DrawsTab				= AppConfig.DrawsTab;
-			MainForm.Azuki.DrawsEofMark			= AppConfig.DrawsEofMark;
-			MainForm.Azuki.HighlightsCurrentLine= AppConfig.HighlightsCurrentLine;
-			MainForm.Azuki.ShowsLineNumber		= AppConfig.ShowsLineNumber;
-			MainForm.Azuki.ShowsHRuler			= AppConfig.ShowsHRuler;
-			MainForm.Azuki.ShowsDirtBar			= AppConfig.ShowsDirtBar;
-			MainForm.Azuki.TabWidth				= AppConfig.TabWidth;
-			MainForm.Azuki.LinePadding			= AppConfig.LinePadding;
-			MainForm.Azuki.LeftMargin			= AppConfig.LeftMargin;
-			MainForm.Azuki.TopMargin			= AppConfig.TopMargin;
-			MainForm.Azuki.ViewType				= AppConfig.ViewType;
-			MainForm.Azuki.UsesTabForIndent		= AppConfig.UsesTabForIndent;
-			MainForm.Azuki.ConvertsFullWidthSpaceToSpace = AppConfig.ConvertsFullWidthSpaceToSpace;
-			MainForm.Azuki.HRulerIndicatorType	= AppConfig.HRulerIndicatorType;
-
-			// update UI
-			MainForm.UpdateUI();
-		}
-
-		public void SaveConfig()
-		{
-			// update config fields
-			AppConfig.FontInfo				= new FontInfo( MainForm.Azuki.Font );
-			AppConfig.WindowMaximized		= (MainForm.WindowState == FormWindowState.Maximized);
-			if( MainForm.WindowState == FormWindowState.Normal )
-			{
-				AppConfig.WindowSize = MainForm.ClientSize;
-			}
-			AppConfig.TabPanelEnabled		= MainForm.TabPanelEnabled;
-
-			AppConfig.DrawsEolCode			= MainForm.Azuki.DrawsEolCode;
-			AppConfig.DrawsFullWidthSpace	= MainForm.Azuki.DrawsFullWidthSpace;
-			AppConfig.DrawsSpace			= MainForm.Azuki.DrawsSpace;
-			AppConfig.DrawsTab				= MainForm.Azuki.DrawsTab;
-			AppConfig.DrawsEofMark			= MainForm.Azuki.DrawsEofMark;
-			AppConfig.HighlightsCurrentLine	= MainForm.Azuki.HighlightsCurrentLine;
-			AppConfig.ShowsLineNumber		= MainForm.Azuki.ShowsLineNumber;
-			AppConfig.ShowsHRuler			= MainForm.Azuki.ShowsHRuler;
-			AppConfig.ShowsDirtBar			= MainForm.Azuki.ShowsDirtBar;
-			AppConfig.TabWidth				= MainForm.Azuki.TabWidth;
-			AppConfig.LinePadding			= MainForm.Azuki.LinePadding;
-			AppConfig.LeftMargin			= MainForm.Azuki.LeftMargin;
-			AppConfig.TopMargin				= MainForm.Azuki.TopMargin;
-			AppConfig.ViewType				= MainForm.Azuki.ViewType;
-			AppConfig.UsesTabForIndent		= MainForm.Azuki.UsesTabForIndent;
-			AppConfig.ConvertsFullWidthSpaceToSpace = MainForm.Azuki.ConvertsFullWidthSpaceToSpace;
-			AppConfig.HRulerIndicatorType	= MainForm.Azuki.HRulerIndicatorType;
-
-			// save to file
-			AppConfig.Save();
-		}
-		#endregion
-
 		#region UI Event Handlers
 		void MainForm_Load( object sender, EventArgs e )
 		{
@@ -971,7 +716,7 @@ namespace Sgry.Ann
 
 			// try to open initial document
 			prevActiveDoc = ActiveDocument;
-			OpenDocument( _InitOpenFilePath );
+			OpenDocument( _InitOpenFilePath, null, false );
 
 			// close default empty document if successfully opened
 			if( prevActiveDoc != ActiveDocument )
@@ -1017,203 +762,17 @@ namespace Sgry.Ann
 			}
 		}
 
-		void MainForm_Closed( object sender, EventArgs e )
-		{
-			SaveConfig();
-		}
-
-		internal void MainForm_DelayedActivated()
-		{
-			List<Document> docsToBeReloaded;
-			DialogResult result;
-
-			if( InterlockedSetFlag(ref _AskingUserToReloadOrNot, true) == false )
-			{
-				// list up documents to be reloaded
-				docsToBeReloaded = new List<Document>( Documents.Count );
-				foreach( Document doc in Documents )
-				{
-					if( File.Exists(doc.FilePath)
-						&& doc.LastSavedTime != File.GetLastWriteTime(doc.FilePath) )
-					{
-						docsToBeReloaded.Add( doc );
-					}
-				}
-
-				// ask user to reload each document
-				result = DialogResult.OK;
-				foreach( Document doc in docsToBeReloaded )
-				{
-					// once user canceled reloading,
-					// silently ignore the update of last documents
-					if( result == DialogResult.Cancel )
-					{
-						doc.LastSavedTime = File.GetLastWriteTime(doc.FilePath);
-						continue;
-					}
-
-					// activate the document
-					ActiveDocument = doc;
-
-					// ask user whether to reload it or not
-					result = Alert(
-						""+doc.FilePath+" was updated by other program. Do you want to reload?",
-						MessageBoxButtons.YesNoCancel, MessageBoxIcon.Asterisk
-					);
-					if( result != DialogResult.Yes )
-					{
-						doc.LastSavedTime = File.GetLastWriteTime(doc.FilePath);
-						continue;
-					}
-
-					// reload it
-					ReloadDocument( doc );
-				}
-
-				_AskingUserToReloadOrNot = false;
-			}
-		}
-
-		bool InterlockedSetFlag( ref bool flag, bool newValue )
-		{
-			lock( this )
-			{
-				bool prevValue = flag;
-				flag = newValue;
-				return prevValue;
-			}
-		}
-
-		void TabPanel_TabSelected( MouseEventArgs e, Document item )
-		{
-			if( e.Button == MouseButtons.Left )
-			{
-				ActiveDocument = item;
-			}
-			else if( e.Button == MouseButtons.Middle )
-			{
-				CloseDocument( item );
-				MainForm.TabPanel.Invalidate();
-			}
-		}
-
 		void Azuki_Resize( object sender, EventArgs e )
 		{
-			if( MainForm.Azuki.ViewType == ViewType.WrappedProportional )
-			{
-				MainForm.Azuki.ViewWidth = MainForm.Azuki.ClientSize.Width;
-			}
-		}
-		#endregion
-
-		#region Monitoring
-		void MonitorThreadProc()
-		{
-			DateTime timestamp = DateTime.MinValue;
-
-			_IpcPipe.Create( IpcFilePath );
-
-			while( _MonitorThreadCanContinue )
-			{
-				Thread.CurrentThread.Join( 250 );
-
-				// if IPC file was updated, parse it
-				if( timestamp < _IpcPipe.GetLastWriteTime() )
-				{
-					// parse and do actions
-					ParseIpcFile();
-
-					// remember new timestamp
-					timestamp = File.GetLastWriteTime( IpcFilePath );
-				}
-			}
-		}
-
-		void ParseIpcFile()
-		{
-			string[] tokens;
-
-			// read lines and parse them
-			foreach( string line in _IpcPipe.ReadLines(1000) )
-			{
-				// parse this line
-				tokens = line.Split( ',' );
-				if( tokens[0] == "Activate" )
-				{
-					_MainForm.Activate();
-				}
-				else if( tokens[0] == "OpenDocument" && 1 < tokens.Length )
-				{
-					OpenDocument( tokens[1] );
-				}
-			}
+			MainForm.Azuki.ViewWidth = MainForm.Azuki.ClientSize.Width;
 		}
 		#endregion
 
 		#region Utilities
-		public DialogResult AlertDiscardModification( Document doc )
-		{
-			return Alert(
-					doc.DisplayName + " is modified but not saved. Save changes?",
-					MessageBoxButtons.YesNoCancel,
-					MessageBoxIcon.Exclamation,
-					MessageBoxDefaultButton.Button2
-				);
-		}
-
-		public DialogResult AskUserToUnifyExistingEolOrNot( string newEolCode )
-		{
-			string eolCodeName;
-
-			switch( newEolCode )
-			{
-				case "\r\n":	eolCodeName = "CR+LF";	break;
-				case "\n":		eolCodeName = "LF";		break;
-				case "\r":		eolCodeName = "CR";		break;
-				default:		throw new ArgumentException("EOL code must be one of CR+LF, LF, CR.", "newEolCode");
-			}
-
-			return Alert(
-					"Do you also want to change all existing line end code to "+eolCodeName+"?",
-					MessageBoxButtons.YesNo,
-					MessageBoxIcon.Question,
-					MessageBoxDefaultButton.Button2
-				);
-		}
-
-		void Alert( Exception ex )
-		{
-			Alert( ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Exclamation );
-		}
-
-		DialogResult Alert( string text, MessageBoxButtons buttons, MessageBoxIcon icon )
-		{
-			return Alert( text, buttons, icon, MessageBoxDefaultButton.Button1 );
-		}
-
-		DialogResult Alert( string text, MessageBoxButtons buttons, MessageBoxIcon icon, MessageBoxDefaultButton defaultButton )
-		{
-#			if !PocketPC
-			return MessageBox.Show( _MainForm, text, "Ann", buttons, icon, defaultButton );
-#			else
-			return MessageBox.Show( text, "Ann", buttons, icon, defaultButton );
-#			endif
-		}
-
 		static class Utl
 		{
-			/// <summary>
-			/// Analyzes encoding.
-			/// </summary>
-			/// <exception cref="System.UnauthorizedAccessException">Reading the file associated with this document was not permitted.</exception>
-			/// <exception cref="System.NotSupportedException">Specified format of the path is not supported.</exception>
-			/// <exception cref="System.IO.PathTooLongException">Specified file path is too long.</exception>
-			/// <exception cref="System.IO.FileNotFoundException">The associated file of the document does not exist.</exception>
-			/// <exception cref="System.IO.DirectoryNotFoundException">Specified path is pointing to a file which is in non-existing directory.</exception>
-			/// <exception cref="System.IO.IOException">Other I/O error was occurred.</exception>
 			public static void AnalyzeEncoding( string filePath, out Encoding encoding, out bool withBom )
 			{
-				Debug.Assert( filePath != null );
 				const int MaxSize = 50 * 1024;
 				Stream file = null;
 				byte[] data;
@@ -1245,29 +804,6 @@ namespace Sgry.Ann
 					encoding = Encoding.Default;
 					withBom = false;
 				}
-			}
-
-			public static string AnalyzeEolCode( Document doc )
-			{
-				for( int i=0; i<doc.Length-1; i++ )
-				{
-					if( doc[i] == '\r' )
-					{
-						if( doc[i+1] == '\n' )
-						{
-							return "\r\n";
-						}
-						else
-						{
-							return "\r";
-						}
-					}
-					else if( doc[i] == '\n' )
-					{
-						return "\n";
-					}
-				}
-				return "\r\n";
 			}
 		}
 		#endregion

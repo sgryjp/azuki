@@ -18,7 +18,7 @@ namespace Sgry.Azuki.Highlighter
 		/// </summary>
 		public CSharpHighlighter()
 		{
-			AddKeywordSet( new string[] {
+			SetKeywords( new string[] {
 				"abstract", "as", "base", "bool",
 				"break", "byte", "case", "catch",
 				"char", "checked", "class", "const",
@@ -40,23 +40,23 @@ namespace Sgry.Azuki.Highlighter
 				"using", "virtual", "void", "volatile", "while"
 			}, CharClass.Keyword );
 
-			AddKeywordSet( new string[] {
+			SetKeywords( new string[] {
 				"add", "from", "get", "global", "group", "into",
 				"join", "let", "orderby", "partial", "remove",
 				"select", "set", "value", "var", "where", "yield"
 			}, CharClass.Keyword2 );
 
-			AddKeywordSet( new string[] {
+			SetKeywords( new string[] {
 				"#define", "#elif", "#else", "#endif",
 				"#endregion", "#error", "#if", "#line",
 				"#region", "#undef", "#warning"
 			}, CharClass.Macro );
 
-			AddEnclosure( "'", "'", CharClass.String, false, '\\' );
-			AddEnclosure( "@\"", "\"", CharClass.String, true, '\"' );
-			AddEnclosure( "\"", "\"", CharClass.String, false, '\\' );
-			AddEnclosure( "/**", "*/", CharClass.DocComment, true );
-			AddEnclosure( "/*", "*/", CharClass.Comment, true );
+			AddEnclosure( "'", "'", CharClass.String, '\\' );
+			AddEnclosure( "@\"", "\"", CharClass.String, '\"' );
+			AddEnclosure( "\"", "\"", CharClass.String, '\\' );
+			AddEnclosure( "/**", "*/", CharClass.DocComment );
+			AddEnclosure( "/*", "*/", CharClass.Comment );
 			AddLineHighlight( "///", CharClass.DocComment );
 			AddLineHighlight( "//", CharClass.Comment );
 		}
