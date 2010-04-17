@@ -1,13 +1,12 @@
 // file: DebugUtl.cs
 // brief: Sgry's utilities for debug
-// update: 2010-02-07
+// update: 2009-07-07
 //=========================================================
 using System;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Assembly = System.Reflection.Assembly;
 
@@ -31,18 +30,136 @@ namespace Sgry
 		#region Fields and Constants
 #		if !PocketPC
 		public const string kernel32_dll = "kernel32";
+		public const string LogDateHeader = "[yyyy-MM-dd hh:mm:ss.fff] ";
 #		else
 		public const string kernel32_dll = "coredll";
+		public const string LogDateHeader = "mm.ss ";
 #		endif
 		static Object LockKey = new Object();
+		static string _LogFilePath = null;
 		static AutoLogger _AutoLogger = null;
+		static StringBuilder _IndentStr = new StringBuilder( 8 );
 		#endregion
 
 		#region Logging
+		public static string LogFilePath
+		{
+			get
+			{
+				if( _LogFilePath == null )
+				{
+					Assembly exe = Assembly.GetExecutingAssembly();
+					string exePath = exe.GetModules()[0].FullyQualifiedName;
+					string exeDirPath = Path.GetDirectoryName( exePath );
+					_LogFilePath = Path.Combine( exeDirPath, "log.txt" );
+				}
+				return _LogFilePath;
+			}
+		}
+
+		/// <summary>
+		/// Writes message to a log file with date and time.
+		/// </summary>
+		public static void LogOut( string format, params object[] p )
+		{
+			try
+			{
+				lock( LockKey )
+				{
+					DateTime now = DateTime.Now;
+
+					using( StreamWriter file = new StreamWriter(LogFilePath, true) )
+					{
+						file.Write( now.ToString(LogDateHeader) );
+						file.Write( _IndentStr.ToString() );
+						file.WriteLine( String.Format(format, p) );
+					}
+				}
+			}
+			catch{}
+		}
+
+		/// <summary>
+		/// Writs message to a log file with precise time and process/thread ID.
+		/// </summary>
+		public static void LogOutEx( string format, params object[] p )
+		{
+			try
+			{
+				lock( LockKey )
+				{
+					int pid;
+					int tid = 0;
+					DateTime now = DateTime.Now;
+					
+					pid = Process.GetCurrentProcess().Id;
+					tid = Thread.CurrentThread.ManagedThreadId;
+
+					using( StreamWriter file = new StreamWriter(LogFilePath, true) )
+					{
+						file.Write(
+								now.ToString(LogDateHeader)
+								+ String.Format("[{0},{1}] {2}", pid.ToString("X4"), tid.ToString("X2"), _IndentStr.ToString())
+							);
+						file.WriteLine( String.Format(format, p) );
+					}
+				}
+			}
+			catch{}
+		}
+
+		/// <summary>
+		/// Writs only message to a log file.
+		/// </summary>
+		public static void LogOut_Raw( string format, params object[] p )
+		{
+			try
+			{
+				lock( LockKey )
+				{
+					using( StreamWriter file = new StreamWriter(LogFilePath, true) )
+					{
+						file.WriteLine( String.Format(format, p) );
+					}
+				}
+			}
+			catch{}
+		}
+
+		/// <summary>
+		/// Indent log message.
+		/// </summary>
+		public static void LogIndent()
+		{
+			try
+			{
+				lock( LockKey )
+				{
+					_IndentStr.Append( "  " );
+				}
+			}
+			catch{}
+		}
+
+		/// <summary>
+		/// Unindent log message.
+		/// </summary>
+		public static void LogUnindent()
+		{
+			try
+			{
+				lock( LockKey )
+				{
+					_IndentStr.Length = Math.Max( 0, _IndentStr.Length - 2 );
+				}
+			}
+			catch{}
+		}
+
 		/// <summary>
 		/// Log writer object that actually write just before the application ends.
 		/// </summary>
-		public static AutoLogger Log
+		public static AutoLogger AutoLogger
 		{
 			get
 			{
@@ -57,60 +174,19 @@ namespace Sgry
 		#endregion
 
 		#region Diagnostics
-		/// <summary>
-		/// Stops current thread for specified time.
-		/// </summary>
-		public static void Sleep( int millisecs )
-		{
-			Thread.CurrentThread.Join( millisecs );
-		}
-
-#		if !PocketPC
-		public static string GetStackTrace()
-		{
-			const int TraceBackCount = 5;
-			StringBuilder buf = new StringBuilder( 256 );
-			StringBuilder indent = new StringBuilder( 32 );
-
-			for( int i=2; i<TraceBackCount; i++ )
-			{
-				// get method information
-				StackFrame frame = new StackFrame( i );
-				MethodBase method = frame.GetMethod();
-
-				// format stack trace message
-				buf.Append( indent.ToString() );
-				buf.Append( method.ReflectedType.FullName + "." + method.Name );
-				if( 0 < frame.GetFileLineNumber() )
-				{
-					buf.Append(
-						frame.GetFileName() + " ("
-						+ frame.GetFileLineNumber() + ", "
-						+ frame.GetFileColumnNumber() + ")"
-					);
-				}
-				buf.Append( "\r\n" );
-
-				indent.Append( " " );
-			}
-
-			return buf.ToString();
-		}
-#		endif
+		[DllImport(kernel32_dll)]
+		public static extern void Sleep( int millisecs );
 
 		/// <summary>
 		/// Gets system performance counter value in millisecond.
 		/// </summary>
-		public static double PC
+		public static double GetCounterMsec()
 		{
-			get
-			{
-				long count;
-				long freq;
-				QueryPerformanceCounter( out count );
-				QueryPerformanceFrequency( out freq );
-				return count / (double)freq * 1000;
-			}
+			long count;
+			long freq;
+			QueryPerformanceCounter( out count );
+			QueryPerformanceFrequency( out freq );
+			return count / (double)freq * 1000;
 		}
 
 		[DllImport(kernel32_dll)]
@@ -143,281 +219,44 @@ namespace Sgry
 		#endregion
 	}
 
-	/// <summary>
-	/// A logger for both .NET Framework and .NET Compact Framework.
-	/// </summary>
 	class AutoLogger
 	{
 		#region Fields
-		const long MaxLogFileSize = 8 * 1024 * 1024;
-		StringBuilder _Buffer = new StringBuilder( 4096 );
-		bool _Realtime = true;
-		bool _WriteProcessID = false;
-		bool _WriteThreadID = false;
-		string _LogFilePath = null;
-		string _OldLogFilePath = null;
-		static StringBuilder _IndentStr = new StringBuilder( 8 );
-		bool _HeaderNotWritten = true;
-		TextWriter _SecondOutput = Console.Error;
-#		if !PocketPC
-		public const string LogDateHeader = "[yyyy-MM-dd hh:mm:ss.fff] ";
-#		else
-		public const string LogDateHeader = "hh:mm:ss ";
-#		endif
+		StringBuilder _Buf = new StringBuilder();
 		#endregion
 
 		#region Init / Dispose
 		~AutoLogger()
 		{
-			Flush();
-		}
-		#endregion
-
-		#region Properties
-		/// <summary>
-		/// Gets or sets whether process ID will be written in each log lines or not.
-		/// </summary>
-		public bool WritePID
-		{
-			get{ return _WriteProcessID; }
-			set{ _WriteProcessID = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets whether thread ID will be written in each log lines or not.
-		/// </summary>
-		public bool WriteTID
-		{
-			get{ return _WriteThreadID; }
-			set{ _WriteThreadID = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets whether written log lines are actually written to file instantly or not.
-		/// </summary>
-		public bool Realtime
-		{
-			get{ return _Realtime; }
-			set{ _Realtime = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets additional message output target.
-		/// </summary>
-		public TextWriter SecondOutput
-		{
-			get{ return _SecondOutput; }
-			set
-			{
-				if( value == null )
-				{
-					value = TextWriter.Null;
-				}
-				_SecondOutput = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets path of log file.
-		/// </summary>
-		public string LogFilePath
-		{
-			get
-			{
-				if( _LogFilePath == null )
-				{
-					Assembly exe = Assembly.GetExecutingAssembly();
-					string exePath = exe.GetModules()[0].FullyQualifiedName;
-					string exeDirPath = Path.GetDirectoryName( exePath );
-					_LogFilePath = Path.Combine( exeDirPath, "log.txt" );
-				}
-				return _LogFilePath;
-			}
-		}
-
-		/// <summary>
-		/// Gets path of backup of old log file.
-		/// </summary>
-		public string OldLogFilePath
-		{
-			get
-			{
-				if( _OldLogFilePath == null )
-				{
-					Assembly exe = Assembly.GetExecutingAssembly();
-					string exePath = exe.GetModules()[0].FullyQualifiedName;
-					string exeDirPath = Path.GetDirectoryName( exePath );
-					_OldLogFilePath = Path.Combine( exeDirPath, "log.old" );
-				}
-				return _OldLogFilePath;
-			}
-		}
-		#endregion
-
-		#region Write
-		/// <summary>
-		/// Writes buffered data to file.
-		/// </summary>
-		public void Flush()
-		{
 			try
 			{
-				lock( this )
+				using( StreamWriter file = new StreamWriter(DebugUtl.LogFilePath, true) )
 				{
-					FileStream file;
-
-					// if buffer is empty, do nothing
-					if( _Buffer.Length <= 0 )
-					{
-						return;
-					}
-
-					// back up log if it is so large
-					if( File.Exists(LogFilePath) )
-					{
-						if( MaxLogFileSize < new FileInfo(LogFilePath).Length )
-						{
-							File.Delete( OldLogFilePath );
-							File.Move( LogFilePath, OldLogFilePath );
-						}
-					}
-
-					// write buffered data
-					using( file = File.Open(LogFilePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite) )
-					{
-						byte[] bytes = Encoding.UTF8.GetBytes( _Buffer.ToString() );
-						file.Write( bytes, 0, bytes.Length );
-					}
-
-					// clear buffer
-					_Buffer.Length = 0;
+					file.Write( _Buf.ToString() );
+					file.WriteLine();
 				}
 			}
 			catch( IOException )
 			{}
 		}
+		#endregion
 
+		#region Write
 		/// <summary>
-		/// Writes message to a log file.
-		/// </summary>
-		public void Write( string format, params object[] p )
-		{
-			TextWriter writer = null;
-
-			lock( this )
-			{
-				try
-				{
-					// write header
-					writer = new StringWriter( _Buffer );
-					if( _HeaderNotWritten )
-					{
-						int pid;
-						int tid = 0;
-						DateTime now = DateTime.Now;
-						StringBuilder pidPart = new StringBuilder( 32 );
-
-						// append extra header info
-						if( _WriteProcessID )
-						{
-							pid = Process.GetCurrentProcess().Id;
-							tid = Thread.CurrentThread.ManagedThreadId;
-							pidPart.Append( "[" + pid.ToString("X4") );
-							if( _WriteThreadID )
-							{
-								pidPart.Append( "," + tid.ToString("X2") );
-							}
-							pidPart.Append( "] " );
-						}
-
-						writer.Write( now.ToString(LogDateHeader) );
-						writer.Write( pidPart.ToString() );
-						writer.Write( _IndentStr.ToString() );
-						if( SecondOutput != null )
-						{
-							SecondOutput.Write( now.ToString(LogDateHeader) );
-							SecondOutput.Write( pidPart.ToString() );
-							SecondOutput.Write( _IndentStr.ToString() );
-						}
-
-						_HeaderNotWritten = false;
-					}
-
-					// write message
-					writer.Write( String.Format(format, p) );
-					if( SecondOutput != null )
-					{
-						SecondOutput.Write( String.Format(format, p) );
-					}
-
-					// flush
-					if( Realtime )
-					{
-						Flush();
-					}
-				}
-				catch( IOException )
-				{}
-				catch( UnauthorizedAccessException )
-				{}
-				catch( System.Security.SecurityException )
-				{}
-				catch( Exception ex )
-				{
-					Debug.Fail( ex.ToString() );
-				}
-				finally
-				{
-					if( writer != null )
-					{
-						writer.Close();
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// Writes message to a log file and terminate the line.
+		/// Writes message to a log file with date and time.
 		/// </summary>
 		public void WriteLine( string format, params object[] p )
 		{
-			Write( format, p );
-			Write( Console.Out.NewLine );
-			_HeaderNotWritten = true;
-		}
+			Console.Error.WriteLine( format, p );
+			try
+			{
+				DateTime now = DateTime.Now;
 
-		/// <summary>
-		/// Writes message to a log file and adds indent.
-		/// </summary>
-		public void WriteLineI( string format, params object[] p )
-		{
-			WriteLine( format, p );
-			Indent();
-		}
-
-		/// <summary>
-		/// Writes message to a log file and adds unindent.
-		/// </summary>
-		public void WriteLineU( string format, params object[] p )
-		{
-			Unindent();
-			WriteLine( format, p );
-		}
-
-		/// <summary>
-		/// Increases indentation of log message.
-		/// </summary>
-		public void Indent()
-		{
-			_IndentStr.Append( "  " );
-		}
-
-		/// <summary>
-		/// Decreases indentation of log message.
-		/// </summary>
-		public void Unindent()
-		{
-			_IndentStr.Length = Math.Max( 0, _IndentStr.Length - 2 );
+				_Buf.Append( now.ToString(DebugUtl.LogDateHeader) );
+				_Buf.Append( String.Format(format, p) );
+				_Buf.Append( Console.Out.NewLine );
+			}
+			catch{}
 		}
 		#endregion
 	}

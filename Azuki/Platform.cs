@@ -1,7 +1,7 @@
 // file: Platform.cs
 // brief: Platform API caller.
 // author: YAMAMOTO Suguru
-// update: 2010-04-15
+// update: 2009-01-31
 //=========================================================
 using System;
 using System.Text;
@@ -18,39 +18,34 @@ namespace Sgry.Azuki
 	{
 		#region UI Notification
 		/// <summary>
-		/// Notify user by platform-dependent method
-		/// (may be auditory or graphically.)
+		/// Present week notification to user.
+		/// (may be auditory or graphically.
+		/// the method depends on system setting)
 		/// </summary>
 		void MessageBeep();
 		#endregion
 
 		#region Clipboard
 		/// <summary>
-		/// Gets content of the system clipboard.
+		/// Gets content in clipboard.
 		/// </summary>
-		/// <param name="dataType">The type of the text data in the clipboard</param>
-		/// <returns>Text content in the clipboard.</returns>
-		/// <remarks>
-		/// This method gets text from the system clipboard.
-		/// If stored text data is a special format (line or rectangle,)
-		/// its data type will be set to <paramref name="dataType"/> parameter.
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.TextDataType">TextDataType enum</seealso>
-		string GetClipboardText( out TextDataType dataType );
+		/// <param name="isLineObj">
+		/// whether the content should be treated as
+		/// not a chars compositing a line
+		/// but a line or not.
+		/// </param>
+		string GetClipboardText( out bool isLineObj );
 
 		/// <summary>
 		/// Sets content of the system clipboard.
 		/// </summary>
-		/// <param name="text">Text data to set.</param>
-		/// <param name="dataType">Type of the data to set.</param>
-		/// <remarks>
-		/// This method set content of the system clipboard.
-		/// If <paramref name="dataType"/> is TextDataType.Normal,
-		/// the text data will be just a character sequence.
-		/// If <paramref name="dataType"/> is TextDataType.Line or TextDataType.Rectangle,
-		/// stored text data would be special format that is compatible with Microsoft Visual Studio.
-		/// </remarks>
-		void SetClipboardText( string text, TextDataType dataType );
+		/// <param name="text">text to store</param>
+		/// <param name="isLineObj">
+		/// whether the content should be treated as
+		/// not a chars compositing a line
+		/// but a line or not.
+		/// </param>
+		void SetClipboardText( string text, bool isLineObj );
 		#endregion
 
 		/// <summary>
@@ -84,14 +79,6 @@ namespace Sgry.Azuki
 		/// Font used for drawing/measuring text.
 		/// </summary>
 		Font Font
-		{
-			set;
-		}
-
-		/// <summary>
-		/// Font used for drawing/measuring text.
-		/// </summary>
-		FontInfo FontInfo
 		{
 			set;
 		}
@@ -168,140 +155,6 @@ namespace Sgry.Azuki
 	}
 
 	/// <summary>
-	/// Information about font.
-	/// </summary>
-	public class FontInfo
-	{
-		string _Name;
-		int _Size;
-		FontStyle _Style;
-
-		#region Properties
-		/// <summary>
-		/// Font face name of this font.
-		/// </summary>
-		public string Name
-		{
-			get{ return _Name; }
-			set{ _Name = value; }
-		}
-
-		/// <summary>
-		/// Size of this font in pt (point).
-		/// </summary>
-		public int Size
-		{
-			get{ return _Size; }
-			set{ _Size = value; }
-		}
-
-		/// <summary>
-		/// Style of this font.
-		/// </summary>
-		public FontStyle Style
-		{
-			get{ return _Style; }
-			set{ _Style = value; }
-		}
-		#endregion
-
-		#region Init / Dispose
-		/// <summary>
-		/// Creates a new instance.
-		/// </summary>
-		public FontInfo( string name, int size, FontStyle style )
-		{
-			_Name = name;
-			_Size = size;
-			_Style = style;
-		}
-
-		/// <summary>
-		/// Creates a new instance.
-		/// </summary>
-		public FontInfo( FontInfo fontInfo )
-		{
-			_Name = fontInfo.Name;
-			_Size = fontInfo.Size;
-			_Style = fontInfo.Style;
-		}
-
-		/// <summary>
-		/// Creates a new instance.
-		/// </summary>
-		public FontInfo( Font font )
-		{
-#			if !PocketPC
-			if( font.OriginalFontName != null )
-				_Name = font.OriginalFontName;
-			else
-				_Name = font.Name;
-#			else
-			_Name = font.Name;
-#			endif
-
-			_Size = (int)font.Size;
-			_Style = font.Style;
-		}
-		#endregion
-
-		#region Utilities
-		/// <summary>
-		/// Gets user readable text of this font information.
-		/// </summary>
-		public override string ToString()
-		{
-			return String.Format( "\"{0}\", {1}, {2}", _Name, _Size, _Style );
-		}
-
-		/// <summary>
-		/// Creates new instance of System.Drawing.Font with same information.
-		/// </summary>
-		/// <exception cref="System.ArgumentException">Failed to create System.Font object.</exception>
-		public Font ToFont()
-		{
-			try
-			{
-				return new Font( Name, Size, Style );
-			}
-			catch( ArgumentException ex )
-			{
-				// ArgumentException will be thrown
-				// if the font specified the name does not support
-				// specified font style.
-				// try to find available font style for the font.
-				FontStyle[] styles = new FontStyle[5];
-				styles[0] = FontStyle.Regular;
-				styles[1] = FontStyle.Bold;
-				styles[2] = FontStyle.Italic;
-				styles[3] = FontStyle.Underline;
-				styles[4] = FontStyle.Strikeout;
-				foreach( FontStyle s in styles )
-				{
-					try
-					{
-						return new Font( Name, Size, s );
-					}
-					catch
-					{}
-				}
-
-				// there is nothing Azuki can do...
-				throw ex;
-			}
-		}
-
-		/// <summary>
-		/// Creates new instance of System.Drawing.Font with same information.
-		/// </summary>
-		public static implicit operator Font( FontInfo other )
-		{
-			return other.ToFont();
-		}
-		#endregion
-	}
-
-	/// <summary>
 	/// The singleton class of platform API caller.
 	/// </summary>
 	public static class Plat
@@ -348,23 +201,5 @@ namespace Sgry.Azuki
 	        return (type != null);
 		}*/
 		#endregion
-	}
-
-	/// <summary>
-	/// Methods of Anti-Alias to be used for text rendering.
-	/// </summary>
-	public enum Antialias
-	{
-		/// <summary>Uses system default setting.</summary>
-		Default,
-
-		/// <summary>Applies no anti-alias process.</summary>
-		None,
-
-		/// <summary>Uses single color anti-alias.</summary>
-		Gray,
-
-		/// <summary>Uses sub-pixel rendering.</summary>
-		Subpixel
 	}
 }

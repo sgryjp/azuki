@@ -2,10 +2,10 @@
 // brief: An INI file parser.
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// version: 2.1.1
+// version: 2.0.0
 // platform: .NET 2.0
 // create: 2006-09-24 YAMAMOTO Suguru
-// update: 2009-10-17 YAMAMOTO Suguru
+// update: 2009-03-29 YAMAMOTO Suguru
 // license: zlib license (see END of this file)
 //=========================================================
 using System;
@@ -188,7 +188,7 @@ namespace Sgry
 			if( encoding == null )
 				throw new ArgumentNullException( "encoding" );
 
-			using( Stream stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite) )
+			using( Stream stream = File.Open(filePath, FileMode.Open, FileAccess.Read) )
 			{
 				Load( new StreamReader(stream, encoding) );
 			}
@@ -247,28 +247,6 @@ namespace Sgry
 		/// </summary>
 		/// <param name="filePath">保存するファイルのパス。</param>
 		/// <param name="encoding">保存するファイルのエンコーディング。</param>
-		/// <exception cref="ArgumentNullException">引数の一つ以上が null です。</exception>
-		/// <exception cref="ArgumentException">引数 newLineCode が空文字です。</exception>
-		/// <exception cref="PathTooLongException">パス文字列が長すぎます。</exception>
-		/// <exception cref="NotSupportedException">パス文字列として指定された文字列はサポートしている書式ではありません。</exception>
-		/// <exception cref="DirectoryNotFoundException">パスで指定されたディレクトリが見つかりません。</exception>
-		/// <exception cref="FileNotFoundException">パスで指定されたファイルが見つかりません。</exception>
-		/// <exception cref="UnauthorizedAccessException">
-		///		指定したパスがディレクトリを指しているか、
-		///		指定したファイルを読み出す権限が実行ユーザにありません。
-		/// </exception>
-		/// <exception cref="IOException">ファイルを開くときに I/O エラーが発生しました。</exception>
-		/// <exception cref="OutOfMemoryException">メモリ不足で処理できませんでした。</exception>
-		public virtual void Save( string filePath, Encoding encoding )
-		{
-			Save( filePath, encoding, "\r\n" );
-		}
-
-		/// <summary>
-		/// すべてのデータを INI 形式で出力します。
-		/// </summary>
-		/// <param name="filePath">保存するファイルのパス。</param>
-		/// <param name="encoding">保存するファイルのエンコーディング。</param>
 		/// <param name="newLineCode">使用する改行コード。</param>
 		/// <exception cref="ArgumentNullException">引数の一つ以上が null です。</exception>
 		/// <exception cref="ArgumentException">引数 newLineCode が空文字です。</exception>
@@ -294,7 +272,7 @@ namespace Sgry
 				throw new ArgumentException( "parameter newLineCode must not be an empty string." );
 
 			// write INI formatted string into the file
-			using( FileStream file = File.Open(filePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite) )
+			using( FileStream file = File.Open(filePath, FileMode.Create, FileAccess.Write) )
 			{
 				StreamWriter writer = new StreamWriter( file, encoding );
 				writer.NewLine = newLineCode;
@@ -306,7 +284,7 @@ namespace Sgry
 
 		#region Get / Set
 		/// <summary>
-		/// Bool や Double、列挙子といった基本的な値型の値を取得します。
+		/// Bool や Double といった基本的な値型の値を取得します。
 		/// </summary>
 		/// <param name="sectionName">値を検索するセクション名。</param>
 		/// <param name="entryName">値に関連付けられた名前（エントリー名）。</param>
@@ -340,16 +318,13 @@ namespace Sgry
 			// parse it as the type T
 			try
 			{
-				if( defaultValue is Enum )
-					return (T)Enum.Parse( typeof(T), valueStr, false );
-				else
-					return (T)Convert.ChangeType( valueStr, typeof(T), null );
+				return (T)Convert.ChangeType( valueStr, typeof(T), null );
 			}
 			catch( FormatException )
 			{}
-			catch( ArgumentException )	// case of valueStr is not recognizable as the enum value etc.
+			catch( ArgumentNullException )	// case of (valueStr == null) on .NET Compact Framework
 			{}
-			catch( InvalidCastException )	// case of Convert.ChangeType(null, ...) on .NET Framework
+			catch( InvalidCastException )	// case of (valueStr == null) on .NET Framework
 			{}
 
 			return defaultValue;
@@ -367,8 +342,6 @@ namespace Sgry
 		public virtual string Get( string sectionName, string entryName, string defaultValue )
 		{
 			Section section;
-			bool found;
-			string value;
 
 			if( sectionName == null )
 				throw new ArgumentNullException( "sectionName" );
@@ -386,14 +359,15 @@ namespace Sgry
 			}
 
 			// get value of the entry
-			found = section.TryGetValue( entryName, out value );
-			if( found == false )
+			try
+			{
+				return section[ entryName ];
+			}
+			catch( KeyNotFoundException )
 			{
 				// there is no such entry so using default value.
 				return defaultValue;
 			}
-
-			return value;
 		}
 
 		/// <summary>
@@ -519,27 +493,27 @@ namespace Sgry
 		public virtual void Remove( string sectionName, string entryName )
 		{
 			Section section;
-			bool found;
 
 			if( sectionName == null )
 				throw new ArgumentNullException( "sectionName" );
 			if( entryName == null )
 				throw new ArgumentNullException( "entryName" );
 
-			// 指定セクションを取得
-			found = _Sections.TryGetValue( sectionName, out section );
-			if( found == false )
+			try
 			{
-				return;
-			}
+				// 指定セクションを取得
+				section = _Sections[sectionName];
 
-			// 指定エントリーがあれば削除
-			section.Remove( entryName );
-			if( section.Count == 0 )
-			{
-				// もうエントリーが一つも無いのでセクションも削除
-				_Sections.Remove( sectionName );
+				// 指定エントリーがあれば削除
+				section.Remove( entryName );
+				if( section.Count == 0 )
+				{
+					// もうエントリーが一つも無いのでセクションも削除
+					_Sections.Remove( sectionName );
+				}
 			}
+			catch( KeyNotFoundException )
+			{}
 		}
 
 		/// <summary>
@@ -683,16 +657,14 @@ namespace Sgry
 
 		Section GetSection( string sectionName )
 		{
-			Section section;
-			bool found;
-
-			found = _Sections.TryGetValue( sectionName, out section );
-			if( found == false )
+			try
+			{
+				return _Sections[ sectionName ];
+			}
+			catch( KeyNotFoundException )
 			{
 				return null;
 			}
-
-			return section;
 		}
 
 		static class Utl
@@ -787,7 +759,6 @@ foo
 [Section]
 foo=bar
 foo = value of foo will be overwritten by this
-day_of_week=Sunday
 
 [section]
 hoge = section name is case-sensitive
@@ -803,7 +774,6 @@ hoge=white spaces around the equal sign will be removed
 Number=9.876543
 [not a section=g
 foo=value of foo will be overwritten by this
-day_of_week=Sunday
 ";
 			Ini ini = new Ini();
 
@@ -920,11 +890,6 @@ day_of_week=Sunday
 				try{ ini.Get("", "", 3.14); Debug.Fail("exception no thrown as expected."); }
 				catch( Exception ex ){ Debug.Assert(ex.GetType() == typeof(ArgumentException) ); }
 
-				// enum values
-				Debug.Assert( ini.Get("Section", "day_of_week", DayOfWeek.Wednesday) == DayOfWeek.Sunday );
-				Debug.Assert( ini.Get("Section", "Number", DayOfWeek.Wednesday) == DayOfWeek.Wednesday );
-				Debug.Assert( ini.Get("Section", "NNNNN", DayOfWeek.Wednesday) == DayOfWeek.Wednesday );
-
 				// anonymous section
 				Debug.Assert( ini.Get("", "Number", 3.14) == -1200.0 );
 				ini.Set( "", "Number", "HOGE" );
@@ -969,12 +934,6 @@ day_of_week=Sunday
 
 /*********************************************************
 Version History
-
-[v2.1.1] 2009-10-17
-・ファイルを開くときに共有モードで開くように
-
-[v2.1.0] 2009-08-02
-・Ini.Get<T> を enum に対応させた
 
 [v2.0.0] 2009-03-29
 ・ジェネリックを使ってフルスクラッチで書き換え

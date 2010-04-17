@@ -1,4 +1,4 @@
-// 2009-11-07
+// 2009-07-11
 using System;
 using System.Drawing;
 using System.Text.RegularExpressions;
@@ -103,27 +103,22 @@ namespace Sgry.Ann
 		{
 			InitializeComponents();
 			LayoutComponents();
-#			if( false )
-			{
-				Timer t = new Timer();
-				t.Interval = 1000;
-				t.Tick+=delegate{
-				if( _ContextRef != null )
-					Console.WriteLine( "a:{0}, m/c:{1}, p:{2}", _ContextRef.AnchorIndex, _ContextRef.MatchCase, _ContextRef.TextPattern );
-				if( _ContextRef != null && _ContextRef.Regex != null )
-					Console.WriteLine( "    r:{0}, o:{1}", _ContextRef.Regex.ToString(), _ContextRef.Regex.Options );
-				};
-				t.Start();
-			}
-#			endif
+/*Timer t = new Timer();
+t.Interval = 1000;
+t.Tick+=delegate{
+if( _ContextRef != null )
+	Console.WriteLine( "a:{0}, m/c:{1}, p:{2}", _ContextRef.AnchorIndex, _ContextRef.MatchCase, _ContextRef.TextPattern );
+if( _ContextRef != null && _ContextRef.Regex != null )
+	Console.WriteLine( "    r:{0}, o:{1}", _ContextRef.Regex.ToString(), _ContextRef.Regex.Options );
+};
+t.Start();*/
 		}
 		#endregion
 
 		#region Operations
 		public void Activate( int anchorIndex )
 		{
-			this.Enabled = true;
-			this.Visible = true;
+			Enabled = true;
 			_Azuki_Pattern.SelectAll();
 			_ContextRef.AnchorIndex = anchorIndex;
 			Show();
@@ -133,8 +128,8 @@ namespace Sgry.Ann
 
 		public void Deactivate()
 		{
+			this.Hide();
 			this.Enabled = false;
-			this.Visible = false;
 			_ContextRef.PatternFixed = true;
 			_ContextRef.AnchorIndex = -1;
 		}
@@ -190,6 +185,7 @@ namespace Sgry.Ann
 		#region Event Handlers
 		void FixParameters( IUserInterface ui )
 		{
+			Deactivate();
 			InvokePatternFixed();
 		}
 
@@ -256,6 +252,7 @@ namespace Sgry.Ann
 			this.SuspendLayout();
 
 			// setup this panel
+			Dock = DockStyle.Bottom;
 			GotFocus += delegate {
 				_Azuki_Pattern.Focus();
 			};
@@ -282,11 +279,9 @@ namespace Sgry.Ann
 			_Azuki_Pattern.HighlightsCurrentLine = false;
 			_Azuki_Pattern.ShowsHScrollBar = false;
 			_Azuki_Pattern.ShowsLineNumber = false;
-			_Azuki_Pattern.ShowsDirtBar = false;
 			_Azuki_Pattern.AcceptsTab = false;
 			_Azuki_Pattern.AcceptsReturn = false;
 			_Azuki_Pattern.BorderStyle = BorderStyle.Fixed3D;
-			_Azuki_Pattern.Anchor = AnchorStyles.Left | AnchorStyles.Right;
 			_Azuki_Pattern.Document.ContentChanged += _Azuki_Pattern_ContentChanged;
 			_Azuki_Pattern.SetKeyBind( Keys.Enter, FixParameters );
 			_Azuki_Pattern.SetKeyBind( Keys.Escape, FixParameters );
@@ -322,7 +317,7 @@ namespace Sgry.Ann
 			_Button_Prev.Click += _Button_Prev_Click;
 
 			// setup check boxes
-			_Check_MatchCase.Text = "Match &Case";
+			_Check_MatchCase.Text = "m/&c";
 			_Check_MatchCase.Click += _Check_MatchCase_Clicked;
 			_Check_MatchCase.KeyDown += delegate( object sender, KeyEventArgs e ) {
 				if( e.KeyCode == Keys.Enter || e.KeyCode == Keys.Escape )
@@ -344,9 +339,15 @@ namespace Sgry.Ann
 
 			// setup panels
 			_Panel_TextBox.Location = new Point( 0, 0 );
-			_Panel_TextBox.Width = Width - _Panel_Actions.Width - 4;
 			_Panel_Actions.Location = new Point( _Panel_TextBox.Right, 0 );
-			_Panel_Options.Location = new Point( 0, _Panel_TextBox.Bottom );
+			if( _Panel_Actions.Right + _Panel_Options.Width < Width )
+			{
+				_Panel_Options.Location = new Point( _Panel_Actions.Right, 0 );
+			}
+			else
+			{
+				_Panel_Options.Location = new Point( 0, _Panel_TextBox.Bottom );
+			}
 			this.Height = _Panel_Options.Bottom - _Panel_TextBox.Top;
 
 			// text box and label

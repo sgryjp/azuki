@@ -1,4 +1,4 @@
-// 2010-03-30
+// 2009-07-12
 using System;
 using System.Drawing;
 using System.Collections.Generic;
@@ -19,7 +19,6 @@ namespace Sgry.Ann
 		AppLogic _App;
 		Dictionary<MenuItem, AnnAction> _MenuMap = new Dictionary<MenuItem,AnnAction>();
 		Dictionary<Keys, AnnAction>	_KeyMap = new Dictionary<Keys, AnnAction>();
-		Timer _TimerForDelayedActivatedEvent = new Timer();
 		#endregion
 
 		#region Init / Dispose
@@ -29,8 +28,8 @@ namespace Sgry.Ann
 		public AnnForm( AppLogic app )
 		{
 			_App = app;
-			InitMenuComponents();
 			InitUIComponent();
+			InitMenuComponents();
 			InitMenuMap();
 			InitKeyMap();
 			ResetShortcutInMenu();
@@ -41,11 +40,7 @@ namespace Sgry.Ann
 			DragEnter += Form_DragEnter;
 			DragDrop += Form_DragDrop;
 #			endif
-			this.Icon = Resource.AppIcon;
 			_SearchPanel.SetFont( this.Font );
-			_TabPanel.ActiveTabBackColor = _Azuki.ColorScheme.LineNumberBack;
-			_TimerForDelayedActivatedEvent.Interval = 100;
-			_TimerForDelayedActivatedEvent.Tick += Form_DelayedActivated;
 		}
 		#endregion
 
@@ -67,41 +62,11 @@ namespace Sgry.Ann
 		}
 
 		/// <summary>
-		/// Gets tab panel.
-		/// </summary>
-		public TabPanel<Document> TabPanel
-		{
-			get{ return _TabPanel; }
-		}
-
-		/// <summary>
-		/// Gets or sets whether tab panel is enabled or not.
-		/// </summary>
-		public bool TabPanelEnabled
-		{
-			get{ return _TabPanel.Visible; }
-			set
-			{
-				_TabPanel.Visible = value;
-				_MI_View_ShowTabPanel.Checked = value;
-			}
-		}
-
-		/// <summary>
 		/// Activates and set focus to text search panel.
 		/// </summary>
 		public void ActivateSearchPanel()
 		{
 			_SearchPanel.Activate( _Azuki.CaretIndex );
-		}
-
-		/// <summary>
-		/// Deactivates and set focus to text search panel.
-		/// </summary>
-		public void DeactivateSearchPanel()
-		{
-			_SearchPanel.Deactivate();
-			_Azuki.Focus();
 		}
 
 		/// <summary>
@@ -111,24 +76,19 @@ namespace Sgry.Ann
 		{
 			Document doc = _App.ActiveDocument;
 			bool readOnly = doc.IsReadOnly;
-			StringBuilder text = new StringBuilder( 64 );
+			string attrStr = "";
 
 			// set form text
-			text.Append( "Ann - " );
-			text.Append( doc.DisplayNameWithFlags );
-			text.Append( " [" );
-			text.Append( Utl.ToString(doc.Encoding) );
-			if( doc.WithBom )
-			{
-				text.Append( "+BOM" );
-			}
-			text.Append( ", " + doc.FileType.Name );
 			if( readOnly )
 			{
-				text.Append( ", R/O" );
+				attrStr += ", R/O";
 			}
-			text.Append( "]" );
-			this.Text = text.ToString();
+			base.Text = String.Format( "Ann - {0} [{1}, {2}{3}]",
+					doc.DisplayNameWithFlags,
+					doc.Encoding.WebName,
+					doc.FileType.Name,
+					attrStr
+				);
 
 			// apply read-only mode
 			_MI_File_ReadOnly.Checked = readOnly;
@@ -137,34 +97,6 @@ namespace Sgry.Ann
 				= _MI_Edit_Redo.Enabled
 				= _MI_Edit_Cut.Enabled
 				= _MI_Edit_Paste.Enabled = !readOnly;
-
-			// apply wrap-line mode
-			_MI_View_WrapLines.Checked
-				= (_Azuki.ViewType == ViewType.WrappedProportional)
-				? true : false;
-
-			// update radio check of EOL code menu items
-			if( _Azuki.Document.EolCode == "\r\n" )
-			{
-				_MI_Edit_EolCode_CRLF.Checked = true;
-				_MI_Edit_EolCode_LF.Checked = false;
-				_MI_Edit_EolCode_CR.Checked = false;
-			}
-			else if( _Azuki.Document.EolCode == "\n" )
-			{
-				_MI_Edit_EolCode_CRLF.Checked = false;
-				_MI_Edit_EolCode_LF.Checked = true;
-				_MI_Edit_EolCode_CR.Checked = false;
-			}
-			else
-			{
-				_MI_Edit_EolCode_CRLF.Checked = false;
-				_MI_Edit_EolCode_LF.Checked = false;
-				_MI_Edit_EolCode_CR.Checked = true;
-			}
-
-			// update tab panel
-			_TabPanel.Invalidate();
 		}
 		#endregion
 
@@ -220,13 +152,9 @@ namespace Sgry.Ann
 			_MenuMap[ _MI_Edit_FindNext ]	= Actions.FindNext;
 			_MenuMap[ _MI_Edit_FindPrev ]	= Actions.FindPrev;
 			_MenuMap[ _MI_Edit_SelectAll ]	= Actions.SelectAll;
-			_MenuMap[ _MI_Edit_EolCode_CRLF ]	= Actions.SetEolCodeToCRLF;
-			_MenuMap[ _MI_Edit_EolCode_LF ]		= Actions.SetEolCodeToLF;
-			_MenuMap[ _MI_Edit_EolCode_CR ]		= Actions.SetEolCodeToCR;
 			
 			_MenuMap[ _MI_View_ShowSpecialChar ]	= Actions.SelectSpecialCharVisibility;
 			_MenuMap[ _MI_View_WrapLines ]			= Actions.ToggleWrapLines;
-			_MenuMap[ _MI_View_ShowTabPanel ]		= Actions.ToggleTabPanel;
 
 			_MenuMap[ _MI_Mode_Text ]		= Actions.SetToTextMode;
 			_MenuMap[ _MI_Mode_Latex ]		= Actions.SetToLatexMode;
@@ -246,9 +174,6 @@ namespace Sgry.Ann
 
 		void InitKeyMap()
 		{
-			_KeyMap[ Keys.F3 ]							= Actions.FindNext;
-			_KeyMap[ Keys.F3|Keys.Shift ]				= Actions.FindPrev;
-
 			_KeyMap[ Keys.N|Keys.Control ]				= Actions.CreateNewDocument;
 			_KeyMap[ Keys.O|Keys.Control ]				= Actions.OpenDocument;
 			_KeyMap[ Keys.S|Keys.Control ]				= Actions.SaveDocument;
@@ -275,7 +200,7 @@ namespace Sgry.Ann
 		}
 		#endregion
 
-		#region GUI Event Handlers
+		#region Drag & Drop handler
 #		if !PocketPC
 		void Form_DragDrop( object sender, DragEventArgs e )
 		{
@@ -294,7 +219,7 @@ namespace Sgry.Ann
 				if( !Directory.Exists(filePath) )
 				{
 					// load the file
-					_App.OpenDocument( filePath );
+					_App.OpenDocument( filePath, null, false );
 				}
 			}
 		}
@@ -323,18 +248,6 @@ namespace Sgry.Ann
 			}
 		}
 #		endif
-
-		protected override void OnActivated( EventArgs e )
-		{
-			base.OnActivated( e );
-			_TimerForDelayedActivatedEvent.Enabled = true;
-		}
-
-		void Form_DelayedActivated( object sender, EventArgs e )
-		{
-			_TimerForDelayedActivatedEvent.Enabled = false;
-			_App.MainForm_DelayedActivated();
-		}
 		#endregion
 
 		#region UI Component Initialization
@@ -346,30 +259,24 @@ namespace Sgry.Ann
 			// _Azuki
 			// 
 			_Azuki.Dock = DockStyle.Fill;
+			_Azuki.Location = new Point( 0, 0 );
 			_Azuki.TabWidth = 8;
-			_Azuki.BorderStyle = BorderStyle.None;
+			_Azuki.ViewWidth = 235;
 			_Azuki.KeyDown += HandleKeyAction;
 			_Azuki.GotFocus += delegate {
-				DeactivateSearchPanel();
+				_SearchPanel.Deactivate();
 			};
-			//
-			// _TabPanel
-			//
-			_TabPanel.Dock = DockStyle.Top;
 			//
 			// _SearchPanel
 			//
 			_SearchPanel.Dock = DockStyle.Bottom;
 			_SearchPanel.Enabled = false;
-			_SearchPanel.PatternFixed += delegate {
-				DeactivateSearchPanel();
-			};
+			_SearchPanel.Visible = false;
 			//
 			// AnnForm
 			// 
 			ClientSize = new Size( 360, 400 );
 			Controls.Add( _Azuki );
-			Controls.Add( _TabPanel );
 			Controls.Add( _SearchPanel );
 			Text = "Ann";
 			ResumeLayout( false );
@@ -422,15 +329,9 @@ namespace Sgry.Ann
 			_MI_Edit.MenuItems.Add( _MI_Edit_FindPrev );
 			_MI_Edit.MenuItems.Add( _MI_Edit_Sep2 );
 			_MI_Edit.MenuItems.Add( _MI_Edit_SelectAll );
-			_MI_Edit.MenuItems.Add( _MI_Edit_Sep3 );
-			_MI_Edit.MenuItems.Add( _MI_Edit_EolCode );
-			_MI_Edit_EolCode.MenuItems.Add( _MI_Edit_EolCode_CRLF );
-			_MI_Edit_EolCode.MenuItems.Add( _MI_Edit_EolCode_LF );
-			_MI_Edit_EolCode.MenuItems.Add( _MI_Edit_EolCode_CR );
 
 			_MI_View.MenuItems.Add( _MI_View_ShowSpecialChar );
 			_MI_View.MenuItems.Add( _MI_View_WrapLines );
-			_MI_View.MenuItems.Add( _MI_View_ShowTabPanel );
 
 			_MI_Mode.MenuItems.Add( _MI_Mode_Text );
 			_MI_Mode.MenuItems.Add( _MI_Mode_Latex );
@@ -470,16 +371,10 @@ namespace Sgry.Ann
 			_MI_Edit_FindNext.Text = "Find &next";
 			_MI_Edit_FindPrev.Text = "Find &previous";
 			_MI_Edit_Sep2.Text = "-";
-			_MI_Edit_SelectAll.Text = "Select &All";
-			_MI_Edit_Sep3.Text = "-";
-			_MI_Edit_EolCode.Text = "Set &line end code";
-			_MI_Edit_EolCode_CRLF.Text = "&CR+LF";
-			_MI_Edit_EolCode_LF.Text = "&LF";
-			_MI_Edit_EolCode_CR.Text = "C&R";
+			_MI_Edit_SelectAll.Text = "Select A&ll";
 			_MI_View.Text = "&View";
 			_MI_View_ShowSpecialChar.Text = "Show &Special Chars...";
 			_MI_View_WrapLines.Text = "&Wrap lines";
-			_MI_View_ShowTabPanel.Text = "Show &tab panel";
 			_MI_Mode.Text = "&Mode";
 			_MI_Mode_Text.Text = "&Text";
 			_MI_Mode_Latex.Text = "&LaTeX";
@@ -496,13 +391,6 @@ namespace Sgry.Ann
 			_MI_Help_MemoryUsage.Text = "Show &memory usage...";
 			_MI_Help_About.Text = "&About...";
 
-			// other menu settings
-#			if !PocketPC
-			_MI_Edit_EolCode_CRLF.RadioCheck = true;
-			_MI_Edit_EolCode_LF.RadioCheck = true;
-			_MI_Edit_EolCode_CR.RadioCheck = true;
-#			endif
-
 			// bind menu actions
 			EventHandler menuActionHandler = this.HandleMenuAction;
 			foreach( MenuItem mi in _MainMenu.MenuItems )
@@ -511,10 +399,6 @@ namespace Sgry.Ann
 				{
 					foreach( MenuItem mi3 in mi2.MenuItems )
 					{
-						foreach( MenuItem mi4 in mi3.MenuItems )
-						{
-							mi4.Click += menuActionHandler;
-						}
 						mi3.Click += menuActionHandler;
 					}
 					mi2.Click += menuActionHandler;
@@ -590,15 +474,9 @@ namespace Sgry.Ann
 		MenuItem _MI_Edit_FindPrev	= new MenuItem();
 		MenuItem _MI_Edit_Sep2		= new MenuItem();
 		MenuItem _MI_Edit_SelectAll	= new MenuItem();
-		MenuItem _MI_Edit_Sep3		= new MenuItem();
-		MenuItem _MI_Edit_EolCode		= new MenuItem();
-		MenuItem _MI_Edit_EolCode_CRLF	= new MenuItem();
-		MenuItem _MI_Edit_EolCode_LF	= new MenuItem();
-		MenuItem _MI_Edit_EolCode_CR	= new MenuItem();
 		MenuItem _MI_View					= new MenuItem();
 		MenuItem _MI_View_ShowSpecialChar	= new MenuItem();
 		MenuItem _MI_View_WrapLines			= new MenuItem();
-		MenuItem _MI_View_ShowTabPanel		= new MenuItem();
 		MenuItem _MI_Mode			= new MenuItem();
 		MenuItem _MI_Mode_Text		= new MenuItem();
 		MenuItem _MI_Mode_Latex		= new MenuItem();
@@ -615,7 +493,6 @@ namespace Sgry.Ann
 		MenuItem _MI_Help_MemoryUsage	= new MenuItem();
 		MenuItem _MI_Help_About			= new MenuItem();
 		AzukiControl _Azuki;
-		TabPanel<Document> _TabPanel = new TabPanel<Document>();
 		SearchPanel _SearchPanel = new SearchPanel();
 		#endregion
 
@@ -641,40 +518,6 @@ namespace Sgry.Ann
 				text.Append( keyData & (~Keys.Modifiers) );
 
 				return text.ToString();
-			}
-
-			public static string ToString( Encoding encoding )
-			{
-				if( encoding == Encoding.UTF8 )
-				{
-					return "UTF-8";
-				}
-				else if( encoding == Encoding.UTF7 )
-				{
-					return "UTF-7";
-				}
-				else if( encoding == Encoding.Unicode )
-				{
-					return "UTF-16";
-				}
-				else if( encoding == Encoding.BigEndianUnicode )
-				{
-					return "UTF-16BE";
-				}
-				else if( encoding.WebName == "shift_jis" )
-				{
-					return "Shift_JIS";
-				}
-				else if( encoding.WebName == "euc-jp" )
-				{
-					return "EUC-JP";
-				}
-				else if( encoding.WebName == "iso-2022-jp" )
-				{
-					return "JIS";
-				}
-
-				return encoding.WebName;
 			}
 		}
 		#endregion

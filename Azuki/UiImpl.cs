@@ -1,12 +1,12 @@
 ﻿// file: UiImpl.cs
 // brief: User interface logic that independent from platform.
 // author: YAMAMOTO Suguru
-// update: 2010-04-10
+// update: 2009-09-21
 //=========================================================
 using System;
-using System.Text;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Text;
 using System.Threading;
 using Debug = System.Diagnostics.Debug;
 
@@ -20,29 +20,25 @@ namespace Sgry.Azuki
 	class UiImpl : IDisposable
 	{
 		#region Fields
-		const int HighlightInterval1 = 250;
 #		if PocketPC
-		const int HighlightInterval2 = 500;
+		const int HighlightInterval = 500;
 #		else
-		const int HighlightInterval2 = 350;
+		const int HighlightInterval = 350;
 #		endif
 		IUserInterface _UI;
 		View _View = null;
 		Document _Document = null;
 		ViewType _ViewType = ViewType.Proportional;
-		bool _IsDisposed = false;
 
 		IDictionary< uint, ActionProc > _KeyMap = new Dictionary< uint, ActionProc >( 32 );
 		AutoIndentHook _AutoIndentHook = null;
+		char _FirstSurrogateChar = '\0';
 		bool _IsOverwriteMode = false;
-		bool _UsesTabForIndent = true;
+		bool _ConvertsTabToSpaces = false;
 		bool _ConvertsFullWidthSpaceToSpace = false;
 
-		// X coordinate of this also be used as a flag to determine
-		// whether the mouse button is down or not.
-		Point _MouseDownVirPos = new Point( Int32.MinValue, 0 );
+		Point _MouseDownPos = new Point( -1, 0 ); // this X coordinate also be used as a flag to determine whether the mouse button is down or not
 		bool _MouseDragging = false;
-		TextDataType _SelectionMode = TextDataType.Normal;
 
 		Thread _HighlighterThread;
 		bool _ShouldBeHighlighted = false;
@@ -64,36 +60,22 @@ namespace Sgry.Azuki
 #		if DEBUG
 		~UiImpl()
 		{
-			// dispose highlighter
-			if( _HighlighterThread != null )
-			{
-				bool timedOut = !( _HighlighterThread.Join(1000) );
-				if( timedOut )
-				{
-					_HighlighterThread.Abort();
-				}
-				_HighlighterThread = null;
-			}
+			Debug.Assert( _View == null, ""+GetType()+"("+GetHashCode()+") was destroyed but not disposed." );
 		}
 #		endif
 
 		public void Dispose()
 		{
+			_HighlighterThread.Abort();
+			_HighlighterThread = null;
+
 			// uninstall document event handlers
-			if( Document != null )
-			{
-				UninstallDocumentEventHandlers( Document );
-			}
+			Document.SelectionChanged -= Doc_SelectionChanged;
+			Document.ContentChanged -= Doc_ContentChanged;
 
 			// dispose view
-			if( _View != null )
-			{
-				_View.Dispose();
-				_View = null;
-			}
-
-			// set disposed flag on
-			_IsDisposed = true;
+			_View.Dispose();
+			_View = null;
 		}
 		#endregion
 
@@ -103,7 +85,6 @@ namespace Sgry.Azuki
 			get{ return _Document; }
 			set
 			{
-				Debug.Assert( _IsDisposed == false );
 				if( value == null )
 					throw new ArgumentNullException();
 
@@ -112,14 +93,16 @@ namespace Sgry.Azuki
 				// uninstall event handlers
 				if( Document != null )
 				{
-					UninstallDocumentEventHandlers( Document );
+					Document.SelectionChanged -= Doc_SelectionChanged;
+					Document.ContentChanged -= Doc_ContentChanged;
 				}
 
 				// replace document
 				_Document = value;
 
 				// install event handlers
-				InstallDocumentEventHandlers( value );
+				value.SelectionChanged += Doc_SelectionChanged;
+				value.ContentChanged += Doc_ContentChanged;
 
 				// delegate to View
 				View.HandleDocumentChanged( prevDoc );
@@ -138,7 +121,7 @@ namespace Sgry.Azuki
 		{
 			get{ return _View; }
 		}
-
+		
 		/// <summary>
 		/// Gets or sets type of the view.
 		/// View type determines how to render text content.
@@ -148,7 +131,6 @@ namespace Sgry.Azuki
 			get{ return _ViewType; }
 			set
 			{
-				Debug.Assert( _IsDisposed == false );
 				View oldView = View;
 
 				// switch to new view object
@@ -165,17 +147,16 @@ namespace Sgry.Azuki
 				_ViewType = value;
 
 				// dispose old view object
-				if( oldView != null )
-				{
-					oldView.Dispose();
-				}
+				oldView.Dispose();
 
 				// re-install event handlers
 				// (AzukiControl's event handler MUST be called AFTER view's one)
 				if( Document != null )
 				{
-					UninstallDocumentEventHandlers( Document );
-					InstallDocumentEventHandlers( Document );
+					Document.ContentChanged -= Doc_ContentChanged;
+					Document.ContentChanged += Doc_ContentChanged;
+					Document.SelectionChanged -= Doc_SelectionChanged;
+					Document.SelectionChanged += Doc_SelectionChanged;
 				}
 
 				// tell new view object that the document object was changed
@@ -192,7 +173,7 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
-		#region Behavior and Modes
+		#region Behavior
 		/// <summary>
 		/// Gets or sets whether the input character overwrites the character at where the caret is on.
 		/// </summary>
@@ -201,23 +182,19 @@ namespace Sgry.Azuki
 			get{ return _IsOverwriteMode; }
 			set
 			{
-				Debug.Assert( _IsDisposed == false );
 				_IsOverwriteMode = value;
 				_UI.UpdateCaretGraphic();
 			}
 		}
 
 		/// <summary>
-		/// Gets or sets whether tab characters are used for indentation, instead of space characters.
+		/// Gets or sets whether to automatically convert
+		/// an input tab character to equivalent amount of spaces.
 		/// </summary>
-		public bool UsesTabForIndent
+		public bool ConvertsTabToSpaces
 		{
-			get{ return _UsesTabForIndent; }
-			set
-			{
-				Debug.Assert( _IsDisposed == false );
-				_UsesTabForIndent = value;
-			}
+			get{ return _ConvertsTabToSpaces; }
+			set{ _ConvertsTabToSpaces = value; }
 		}
 
 		/// <summary>
@@ -227,11 +204,7 @@ namespace Sgry.Azuki
 		public bool ConvertsFullWidthSpaceToSpace
 		{
 			get{ return _ConvertsFullWidthSpaceToSpace; }
-			set
-			{
-				Debug.Assert( _IsDisposed == false );
-				_ConvertsFullWidthSpaceToSpace = value;
-			}
+			set{ _ConvertsFullWidthSpaceToSpace = value; }
 		}
 
 		/// <summary>
@@ -242,45 +215,13 @@ namespace Sgry.Azuki
 		public AutoIndentHook AutoIndentHook
 		{
 			get{ return _AutoIndentHook; }
-			set
-			{
-				Debug.Assert( _IsDisposed == false );
-				_AutoIndentHook = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets whether Azuki is in line selection mode or not.
-		/// </summary>
-		public bool IsLineSelectMode
-		{
-			get{ return (_SelectionMode == TextDataType.Line); }
-			set
-			{
-				Debug.Assert( _IsDisposed == false );
-				_SelectionMode = (value == true) ? TextDataType.Line : TextDataType.Normal;
-			}
-		}
-
-		/// <summary>
-		/// Gets whether Azuki is in rectangle selection mode or not.
-		/// </summary>
-		public bool IsRectSelectMode
-		{
-			get{ return (_SelectionMode == TextDataType.Rectangle); }
-			set
-			{
-				Debug.Assert( _IsDisposed == false );
-				_SelectionMode = (value == true) ? TextDataType.Rectangle : TextDataType.Normal;
-				_UI.InvokeIsRectSelectModeChanged();
-			}
+			set{ _AutoIndentHook = value; }
 		}
 		#endregion
 
 		#region Key Handling
 		public ActionProc GetKeyBind( uint keyCode )
 		{
-			Debug.Assert( _IsDisposed == false );
 			ActionProc proc;
 
 			if( _KeyMap.TryGetValue(keyCode, out proc) == true )
@@ -295,8 +236,6 @@ namespace Sgry.Azuki
 
 		public void SetKeyBind( uint keyCode, ActionProc action )
 		{
-			Debug.Assert( _IsDisposed == false );
-
 			// remove specified key code from dictionary anyway
 			_KeyMap.Remove( keyCode );
 
@@ -309,13 +248,11 @@ namespace Sgry.Azuki
 
 		internal bool IsKeyBindDefined( uint keyCode )
 		{
-			Debug.Assert( _IsDisposed == false );
 			return _KeyMap.ContainsKey( keyCode );
 		}
 
 		public void ClearKeyBind()
 		{
-			Debug.Assert( _IsDisposed == false );
 			_KeyMap.Clear();
 		}
 
@@ -324,8 +261,6 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void HandleKeyDown( uint keyData )
 		{
-			Debug.Assert( _IsDisposed == false );
-
 			ActionProc action = GetKeyBind( keyData );
 			if( action != null )
 			{
@@ -338,132 +273,111 @@ namespace Sgry.Azuki
 		/// </summary>
 		internal void HandleKeyPress( char ch )
 		{
-			HandleTextInput( ch.ToString() );
-		}
-
-		/// <summary>
-		/// Handles text input event.
-		/// </summary>
-		/// <exception cref="System.InvalidOperationException">This object is already disposed.</exception>
-		/// <exception cref="System.ArgumentNullException">Parameter 'text' is null.</exception>
-		internal void HandleTextInput( string text )
-		{
-			if( _IsDisposed )
-				throw new InvalidOperationException( "This "+this.GetType().Name+" object is already disposed." );
-			if( text == null )
-				throw new ArgumentNullException( "text" );
-
+			string str = null;
 			int newCaretIndex;
 			Document doc = Document;
 			int selBegin, selEnd;
-			StringBuilder input = new StringBuilder( Math.Max(64, text.Length) );
 
-			// if in read only mode, just notify and return 
-			if( doc.IsReadOnly )
+			// just notify and return if in read only mode
+			if( Document.IsReadOnly )
 			{
 				Plat.Inst.MessageBeep();
 				return;
 			}
 
-			// ignore if input is an empty text
-			if( text.Length == 0 )
+			// try to use hook delegate
+			if( _AutoIndentHook != null
+				&& _AutoIndentHook(Document, ch) == true )
 			{
-				return;
+				goto update;
 			}
 
-			try
+			// handle surrogate pairs
+			if( Char.IsSurrogate(ch) )
 			{
-				// begin grouping UNDO action
-				doc.BeginUndo();
-
-				// clear rectangle selection
-				if( doc.RectSelectRanges != null )
+				if( _FirstSurrogateChar == '\0' )
 				{
-					UiImpl.DeleteRectSelectText( doc );
+					// this is first char of a surrogate pair. remember it.
+					_FirstSurrogateChar = ch;
+					return;
 				}
-
-				// handle input characters
-				foreach( char ch in text )
-				{
-					// try to use hook delegate
-					if( _AutoIndentHook != null
-						&& _AutoIndentHook(_UI, ch) == true )
-					{
-						// if this char was handled by the hook, do nothing for this char.
-						continue;
-					}
-
-					// execute built-in hook logic
-					if( LineLogic.IsEolChar(ch) )
-					{
-						// change all EOL code in the text should changed to the
-						input.Append( doc.EolCode );
-					}
-					else if( ch == '\t' && _UsesTabForIndent == false )
-					{
-						Point caretPos;
-						Point nextTabStopPos;
-						
-						// get x-coord of caret index
-						doc.GetSelection( out selBegin, out selEnd );
-						caretPos = View.GetVirPosFromIndex( selBegin );
-
-						// calc next tab stop
-						// ([*] When distance of the caret and next tab stop is narrower than a space width,
-						// no padding chars will be made and 'nothing will happen.'
-						// To avoid such case, here we add an extra space width
-						// before calculating next tab stop.)
-						nextTabStopPos = caretPos;
-						nextTabStopPos.X += View.SpaceWidthInPx - 1; // [*]
-						nextTabStopPos.X += View.TabWidthInPx;
-						nextTabStopPos.X -= (nextTabStopPos.X % View.TabWidthInPx);
-
-						// make padding spaces
-						int spaceCount = (nextTabStopPos.X - caretPos.X) / View.SpaceWidthInPx;
-						for( int i=0; i<spaceCount; i++ )
-						{
-							input.Append( ' ' );
-						}
-					}
-					else if( ch == '\x3000' && ConvertsFullWidthSpaceToSpace )
-					{
-						input.Append( '\x0020' );
-					}
-					else
-					{
-						// remember this character
-						input.Append( ch );
-					}
-				}
-
-				// calculate new caret position
-				doc.GetSelection( out selBegin, out selEnd );
-				newCaretIndex = selBegin + input.Length;
-
-				// calc replacement target range
-				if( IsOverwriteMode
-					&& selBegin == selEnd && selEnd+1 < doc.Length
-					&& LineLogic.IsEolChar(doc[selBegin]) != true )
-				{
-					selEnd++;
-				}
-
-				// replace selection to input char
-				doc.Replace( input.ToString(), selBegin, selEnd );
-				doc.SetSelection( newCaretIndex, newCaretIndex );
-
-				// set desired column
-				_View.SetDesiredColumn();
-
-				// update graphic
-				_View.ScrollToCaret();
-				//NO_NEED//_View.Invalidate( xxx ); // Doc_ContentChanged will do invalidation well.
 			}
-			finally
+			else
 			{
-				doc.EndUndo();
-				input.Length = 0;
+				// Azuki accepts surrogate pairs only if it was continuously inserted.
+				// so we clear the history
+				_FirstSurrogateChar = '\0';
 			}
+
+			// make string to be inserted
+			doc.GetSelection( out selBegin, out selEnd );
+			if( _FirstSurrogateChar != '\0' )
+			{
+				// this is a second char of a surrogate pair.
+				// compose the surrogate pair
+				str = "" + _FirstSurrogateChar + ch;
+				_FirstSurrogateChar = '\0';
+			}
+			else if( LineLogic.IsEolChar(ch) )
+			{
+				str = doc.EolCode;
+			}
+			else if( ch == '\t' && _ConvertsTabToSpaces )
+			{
+				StringBuilder buf = new StringBuilder( 32 );
+				Point caretPos;
+				Point nextTabStopPos;
+				
+				// get x-coord of caret index
+				caretPos = View.GetVirPosFromIndex( selBegin );
+
+				// calc next tab stop
+				// ([*] When distance of the caret and next tab stop is narrower than a space width,
+				// no padding chars will be made and 'nothing will happen.'
+				// To avoid such case, here we add an extra space width
+				// before calculating next tab stop.)
+				nextTabStopPos = caretPos;
+				nextTabStopPos.X += View.SpaceWidthInPx - 1; // [*]
+				nextTabStopPos.X += View.TabWidthInPx;
+				nextTabStopPos.X -= (nextTabStopPos.X % View.TabWidthInPx);
+
+				// make padding spaces
+				int spaceCount = (nextTabStopPos.X - caretPos.X) / View.SpaceWidthInPx;
+				str = String.Empty;
+				for( int i=0; i<spaceCount; i++ )
+				{
+					str += ' ';
+				}
+			}
+			else if( ch == '\x3000' && _ConvertsFullWidthSpaceToSpace )
+			{
+				str = "\x0020";
+			}
+			else
+			{
+				str = ch.ToString();
+			}
+			newCaretIndex = selBegin + str.Length;
+
+			// calc replacement target range
+			if( IsOverwriteMode
+				&& selBegin == selEnd && selEnd+1 < doc.Length
+				&& LineLogic.IsEolChar(doc[selBegin]) != true )
+			{
+				selEnd++;
+			}
+
+			// replace selection to input char
+			doc.Replace( str, selBegin, selEnd );
+			doc.SetSelection( newCaretIndex, newCaretIndex );
+
+		update:
+			// set desired column
+			_View.SetDesiredColumn();
+
+			// update graphic
+			_View.ScrollToCaret();
+			//NO_NEED//_View.Invalidate( xxx ); // Doc_ContentChanged will do invalidation well.
 		}
 		#endregion
 
@@ -483,7 +397,6 @@ namespace Sgry.Azuki
 			}
 			set
 			{
-				Debug.Assert( _IsDisposed == false );
 				if( Document == null )
 					return;
 				
@@ -500,21 +413,17 @@ namespace Sgry.Azuki
 			int dirtyBegin, dirtyEnd;
 			Document doc;
 
-			while( _IsDisposed == false )
+			while( true )
 			{
-				// wait while the content is untouched
+				// wait while the flag is down
 				while( _ShouldBeHighlighted == false )
 				{
-					Thread.Sleep( HighlightInterval1 );
-					if( _IsDisposed )
-					{
-						return; // quit ASAP
-					}
+					Thread.Sleep( HighlightInterval );
 				}
 				_ShouldBeHighlighted = false;
 
 				// wait a moment and check if the flag is still up
-				Thread.Sleep( HighlightInterval2 );
+				Thread.Sleep( HighlightInterval );
 				if( _ShouldBeHighlighted != false || _UI.Document == null )
 				{
 					// flag was set up while this thread are sleeping.
@@ -566,123 +475,34 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
-		#region Other
-		/// <summary>
-		/// Gets currently selected text.
-		/// </summary>
-		/// <returns>Currently selected text.</returns>
-		/// <remarks>
-		/// This method gets currently selected text.
-		/// If current selection is rectangle selection,
-		/// return value will be a text that are consisted with selected partial lines (rows)
-		/// joined with CR-LF.
-		/// </remarks>
-		public string GetSelectedText()
-		{
-			Debug.Assert( _IsDisposed == false );
-
-			if( Document.RectSelectRanges != null )
-			{
-				StringBuilder text = new StringBuilder();
-
-				// get text in the rect
-				for( int i=0; i<Document.RectSelectRanges.Length; i+=2 )
-				{
-					// get this row content
-					string row = Document.GetTextInRange(
-							Document.RectSelectRanges[i],
-							Document.RectSelectRanges[i+1]
-						);
-					text.Append( row + "\r\n" );
-				}
-
-				return text.ToString();
-			}
-			else
-			{
-				int begin, end;
-				Document.GetSelection( out begin, out end );
-				return Document.GetTextInRange( begin, end );
-			}
-		}
-		#endregion
-
 		#region UI Event
 		public void HandlePaint( Rectangle clipRect )
 		{
-			if( _IsDisposed )
-				return;
-
 			_View.Paint( clipRect );
-		}
-
-		public void HandleLostFocus()
-		{
-			if( _IsDisposed )
-				return;
-
-			ClearDragState();
-		}
-
-		internal void HandleMouseUp( int buttonIndex, Point pos, bool shift, bool ctrl, bool alt, bool win )
-		{
-			if( _IsDisposed )
-				return;
-
-			ClearDragState();
 		}
 
 		internal void HandleMouseDown( int buttonIndex, Point pos, bool shift, bool ctrl, bool alt, bool win )
 		{
-			if( _IsDisposed )
-				return;
-
-			bool onLineNumberArea = false;
-
 			// if mouse-down coordinate is out of window, this is not a normal event so ignore this
 			if( pos.X < 0 || pos.Y < 0 )
 			{
 				return;
 			}
 
-			// check whether the mouse position is on the line number area or not
-			if( pos.X < View.XofLeftMargin )
-			{
-				onLineNumberArea = true;
-			}
-
 			// remember mouse down screen position and convert it to virtual view's coordinate
+			_MouseDownPos = pos;
 			View.ScreenToVirtual( ref pos );
-			_MouseDownVirPos = pos;
 
 			if( buttonIndex == 0 ) // left click
 			{
-				int index;
-
-				// calculate index of clicked character
-				index = View.GetIndexFromVirPos( pos );
-
-				// set selection
-				if( onLineNumberArea )
+				if( shift )
 				{
-					IsLineSelectMode = true;
-					if( !shift )
-					{
-						Document.LineSelectionAnchor = -1;
-					}
-					SelectLines( index );
-				}
-				else if( shift )
-				{
+					int index = View.GetIndexFromVirPos( pos );
 					Document.SetSelection( Document.AnchorIndex, index );
-				}
-				else if( alt )
-				{
-					IsRectSelectMode = true;
-					Document.SetSelection( index, index );
 				}
 				else
 				{
+					int index = View.GetIndexFromVirPos( pos );
 					Document.SetSelection( index, index );
 				}
 				View.SetDesiredColumn();
@@ -690,11 +510,14 @@ namespace Sgry.Azuki
 			}
 		}
 
+		internal void HandleMouseUp( int buttonIndex, Point pos, bool shift, bool ctrl, bool alt, bool win )
+		{
+			_MouseDownPos.X = -1;
+			_MouseDragging = false;
+		}
+
 		internal void HandleDoubleClick( int buttonIndex, Point pos, bool shift, bool ctrl, bool alt, bool win )
 		{
-			if( _IsDisposed )
-				return;
-
 			int index;
 			int begin, end;
 
@@ -721,101 +544,52 @@ namespace Sgry.Azuki
 
 		internal void HandleMouseMove( int buttonIndex, Point pos, bool shift, bool ctrl, bool alt, bool win )
 		{
-			if( _IsDisposed )
-				return;
-
-			int xOffset, yOffset;
-
 			// if mouse button was not down, ignore
-			if( _MouseDownVirPos.X == Int32.MinValue )
+			if( _MouseDownPos.X < 0 )
 				return;
 
 			// make sure that these coordinates are positive value
 			pos.X = Math.Max( 0, pos.X );
 			pos.Y = Math.Max( 0, pos.Y );
-			View.ScreenToVirtual( ref pos );
 
-			// if it was slight movement, ignore
+			// if the movement is very slightly, ignore
 			if( _MouseDragging == false )
 			{
-				xOffset = Math.Abs( pos.X - _MouseDownVirPos.X );
-				yOffset = Math.Abs( pos.Y - _MouseDownVirPos.Y );
-				if( xOffset <= View.DragThresh && yOffset <= View.DragThresh )
+				int xOffset = Math.Abs( pos.X - _MouseDownPos.X );
+				int yOffset = Math.Abs( pos.Y - _MouseDownPos.Y );
+				if( View.DragThresh < xOffset || View.DragThresh < yOffset )
+				{
+					_MouseDragging = true;
+				}
+				else
 				{
 					return;
 				}
 			}
-			_MouseDragging = true;
 
 			// dragging with left button?
 			if( buttonIndex == 0 )
 			{
-				int curPosIndex;
+				View.ScreenToVirtual( ref pos );
 
 				// calc index of where the mouse pointer is on
-				curPosIndex = View.GetIndexFromVirPos( pos );
-				if( curPosIndex == -1 )
+				int index = View.GetIndexFromVirPos( pos );
+				if( index == -1 || index == Document.CaretIndex )
 				{
-					return;
+					return; // failed to get index or same as previous index
 				}
 
 				// expand selection to there
-				if( IsRectSelectMode )
-				{
-					//--- rectangle selection ---
-					Point anchorPos = _MouseDownVirPos;
-					Document.RectSelectRanges = View.GetRectSelectRanges(
-							MakeRectFromTwoPoints(anchorPos, pos)
-						);
-					Document.SetSelection_Impl( Document.AnchorIndex, curPosIndex, false );
-				}
-				else if( IsLineSelectMode )
-				{
-					SelectLines( curPosIndex );
-				}
-				else
-				{
-					//--- normal selection ---
-					// expand selection to the point if it was different from previous index
-					if( curPosIndex != Document.CaretIndex )
-					{
-						Document.SetSelection( Document.AnchorIndex, curPosIndex );
-					}
-				}
+				Document.SetSelection( Document.AnchorIndex, index );
 				View.SetDesiredColumn();
 				View.ScrollToCaret();
 			}
 		}
-
-		void ClearDragState()
-		{
-			_MouseDownVirPos.X = Int32.MinValue;
-			_MouseDragging = false;
-			IsRectSelectMode = false;
-		}
 		#endregion
 
 		#region Event Handlers
-		void InstallDocumentEventHandlers( Document doc )
-		{
-			Debug.Assert( _IsDisposed == false );
-			doc.SelectionChanged += Doc_SelectionChanged;
-			doc.ContentChanged += Doc_ContentChanged;
-			doc.DirtyStateChanged += Doc_DirtyStateChanged;
-		}
-
-		void UninstallDocumentEventHandlers( Document doc )
-		{
-			Debug.Assert( _IsDisposed == false );
-			doc.SelectionChanged -= Doc_SelectionChanged;
-			doc.ContentChanged -= Doc_ContentChanged;
-			doc.DirtyStateChanged -= Doc_DirtyStateChanged;
-		}
-
 		void Doc_SelectionChanged( object sender, SelectionChangedEventArgs e )
 		{
-			Debug.Assert( _IsDisposed == false );
-
 			// delegate to view object
 			View.HandleSelectionChanged( sender, e );
 
@@ -823,13 +597,11 @@ namespace Sgry.Azuki
 			_UI.UpdateCaretGraphic();
 
 			// send event to component users
-			_UI.InvokeCaretMoved();
+			((Windows.AzukiControl)_UI).InvokeCaretMoved();
 		}
 
 		public void Doc_ContentChanged( object sender, ContentChangedEventArgs e )
 		{
-			Debug.Assert( _IsDisposed == false );
-
 			// delegate to view object
 			View.HandleContentChanged( sender, e );
 
@@ -849,202 +621,6 @@ namespace Sgry.Azuki
 				_DirtyRangeEnd = e.Index + e.NewText.Length;
 			}
 			_ShouldBeHighlighted = true;
-		}
-
-		public void Doc_DirtyStateChanged( object sender, EventArgs e )
-		{
-			Debug.Assert( _IsDisposed == false );
-
-			Document doc = (Document)sender;
-
-			// delegate to view object
-			View.HandleDirtyStateChanged( sender, e );
-		}
-		#endregion
-
-		#region Utilitites
-		internal static void DeleteRectSelectText( Document doc )
-		{
-			int diff = 0;
-
-			for( int i=0; i<doc.RectSelectRanges.Length; i+=2 )
-			{
-				// recalculate range of this row
-				doc.RectSelectRanges[i] -= diff;
-				doc.RectSelectRanges[i+1] -= diff;
-
-				// replace this row
-				doc.Replace( String.Empty,
-						doc.RectSelectRanges[i],
-						doc.RectSelectRanges[i+1]
-					);
-
-				// go to next row
-				diff += doc.RectSelectRanges[i+1] - doc.RectSelectRanges[i];
-			}
-
-			// reset selection
-			doc.SetSelection( doc.RectSelectRanges[0], doc.RectSelectRanges[0] );
-		}
-
-		/// <summary>
-		/// Generates appropriate padding characters
-		/// that fills the gap between the target position and actual line-end position.
-		/// </summary>
-		internal static string GetNeededPaddingChars( IUserInterface ui, Point targetVirPos, bool alignTabStop )
-		{
-			StringBuilder paddingChars;
-			int targetIndex;
-			Point lineLastCharPos;
-			int rightMostTabStopX;
-			int neededTabCount = 0;
-			int neededSpaceCount;
-
-			// calculate the position of the nearest character in line
-			// (this will be at end of the line)
-			targetIndex = ui.View.GetIndexFromVirPos( targetVirPos );
-			lineLastCharPos = ui.View.GetVirPosFromIndex( targetIndex );
-			if( targetVirPos.X <= lineLastCharPos.X + ui.View.SpaceWidthInPx )
-			{
-				return ""; // no padding is needed
-			}
-
-			// calculate right most tab stop at left of the target position
-			rightMostTabStopX = targetVirPos.X - (targetVirPos.X % ui.View.TabWidthInPx);
-			if( alignTabStop )
-			{
-				// to align position to tab stop,
-				// set target position to the right most tab stop.
-				targetVirPos.X = rightMostTabStopX;
-			}
-
-			// calculate how many tabs are needed
-			if( ui.UsesTabForIndent )
-			{
-				int availableRightMostTabStopX
-					= lineLastCharPos.X - (lineLastCharPos.X % ui.View.TabWidthInPx);
-				neededTabCount = (targetVirPos.X - availableRightMostTabStopX) / ui.View.TabWidthInPx;
-			}
-
-			// calculate how many spaces are needed
-			if( 0 < neededTabCount )
-			{
-				neededSpaceCount = (targetVirPos.X - rightMostTabStopX) / ui.View.SpaceWidthInPx;
-			}
-			else
-			{
-				neededSpaceCount = (targetVirPos.X - lineLastCharPos.X) / ui.View.SpaceWidthInPx;
-			}
-
-			// pad tabs
-			paddingChars = new StringBuilder();
-			for( int i=0; i<neededTabCount; i++ )
-			{
-				paddingChars.Append( '\t' );
-			}
-
-			// pad spaces
-			for( int i=0; i<neededSpaceCount; i++ )
-			{
-				paddingChars.Append( ' ' );
-			}
-
-			return paddingChars.ToString();
-		}
-
-		internal static Rectangle MakeRectFromTwoPoints( Point pt1, Point pt2 )
-		{
-			Rectangle rect = new Rectangle();
-
-			// set left and width
-			if( pt1.X < pt2.X )
-			{
-				rect.X = pt1.X;
-				rect.Width = pt2.X - pt1.X;
-			}
-			else
-			{
-				rect.X = pt2.X;
-				rect.Width = pt1.X - pt2.X;
-			}
-
-			// set top and height
-			if( pt1.Y < pt2.Y )
-			{
-				rect.Y = pt1.Y;
-				rect.Height = pt2.Y - pt1.Y;
-			}
-			else
-			{
-				rect.Y = pt2.Y;
-				rect.Height = pt1.Y - pt2.Y;
-			}
-
-			return rect;
-		}
-
-		void SelectLines( int toIndex )
-		{
-			int anchor, caret;
-			int toLineIndex;
-			Document doc = this.Document;
-			int lineSelectionAnchor;
-
-			// get line index of selection starting line and destination line
-			toLineIndex = View.GetLineIndexFromCharIndex( toIndex );
-			if( doc.LineSelectionAnchor < 0 )
-			{
-				//-- no line selection exists --
-				// select between head of the line and end of the line
-				anchor = View.GetLineHeadIndex( toLineIndex );
-				if( toLineIndex+1 < View.LineCount )
-				{
-					caret = View.GetLineHeadIndex( toLineIndex + 1 );
-				}
-				else
-				{
-					caret = doc.Length;
-				}
-				lineSelectionAnchor = toIndex;
-			}
-			else if( doc.LineSelectionAnchor <= toIndex )
-			{
-				//-- selecting to the line (or after) where selection started --
-				// select between head of the starting line and the end of the destination line
-				anchor = View.GetLineHeadIndexFromCharIndex( doc.LineSelectionAnchor );
-				if( toLineIndex+1 < View.LineCount )
-				{
-					caret = View.GetLineHeadIndex( toLineIndex + 1 );
-				}
-				else
-				{
-					caret = doc.Length;
-				}
-				lineSelectionAnchor = doc.LineSelectionAnchor;
-			}
-			else// if( toIndex < doc.LineSelectionAnchor )
-			{
-				//-- selecting to foregoing lines where selection started --
-				// select between head of the destination line and end of the starting line
-				int anchorLineIndex;
-
-				caret = View.GetLineHeadIndex( toLineIndex );
-				anchorLineIndex = View.GetLineIndexFromCharIndex( doc.LineSelectionAnchor );
-				if( anchorLineIndex+1 < View.LineCount )
-				{
-					anchor = View.GetLineHeadIndex( anchorLineIndex + 1 );
-				}
-				else
-				{
-					anchor = doc.Length;
-				}
-				lineSelectionAnchor = doc.LineSelectionAnchor;
-			}
-
-			// apply new selection
-			// (and restore LineSelectionAnchor property because SetSelection clears it)
-			doc.SetSelection_Impl( anchor, caret, false );
-			doc.LineSelectionAnchor = lineSelectionAnchor;
 		}
 		#endregion
 	}
