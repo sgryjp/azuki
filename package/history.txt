@@ -1,5 +1,6 @@
 == 1.5.5 (    -  -  ) ==
  * fix: now calling AzukiControl.ClearHistory properly redraws DirtBar
+ * fix: now changing AzukiControl.TabWidth updates line-wrapping information
 
 == 1.5.4 (2010-04-17) ==
  * add: now anti-alias method applied to text rendering can be changed through UserPref.Antialias property
