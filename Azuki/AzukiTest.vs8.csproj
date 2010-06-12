@@ -49,6 +49,7 @@
     <Compile Include="Highlighter\Coco\LatexScanner.cs" />
     <Compile Include="Highlighter\LatexHighlighter.cs" />
     <Compile Include="IUserInterface.cs" />
+    <Compile Include="Test\CaretMoveLogicTest.cs" />
     <Compile Include="UiImpl.cs" />
     <Compile Include="LineLogic.cs" />
     <Compile Include="Platform.cs" />
