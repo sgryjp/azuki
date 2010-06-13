@@ -2,7 +2,7 @@
 // brief: Actions for Azuki engine (actions to change selection).
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// update: 2010-04-30
+// update: 2009-09-21
 //=========================================================
 using System;
 using System.Drawing;
@@ -298,7 +298,7 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
-		#region SelectTo
+		#region Selection
 		/// <summary>
 		/// Expands selection to right.
 		/// </summary>
@@ -483,9 +483,7 @@ namespace Sgry.Azuki
 			// update desired column
 			ui.View.SetDesiredColumn();
 		}
-		#endregion
 
-		#region RectSelectTo
 		/// <summary>
 		/// Expands rectangle selection to right.
 		/// </summary>
@@ -499,7 +497,7 @@ namespace Sgry.Azuki
 		public static void RectSelectToRight( IUserInterface ui )
 		{
 			// force to enable rectangle selection
-			ui.SelectionMode = TextDataType.Rectangle;
+			ui.IsRectSelectMode = true;
 
 			// expand selection
 			SelectToRight( ui );
@@ -518,7 +516,7 @@ namespace Sgry.Azuki
 		public static void RectSelectToLeft( IUserInterface ui )
 		{
 			// force to enable rectangle selection
-			ui.SelectionMode = TextDataType.Rectangle;
+			ui.IsRectSelectMode = true;
 
 			// expand selection
 			SelectToLeft( ui );
@@ -537,7 +535,7 @@ namespace Sgry.Azuki
 		public static void RectSelectToDown( IUserInterface ui )
 		{
 			// force to enable rectangle selection
-			ui.SelectionMode = TextDataType.Rectangle;
+			ui.IsRectSelectMode = true;
 
 			// expand selection
 			SelectToDown( ui );
@@ -556,42 +554,12 @@ namespace Sgry.Azuki
 		public static void RectSelectToUp( IUserInterface ui )
 		{
 			// force to enable rectangle selection
-			ui.SelectionMode = TextDataType.Rectangle;
+			ui.IsRectSelectMode = true;
 
 			// expand selection
 			SelectToUp( ui );
 		}
-		#endregion
 
-		#region LineSelectTo
-		/// <summary>
-		/// Expands line selection down.
-		/// </summary>
-		public static void LineSelectToDown( IUserInterface ui )
-		{
-			// force to enable line selection
-			ui.SelectionMode = TextDataType.Line;
-
-			// expand selection
-			SelectToDown( ui );
-			ui.View.SetDesiredColumn();
-		}
-
-		/// <summary>
-		/// Expands line selection up.
-		/// </summary>
-		public static void LineSelectToUp( IUserInterface ui )
-		{
-			// force to enable line selection
-			ui.SelectionMode = TextDataType.Line;
-
-			// expand selection
-			SelectToUp( ui );
-			ui.View.SetDesiredColumn();
-		}
-		#endregion
-
-		#region SelectAll
 		/// <summary>
 		/// Selects all text.
 		/// </summary>

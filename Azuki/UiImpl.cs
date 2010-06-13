@@ -1,7 +1,7 @@
 ﻿// file: UiImpl.cs
 // brief: User interface logic that independent from platform.
 // author: YAMAMOTO Suguru
-// update: 2010-04-30
+// update: 2010-04-10
 //=========================================================
 using System;
 using System.Text;
@@ -42,6 +42,7 @@ namespace Sgry.Azuki
 		// whether the mouse button is down or not.
 		Point _MouseDownVirPos = new Point( Int32.MinValue, 0 );
 		bool _MouseDragging = false;
+		TextDataType _SelectionMode = TextDataType.Normal;
 
 		Thread _HighlighterThread;
 		bool _ShouldBeHighlighted = false;
@@ -247,6 +248,33 @@ namespace Sgry.Azuki
 				_AutoIndentHook = value;
 			}
 		}
+
+		/// <summary>
+		/// Gets whether Azuki is in line selection mode or not.
+		/// </summary>
+		public bool IsLineSelectMode
+		{
+			get{ return (_SelectionMode == TextDataType.Line); }
+			set
+			{
+				Debug.Assert( _IsDisposed == false );
+				_SelectionMode = (value == true) ? TextDataType.Line : TextDataType.Normal;
+			}
+		}
+
+		/// <summary>
+		/// Gets whether Azuki is in rectangle selection mode or not.
+		/// </summary>
+		public bool IsRectSelectMode
+		{
+			get{ return (_SelectionMode == TextDataType.Rectangle); }
+			set
+			{
+				Debug.Assert( _IsDisposed == false );
+				_SelectionMode = (value == true) ? TextDataType.Rectangle : TextDataType.Normal;
+				_UI.InvokeIsRectSelectModeChanged();
+			}
+		}
 		#endregion
 
 		#region Key Handling
@@ -351,7 +379,7 @@ namespace Sgry.Azuki
 				// clear rectangle selection
 				if( doc.RectSelectRanges != null )
 				{
-					doc.DeleteRectSelectText();
+					UiImpl.DeleteRectSelectText( doc );
 				}
 
 				// handle input characters
@@ -637,41 +665,24 @@ namespace Sgry.Azuki
 				// set selection
 				if( onLineNumberArea )
 				{
-					//--- line selection ---
-					_UI.SelectionMode = TextDataType.Line;
-					if( shift )
+					IsLineSelectMode = true;
+					if( !shift )
 					{
-						//--- expanding line selection ---
-						// expand selection to one char next of clicked position
-						// (if caret is at head of a line,
-						// the line will not be selected by SetSelection.)
-						int newCaretIndex = index;
-						if( newCaretIndex+1 < Document.Length )
-						{
-							newCaretIndex++;
-						}
-						Document.SetSelection( Document.AnchorIndex, newCaretIndex, View );
+						Document.LineSelectionAnchor = -1;
 					}
-					else
-					{
-						//--- setting line selection ---
-						Document.SetSelection( index, index, View );
-					}
+					SelectLines( index );
 				}
 				else if( shift )
 				{
-					//--- expanding selection ---
 					Document.SetSelection( Document.AnchorIndex, index );
 				}
 				else if( alt )
 				{
-					//--- rectangle selection ---
-					_UI.SelectionMode = TextDataType.Rectangle;
-					Document.SetSelection( index, index, View );
+					IsRectSelectMode = true;
+					Document.SetSelection( index, index );
 				}
 				else
 				{
-					//--- setting caret ---
 					Document.SetSelection( index, index );
 				}
 				View.SetDesiredColumn();
@@ -749,24 +760,18 @@ namespace Sgry.Azuki
 				}
 
 				// expand selection to there
-				if( _UI.SelectionMode == TextDataType.Rectangle )
+				if( IsRectSelectMode )
 				{
 					//--- rectangle selection ---
-					// expand selection to the point
-					Document.SetSelection( Document.AnchorIndex, curPosIndex, View );
+					Point anchorPos = _MouseDownVirPos;
+					Document.RectSelectRanges = View.GetRectSelectRanges(
+							MakeRectFromTwoPoints(anchorPos, pos)
+						);
+					Document.SetSelection_Impl( Document.AnchorIndex, curPosIndex, false );
 				}
-				else if( _UI.SelectionMode == TextDataType.Line )
+				else if( IsLineSelectMode )
 				{
-					//--- line selection ---
-					// expand selection to one char next of clicked position
-					// (if caret is at head of a line,
-					// the line will not be selected by SetSelection.)
-					int newCaretIndex = curPosIndex;
-					if( newCaretIndex+1 < Document.Length )
-					{
-						newCaretIndex++;
-					}
-					Document.SetSelection( Document.AnchorIndex, newCaretIndex, View );
+					SelectLines( curPosIndex );
 				}
 				else
 				{
@@ -786,7 +791,7 @@ namespace Sgry.Azuki
 		{
 			_MouseDownVirPos.X = Int32.MinValue;
 			_MouseDragging = false;
-			_UI.SelectionMode = TextDataType.Normal;
+			IsRectSelectMode = false;
 		}
 		#endregion
 
@@ -858,6 +863,30 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Utilitites
+		internal static void DeleteRectSelectText( Document doc )
+		{
+			int diff = 0;
+
+			for( int i=0; i<doc.RectSelectRanges.Length; i+=2 )
+			{
+				// recalculate range of this row
+				doc.RectSelectRanges[i] -= diff;
+				doc.RectSelectRanges[i+1] -= diff;
+
+				// replace this row
+				doc.Replace( String.Empty,
+						doc.RectSelectRanges[i],
+						doc.RectSelectRanges[i+1]
+					);
+
+				// go to next row
+				diff += doc.RectSelectRanges[i+1] - doc.RectSelectRanges[i];
+			}
+
+			// reset selection
+			doc.SetSelection( doc.RectSelectRanges[0], doc.RectSelectRanges[0] );
+		}
+
 		/// <summary>
 		/// Generates appropriate padding characters
 		/// that fills the gap between the target position and actual line-end position.
@@ -921,6 +950,101 @@ namespace Sgry.Azuki
 			}
 
 			return paddingChars.ToString();
+		}
+
+		internal static Rectangle MakeRectFromTwoPoints( Point pt1, Point pt2 )
+		{
+			Rectangle rect = new Rectangle();
+
+			// set left and width
+			if( pt1.X < pt2.X )
+			{
+				rect.X = pt1.X;
+				rect.Width = pt2.X - pt1.X;
+			}
+			else
+			{
+				rect.X = pt2.X;
+				rect.Width = pt1.X - pt2.X;
+			}
+
+			// set top and height
+			if( pt1.Y < pt2.Y )
+			{
+				rect.Y = pt1.Y;
+				rect.Height = pt2.Y - pt1.Y;
+			}
+			else
+			{
+				rect.Y = pt2.Y;
+				rect.Height = pt1.Y - pt2.Y;
+			}
+
+			return rect;
+		}
+
+		void SelectLines( int toIndex )
+		{
+			int anchor, caret;
+			int toLineIndex;
+			Document doc = this.Document;
+			int lineSelectionAnchor;
+
+			// get line index of selection starting line and destination line
+			toLineIndex = View.GetLineIndexFromCharIndex( toIndex );
+			if( doc.LineSelectionAnchor < 0 )
+			{
+				//-- no line selection exists --
+				// select between head of the line and end of the line
+				anchor = View.GetLineHeadIndex( toLineIndex );
+				if( toLineIndex+1 < View.LineCount )
+				{
+					caret = View.GetLineHeadIndex( toLineIndex + 1 );
+				}
+				else
+				{
+					caret = doc.Length;
+				}
+				lineSelectionAnchor = toIndex;
+			}
+			else if( doc.LineSelectionAnchor <= toIndex )
+			{
+				//-- selecting to the line (or after) where selection started --
+				// select between head of the starting line and the end of the destination line
+				anchor = View.GetLineHeadIndexFromCharIndex( doc.LineSelectionAnchor );
+				if( toLineIndex+1 < View.LineCount )
+				{
+					caret = View.GetLineHeadIndex( toLineIndex + 1 );
+				}
+				else
+				{
+					caret = doc.Length;
+				}
+				lineSelectionAnchor = doc.LineSelectionAnchor;
+			}
+			else// if( toIndex < doc.LineSelectionAnchor )
+			{
+				//-- selecting to foregoing lines where selection started --
+				// select between head of the destination line and end of the starting line
+				int anchorLineIndex;
+
+				caret = View.GetLineHeadIndex( toLineIndex );
+				anchorLineIndex = View.GetLineIndexFromCharIndex( doc.LineSelectionAnchor );
+				if( anchorLineIndex+1 < View.LineCount )
+				{
+					anchor = View.GetLineHeadIndex( anchorLineIndex + 1 );
+				}
+				else
+				{
+					anchor = doc.Length;
+				}
+				lineSelectionAnchor = doc.LineSelectionAnchor;
+			}
+
+			// apply new selection
+			// (and restore LineSelectionAnchor property because SetSelection clears it)
+			doc.SetSelection_Impl( anchor, caret, false );
+			doc.LineSelectionAnchor = lineSelectionAnchor;
 		}
 		#endregion
 	}

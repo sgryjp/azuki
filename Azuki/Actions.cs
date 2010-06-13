@@ -2,7 +2,7 @@
 // brief: Actions for Azuki engine.
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// update: 2010-04-30
+// update: 2010-03-20
 //=========================================================
 using System;
 using System.Drawing;
@@ -41,7 +41,7 @@ namespace Sgry.Azuki
 			{
 				//--- case of rectangle selection ---
 				doc.BeginUndo();
-				doc.DeleteRectSelectText();
+				UiImpl.DeleteRectSelectText( doc );
 				doc.EndUndo();
 				ui.Invalidate();
 			}
@@ -103,7 +103,7 @@ namespace Sgry.Azuki
 			{
 				//--- case of rectangle selection ---
 				doc.BeginUndo();
-				doc.DeleteRectSelectText();
+				UiImpl.DeleteRectSelectText( doc );
 				doc.EndUndo();
 				ui.Invalidate();
 			}
@@ -153,7 +153,7 @@ namespace Sgry.Azuki
 			{
 				//--- case of rectangle selection ---
 				doc.BeginUndo();
-				doc.DeleteRectSelectText();
+				UiImpl.DeleteRectSelectText( doc );
 				doc.EndUndo();
 				ui.Invalidate();
 			}
@@ -215,7 +215,7 @@ namespace Sgry.Azuki
 			{
 				//--- case of rectangle selection ---
 				doc.BeginUndo();
-				doc.DeleteRectSelectText();
+				UiImpl.DeleteRectSelectText( doc );
 				doc.EndUndo();
 				ui.Invalidate();
 			}
@@ -282,7 +282,7 @@ namespace Sgry.Azuki
 				if( doc.RectSelectRanges != null )
 				{
 					doc.BeginUndo();
-					doc.DeleteRectSelectText();
+					UiImpl.DeleteRectSelectText( doc );
 					doc.EndUndo();
 					Plat.Inst.SetClipboardText( text, TextDataType.Rectangle );
 				}
@@ -407,7 +407,7 @@ namespace Sgry.Azuki
 			{
 				//--- case of rectangle selection ---
 				// delete selected text
-				doc.DeleteRectSelectText();
+				UiImpl.DeleteRectSelectText( doc );
 				ui.Invalidate();
 			}
 			else if( begin != end )
@@ -537,10 +537,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void ToggleRectSelectMode( IUserInterface ui )
 		{
-			if( ui.SelectionMode != TextDataType.Rectangle )
-				ui.SelectionMode = TextDataType.Rectangle;
-			else
-				ui.SelectionMode = TextDataType.Normal;
+			ui.IsRectSelectMode = !ui.IsRectSelectMode;
 		}
 
 		/// <summary>

@@ -1,7 +1,7 @@
 // file: IUserInterface.cs
 // brief: interface of user interface module (platform dependent)
 // author: YAMAMOTO Suguru
-// update: 2010-04-30
+// update: 2010-03-20
 //=========================================================
 using System;
 using System.Drawing;
@@ -323,14 +323,6 @@ namespace Sgry.Azuki
 		{
 			get; set;
 		}
-
-		/// <summary>
-		/// Gets or sets currently active selection mode.
-		/// </summary>
-		TextDataType SelectionMode
-		{
-			get; set;
-		}
 		#endregion
 
 		#region Edit Actions
@@ -597,13 +589,11 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Occures soon after rectangular selection mode was changed.
 		/// </summary>
-		[Obsolete("Use Document.SelectionModeChanged event instead.", false)]
 		event EventHandler IsRectSelectModeChanged;
 
 		/// <summary>
 		/// Invokes IsRectSelectModeChanged event.
 		/// </summary>
-		[Obsolete("Use Document.InvokeSelectionModeChanged method instead.", false)]
 		void InvokeIsRectSelectModeChanged();
 		#endregion
 

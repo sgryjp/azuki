@@ -1,7 +1,7 @@
 // file: CaretMoveLogic.cs
 // brief: Implementation of caret movement.
 // author: YAMAMOTO Suguru
-// update: 2010-05-02
+// update: 2009-08-10
 //=========================================================
 using System;
 using System.Drawing;
@@ -31,7 +31,7 @@ namespace Sgry.Azuki
 			{
 				// set new selection and scroll to caret
 				doc.SetSelection( nextIndex, nextIndex );
-				ui.SelectionMode = TextDataType.Normal;
+				ui.IsRectSelectMode = false;
 				view.ScrollToCaret();
 			}
 		}
@@ -55,7 +55,26 @@ namespace Sgry.Azuki
 			}
 
 			// set new selection
-			doc.SetSelection( doc.AnchorIndex, nextIndex, view );
+			if( ui.IsRectSelectMode )
+			{
+				//--- case of rectangle selection ---
+				// calculate graphical position of both anchor and new caret
+				Point anchorPos = view.GetVirPosFromIndex( doc.AnchorIndex );
+				Point newCaretPos = view.GetVirPosFromIndex( nextIndex );
+				
+				// calculate ranges selected by the rectangle made with the two points
+				doc.RectSelectRanges = view.GetRectSelectRanges(
+						UiImpl.MakeRectFromTwoPoints(anchorPos, newCaretPos)
+					);
+
+				// set selection
+				doc.SetSelection_Impl( doc.AnchorIndex, nextIndex, false );
+			}
+			else
+			{
+				//--- case of normal selection ---
+				doc.SetSelection( doc.AnchorIndex, nextIndex );
+			}
 			view.ScrollToCaret();
 		}
 		#endregion
@@ -142,21 +161,6 @@ namespace Sgry.Azuki
 			}*/
 			newIndex = view.GetIndexFromVirPos( pt );
 
-			// In line selection mode,
-			// moving caret across the line which contains the anchor position
-			// should select the line and a line below.
-			// To select a line below, calculate index of the char at one more line below.
-			if( doc.SelectionMode == TextDataType.Line
-				&& Document.Utl.IsLineHead(doc, view, newIndex) )
-			{
-				Point pt2 = new Point( pt.X, pt.Y+view.LineSpacing );
-				int skippedNewIndex = view.GetIndexFromVirPos( pt2 );
-				if( skippedNewIndex == doc.AnchorIndex )
-				{
-					newIndex = skippedNewIndex;
-				}
-			}
-
 			return newIndex;
 		}
 
@@ -180,21 +184,6 @@ namespace Sgry.Azuki
 			if( newIndex < 0 )
 			{
 				return doc.CaretIndex; // don't move
-			}
-
-			// In line selection mode,
-			// moving caret across the line which contains the anchor position
-			// should select the line and a line above.
-			// To select a line above, calculate index of the char at one more line above.
-			if( doc.SelectionMode == TextDataType.Line
-				&& newIndex == doc.AnchorIndex
-				&& Document.Utl.IsLineHead(doc, view, newIndex) )
-			{
-				pt.Y -= view.LineSpacing;
-				if( 0 <= pt.Y )
-				{
-					newIndex = view.GetIndexFromVirPos( pt );
-				}
 			}
 
 			return newIndex;

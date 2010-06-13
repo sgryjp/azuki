@@ -1,7 +1,7 @@
 ﻿// file: AzukiControl.cs
 // brief: User interface for Windows platform (both Desktop and CE).
 // author: YAMAMOTO Suguru
-// update: 2010-04-30
+// update: 2010-04-25
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -270,8 +270,6 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.Left|Keys.Alt, Actions.RectSelectToLeft );
 			SetKeyBind( Keys.Up|Keys.Alt, Actions.RectSelectToUp );
 			SetKeyBind( Keys.Down|Keys.Alt, Actions.RectSelectToDown );
-			SetKeyBind( Keys.Up|Keys.Alt|Keys.Shift, Actions.LineSelectToUp );
-			SetKeyBind( Keys.Down|Keys.Alt|Keys.Shift, Actions.LineSelectToDown );
 			SetKeyBind( Keys.A|Keys.Control, Actions.SelectAll );
 
 			// bind keys to edit document
@@ -302,6 +300,34 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.Up|Keys.Control, Actions.MovePageUp );
 			SetKeyBind( Keys.Down|Keys.Control, Actions.MovePageDown );
 #			endif
+		}
+
+		/// <summary>
+		/// Gets whether Azuki is in rectangle selection mode or not.
+		/// </summary>
+#		if !PocketPC
+		[Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
+		public bool IsRectSelectMode
+		{
+			get{ return _Impl.IsRectSelectMode; }
+			set
+			{
+				_Impl.IsRectSelectMode = value;
+
+#				if !PocketPC
+				// update mouse cursor graphic
+				if( _Impl.IsRectSelectMode )
+				{
+					Cursor = Cursors.Arrow;
+				}
+				else
+				{
+					Cursor = Cursors.IBeam;
+				}
+#				endif
+			}
 		}
 
 		/// <summary>
@@ -1068,60 +1094,6 @@ namespace Sgry.Azuki.Windows
 			get{ return _AcceptsTab; }
 			set{ _AcceptsTab = value; }
 		}
-
-		/// <summary>
-		/// Gets whether Azuki is in line selection mode or not.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
-		public bool IsLineSelectMode
-		{
-			get{ return (SelectionMode == TextDataType.Line); }
-			set{ SelectionMode = TextDataType.Line; }
-		}
-
-		/// <summary>
-		/// Gets whether Azuki is in rectangle selection mode or not.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
-		public bool IsRectSelectMode
-		{
-			get{ return (SelectionMode == TextDataType.Rectangle); }
-			set{ SelectionMode = TextDataType.Rectangle; }
-		}
-
-		/// <summary>
-		/// Gets or sets how to select text.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
-		public TextDataType SelectionMode
-		{
-			get{ return Document.SelectionMode; }
-			set
-			{
-				Document.SelectionMode = value;
-
-#				if !PocketPC
-				// update mouse cursor graphic
-				if( SelectionMode == TextDataType.Rectangle )
-				{
-					Cursor = Cursors.Arrow;
-				}
-				else
-				{
-					Cursor = Cursors.IBeam;
-				}
-#				endif
-			}
-		}
 		#endregion
 
 		#region IUserInterface - Edit Actions
@@ -1575,13 +1547,11 @@ namespace Sgry.Azuki.Windows
 		/// <summary>
 		/// Occures soon after rectangular selection mode was changed.
 		/// </summary>
-		[Obsolete("Use SelectionModeChanged event instead.", false)]
 		public event EventHandler IsRectSelectModeChanged;
 
 		/// <summary>
 		/// Invokes IsRectSelectModeChanged event.
 		/// </summary>
-		[Obsolete("Use InvokeSelectionModeChanged method instead.", false)]
 		public void InvokeIsRectSelectModeChanged()
 		{
 			if( IsRectSelectModeChanged != null )
