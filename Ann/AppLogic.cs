@@ -1,4 +1,4 @@
-// 2010-04-30
+// 2010-06-12
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,15 +20,10 @@ namespace Sgry.Ann
 	{
 		#region Fields
 		const string OpenFileFilter =
-			"All files(*.*)|*.*"
-			+ "|Supported files|*.txt;*.log;*.ini;*.inf;*.tex;*.htm;*.html;*.css;*.js;*.xml;*.c;*.cpp;*.cxx;*.h;*.hpp;*.hxx;*.cs;*.java;*.py;*.rb;*.pl;*.vbs;*.bat"
-			+ "|" + CommonFileFilter;
-
+			"All files(*.*)|*.*|"
+			+ "Supported files|*.txt;*.log;*.ini;*.inf;*.tex;*.htm;*.html;*.css;*.js;*.xml;*.c;*.cpp;*.cxx;*.h;*.hpp;*.hxx;*.cs;*.java;*.py;*.rb;*.pl;*.vbs;*.bat|"
+			+ SaveFileFilter;
 		const string SaveFileFilter =
-			"All files(*.*)|*.*"
-			+ "|" + CommonFileFilter;
-
-		const string CommonFileFilter =
 			"Text file(*.txt, *.log, *.tex, ...)|*.txt;*.log;*.ini;*.inf;*.tex"
 			+ "|HTML file(*.htm, *.html)|*.htm;*.html"
 			+ "|CSS file(*.css)|*.css"
@@ -209,13 +204,7 @@ namespace Sgry.Ann
 				_UntitledFileCount++;
 			}
 			doc.DirtyStateChanged += Doc_DirtyStateChanged;
-			doc.SelectionModeChanged += Doc_SelectionModeChanged;
 			_DAD_Documents.Add( doc );
-		}
-
-		void Doc_SelectionModeChanged( object sender, EventArgs e )
-		{
-			MainForm.UpdateUI();
 		}
 
 		void Doc_DirtyStateChanged( object sender, EventArgs e )
@@ -933,7 +922,6 @@ namespace Sgry.Ann
 			MainForm.Azuki.UsesTabForIndent		= AppConfig.UsesTabForIndent;
 			MainForm.Azuki.ConvertsFullWidthSpaceToSpace = AppConfig.ConvertsFullWidthSpaceToSpace;
 			MainForm.Azuki.HRulerIndicatorType	= AppConfig.HRulerIndicatorType;
-			MainForm.Azuki.ScrollsBeyondLastLine= AppConfig.ScrollsBeyondLastLine;
 
 			// update UI
 			MainForm.UpdateUI();
@@ -967,7 +955,6 @@ namespace Sgry.Ann
 			AppConfig.UsesTabForIndent		= MainForm.Azuki.UsesTabForIndent;
 			AppConfig.ConvertsFullWidthSpaceToSpace = MainForm.Azuki.ConvertsFullWidthSpaceToSpace;
 			AppConfig.HRulerIndicatorType	= MainForm.Azuki.HRulerIndicatorType;
-			AppConfig.ScrollsBeyondLastLine	= MainForm.Azuki.ScrollsBeyondLastLine;
 
 			// save to file
 			AppConfig.Save();
@@ -1153,11 +1140,11 @@ namespace Sgry.Ann
 				tokens = line.Split( ',' );
 				if( tokens[0] == "Activate" )
 				{
-					_MainForm.Activate();
+					_MainForm.Invoke( new ThreadStart(_MainForm.Activate) );
 				}
 				else if( tokens[0] == "OpenDocument" && 1 < tokens.Length )
 				{
-					OpenDocument( tokens[1] );
+					_MainForm.Invoke( new Action<string>(OpenDocument), tokens[1] );
 				}
 			}
 		}

@@ -1,14 +1,12 @@
 // file: Document.cs
 // brief: Document of Azuki engine.
 // author: YAMAMOTO Suguru
-// update: 2010-04-30
+// update: 2010-03-17
 //=========================================================
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using Point = System.Drawing.Point;
-using Rectangle = System.Drawing.Rectangle;
 using Color = System.Drawing.Color;
 using Regex = System.Text.RegularExpressions.Regex;
 using RegexOptions = System.Text.RegularExpressions.RegexOptions;
@@ -37,10 +35,8 @@ namespace Sgry.Azuki
 		IHighlighter _Highlighter = null;
 		ViewParam _ViewParam = new ViewParam();
 		DateTime _LastModifiedTime = DateTime.Now;
-		int _LineSelectionAnchor1 = -1;
-		int _LineSelectionAnchor2 = -1; // temporary variable holding selection anchor on expanding line selection backward
+		int _LineSelectionAnchor = -1;
 		int[] _RectSelectRanges = null;
-		TextDataType _SelectionMode = TextDataType.Normal;
 		object _Tag = null;
 		static readonly char[] _PairBracketTable = new char[]{
 			'(', ')', '{', '}', '[', ']', '<', '>',
@@ -259,11 +255,11 @@ namespace Sgry.Azuki
 		/// </para>
 		/// <para>
 		/// To set value of anchor or caret, use
-		/// <see cref="Sgry.Azuki.Document.SetSelection(int, int)">Document.SetSelection</see> method.
+		/// <see cref="Sgry.Azuki.Document.SetSelection">Document.SetSelection</see> method.
 		/// </para>
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.Document.AnchorIndex">Document.AnchorIndex Property</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.SetSelection(int, int)">Document.SetSelection Method</seealso>
+		/// <seealso cref="Sgry.Azuki.Document.SetSelection">Document.SetSelection Method</seealso>
 		public int CaretIndex
 		{
 			get{ return _CaretIndex; }
@@ -282,11 +278,11 @@ namespace Sgry.Azuki
 		/// </para>
 		/// <para>
 		/// To set value of anchor or caret, use
-		/// <see cref="Sgry.Azuki.Document.SetSelection(int, int)">Document.SetSelection</see> method.
+		/// <see cref="Sgry.Azuki.Document.SetSelection">Document.SetSelection</see> method.
 		/// </para>
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.Document.CaretIndex">Document.CaretIndex Property</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.SetSelection(int, int)">Document.SetSelection Method</seealso>
+		/// <seealso cref="Sgry.Azuki.Document.SetSelection">Document.SetSelection Method</seealso>
 		public int AnchorIndex
 		{
 			get{ return _AnchorIndex; }
@@ -327,110 +323,33 @@ namespace Sgry.Azuki
 		/// <param name="caret">new index of the caret</param>
 		/// <exception cref="System.ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
 		/// <remarks>
-		/// <para>
 		/// This method sets selection range and invokes
 		/// <see cref="Sgry.Azuki.Document.SelectionChanged">Document.SelectionChanged</see> event.
-		/// If given index is at middle of a surrogate pair,
+		/// Note that if given index is at middle of a surrogate pair,
 		/// selection range will be automatically expanded to avoid dividing the pair.
-		/// </para>
-		/// <para>
-		/// This method always selects text as a sequence of character.
-		/// To select text by lines or by rectangle, use
-		/// <see cref="Sgry.Azuki.Document.SetSelection(int, int, IView)">other overload</see>
-		/// method instead.
-		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.SelectionChanged">Document.SelectionChanged event</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.SetSelection(int, int, IView)">Document.SetSelection method (another overloaded method)</seealso>
 		public void SetSelection( int anchor, int caret )
 		{
-			SelectionMode = TextDataType.Normal;
-			SetSelection( anchor, caret, null );
+			if( anchor < 0 || _Buffer.Count < anchor
+				|| caret < 0 || _Buffer.Count < caret )
+			{
+				throw new ArgumentOutOfRangeException( "'anchor' or 'caret'", "Invalid line index was given (anchor:"+anchor+", caret:"+caret+")." );
+			}
+			
+			SetSelection_Impl( anchor, caret, true );
 		}
 
-		/// <summary>
-		/// Sets selection range.
-		/// </summary>
-		/// <param name="anchor">new index of the selection anchor.</param>
-		/// <param name="caret">new index of the caret.</param>
-		/// <param name="view">a View object to be used for calculating position/index conversion.</param>
-		/// <exception cref="System.ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		/// <exception cref="System.ArgumentNullException">Parameter 'view' is null but current SelectionMode is not TextDataType.Normal.</exception>
-		/// <remarks>
-		/// <para>
-		/// This method sets selection range and invokes
-		/// <see cref="Sgry.Azuki.Document.SelectionChanged">Document.SelectionChanged</see> event.
-		/// </para>
-		/// <para>
-		/// How text will be selected depends on the value of current
-		/// <see cref="Sgry.Azuki.Document.SelectionMode">SelectionMode</see> as below.
-		/// </para>
-		/// <list type="bullet">
-		///		<item>
-		///			<para>
-		///			If SelectionMode is TextDataType.Normal,
-		///			characters from <paramref name="anchor"/> to <paramref name="caret"/>
-		///			will be selected.
-		///			</para>
-		///			<para>
-		///			Note that if given index is at middle of a surrogate pair,
-		///			selection range will be automatically expanded to avoid dividing the pair.
-		///			</para>
-		///		</item>
-		///		<item>
-		///			<para>
-		///			If SelectionMode is TextDataType.Line, lines between
-		///			the line containing <paramref name="anchor"/> position
-		///			and the line containing <paramref name="caret"/> position
-		///			will be selected.
-		///			</para>
-		///			<para>
-		///			Note that if caret is just at beginning of a line,
-		///			the line will not be selected.
-		///			</para>
-		///		</item>
-		///		<item>
-		///			<para>
-		///			If SelectionMode is TextDataType.Rectangle,
-		///			text covered by the rectangle which is graphically made by
-		///			<paramref name="anchor"/> position and <paramref name="caret"/> position
-		///			will be selected.
-		///			</para>
-		///		</item>
-		/// </list>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.SelectionChanged">Document.SelectionChanged event</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.SelectionMode">Document.SelectionMode property</seealso>
-		/// <seealso cref="Sgry.Azuki.TextDataType">TextDataType enum</seealso>
-		public void SetSelection( int anchor, int caret, IView view )
-		{
-			if( anchor < 0 || _Buffer.Count < anchor )
-				throw new ArgumentOutOfRangeException( "anchor", "Parameter 'anchor' is out of range (anchor:"+anchor+", caret:"+caret+")." );
-			if( caret < 0 || _Buffer.Count < caret )
-				throw new ArgumentOutOfRangeException( "caret", "Parameter 'caret' is out of range (anchor:"+anchor+", caret:"+caret+")." );
-			if( view == null && _SelectionMode != TextDataType.Normal )
-				throw new ArgumentNullException( "view", "Parameter 'view' must not be null if SelectionMode is not TextDataType.Normal. (SelectionMode:"+SelectionMode+")." );
-
-			if( _SelectionMode == TextDataType.Rectangle )
-				SetSelection_Rect( anchor, caret, view );
-			else if( _SelectionMode == TextDataType.Line )
-				SetSelection_Line( anchor, caret, view );
-			else
-				SetSelection_Impl( anchor, caret, true );
-		}
-
-		void SetSelection_Impl( int anchor, int caret, bool clearsSpecialSelection )
+		internal void SetSelection_Impl( int anchor, int caret, bool clearsSpecialSelection )
 		{
 			int oldAnchor, oldCaret;
 			int[] oldRectSelectRanges = null;
 
-			// clear special selection data if specified
+			// clear rectangle selection if specified
 			oldRectSelectRanges = _RectSelectRanges;
 			if( clearsSpecialSelection )
 			{
 				_RectSelectRanges = null;
-				_LineSelectionAnchor1 = -1;
-				_LineSelectionAnchor2 = -1;
+				LineSelectionAnchor = -1;
 			}
 
 			// if given parameters change nothing, do nothing
@@ -467,87 +386,6 @@ namespace Sgry.Azuki
 			{
 				InvokeSelectionChanged( oldAnchor, oldCaret, oldRectSelectRanges, false );
 			}
-		}
-		
-		void SetSelection_Line( int anchor, int caret, IView view )
-		{
-			int toLineIndex;
-
-			// get line index of the lines where selection starts and ends
-			toLineIndex = view.GetLineIndexFromCharIndex( caret );
-			if( _LineSelectionAnchor1 < 0
-				|| (anchor != _LineSelectionAnchor1 && anchor != _LineSelectionAnchor2) )
-			{
-				//-- line selection anchor changed or did not exists --
-				// select between head of the line and end of the line
-				int fromLineIndex = view.GetLineIndexFromCharIndex( anchor );
-				anchor = view.GetLineHeadIndex( fromLineIndex );
-				if( fromLineIndex+1 < view.LineCount )
-				{
-					caret = view.GetLineHeadIndex( fromLineIndex + 1 );
-				}
-				else
-				{
-					caret = Length;
-				}
-				_LineSelectionAnchor1 = anchor;
-				_LineSelectionAnchor2 = anchor;
-			}
-			else if( LineSelectionAnchor < caret )
-			{
-				//-- selecting to the line (or after) where selection started --
-				// select between head of the starting line and the end of the destination line
-				anchor = view.GetLineHeadIndexFromCharIndex( _LineSelectionAnchor1 );
-				if( Utl.IsLineHead(this, view, caret) == false )
-				{
-					toLineIndex = view.GetLineIndexFromCharIndex( caret );
-					if( toLineIndex+1 < view.LineCount )
-					{
-						caret = view.GetLineHeadIndex( toLineIndex + 1 );
-					}
-					else
-					{
-						caret = Length;
-					}
-				}
-			}
-			else// if( caret < LineSelectionAnchor )
-			{
-				//-- selecting to foregoing lines where selection started --
-				// select between head of the destination line and end of the starting line
-				int anchorLineIndex;
-
-				caret = view.GetLineHeadIndex( toLineIndex );
-				anchorLineIndex = view.GetLineIndexFromCharIndex( LineSelectionAnchor );
-				if( anchorLineIndex+1 < view.LineCount )
-				{
-					anchor = view.GetLineHeadIndex( anchorLineIndex + 1 );
-				}
-				else
-				{
-					anchor = Length;
-				}
-				//DO_NOT//_LineSelectionAnchor1 = anchor;
-				_LineSelectionAnchor2 = anchor;
-			}
-
-			// apply new selection
-			SetSelection_Impl( anchor, caret, false );
-		}
-
-		void SetSelection_Rect( int anchor, int caret, IView view )
-		{
-			// calculate graphical position of both anchor and new caret
-			Point anchorPos = view.GetVirPosFromIndex( anchor );
-			Point caretPos = view.GetVirPosFromIndex( caret );
-
-			// calculate ranges selected by the rectangle made with the two points
-			RectSelectRanges = view.GetRectSelectRanges(
-					Utl.MakeRectFromTwoPoints(anchorPos, caretPos)
-				);
-
-			// set selection
-			SetSelection_Impl( anchor, caret, false );
 		}
 
 		/// <summary>
@@ -597,8 +435,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		internal int LineSelectionAnchor
 		{
-			get{ return _LineSelectionAnchor1; }
-			set{ _LineSelectionAnchor1 = value; }
+			get{ return _LineSelectionAnchor; }
+			set{ _LineSelectionAnchor = value; }
 		}
 		#endregion
 
@@ -612,11 +450,9 @@ namespace Sgry.Azuki
 		/// Gets or sets currently inputted text.
 		/// </summary>
 		/// <remarks>
-		/// <para>
 		/// Getting text content through this property
 		/// will copy all characters from internal buffer
 		/// to a string object and returns it.
-		/// </para>
 		/// </remarks>
 		public string Text
 		{
@@ -625,7 +461,9 @@ namespace Sgry.Azuki
 				if( _Buffer.Count == 0 )
 					return String.Empty;
 
-				return new String( _Buffer.ToArray() );
+				char[] text = new char[ _Buffer.Count ];
+				_Buffer.GetRange( 0, _Buffer.Count, ref text );
+				return new String( text );
 			}
 			set
 			{
@@ -742,7 +580,7 @@ namespace Sgry.Azuki
 			lineContent = new char[ end-begin ];
 
 			// copy line content
-			_Buffer.CopyTo( begin, end, lineContent );
+			_Buffer.GetRange( begin, end, ref lineContent );
 
 			return new String( lineContent );
 		}
@@ -768,7 +606,7 @@ namespace Sgry.Azuki
 			lineContent = new char[ end-begin ];
 			
 			// copy line content
-			_Buffer.CopyTo( begin, end, lineContent );
+			_Buffer.GetRange( begin, end, ref lineContent );
 
 			return new String( lineContent );
 		}
@@ -796,7 +634,7 @@ namespace Sgry.Azuki
 			
 			// retrieve a part of the content
 			char[] buf = new char[end - begin];
-			_Buffer.CopyTo( begin, end, buf );
+			_Buffer.GetRange( begin, end, ref buf );
 			return new String( buf );
 		}
 
@@ -903,7 +741,7 @@ namespace Sgry.Azuki
 			if( begin < end )
 			{
 				char[] oldChars = new char[ end-begin ];
-				_Buffer.CopyTo( begin, end, oldChars );
+				_Buffer.GetRange( begin, end, ref oldChars );
 				oldText = new String( oldChars );
 			}
 
@@ -916,7 +754,7 @@ namespace Sgry.Azuki
 			{
 				// manage line head indexes and delete content
 				LineLogic.LHI_Delete( _LHI, _LDS, _Buffer, begin, end );
-				_Buffer.RemoveRange( begin, end );
+				_Buffer.Delete( begin, end );
 
 				// manage caret/anchor index
 				if( begin < _CaretIndex )
@@ -1103,23 +941,6 @@ namespace Sgry.Azuki
 				if( value != "\r\n" && value != "\r" && value != "\n" )
 					throw new InvalidOperationException( "unsupported type of EOL code was set." );
 				_EolCode = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets how to select text.
-		/// </summary>
-		public TextDataType SelectionMode
-		{
-			get{ return _SelectionMode; }
-			set
-			{
-				bool changed = (_SelectionMode != value);
-				_SelectionMode = value;
-				if( changed )
-				{
-					InvokeSelectionModeChanged();
-				}
 			}
 		}
 		#endregion
@@ -1959,18 +1780,6 @@ namespace Sgry.Azuki
 			if( DirtyStateChanged != null )
 				DirtyStateChanged( this, EventArgs.Empty );
 		}
-
-		/// <summary>
-		/// Occures soon after selection mode was changed.
-		/// </summary>
-		public event EventHandler SelectionModeChanged;
-		void InvokeSelectionModeChanged()
-		{
-			if( SelectionModeChanged != null )
-			{
-				SelectionModeChanged( this, EventArgs.Empty );
-			}
-		}
 		#endregion
 
 		#region Utilities
@@ -2001,7 +1810,6 @@ namespace Sgry.Azuki
 				int usage = 0;
 				usage += _Buffer.Capacity * ( sizeof(char) + sizeof(CharClass) );
 				usage += _LHI.Capacity * sizeof(int);
-				usage += _LDS.Capacity * sizeof(LineDirtyState);
 				usage += _History.MemoryUsage;
 				return usage;
 			}
@@ -2048,30 +1856,6 @@ namespace Sgry.Azuki
 		public static bool IsLowSurrogate( char ch )
 		{
 			return (0xdc00 <= ch && ch <= 0xdfff);
-		}
-
-		internal void DeleteRectSelectText()
-		{
-			int diff = 0;
-
-			for( int i=0; i<RectSelectRanges.Length; i+=2 )
-			{
-				// recalculate range of this row
-				RectSelectRanges[i] -= diff;
-				RectSelectRanges[i+1] -= diff;
-
-				// replace this row
-				Replace( String.Empty,
-						RectSelectRanges[i],
-						RectSelectRanges[i+1]
-					);
-
-				// go to next row
-				diff += RectSelectRanges[i+1] - RectSelectRanges[i];
-			}
-
-			// reset selection
-			SetSelection( RectSelectRanges[0], RectSelectRanges[0] );
 		}
 
 		internal class Utl
@@ -2132,61 +1916,6 @@ namespace Sgry.Azuki
 						}
 					}
 				}
-			}
-
-			public static bool IsLineHead( Document doc, IView view, int index )
-			{
-				DebugUtl.Assert( doc != null );
-				DebugUtl.Assert( view != null );
-
-				if( index < 0 )
-				{
-					return false;
-				}
-				else if( index == 0 )
-				{
-					return true;
-				}
-				else if( index < doc.Length )
-				{
-					int lineHeadIndex = view.GetLineHeadIndexFromCharIndex( index );
-					return (lineHeadIndex == index);
-				}
-				else
-				{
-					return false;
-				}
-			}
-
-			public static Rectangle MakeRectFromTwoPoints( Point pt1, Point pt2 )
-			{
-				Rectangle rect = new Rectangle();
-
-				// set left and width
-				if( pt1.X < pt2.X )
-				{
-					rect.X = pt1.X;
-					rect.Width = pt2.X - pt1.X;
-				}
-				else
-				{
-					rect.X = pt2.X;
-					rect.Width = pt1.X - pt2.X;
-				}
-
-				// set top and height
-				if( pt1.Y < pt2.Y )
-				{
-					rect.Y = pt1.Y;
-					rect.Height = pt2.Y - pt1.Y;
-				}
-				else
-				{
-					rect.Y = pt2.Y;
-					rect.Height = pt1.Y - pt2.Y;
-				}
-
-				return rect;
 			}
 		}
 		#endregion

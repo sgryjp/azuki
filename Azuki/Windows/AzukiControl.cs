@@ -1,7 +1,7 @@
 ﻿// file: AzukiControl.cs
 // brief: User interface for Windows platform (both Desktop and CE).
 // author: YAMAMOTO Suguru
-// update: 2010-04-30
+// update: 2010-05-16
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -41,6 +41,7 @@ namespace Sgry.Azuki.Windows
 		bool _LastAltWasForRectSelect = false;
 #		else
 		bool _IsHandleCreated = false;
+		int _ImeCompositionCharCount = 0; // count of chars already input by IME which must be ignored
 #		endif
 		
 		InvalidateProc1 _invalidateProc1 = null;
@@ -270,8 +271,6 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.Left|Keys.Alt, Actions.RectSelectToLeft );
 			SetKeyBind( Keys.Up|Keys.Alt, Actions.RectSelectToUp );
 			SetKeyBind( Keys.Down|Keys.Alt, Actions.RectSelectToDown );
-			SetKeyBind( Keys.Up|Keys.Alt|Keys.Shift, Actions.LineSelectToUp );
-			SetKeyBind( Keys.Down|Keys.Alt|Keys.Shift, Actions.LineSelectToDown );
 			SetKeyBind( Keys.A|Keys.Control, Actions.SelectAll );
 
 			// bind keys to edit document
@@ -302,6 +301,34 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.Up|Keys.Control, Actions.MovePageUp );
 			SetKeyBind( Keys.Down|Keys.Control, Actions.MovePageDown );
 #			endif
+		}
+
+		/// <summary>
+		/// Gets whether Azuki is in rectangle selection mode or not.
+		/// </summary>
+#		if !PocketPC
+		[Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
+		public bool IsRectSelectMode
+		{
+			get{ return _Impl.IsRectSelectMode; }
+			set
+			{
+				_Impl.IsRectSelectMode = value;
+
+#				if !PocketPC
+				// update mouse cursor graphic
+				if( _Impl.IsRectSelectMode )
+				{
+					Cursor = Cursors.Arrow;
+				}
+				else
+				{
+					Cursor = Cursors.IBeam;
+				}
+#				endif
+			}
 		}
 
 		/// <summary>
@@ -1068,60 +1095,6 @@ namespace Sgry.Azuki.Windows
 			get{ return _AcceptsTab; }
 			set{ _AcceptsTab = value; }
 		}
-
-		/// <summary>
-		/// Gets whether Azuki is in line selection mode or not.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
-		public bool IsLineSelectMode
-		{
-			get{ return (SelectionMode == TextDataType.Line); }
-			set{ SelectionMode = TextDataType.Line; }
-		}
-
-		/// <summary>
-		/// Gets whether Azuki is in rectangle selection mode or not.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
-		public bool IsRectSelectMode
-		{
-			get{ return (SelectionMode == TextDataType.Rectangle); }
-			set{ SelectionMode = TextDataType.Rectangle; }
-		}
-
-		/// <summary>
-		/// Gets or sets how to select text.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
-		public TextDataType SelectionMode
-		{
-			get{ return Document.SelectionMode; }
-			set
-			{
-				Document.SelectionMode = value;
-
-#				if !PocketPC
-				// update mouse cursor graphic
-				if( SelectionMode == TextDataType.Rectangle )
-				{
-					Cursor = Cursors.Arrow;
-				}
-				else
-				{
-					Cursor = Cursors.IBeam;
-				}
-#				endif
-			}
-		}
 		#endregion
 
 		#region IUserInterface - Edit Actions
@@ -1575,13 +1548,11 @@ namespace Sgry.Azuki.Windows
 		/// <summary>
 		/// Occures soon after rectangular selection mode was changed.
 		/// </summary>
-		[Obsolete("Use SelectionModeChanged event instead.", false)]
 		public event EventHandler IsRectSelectModeChanged;
 
 		/// <summary>
 		/// Invokes IsRectSelectModeChanged event.
 		/// </summary>
-		[Obsolete("Use InvokeSelectionModeChanged method instead.", false)]
 		public void InvokeIsRectSelectModeChanged()
 		{
 			if( IsRectSelectModeChanged != null )
@@ -2445,6 +2416,16 @@ namespace Sgry.Azuki.Windows
 						HandleWheelEvent( -(linesPerWheel * scrollCount) );
 					}
 				}
+				else if( message == WinApi.WM_CHAR )
+				{
+#					if PocketPC
+					if( 0 < _ImeCompositionCharCount )
+					{
+						_ImeCompositionCharCount--;
+						return IntPtr.Zero;
+					}
+#					endif
+				}
 				else if( message == WinApi.WM_IME_CHAR )
 				{
 					if( IsOverwriteMode == false )
@@ -2474,12 +2455,25 @@ namespace Sgry.Azuki.Windows
 						}
 
 						_Impl.HandleTextInput( text );
+#						if PocketPC
+						_ImeCompositionCharCount = text.Length;
+#						endif
 					}
 				}
 				else if( message == WinApi.WM_IME_STARTCOMPOSITION )
 				{
+#					if PocketPC
+					_ImeCompositionCharCount = 0;
+#					endif
+
 					// move IMM window to caret position
 					WinApi.SetImeWindowFont( Handle, View.FontInfo );
+				}
+				else if( message == WinApi.WM_IME_ENDCOMPOSITION )
+				{
+#					if PocketPC
+					_ImeCompositionCharCount = 0;
+#					endif
 				}
 				else if( message == WinApi.WM_IME_REQUEST
 					&& wParam.ToInt64() == (long)WinApi.IMR_RECONVERTSTRING )
