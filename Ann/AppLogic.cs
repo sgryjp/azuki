@@ -1,4 +1,4 @@
-// 2010-07-04
+// 2010-06-12
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,15 +20,10 @@ namespace Sgry.Ann
 	{
 		#region Fields
 		const string OpenFileFilter =
-			"All files(*.*)|*.*"
-			+ "|Supported files|*.txt;*.log;*.ini;*.inf;*.tex;*.htm;*.html;*.css;*.js;*.xml;*.c;*.cpp;*.cxx;*.h;*.hpp;*.hxx;*.cs;*.java;*.py;*.rb;*.pl;*.vbs;*.bat"
-			+ "|" + CommonFileFilter;
-
+			"All files(*.*)|*.*|"
+			+ "Supported files|*.txt;*.log;*.ini;*.inf;*.tex;*.htm;*.html;*.css;*.js;*.xml;*.c;*.cpp;*.cxx;*.h;*.hpp;*.hxx;*.cs;*.java;*.py;*.rb;*.pl;*.vbs;*.bat|"
+			+ SaveFileFilter;
 		const string SaveFileFilter =
-			"All files(*.*)|*.*"
-			+ "|" + CommonFileFilter;
-
-		const string CommonFileFilter =
 			"Text file(*.txt, *.log, *.tex, ...)|*.txt;*.log;*.ini;*.inf;*.tex"
 			+ "|HTML file(*.htm, *.html)|*.htm;*.html"
 			+ "|CSS file(*.css)|*.css"
@@ -56,7 +51,6 @@ namespace Sgry.Ann
 		bool _MonitorThreadCanContinue;
 		PseudoPipe _IpcPipe = new PseudoPipe();
 		bool _AskingUserToReloadOrNot = false;
-		bool _ShouldUpdateTextAreaWidth = false;
 		#endregion
 
 		#region Init / Dispose
@@ -210,13 +204,7 @@ namespace Sgry.Ann
 				_UntitledFileCount++;
 			}
 			doc.DirtyStateChanged += Doc_DirtyStateChanged;
-			doc.SelectionModeChanged += Doc_SelectionModeChanged;
 			_DAD_Documents.Add( doc );
-		}
-
-		void Doc_SelectionModeChanged( object sender, EventArgs e )
-		{
-			MainForm.UpdateUI();
 		}
 
 		void Doc_DirtyStateChanged( object sender, EventArgs e )
@@ -740,6 +728,10 @@ namespace Sgry.Ann
 			Debug.Assert( doc != null );
 			Debug.Assert( filePath != null );
 
+			StreamReader file = null;
+			char[] buf = null;
+			int readCount = 0;
+
 			// analyze encoding
 			if( encoding == null )
 			{
@@ -749,12 +741,8 @@ namespace Sgry.Ann
 			doc.WithBom = withBom;
 
 			// load file content
-			using( FileStream stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite) )
-			using( StreamReader file = new StreamReader(stream, encoding) )
+			using( file = new StreamReader(filePath, encoding) )
 			{
-				char[] buf = null;
-				int readCount = 0;
-
 				// make the document content empty first
 				doc.Replace( "", 0, doc.Length );
 
@@ -934,7 +922,6 @@ namespace Sgry.Ann
 			MainForm.Azuki.UsesTabForIndent		= AppConfig.UsesTabForIndent;
 			MainForm.Azuki.ConvertsFullWidthSpaceToSpace = AppConfig.ConvertsFullWidthSpaceToSpace;
 			MainForm.Azuki.HRulerIndicatorType	= AppConfig.HRulerIndicatorType;
-			MainForm.Azuki.ScrollsBeyondLastLine= AppConfig.ScrollsBeyondLastLine;
 
 			// update UI
 			MainForm.UpdateUI();
@@ -943,7 +930,7 @@ namespace Sgry.Ann
 		public void SaveConfig()
 		{
 			// update config fields
-			AppConfig.FontInfo				= MainForm.Azuki.FontInfo;
+			AppConfig.FontInfo				= new FontInfo( MainForm.Azuki.Font );
 			AppConfig.WindowMaximized		= (MainForm.WindowState == FormWindowState.Maximized);
 			if( MainForm.WindowState == FormWindowState.Normal )
 			{
@@ -968,7 +955,6 @@ namespace Sgry.Ann
 			AppConfig.UsesTabForIndent		= MainForm.Azuki.UsesTabForIndent;
 			AppConfig.ConvertsFullWidthSpaceToSpace = MainForm.Azuki.ConvertsFullWidthSpaceToSpace;
 			AppConfig.HRulerIndicatorType	= MainForm.Azuki.HRulerIndicatorType;
-			AppConfig.ScrollsBeyondLastLine	= MainForm.Azuki.ScrollsBeyondLastLine;
 
 			// save to file
 			AppConfig.Save();
@@ -1115,7 +1101,7 @@ namespace Sgry.Ann
 		{
 			if( MainForm.Azuki.ViewType == ViewType.WrappedProportional )
 			{
-				_ShouldUpdateTextAreaWidth = true;
+				MainForm.Azuki.ViewWidth = MainForm.Azuki.ClientSize.Width;
 			}
 		}
 		#endregion
@@ -1140,20 +1126,7 @@ namespace Sgry.Ann
 					// remember new timestamp
 					timestamp = File.GetLastWriteTime( IpcFilePath );
 				}
-				if( _ShouldUpdateTextAreaWidth )
-				{
-					_ShouldUpdateTextAreaWidth = false;
-					MainForm.Invoke(
-						new ThreadStart(ApplyNewTextAreaWidth)
-					);
-				}
 			}
-		}
-
-		public void ApplyNewTextAreaWidth()
-		{
-			AzukiControl azuki = MainForm.Azuki;
-			azuki.ViewWidth = azuki.ClientSize.Width - azuki.View.HRulerUnitWidth * 2;
 		}
 
 		void ParseIpcFile()
@@ -1248,7 +1221,7 @@ namespace Sgry.Ann
 
 				try
 				{
-					using( file = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite) )
+					using( file = File.OpenRead(filePath) )
 					{
 						// prepare buffer
 						if( MaxSize < file.Length )

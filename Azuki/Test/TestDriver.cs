@@ -1,4 +1,4 @@
-﻿// 2010-06-26
+﻿// 2008-12-31
 #if TEST
 using System;
 
@@ -8,7 +8,6 @@ namespace Sgry.Azuki.Test
 	{
 		static int Main()
 		{
-			DefaultWordProcTest.Test();
 			CaretMoveLogicTest.Test();
 			EditHistoryTest.Test();
 			SplitArrayTest.Test();

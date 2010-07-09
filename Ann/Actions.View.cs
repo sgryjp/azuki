@@ -1,4 +1,4 @@
-// 2010-07-04
+// 2009-11-28
 using System;
 using System.Windows.Forms;
 using Sgry.Azuki;
@@ -70,7 +70,7 @@ namespace Sgry.Ann
 			if( azuki.ViewType == ViewType.Proportional )
 			{
 				azuki.ViewType = ViewType.WrappedProportional;
-				app.ApplyNewTextAreaWidth();
+				azuki.ViewWidth = azuki.ClientSize.Width;
 			}
 			else
 			{

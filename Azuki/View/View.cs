@@ -1,7 +1,7 @@
 ﻿// file: View.cs
 // brief: Platform independent view implementation of Azuki engine.
 // author: YAMAMOTO Suguru
-// update: 2010-07-04
+// update: 2010-05-16
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -870,8 +870,6 @@ namespace Sgry.Azuki
 				{
 					break; // reached EOF
 				}
-				Debug.Assert( Document.IsNotDividableIndex(leftIndex) == false );
-				Debug.Assert( Document.IsNotDividableIndex(rightIndex) == false );
 
 				// add this sub-selection range
 				selRanges.Add( leftIndex );
@@ -961,17 +959,22 @@ namespace Sgry.Azuki
 			int vDelta = 0, hDelta;
 
 			// make rentangle of virtual text view
-			threshRect.X = ScrollPosX + SpaceWidthInPx;
+			threshRect.X = ScrollPosX;
 			threshRect.Y = FirstVisibleLine * LineSpacing;
-			threshRect.Width = (_VisibleSize.Width - XofTextArea) - (SpaceWidthInPx * 2);
+			threshRect.Width = (_VisibleSize.Width - XofTextArea);
 			threshRect.Height = (_VisibleSize.Height - YofTextArea) - LineSpacing;
 
 			// shrink the rectangle if some lines must be visible
-			if( 0 < UserPref.AutoScrollMargin )
+			if( UserPref.AutoScrollNearWindowBorder )
 			{
-				int yMargin = Math.Max( 0, UserPref.AutoScrollMargin * LineSpacing );
-				threshRect.Y += yMargin;
-				threshRect.Height -= (yMargin * 2);
+				threshRect.X += _SpaceWidth;
+				threshRect.Width -= _SpaceWidth << 1;
+				if( 0 < FirstVisibleLine )
+				{
+					threshRect.Y += LineSpacing;
+					threshRect.Height -= LineSpacing;
+				}
+				threshRect.Height -= (LineSpacing >> 1);
 			}
 
 			// calculate caret position

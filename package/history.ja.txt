@@ -1,20 +1,7 @@
-== 1.6.0 (    -  -  ) ==
- * add: 禁則処理を含むワードラップ機能に対応
- * add: Unicode の結合文字シーケンスを、選択・編集時に１文字として扱うように
- * add: キーボードで行選択を可能に
- * add: Document.SelectionMode プロパティで選択モードを設定可能に
- * add: Document.SetSelection メソッドで行選択を可能に
- * add: Document.SetSelection メソッドで箱形選択を可能に
- * add: Document.GetWordAt メソッドのオーバーロードを追加
- * add: Document.GetLineLength メソッドのオーバーロードを追加
- * add: UserPref.AutoScrollMargin プロパティで、キャレットがウィンドウの端から何行分の余裕を持って自動スクロールするかを設定可能に
- * mod: AzukiControl.IsRectSelectModeChanged イベントを Obsolete 指定に（Document.SelectionModeChanged で置き換え）
- * mod: .NET Compact Framework 版でも描画時にダブルバッファリングを行うように
- * add: [Ann] 現在の編集モードをメニュー上でチェックするように
- * add: [Ann] 現在の選択モードをタイトル文字列で表示するように
- * mod: [Ann] ファイル保存ダイアログの「ファイルの種類」フィルターに「All files」を追加
- * fix: [Ann] TrueType でないフォントを使った場合にフォント設定が正しく保存されない問題を修正
- * fix: [Ann] 他のプロセスが読み取りを許可する共有モードで開いているファイルも開けるように
+== 1.5.7 (2010-07-09) ==
+ * fix: クリップボードから非テキストデータを貼り付けるとクリップボードをロックしてしまい、他のアプリがクリップボードを使えなくなる問題を修正（1.5.0でのデグレード）
+ * fix: System.Drawing.Font.OriginalFontName を使わないように
+ * fix: [Ann] バージョン番号を 1.4.7 に
 
 == 1.5.6 (2010-06-12) ==
  * fix: ドキュメント先頭にある特定パターンの単語（例:11aa）を単語単位で削除や選択などすると例外が発生する問題を修正（1.2.0からのバグ）
@@ -169,11 +156,11 @@
  * add: AzukiControl に BorderStyle プロパティを追加
  * add: AzukiControl に FirstVisibleLine プロパティを追加
  * add: 自動インデントが全角空白に対しても実行されるように
- * add: AzukiControl.UseCtrlTabToMoveFocus を .NET Compact Framework 環境でも実装
+ * add: AzukiControl.UseCtrlTabToMoveFocusを.NET Compact Framework環境でも実装
  * fix: Document.IsReadOnly の値にかかわらずプログラム的には Document オブジェクトを編集可能に
  * fix: KeywordHighlighter が「エスケープされたエスケープ文字」を正しく扱うように（C++ の '\\' といったトークンを正しくハイライト可能に）
  * fix: UNDO 記録用のメモリー領域をクリアしてもすぐに解放されない問題を修正
- * fix: AzukiControl.AcceptsTab が .NET Compact Framework 環境でも動作するように
+ * fix: AzukiControl.AcceptsTabが.NET Compact Framework環境でも動作するように
  * fix: メモリー使用量を削減
  * fix: ViewType 列挙子のスペルミスを修正（"propotional"としていた）
  * fix: CharType.Delimiter のスペルミスを修正（"delimitter"としていた）

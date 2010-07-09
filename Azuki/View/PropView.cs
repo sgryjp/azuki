@@ -1,7 +1,7 @@
 // file: PropView.cs
 // brief: Platform independent view (proportional).
 // author: YAMAMOTO Suguru
-// update: 2010-07-04
+// update: 2010-06-12
 //=========================================================
 //DEBUG//#define DRAW_SLOWLY
 using System;
@@ -156,31 +156,17 @@ namespace Sgry.Azuki
 				// calc maximum length of chars in line
 				int rightLimitX = pt.X;
 				int leftPartWidth = MeasureTokenEndX( line, 0, rightLimitX, out drawableTextLen );
-				Debug.Assert( Document.IsNotDividableIndex(line, drawableTextLen) == false );
 				columnIndex = drawableTextLen;
 
 				// if the location is nearer to the NEXT of that char,
 				// we should return the index of next one.
 				if( drawableTextLen < line.Length )
 				{
-					// get next grapheme cluster
 					string nextChar = line[drawableTextLen].ToString();
-					int nextCharEnd = drawableTextLen + 1;
-					while( Document.IsNotDividableIndex(line, nextCharEnd) )
-					{
-						nextChar += line[ nextCharEnd ];
-						nextCharEnd++;
-					}
-
-					// determine which side the location is near
 					int nextCharWidth = MeasureTokenEndX( nextChar, leftPartWidth ) - leftPartWidth;
 					if( leftPartWidth + nextCharWidth/2 < pt.X ) // == "x of middle of next char" < "x of click in virtual text area"
 					{
 						columnIndex = drawableTextLen + 1;
-						while( Document.IsNotDividableIndex(line, columnIndex) )
-						{
-							columnIndex++;
-						}
 					}
 				}
 			}
@@ -314,7 +300,11 @@ namespace Sgry.Azuki
 				// if an exception was caught here, it is not a fatal error
 				// so avoid crashing application
 				Invalidate();
-				Debug.Fail( ex.ToString() );
+#				if DEBUG
+				throw new Exception( "NON FATAL INTERNAL ERROR", ex );
+#				else
+				ex.GetHashCode(); // (suppressing warning)
+#				endif
 			}
 			finally
 			{
@@ -357,8 +347,6 @@ namespace Sgry.Azuki
 			// calculate rectangle in virtual space
 			firstBegin = e.OldRectSelectRanges[0];
 			lastEnd = e.OldRectSelectRanges[ e.OldRectSelectRanges.Length - 1 ];
-			Debug.Assert( 0 <= firstBegin && firstBegin < Document.Length );
-			Debug.Assert( 0 <= lastEnd && lastEnd <= Document.Length );
 			firstBeginPos = this.GetVirPosFromIndex( firstBegin );
 			lastEndPos = this.GetVirPosFromIndex( lastEnd );
 			firstBeginPos.Y -= (LinePadding >> 1);
@@ -400,13 +388,13 @@ namespace Sgry.Azuki
 			beginLineHead = GetLineHeadIndex( beginL );
 			if( beginLineHead < begin )
 			{
-				token = Document.GetTextInRange( ref beginLineHead, ref begin );
+				token = Document.GetTextInRange( beginLineHead, begin );
 			}
 			
 			// calculate invalid rect
 			rect.X = MeasureTokenEndX( token, 0 );
 			rect.Y = YofLine( beginL );
-			token = Document.GetTextInRange( ref beginLineHead, ref end );
+			token = Document.GetTextInRange( beginLineHead, end );
 			rect.Width = MeasureTokenEndX( token, 0 ) - rect.X;
 			rect.Height = LineSpacing;
 
@@ -506,19 +494,10 @@ namespace Sgry.Azuki
 
 		internal override void HandleContentChanged( object sender, ContentChangedEventArgs e )
 		{
-			// [*1] if replacement breaks or creates
-			// a combining character sequence at left boundary of the range,
-			// at least one grapheme cluster left must be redrawn.
-			// 
-			// One case of that e.OldText has combining char at first:
-			//    aa^aa --(replace [2, 4) to "AA")--> aaAAa
-			// 
-			// One case of that e.NewText has combining char at first:
-			//    aaaa --(replace [2, 3) to "^A")--> aa^Aa
-
 			Point oldCaretPos;
 			Rectangle invalidRect1 = new Rectangle();
 			Rectangle invalidRect2 = new Rectangle();
+			int oldTextLineCount, newTextLineCount;
 
 			// get position of the word replacement occured
 			oldCaretPos = GetVirPosFromIndex( e.Index );
@@ -528,22 +507,16 @@ namespace Sgry.Azuki
 			UpdateHRuler();
 
 			// invalidate the part at right of the old selection
-			if( Document.IsCombiningCharacter(e.OldText, 0)
-				|| Document.IsCombiningCharacter(e.NewText, 0) )
-			{
-				invalidRect1.X = XofTextArea; // [*1]
-			}
-			else
-			{
-				invalidRect1.X = oldCaretPos.X;
-			}
-			invalidRect1.Width = VisibleSize.Width - invalidRect1.X;
+			invalidRect1.X = oldCaretPos.X;
 			invalidRect1.Y = oldCaretPos.Y - (LinePadding >> 1);
+			invalidRect1.Width = VisibleSize.Width - invalidRect1.X;
 			invalidRect1.Height = LineSpacing;
 
 			// invalidate all lines below caret
 			// if old text or new text contains multiple lines
-			if( LineLogic.IsMultiLine(e.OldText) || LineLogic.IsMultiLine(e.NewText) )
+			oldTextLineCount = LineLogic.CountLine( e.OldText );
+			newTextLineCount = LineLogic.CountLine( e.NewText );
+			if( 1 < oldTextLineCount || 1 < newTextLineCount )
 			{
 				//NO_NEED//invalidRect2.X = 0;
 				invalidRect2.Y = invalidRect1.Bottom;
@@ -613,12 +586,12 @@ namespace Sgry.Azuki
 			string textSelected;
 
 			// calculate position of the invalid rect
-			textBeforeSelBegin = Document.GetTextInRange( ref beginLineHead, ref begin );
+			textBeforeSelBegin = Document.GetTextInRange( beginLineHead, begin );
 			rect.X = MeasureTokenEndX( textBeforeSelBegin, 0 );
 			rect.Y = YofLine( beginL );
 
 			// calculate width and height of the invalid rect
-			textSelected = Document.GetTextInRange( ref begin, ref end );
+			textSelected = Document.GetTextInRange( begin, end );
 			rect.Width = MeasureTokenEndX( textSelected, rect.X ) - rect.X;
 			rect.Height = LineSpacing;
 			Debug.Assert( 0 <= rect.Width );
@@ -702,7 +675,7 @@ namespace Sgry.Azuki
 			int longestLineLength = 0;
 
 			// prepare off-screen buffer
-#			if !DRAW_SLOWLY
+#			if !DRAW_SLOWLY && !PocketPC
 			_Gra.BeginPaint( clipRect );
 #			endif
 
@@ -747,7 +720,7 @@ namespace Sgry.Azuki
 
 			// flush drawing results BEFORE updating current line highlight
 			// because the highlight graphic can be drawn outside of the clipping rect
-#			if !DRAW_SLOWLY
+#			if !DRAW_SLOWLY && !PocketPC
 			_Gra.EndPaint();
 #			endif
 
@@ -797,7 +770,7 @@ namespace Sgry.Azuki
 				&& end != -1 ) // or reaches the end of text
 			{
 				// get this token
-				token = Document.GetTextInRange( ref begin, ref end );
+				token = Document.GetTextInRange( begin, end );
 				DebugUtl.Assert( 0 < token.Length );
 
 				// calc next drawing pos before drawing text
@@ -842,7 +815,7 @@ namespace Sgry.Azuki
 					// set the position to cut extra trailings of this token
 					if( visibleCharCount+1 <= token.Length )
 					{
-						if( Document.IsNotDividableIndex(token, visibleCharCount+1) )
+						if( Document.IsDividableIndex(token, visibleCharCount+1) == false )
 						{
 							token = token.Substring( 0, visibleCharCount + 2 );
 						}

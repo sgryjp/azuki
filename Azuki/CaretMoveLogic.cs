@@ -1,7 +1,7 @@
 // file: CaretMoveLogic.cs
 // brief: Implementation of caret movement.
 // author: YAMAMOTO Suguru
-// update: 2010-06-26
+// update: 2009-08-10
 //=========================================================
 using System;
 using System.Drawing;
@@ -31,7 +31,7 @@ namespace Sgry.Azuki
 			{
 				// set new selection and scroll to caret
 				doc.SetSelection( nextIndex, nextIndex );
-				ui.SelectionMode = TextDataType.Normal;
+				ui.IsRectSelectMode = false;
 				view.ScrollToCaret();
 			}
 		}
@@ -55,7 +55,26 @@ namespace Sgry.Azuki
 			}
 
 			// set new selection
-			doc.SetSelection( doc.AnchorIndex, nextIndex, view );
+			if( ui.IsRectSelectMode )
+			{
+				//--- case of rectangle selection ---
+				// calculate graphical position of both anchor and new caret
+				Point anchorPos = view.GetVirPosFromIndex( doc.AnchorIndex );
+				Point newCaretPos = view.GetVirPosFromIndex( nextIndex );
+				
+				// calculate ranges selected by the rectangle made with the two points
+				doc.RectSelectRanges = view.GetRectSelectRanges(
+						UiImpl.MakeRectFromTwoPoints(anchorPos, newCaretPos)
+					);
+
+				// set selection
+				doc.SetSelection_Impl( doc.AnchorIndex, nextIndex, false );
+			}
+			else
+			{
+				//--- case of normal selection ---
+				doc.SetSelection( doc.AnchorIndex, nextIndex );
+			}
 			view.ScrollToCaret();
 		}
 		#endregion
@@ -73,15 +92,21 @@ namespace Sgry.Azuki
 				return doc.Length;
 			}
 			
-			// avoid placing caret at middle of a CR-LF, a surrogate pair,
-			// or a combining character sequence
-			int newCaretIndex = doc.CaretIndex + 1;
-			while( doc.IsNotDividableIndex(newCaretIndex) )
+			int offset = 1;
+			int caret = doc.CaretIndex;
+
+			// avoid placing caret at middle of a CR-LF or a surrogate pair
+			if( caret+2 <= doc.Length )
 			{
-				newCaretIndex++;
+				string nextTwoChars = "" + doc[caret] + doc[caret+1];
+				if( nextTwoChars == "\r\n"
+					|| Document.IsHighSurrogate(nextTwoChars[0]) )
+				{
+					offset = 2;
+				}
 			}
 
-			return newCaretIndex;
+			return doc.CaretIndex + offset;
 		}
 
 		/// <summary>
@@ -96,15 +121,21 @@ namespace Sgry.Azuki
 				return 0;
 			}
 
-			// avoid placing caret at middle of a CR-LF, a surrogate pair,
-			// or a combining character sequence
-			int newCaretIndex = doc.CaretIndex - 1;
-			while( doc.IsNotDividableIndex(newCaretIndex) )
+			int offset = 1;
+			int caret = doc.CaretIndex;
+
+			// avoid placing caret at middle of a CR-LF or a surrogate pair
+			if( 0 <= caret-2 )
 			{
-				newCaretIndex--;
+				string prevTwoChars = "" + doc[caret-2] + doc[caret-1];
+				if( prevTwoChars == "\r\n"
+					|| Document.IsLowSurrogate(prevTwoChars[1]) )
+				{
+					offset = 2;
+				}
 			}
 
-			return newCaretIndex;
+			return doc.CaretIndex - offset;
 		}
 
 		/// <summary>
@@ -129,21 +160,6 @@ namespace Sgry.Azuki
 				return doc.CaretIndex; // no lines below. don't move.
 			}*/
 			newIndex = view.GetIndexFromVirPos( pt );
-
-			// In line selection mode,
-			// moving caret across the line which contains the anchor position
-			// should select the line and a line below.
-			// To select a line below, calculate index of the char at one more line below.
-			if( doc.SelectionMode == TextDataType.Line
-				&& Document.Utl.IsLineHead(doc, view, newIndex) )
-			{
-				Point pt2 = new Point( pt.X, pt.Y+view.LineSpacing );
-				int skippedNewIndex = view.GetIndexFromVirPos( pt2 );
-				if( skippedNewIndex == doc.AnchorIndex )
-				{
-					newIndex = skippedNewIndex;
-				}
-			}
 
 			return newIndex;
 		}
@@ -170,21 +186,6 @@ namespace Sgry.Azuki
 				return doc.CaretIndex; // don't move
 			}
 
-			// In line selection mode,
-			// moving caret across the line which contains the anchor position
-			// should select the line and a line above.
-			// To select a line above, calculate index of the char at one more line above.
-			if( doc.SelectionMode == TextDataType.Line
-				&& newIndex == doc.AnchorIndex
-				&& Document.Utl.IsLineHead(doc, view, newIndex) )
-			{
-				pt.Y -= view.LineSpacing;
-				if( 0 <= pt.Y )
-				{
-					newIndex = view.GetIndexFromVirPos( pt );
-				}
-			}
-
 			return newIndex;
 		}
 
@@ -193,32 +194,13 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static int Calc_NextWord( IView view )
 		{
-			int index;
 			Document doc = view.Document;
-
-			// if EOL code comes, return just after them
-			if( Utl.IsEol(doc, doc.CaretIndex) )
-			{
-				return Utl.SkipOneEol( doc, doc.CaretIndex );
-			}
-
-			// if the caret is at the end of document, return end of document
-			index = doc.CaretIndex + 1;
-			if( doc.Length <= index )
+			if( doc.Length < doc.CaretIndex+1 )
 			{
 				return doc.Length;
 			}
 
-			// seek to next word starting position
-			index = doc.WordProc.NextWordStart( doc, index );
-
-			// skip trailling whitespace
-			if( Utl.IsWhiteSpace(doc, index) )
-			{
-				index = doc.WordProc.NextWordStart( doc, index+1 );
-			}
-
-			return index;
+			return WordLogic.NextWordStartForMove( doc, doc.CaretIndex );
 		}
 
 		/// <summary>
@@ -226,54 +208,13 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static int Calc_PrevWord( IView view )
 		{
-			int index;
-			int startIndex;
 			Document doc = view.Document;
-
-			// if the caret is at the head of document, return head of document
-			index = doc.CaretIndex - 1;
-			if( index <= 0 )
+			if( doc.CaretIndex <= 1 )
 			{
 				return 0;
 			}
 
-			// skip whitespace
-			startIndex = index;
-			if( Utl.IsWhiteSpace(doc, index) )
-			{
-				index = doc.WordProc.PrevWordStart( doc, index ) - 1;
-				if( index < 0 )
-					return 0;
-			}
-			DebugUtl.Assert( 0 <= index && index <= doc.Length );
-
-			// if EOL code comes, return just before them
-			if( Utl.IsEol(doc, index) )
-			{
-				if( startIndex != index )
-				{
-					// do not skip this EOL code
-					// if this was detected after skipping whitespaces
-					return index + 1;
-				}
-				else if( doc[index] == '\r' )
-				{
-					return index;
-				}
-				else
-				{
-					DebugUtl.Assert( doc[index] == '\n' );
-					if( 0 <= index-1 && doc[index-1] == '\r' )
-						return index-1;
-					else
-						return index;
-				}
-			}
-
-			// seek to previous word starting position
-			index = doc.WordProc.PrevWordStart( doc, index );
-
-			return index;
+			return WordLogic.PrevWordStartForMove( doc, doc.CaretIndex );
 		}
 
 		/// <summary>
@@ -298,7 +239,7 @@ namespace Sgry.Azuki
 
 			firstNonSpaceIndex = lineHeadIndex;
 			while( firstNonSpaceIndex < doc.Length
-				&& Utl.IsWhiteSpace(doc, firstNonSpaceIndex) )
+				&& Utl.IsWhiteSpace(doc[firstNonSpaceIndex]) )
 			{
 				firstNonSpaceIndex++;
 			}
@@ -351,53 +292,14 @@ namespace Sgry.Azuki
 		#region Utilities
 		static class Utl
 		{
-			public static bool IsWhiteSpace( Document doc, int index )
+			public static bool IsWhiteSpace( char ch )
 			{
-				if( doc.Length <= index )
-					return false;
+				if( ch == ' '
+					|| ch == '\t'
+					|| ch == '\x3000' )
+					return true;
 
-				return ( doc[index] == ' '
-						|| doc[index] == '\t'
-						|| doc[index] == '\x3000'
-					);
-			}
-
-			public static bool IsEol( Document doc, int index )
-			{
-				if( doc.Length <= index )
-					return false;
-
-				return (doc[index] == '\r' || doc[index] == '\n');
-			}
-
-			public static int SkipOneEol( Document doc, int startIndex )
-			{
-				int index = startIndex;
-				char ch;
-				
-				ch = doc[index];
-				if( ch == 0x0d ) // CR?
-				{
-					index++;
-					if( doc.Length <= index )
-						return doc.Length;
-					
-					ch = doc[index];
-					if( ch == 0x0a ) // CR+LF?
-					{
-						index++;
-						if( doc.Length <= index )
-							return doc.Length;
-					}
-				}
-				else if( ch == 0x0a ) // LF?
-				{
-					index++;
-					if( doc.Length <= index )
-						return doc.Length;
-				}
-
-				return index;
+				return false;
 			}
 		}
 		#endregion

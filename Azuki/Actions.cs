@@ -2,7 +2,7 @@
 // brief: Actions for Azuki engine.
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// update: 2010-07-04
+// update: 2010-03-20
 //=========================================================
 using System;
 using System.Drawing;
@@ -41,7 +41,7 @@ namespace Sgry.Azuki
 			{
 				//--- case of rectangle selection ---
 				doc.BeginUndo();
-				doc.DeleteRectSelectText();
+				UiImpl.DeleteRectSelectText( doc );
 				doc.EndUndo();
 				ui.Invalidate();
 			}
@@ -63,12 +63,12 @@ namespace Sgry.Azuki
 					return;
 				}
 
-				// avoid dividing a CR-LF or a surrogate pair,
-				// but not combining character sequence
+				// avoid dividing a CR-LF or a surrogate pair
 				if( 0 <= caret-2 )
 				{
-					if( doc.IsNotDividableIndex(caret-1)
-						&& doc.IsCombiningCharacter(caret-1) == false )
+					string prevTwoChars = "" + doc[caret-2] + doc[caret-1];
+					if( prevTwoChars == "\r\n"
+						|| Document.IsLowSurrogate(prevTwoChars[1]) )
 					{
 						delLen = 2;
 					}
@@ -103,7 +103,7 @@ namespace Sgry.Azuki
 			{
 				//--- case of rectangle selection ---
 				doc.BeginUndo();
-				doc.DeleteRectSelectText();
+				UiImpl.DeleteRectSelectText( doc );
 				doc.EndUndo();
 				ui.Invalidate();
 			}
@@ -124,7 +124,7 @@ namespace Sgry.Azuki
 				}
 
 				// delete between previous word start position and the caret position
-				int prevWordIndex = CaretMoveLogic.Calc_PrevWord( view );
+				int prevWordIndex = WordLogic.PrevWordStartForMove( doc, doc.CaretIndex );
 				doc.Replace( String.Empty, prevWordIndex, doc.CaretIndex );
 			}
 
@@ -153,7 +153,7 @@ namespace Sgry.Azuki
 			{
 				//--- case of rectangle selection ---
 				doc.BeginUndo();
-				doc.DeleteRectSelectText();
+				UiImpl.DeleteRectSelectText( doc );
 				doc.EndUndo();
 				ui.Invalidate();
 			}
@@ -165,8 +165,8 @@ namespace Sgry.Azuki
 			else
 			{
 				//--- case of no selection ---
-				int begin = doc.CaretIndex;
-				int end = begin + 1;
+				int delLen = 1;
+				int caret = doc.CaretIndex;
 
 				// if the caret is at document end, there is no chars to delete
 				if( doc.Length <= doc.CaretIndex )
@@ -175,15 +175,19 @@ namespace Sgry.Azuki
 					return;
 				}
 
-				// avoid dividing a CR-LF, a surrogate pair,
-				// or a combining character sequence
-				while( doc.IsNotDividableIndex(end) )
+				// avoid dividing a CR-LF or a surrogate pair
+				if( caret+2 <= doc.Length )
 				{
-					end++;
+					string nextTwoChars = "" + doc[caret] + doc[caret+1];
+					if( nextTwoChars == "\r\n"
+						|| Document.IsHighSurrogate(nextTwoChars[0]) )
+					{
+						delLen = 2;
+					}
 				}
 
 				// delete char(s).
-				doc.Replace( String.Empty, begin, end );
+				doc.Replace( String.Empty, caret, caret+delLen );
 			}
 
 			// update desired column
@@ -211,7 +215,7 @@ namespace Sgry.Azuki
 			{
 				//--- case of rectangle selection ---
 				doc.BeginUndo();
-				doc.DeleteRectSelectText();
+				UiImpl.DeleteRectSelectText( doc );
 				doc.EndUndo();
 				ui.Invalidate();
 			}
@@ -223,7 +227,7 @@ namespace Sgry.Azuki
 			else
 			{
 				//--- case of no selection ---
-				int nextWordIndex = CaretMoveLogic.Calc_NextWord( view );
+				int nextWordIndex = WordLogic.NextWordStartForMove( doc, doc.CaretIndex );
 				if( nextWordIndex == doc.Length && doc.CaretIndex == nextWordIndex )
 				{
 					Plat.Inst.MessageBeep();
@@ -278,7 +282,7 @@ namespace Sgry.Azuki
 				if( doc.RectSelectRanges != null )
 				{
 					doc.BeginUndo();
-					doc.DeleteRectSelectText();
+					UiImpl.DeleteRectSelectText( doc );
 					doc.EndUndo();
 					Plat.Inst.SetClipboardText( text, TextDataType.Rectangle );
 				}
@@ -403,7 +407,7 @@ namespace Sgry.Azuki
 			{
 				//--- case of rectangle selection ---
 				// delete selected text
-				doc.DeleteRectSelectText();
+				UiImpl.DeleteRectSelectText( doc );
 				ui.Invalidate();
 			}
 			else if( begin != end )
@@ -533,10 +537,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void ToggleRectSelectMode( IUserInterface ui )
 		{
-			if( ui.SelectionMode != TextDataType.Rectangle )
-				ui.SelectionMode = TextDataType.Rectangle;
-			else
-				ui.SelectionMode = TextDataType.Normal;
+			ui.IsRectSelectMode = !ui.IsRectSelectMode;
 		}
 
 		/// <summary>

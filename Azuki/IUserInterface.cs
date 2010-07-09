@@ -1,7 +1,7 @@
 // file: IUserInterface.cs
 // brief: interface of user interface module (platform dependent)
 // author: YAMAMOTO Suguru
-// update: 2010-04-30
+// update: 2010-03-20
 //=========================================================
 using System;
 using System.Drawing;
@@ -211,18 +211,6 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Sets width of the content area (including line number area).
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property gets or sets width by pixel of the whole graphical area
-		/// containing line number area, dirt bar area, left border, and text area.
-		/// </para>
-		/// <para>
-		/// If you want to specify this property not by pixels but by number of characters,
-		/// you can use
-		/// <see cref="Sgry.Azuki.IView.HRulerUnitWidth">IView.HRulerUnitWidth</see>
-		/// value as 'reasonable' avarage width of characters.
-		/// </para>
-		/// </remarks>
 		int ViewWidth
 		{
 			set;
@@ -332,14 +320,6 @@ namespace Sgry.Azuki
 		/// Gets whether Azuki is in rectangle selection mode or not.
 		/// </summary>
 		bool IsRectSelectMode
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets or sets currently active selection mode.
-		/// </summary>
-		TextDataType SelectionMode
 		{
 			get; set;
 		}
@@ -475,8 +455,7 @@ namespace Sgry.Azuki
 
 		/// <summary>
 		/// Gets currently inputted character's count.
-		/// Note that a surrogate pair or a combined character sequence
-		/// will be counted as two characters.
+		/// Note that a surrogate pair will be counted as two chars.
 		/// </summary>
 		int TextLength
 		{
@@ -610,13 +589,11 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Occures soon after rectangular selection mode was changed.
 		/// </summary>
-		[Obsolete("Use Document.SelectionModeChanged event instead.", false)]
 		event EventHandler IsRectSelectModeChanged;
 
 		/// <summary>
 		/// Invokes IsRectSelectModeChanged event.
 		/// </summary>
-		[Obsolete("Use Document.InvokeSelectionModeChanged method instead.", false)]
 		void InvokeIsRectSelectModeChanged();
 		#endregion
 

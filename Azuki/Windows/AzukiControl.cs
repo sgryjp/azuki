@@ -1,7 +1,7 @@
 ﻿// file: AzukiControl.cs
 // brief: User interface for Windows platform (both Desktop and CE).
 // author: YAMAMOTO Suguru
-// update: 2010-06-27
+// update: 2010-05-16
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -271,8 +271,6 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.Left|Keys.Alt, Actions.RectSelectToLeft );
 			SetKeyBind( Keys.Up|Keys.Alt, Actions.RectSelectToUp );
 			SetKeyBind( Keys.Down|Keys.Alt, Actions.RectSelectToDown );
-			SetKeyBind( Keys.Up|Keys.Alt|Keys.Shift, Actions.LineSelectToUp );
-			SetKeyBind( Keys.Down|Keys.Alt|Keys.Shift, Actions.LineSelectToDown );
 			SetKeyBind( Keys.A|Keys.Control, Actions.SelectAll );
 
 			// bind keys to edit document
@@ -303,6 +301,34 @@ namespace Sgry.Azuki.Windows
 			SetKeyBind( Keys.Up|Keys.Control, Actions.MovePageUp );
 			SetKeyBind( Keys.Down|Keys.Control, Actions.MovePageDown );
 #			endif
+		}
+
+		/// <summary>
+		/// Gets whether Azuki is in rectangle selection mode or not.
+		/// </summary>
+#		if !PocketPC
+		[Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
+		public bool IsRectSelectMode
+		{
+			get{ return _Impl.IsRectSelectMode; }
+			set
+			{
+				_Impl.IsRectSelectMode = value;
+
+#				if !PocketPC
+				// update mouse cursor graphic
+				if( _Impl.IsRectSelectMode )
+				{
+					Cursor = Cursors.Arrow;
+				}
+				else
+				{
+					Cursor = Cursors.IBeam;
+				}
+#				endif
+			}
 		}
 
 		/// <summary>
@@ -844,21 +870,8 @@ namespace Sgry.Azuki.Windows
 		}
 
 		/// <summary>
-		/// Gets or sets width of the content area (including line number area).
+		/// Sets width of the content area (including line number area).
 		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property gets or sets width by pixel of the whole graphical area
-		/// containing line number area, dirt bar area, left border, and text area.
-		/// </para>
-		/// <para>
-		/// If you want to specify this property not by pixels but by number of characters,
-		/// you can use
-		/// <see cref="Sgry.Azuki.IView.HRulerUnitWidth">IView.HRulerUnitWidth</see>
-		/// value as 'reasonable' avarage width of characters.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.View">AzukiControl.View property</seealso>
 #		if !PocketPC
 		[Browsable(true)]
 		[Category("Appearance")]
@@ -1081,60 +1094,6 @@ namespace Sgry.Azuki.Windows
 		{
 			get{ return _AcceptsTab; }
 			set{ _AcceptsTab = value; }
-		}
-
-		/// <summary>
-		/// Gets whether Azuki is in line selection mode or not.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
-		public bool IsLineSelectMode
-		{
-			get{ return (SelectionMode == TextDataType.Line); }
-			set{ SelectionMode = TextDataType.Line; }
-		}
-
-		/// <summary>
-		/// Gets whether Azuki is in rectangle selection mode or not.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
-		public bool IsRectSelectMode
-		{
-			get{ return (SelectionMode == TextDataType.Rectangle); }
-			set{ SelectionMode = TextDataType.Rectangle; }
-		}
-
-		/// <summary>
-		/// Gets or sets how to select text.
-		/// </summary>
-#		if !PocketPC
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-#		endif
-		public TextDataType SelectionMode
-		{
-			get{ return Document.SelectionMode; }
-			set
-			{
-				Document.SelectionMode = value;
-
-#				if !PocketPC
-				// update mouse cursor graphic
-				if( SelectionMode == TextDataType.Rectangle )
-				{
-					Cursor = Cursors.Arrow;
-				}
-				else
-				{
-					Cursor = Cursors.IBeam;
-				}
-#				endif
-			}
 		}
 		#endregion
 
@@ -1368,8 +1327,7 @@ namespace Sgry.Azuki.Windows
 
 		/// <summary>
 		/// Gets currently inputted character's count.
-		/// Note that a surrogate pair or a combining character sequence
-		/// will be counted as two characters.
+		/// Note that a surrogate pair will be counted as two chars.
 		/// </summary>
 #		if !PocketPC
 		[Browsable(false)]
@@ -1590,13 +1548,11 @@ namespace Sgry.Azuki.Windows
 		/// <summary>
 		/// Occures soon after rectangular selection mode was changed.
 		/// </summary>
-		[Obsolete("Use SelectionModeChanged event instead.", false)]
 		public event EventHandler IsRectSelectModeChanged;
 
 		/// <summary>
 		/// Invokes IsRectSelectModeChanged event.
 		/// </summary>
-		[Obsolete("Use InvokeSelectionModeChanged method instead.", false)]
 		public void InvokeIsRectSelectModeChanged()
 		{
 			if( IsRectSelectModeChanged != null )
@@ -2001,19 +1957,20 @@ namespace Sgry.Azuki.Windows
 				// set them as string body, composition string, and target string.
 				int end;
 
-				// shrink range if it is unreasonably big
+				// shurink range if it is unreasonably big
 				end = selEnd;
 				if( MaxRangeLength < end - selBegin )
 				{
 					end = selBegin + MaxRangeLength;
-					while( Document.IsNotDividableIndex(end) )
+					if( end < Document.Length
+						&& Document.IsLowSurrogate(Document[end]) )
 					{
-						end++;
+						end--;
 					}
 				}
 
 				// get selected text
-				stringBody = Document.GetTextInRange( ref selBegin, ref end );
+				stringBody = Document.GetTextInRange( selBegin, end );
 				stringBodyIndex = selBegin;
 			}
 			else
@@ -2030,9 +1987,13 @@ namespace Sgry.Azuki.Windows
 				lineEndIndex = lineHeadIndex + Document.GetLineLength( lineIndex );
 				begin = Math.Max( lineHeadIndex, selBegin - (MaxRangeLength / 2) );
 				end = Math.Min( selBegin + (MaxRangeLength / 2), lineEndIndex );
+				if( end < Document.Length && Document.IsLowSurrogate(Document[end]) )
+				{
+					end--;
+				}
 
 				// get current line content
-				stringBody = Document.GetTextInRange( ref begin, ref end );
+				stringBody = Document.GetTextInRange( begin, end );
 				stringBodyIndex = begin;
 			}
 
