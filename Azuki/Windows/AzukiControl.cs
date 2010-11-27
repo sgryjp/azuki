@@ -1,7 +1,7 @@
 ﻿// file: AzukiControl.cs
 // brief: User interface for Windows platform (both Desktop and CE).
 // author: YAMAMOTO Suguru
-// update: 2010-05-16
+// update: 2010-11-27
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -2086,6 +2086,9 @@ namespace Sgry.Azuki.Windows
 		/// .
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.ColorScheme">AzukiControl.ColorScheme</seealso>
+#		if !PocketPC
+		[DefaultValue(0xff000000)]
+#		endif
 		public override Color ForeColor
 		{
 			get
@@ -2114,6 +2117,9 @@ namespace Sgry.Azuki.Windows
 		/// .
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.Windows.AzukiControl.ColorScheme">AzukiControl.ColorScheme</seealso>
+#		if !PocketPC
+		[DefaultValue(0xfffffaf0)]
+#		endif
 		public override Color BackColor
 		{
 			get
