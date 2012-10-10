@@ -1,4 +1,4 @@
-// 2011-02-05
+// 2012-05-05
 using System;
 using System.Drawing;
 using System.Collections.Generic;
@@ -442,6 +442,17 @@ namespace Sgry.Ann
 					"line:{0}, column:{1}, char:{2}",
 					line+1, columnInHRuler+1, columnInChar+1
 				);
+
+			// expand status bar width if its text cannot be displayed
+			using( Graphics g = CreateGraphics() )
+			{
+				int textWidth = (int)g.MeasureString( _Status_CaretPos.Text,
+													  this.Font ).Width;
+				if( _Status_CaretPos.Width < textWidth )
+				{
+					_Status_CaretPos.Width = textWidth;
+				}
+			}
 		}
 #		endif
 		#endregion
@@ -513,6 +524,10 @@ namespace Sgry.Ann
 			});
 			_StatusBar.ShowPanels = true;
 			_StatusBar.SizingGrip = true;
+			//
+			// _Status_CaretPos
+			//
+			_Status_CaretPos.Alignment = HorizontalAlignment.Right;
 			//
 			// _Status_Message
 			//
