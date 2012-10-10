@@ -1,5 +1,7 @@
 == 1.6.3 (2011-  -  ) ==
+ * add: Added IsSingleLineMode property to AzukiControl (IUserInterface) which determines whether to limit the content to a single line or not
  * fix: [Ann] Ann crashes if a file path which contains a wildcard (? or *) was specified as a command line parameter
+ * fix: [Ann] Now text searching GUI only accepts the first line of the pasted text
  * fix: URI marking does not stop before a quotation mark nor a 'less than' mark after a URI starting with "mailto:"
  * fix: Application never exits if AzukiControl instances are used in multiple forms and their Dispose method were not called explicitly
  * fix: now for background color of matched bracket, ColorScheme.BackColor will be used if ColorScheme.MatchedBracketBack is Color.Transparent
