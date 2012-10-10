@@ -1,4 +1,4 @@
-// 2011-04-03
+// 2011-09-25
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -65,9 +65,6 @@ namespace Sgry.Ann
 		public AppLogic( string initOpenFilePath )
 		{
 			_InitOpenFilePath = initOpenFilePath;
-			_MonitorThreadCanContinue = true;
-			_MonitorThread = new Thread( MonitorThreadProc );
-			_MonitorThread.Start();
 		}
 
 		~AppLogic()
@@ -122,6 +119,11 @@ namespace Sgry.Ann
 				_MainForm.SearchPanel.PatternUpdated += SearchPanel_PatternUpdated;
 				_MainForm.TabPanel.Items = Documents;
 				_MainForm.TabPanel.TabSelected += TabPanel_TabSelected;
+				_MainForm.Load += delegate {
+					_MonitorThreadCanContinue = true;
+					_MonitorThread = new Thread( MonitorThreadProc );
+					_MonitorThread.Start();
+				};
 
 				// handle initially set document
 				Document doc = new Document();
