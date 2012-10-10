@@ -1,7 +1,7 @@
 ﻿// file: AzukiControl.cs
 // brief: User interface for WinForms framework (both Desktop and CE).
 // author: YAMAMOTO Suguru
-// update: 2011-04-02
+// update: 2011-08-07
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -104,6 +104,9 @@ namespace Sgry.Azuki.WinForms
 
 			// setup default keybind
 			ResetKeyBind();
+
+			// install exit event handler to dispose resources propely
+			Application.ThreadExit += OnThreadExit;
 		}
 
 		/// <summary>
@@ -116,7 +119,15 @@ namespace Sgry.Azuki.WinForms
 			{
 				_Impl.Dispose();
 				_Impl = null;
+				Application.ThreadExit -= OnThreadExit;
 			}
+		}
+
+		void OnThreadExit( object sender, EventArgs e )
+		{
+			// if the GUI thread ended before this AzukiControl was disposed,
+			// dispose this to ensure that the child threads are terminated.
+			Dispose( true );
 		}
 
 		/// <summary>
