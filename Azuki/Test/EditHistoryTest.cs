@@ -1,7 +1,6 @@
-﻿// 2011-05-04
+﻿// 2011-02-05
 #if TEST
 using System;
-using System.Text;
 
 namespace Sgry.Azuki.Test
 {
@@ -311,92 +310,94 @@ namespace Sgry.Azuki.Test
 			doc.ClearHistory();
 			doc.Replace( "", 11, 18 );
 			doc.Undo();
-			TestUtl.AssertEquals( "CCC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(1) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(2) );
 			doc.Redo();
-			TestUtl.AssertEquals( "CDC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Dirty, doc.GetLineDirtyState(1) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(2) );
 
 			// deletion - multiple lines
 			doc.Text = "keep it\nas simple as\npossible";
 			doc.ClearHistory();
 			doc.Replace( "", 11, 21 );
 			doc.Undo();
-			TestUtl.AssertEquals( "CCC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(1) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(2) );
 			doc.Redo();
-			TestUtl.AssertEquals( "CD", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Dirty, doc.GetLineDirtyState(1) );
 
 			// deletion - creating CR+LF
 			doc.Text = "a\rb\nc";
 			doc.ClearHistory();
 			doc.Replace( "", 2, 3 );
 			doc.Undo();
-			TestUtl.AssertEquals( "CCC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(1) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(2) );
 			doc.Redo();
-			TestUtl.AssertEquals( "DC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Dirty, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(1) );
 
 			// deletion - destroying CR+LF (1)
 			doc.Text = "ab\r\nc";
 			doc.ClearHistory();
 			doc.Replace( "", 1, 3 );
 			doc.Undo();
-			TestUtl.AssertEquals( "CC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(1) );
 			doc.Redo();
-			TestUtl.AssertEquals( "DC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Dirty, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(1) );
 
 			// deletion - destroying CR+LF (2)
 			doc.Text = "a\r\nbc";
 			doc.ClearHistory();
 			doc.Replace( "", 2, 4 );
 			doc.Undo();
-			TestUtl.AssertEquals( "CC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(1) );
 			doc.Redo();
-			TestUtl.AssertEquals( "DD", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Dirty, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Dirty, doc.GetLineDirtyState(1) );
 
 			// insertion - creating CR+LF (1)
 			doc.Text = "a\nb";
 			doc.ClearHistory();
 			doc.Replace( "\r", 1, 1 );
 			doc.Undo();
-			TestUtl.AssertEquals( "CC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(1) );
 			doc.Redo();
-			TestUtl.AssertEquals( "DC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Dirty, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(1) );
 
 			// insertion - creating CR+LF (2)
 			doc.Text = "a\rb";
 			doc.ClearHistory();
 			doc.Replace( "\n", 2, 2 );
 			doc.Undo();
-			TestUtl.AssertEquals( "CC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(1) );
 			doc.Redo();
-			TestUtl.AssertEquals( "DD", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Dirty, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Dirty, doc.GetLineDirtyState(1) );
 
 			// insertion - destroying CR+LF
 			doc.Text = "a\r\nb";
 			doc.ClearHistory();
 			doc.Replace( "X", 2, 2 );
 			doc.Undo();
-			TestUtl.AssertEquals( "CC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(1) );
 			doc.Redo();
-			TestUtl.AssertEquals( "DDC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( LineDirtyState.Dirty, doc.GetLineDirtyState(0) );
+			TestUtl.AssertEquals( LineDirtyState.Dirty, doc.GetLineDirtyState(1) );
+			TestUtl.AssertEquals( LineDirtyState.Clean, doc.GetLineDirtyState(2) );
 		}
-
-		#region Utilities
-		static string MakeLdsStr( Document doc )
-		{
-			StringBuilder buf = new StringBuilder( 32 );
-
-			for( int i=0; i<doc.LineCount; i++ )
-			{
-				switch( doc.GetLineDirtyState(i) )
-				{
-					case LineDirtyState.Clean:		buf.Append( 'C' ); break;
-					case LineDirtyState.Cleaned:	buf.Append( 'S' ); break;
-					default:						buf.Append( 'D' ); break;
-				}
-			}
-
-			return buf.ToString();
-		}
-		#endregion
 	}
 }
 #endif

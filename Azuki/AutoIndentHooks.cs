@@ -1,7 +1,7 @@
 ﻿// file: AutoIndentLogic.cs
 // brief: Logic around auto-indentation.
 // author: YAMAMOTO Suguru
-// update: 2011-07-31
+// update: 2009-11-11
 //=========================================================
 using System;
 using System.Text;
@@ -45,13 +45,6 @@ namespace Sgry.Azuki
 			int lineHead;
 			int newCaretIndex;
 
-			// do nothing if Azuki is in single line mode
-			if( ui.IsSingleLineMode )
-			{
-				return false;
-			}
-
-			// if EOL code was detected, perform indentation
 			if( LineLogic.IsEolChar(ch) )
 			{
 				str.Append( doc.EolCode );
@@ -124,13 +117,8 @@ namespace Sgry.Azuki
 			if( LineLogic.IsEolChar(ch) )
 			{
 				int i;
+				int firstNonWsCharIndex;
 				bool extraPaddingNeeded = false;
-
-				// do nothing if it's in single line mode
-				if( ui.IsSingleLineMode )
-				{
-					return false;
-				}
 
 				indentChars.Append( doc.EolCode );
 
@@ -148,6 +136,7 @@ namespace Sgry.Azuki
 					else
 						break;
 				}
+				firstNonWsCharIndex = i;
 
 				// if there are following white spaces, remove them
 				for( i=selEnd; i<lineEnd; i++ )

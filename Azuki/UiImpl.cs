@@ -1,7 +1,7 @@
 ﻿// file: UiImpl.cs
 // brief: User interface logic that independent from platform.
 // author: YAMAMOTO Suguru
-// update: 2012-05-05
+// update: 2011-03-05
 //=========================================================
 using System;
 using System.Text;
@@ -25,10 +25,11 @@ namespace Sgry.Azuki
 		/// </summary>
 		public const int DefaultCaretWidth = 2;
 		const int MaxMatchedBracketSearchLength = 2048;
+		const int HighlightInterval1 = 250;
 #		if PocketPC
-		const int HighlightDelay = 500 * 10000; // 500[ms]
+		const int HighlightInterval2 = 500;
 #		else
-		const int HighlightDelay = 200 * 10000; // 200[ms]
+		const int HighlightInterval2 = 350;
 #		endif
 		IUserInterface _UI;
 		View _View = null;
@@ -42,7 +43,6 @@ namespace Sgry.Azuki
 		bool _UsesTabForIndent = true;
 		bool _ConvertsFullWidthSpaceToSpace = false;
 		bool _UsesStickyCaret = false;
-		bool _IsSingleLineMode = false;
 
 		// X coordinate of this also be used as a flag to determine
 		// whether the mouse button is down or not.
@@ -52,7 +52,9 @@ namespace Sgry.Azuki
 		Timer _MouseDragEditDelayTimer = null;
 
 		Thread _HighlighterThread;
-		ManualResetEvent _HighlightEvent = new ManualResetEvent( false );
+		bool _ShouldBeHighlighted = false;
+		int _DirtyRangeBegin = -1;
+		int _DirtyRangeEnd = -1;
 		#endregion
 
 		#region Init / Dispose
@@ -61,19 +63,17 @@ namespace Sgry.Azuki
 			_UI = ui;
 			_View = new PropView( ui );
 
-			_UI.LineDrawing += UriMarker.Inst.UI_LineDrawing;
-
 			_HighlighterThread = new Thread( HighlighterThreadProc );
 			_HighlighterThread.Priority = ThreadPriority.BelowNormal;
 			_HighlighterThread.Start();
 		}
 
-		public void Dispose()
+#		if DEBUG
+		~UiImpl()
 		{
 			// dispose highlighter
 			if( _HighlighterThread != null )
 			{
-				_HighlighterThread.Abort();
 				bool timedOut = !( _HighlighterThread.Join(1000) );
 				if( timedOut )
 				{
@@ -81,15 +81,11 @@ namespace Sgry.Azuki
 				}
 				_HighlighterThread = null;
 			}
+		}
+#		endif
 
-			// dispose event object
-			if( _HighlightEvent != null )
-			{
-				_HighlightEvent.Set();
-				_HighlightEvent.Close();
-				_HighlightEvent = null;
-			}
-
+		public void Dispose()
+		{
 			// uninstall document event handlers
 			if( Document != null )
 			{
@@ -97,7 +93,6 @@ namespace Sgry.Azuki
 			}
 
 			// dispose view
-			_UI.LineDrawing -= UriMarker.Inst.UI_LineDrawing;
 			if( _View != null )
 			{
 				_View.Dispose();
@@ -171,7 +166,7 @@ namespace Sgry.Azuki
 				Document prevDoc = _Document;
 
 				// uninstall event handlers
-				if( _Document != null )
+				if( Document != null )
 				{
 					UninstallDocumentEventHandlers( Document );
 				}
@@ -303,15 +298,6 @@ namespace Sgry.Azuki
 		{
 			get{ return _UsesStickyCaret; }
 			set{ _UsesStickyCaret = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets whether the content should be limited to a single line.
-		/// </summary>
-		public bool IsSingleLineMode
-		{
-			get{ return _IsSingleLineMode; }
-			set{ _IsSingleLineMode = value; }
 		}
 
 		/// <summary>
@@ -481,12 +467,6 @@ namespace Sgry.Azuki
 					// execute built-in hook logic
 					if( LineLogic.IsEolChar(ch) )
 					{
-						// if an EOL code was found, stop consuming and discard following inputs
-						if( IsSingleLineMode )
-						{
-							break;
-						}
-
 						// change all EOL code in the text should changed to the
 						input.Append( doc.EolCode );
 					}
@@ -597,67 +577,48 @@ namespace Sgry.Azuki
 		{
 			int dirtyBegin, dirtyEnd;
 			Document doc;
-			ViewParam param;
 
 			while( _IsDisposed == false )
 			{
-				// wait until next two conditions are satisfied:
-				// 1) thread was woken up to update highlighting
-				// 2) slight time span was elapsed after the last modification
-				while( _UI.Document == null
-					|| _UI.Document.ViewParam.H_IsInvalid == false
-					|| DateTime.Now.Ticks < _UI.Document.LastModifiedTime.Ticks + HighlightDelay )
+				// wait while the content is untouched
+				while( _ShouldBeHighlighted == false )
 				{
-					_HighlightEvent.WaitOne( 30000, false );
+					Thread.Sleep( HighlightInterval1 );
+					if( _IsDisposed )
+					{
+						return; // quit ASAP
+					}
+				}
+				_ShouldBeHighlighted = false;
+
+				// wait a moment and check if the flag is still up
+				Thread.Sleep( HighlightInterval2 );
+				if( _ShouldBeHighlighted != false || _UI.Document == null )
+				{
+					// flag was set up while this thread are sleeping.
+					// skip this time.
+					continue;
 				}
 
-				// determine where to start and where to end highlighting
+				// if no highlighter was set to current active document, do nothing.
 				doc = _UI.Document;
-				param = doc.ViewParam;
-				lock( param )
+				if( doc.Highlighter == null )
 				{
-					// fit the range
-					dirtyBegin = param.H_InvalidRangeBegin;
-					if( dirtyBegin < 0 )
-					{
-						dirtyBegin = 0;
-					}
-					dirtyEnd = Math.Max( dirtyBegin, param.H_InvalidRangeEnd );
-					if( doc.Length < dirtyEnd )
-					{
-						dirtyEnd = doc.Length;
-					}
-					param.H_InvalidRangeBegin = Int32.MaxValue;
-					param.H_InvalidRangeEnd = Int32.MinValue;
+					continue;
 				}
 
-				// reset wait condition
-				_UI.Document.ViewParam.H_IsInvalid = false;
-				_HighlightEvent.Reset();
+				// determine where to start highlighting
+				dirtyBegin = Math.Max( 0, _DirtyRangeBegin );
+				dirtyEnd = Math.Max( dirtyBegin, _DirtyRangeEnd );
+				if( doc.Length < dirtyEnd )
+				{
+					dirtyEnd = doc.Length;
+				}
 
+				// highlight and refresh view
 				try
 				{
-					// if no highlighter was set to current active document, do nothing.
-					if( doc.Highlighter == null )
-					{
-						continue;
-					}
-
-					// highlight
-					Debug.Assert( 0 <= dirtyBegin );
-					Debug.Assert( dirtyBegin != Int32.MaxValue );
 					doc.Highlighter.Highlight( doc, ref dirtyBegin, ref dirtyEnd );
-
-					// remember highlighted range of text
-					lock( param )
-					{
-						param.H_ValidRangeBegin = dirtyBegin;
-						param.H_ValidRangeEnd = dirtyEnd;
-						//DO_NOT//param.H_InvalidRangeBegin = something;
-						//DO_NOT//param.H_InvalidRangeEnd = something;
-					}
-
-					// then, refresh view
 					View.Invalidate( dirtyBegin, dirtyEnd );
 				}
 				catch( Exception ex )
@@ -668,108 +629,33 @@ namespace Sgry.Azuki
 						break;
 					}
 
-					//DEBUG//DebugUtl.Log.WriteLine( "[thread] ex:[{0}]", ex );
-
 					// For example, contents could be shorten during highlighting
 					// because Azuki does not lock buffers for thread safety.
 					// It is very hard to take care of such cases in highlighters (including user-made ones)
 					// so here I trap any exception except ThreadAbortException
 					// and invalidate whole view in that case.
-					if( View != null )
-					{
-						View.Invalidate();
-					}
-
-					// (reset dirty range to stop infinite loop)
-					if( _UI.Document != null )
-					{
-						lock( _UI.Document.ViewParam )
-						{
-							_UI.Document.ViewParam.H_InvalidRangeBegin = Int32.MaxValue;
-							_UI.Document.ViewParam.H_InvalidRangeEnd = Int32.MinValue;
-						}
-					}
+					View.Invalidate();
 				}
+
+				// prepare for next loop
+				_DirtyRangeBegin = -1;
+				_DirtyRangeEnd = -1;
 			}
 		}
 		#endregion
 
 		#region Other
 		/// <summary>
-		/// Gets number of characters currently selected.
-		/// </summary>
-		/// <returns>Number of characters currently selected.</returns>
-		/// <remarks>
-		/// <para>
-		/// This method gets number of characters currently selected,
-		/// properly even if the selection mode is rectangle selection.
-		/// </para>
-		/// <para>
-		/// Note that the difference between the end of selection and the beginning of selection
-		/// is not a number of selected characters if they are selected by rectangle selection.
-		/// </para>
-		/// </remarks>
-		public int GetSelectedTextLength()
-		{
-			Debug.Assert( _IsDisposed == false );
-
-			int count;
-
-			if( Document.RectSelectRanges != null )
-			{
-				// Get number of characters in each line of the rectangle
-				count = 0;
-				for( int i=0; i<Document.RectSelectRanges.Length; i+=2 )
-				{
-					// get this row content
-					count += Document.RectSelectRanges[i+1]
-						- Document.RectSelectRanges[i];
-				}
-
-				return count;
-			}
-			else
-			{
-				int begin, end;
-				Document.GetSelection( out begin, out end );
-				return end - begin;
-			}
-		}
-
-		/// <summary>
 		/// Gets currently selected text.
 		/// </summary>
 		/// <returns>Currently selected text.</returns>
 		/// <remarks>
-		/// <para>
 		/// This method gets currently selected text.
-		/// </para>
-		/// <para>
 		/// If current selection is rectangle selection,
-		/// return value will be a string that are consisted with selected partial lines (rows)
-		/// joined with CR+LF.
-		/// </para>
+		/// return value will be a text that are consisted with selected partial lines (rows)
+		/// joined with CR-LF.
 		/// </remarks>
 		public string GetSelectedText()
-		{
-			return GetSelectedText( "\r\n" );
-		}
-
-		/// <summary>
-		/// Gets currently selected text.
-		/// </summary>
-		/// <returns>Currently selected text.</returns>
-		/// <remarks>
-		/// <para>
-		/// This method gets currently selected text.
-		/// </para>
-		/// <para>
-		/// If current selection is rectangle selection,
-		/// return value will be a string that are consisted with selected partial lines (rows)
-		/// joined with specified string.
-		/// </para>
-		/// </remarks>
-		public string GetSelectedText( string separator )
 		{
 			Debug.Assert( _IsDisposed == false );
 
@@ -785,7 +671,7 @@ namespace Sgry.Azuki
 							Document.RectSelectRanges[i],
 							Document.RectSelectRanges[i+1]
 						);
-					text.Append( row + separator );
+					text.Append( row + "\r\n" );
 				}
 
 				return text.ToString();
@@ -805,33 +691,9 @@ namespace Sgry.Azuki
 			if( _IsDisposed )
 				return;
 
-			// draw view graphic
 			using( IGraphics g = _UI.GetIGraphics() )
 			{
 				_View.Paint( g, clipRect );
-			}
-
-			// If any characters which were not highlighted after last edit were drawn,
-			// expand invalid range to cover the chracters
-			// so that the highlighter thread can highlight them on next run
-			if( Document != null && Document.Highlighter != null )
-			{
-				ViewParam param = Document.ViewParam;
-				int end = GetIndexOfLastVisibleCharacter();
-				lock( param )
-				{
-					if( param.H_ValidRangeEnd < end )
-					{
-						if( param.H_InvalidRangeBegin < 0
-							|| param.H_ValidRangeEnd < param.H_InvalidRangeBegin )
-						{
-							param.H_InvalidRangeBegin = param.H_ValidRangeEnd;
-						}
-						param.H_InvalidRangeEnd = Math.Max( param.H_InvalidRangeEnd, end );
-						param.H_IsInvalid = true;
-						_HighlightEvent.Set();
-					}
-				}
 			}
 		}
 
@@ -888,13 +750,6 @@ namespace Sgry.Azuki
 		{
 			int targetIndex;
 			Point pos = e.Location;
-
-			// do nothing if the document is read-only
-			if( Document.IsReadOnly )
-			{
-				Plat.Inst.MessageBeep();
-				return;
-			}
 
 			// calculate target position where the selected text is moved to
 			View.ScreenToVirtual( ref pos );
@@ -1299,7 +1154,6 @@ namespace Sgry.Azuki
 			doc.SelectionChanged += Doc_SelectionChanged;
 			doc.ContentChanged += Doc_ContentChanged;
 			doc.DirtyStateChanged += Doc_DirtyStateChanged;
-			_UI.LineDrawing += doc.WatchPatternMarker.UI_LineDrawing;
 		}
 
 		void UninstallDocumentEventHandlers( Document doc )
@@ -1308,7 +1162,6 @@ namespace Sgry.Azuki
 			doc.SelectionChanged -= Doc_SelectionChanged;
 			doc.ContentChanged -= Doc_ContentChanged;
 			doc.DirtyStateChanged -= Doc_DirtyStateChanged;
-			_UI.LineDrawing -= doc.WatchPatternMarker.UI_LineDrawing;
 		}
 
 		void Doc_SelectionChanged( object sender, SelectionChangedEventArgs e )
@@ -1336,12 +1189,11 @@ namespace Sgry.Azuki
 		{
 			Debug.Assert( _IsDisposed == false );
 
-			// delegate to marker objects
+			// delegate to URI marker object
 			if( _Document.MarksUri )
 			{
 				UriMarker.Inst.HandleContentChanged( this, e );
 			}
-			_Document.WatchPatternMarker.HandleContentChanged( this, e );
 
 			// delegate to view object
 			View.HandleContentChanged( sender, e );
@@ -1373,35 +1225,23 @@ namespace Sgry.Azuki
 			// update range of scroll bars
 			_UI.UpdateScrollBarRange();
 
-			// update range of text which should be highlighted
-			ViewParam param = Document.ViewParam;
-			lock( param )
+			// set flag to start highlighting
+			if( _DirtyRangeBegin == -1 || e.Index < _DirtyRangeBegin )
 			{
-				if( e.Index < param.H_InvalidRangeBegin )
-				{
-					param.H_InvalidRangeBegin = e.Index;
-				}
-				if( param.H_InvalidRangeEnd < e.Index + e.NewText.Length )
-				{
-					param.H_InvalidRangeEnd = e.Index + e.NewText.Length;
-				}
-				param.H_IsInvalid = true;
-
-				// update range of text which should NOT be highlighted until this document was modified
-				param.H_ValidRangeEnd = e.Index;
-				if( param.H_ValidRangeEnd <= param.H_ValidRangeBegin )
-				{
-					param.H_ValidRangeBegin = param.H_ValidRangeEnd;
-				}
+				_DirtyRangeBegin = e.Index;
 			}
-
-			// resume highlighter thread
-			_HighlightEvent.Set();
+			if( _DirtyRangeEnd == -1 || _DirtyRangeEnd < e.Index + e.NewText.Length )
+			{
+				_DirtyRangeEnd = e.Index + e.NewText.Length;
+			}
+			_ShouldBeHighlighted = true;
 		}
 
 		public void Doc_DirtyStateChanged( object sender, EventArgs e )
 		{
 			Debug.Assert( _IsDisposed == false );
+
+			Document doc = (Document)sender;
 
 			// delegate to view object
 			View.HandleDirtyStateChanged( sender, e );
@@ -1409,19 +1249,15 @@ namespace Sgry.Azuki
 
 		void UpdateMatchedBracketPosition()
 		{
-			// reset matched bracket positions
+			// find matched bracket
 			int oldMbi1 = _Document.ViewParam.MatchedBracketIndex1;
 			int oldMbi2 = _Document.ViewParam.MatchedBracketIndex2;
-			_Document.ViewParam.MatchedBracketIndex1 = -1;
-			_Document.ViewParam.MatchedBracketIndex2 = -1;
-			if( View.HighlightsMatchedBracket == false )
-			{
-				return;
-			}
-
-			// find matched bracket
 			int newMbi1 = _Document.CaretIndex;
 			int newMbi2 = _Document.FindMatchedBracket( newMbi1, MaxMatchedBracketSearchLength );
+
+			// reset matched bracket positions
+			_Document.ViewParam.MatchedBracketIndex1 = -1;
+			_Document.ViewParam.MatchedBracketIndex2 = -1;
 
 			// update matched bracket positions and graphics
 			if( (0 <= newMbi2) != (0 <= oldMbi2) // ON --> OFF, OFF --> ON
@@ -1448,35 +1284,6 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Utilitites
-		int GetIndexOfLastVisibleCharacter()
-		{
-			int lastDrawnLineIndex;
-			int visibleLineCount;
-			int index;
-
-			// calculate line-index of last visible line
-			visibleLineCount = View.VisibleSize.Height / View.LineSpacing;
-			lastDrawnLineIndex = View.FirstVisibleLine + visibleLineCount + 1;
-			if( View.LineCount <= lastDrawnLineIndex )
-			{
-				lastDrawnLineIndex = View.LineCount - 1;
-			}
-
-			// calculate end index of the line
-			if( lastDrawnLineIndex+1 < View.LineCount )
-			{
-				index = View.GetLineHeadIndex( lastDrawnLineIndex+1 );
-			}
-			else
-			{
-				index = Document.Length;
-			}
-
-			// return it
-			Debug.Assert( 0 <= index && index <= Document.Length );
-			return index;
-		}
-
 		/// <summary>
 		/// Generates appropriate padding characters
 		/// that fills the gap between the target position and actual line-end position.

@@ -1,7 +1,7 @@
 ﻿// file: AzukiControl.cs
 // brief: User interface for WinForms framework (both Desktop and CE).
 // author: YAMAMOTO Suguru
-// update: 2011-09-23
+// update: 2011-04-02
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -49,7 +49,6 @@ namespace Sgry.Azuki.WinForms
 		#region Types, Constants and Fields
 		static int _ScrollBarWidth = 0;
 		
-		delegate IGraphics GetIGraphicsProc();
 		delegate void InvalidateProc1();
 		delegate void InvalidateProc2( Rectangle rect );
 		
@@ -58,7 +57,6 @@ namespace Sgry.Azuki.WinForms
 		bool _AcceptsReturn = true;
 		bool _AcceptsTab = true;
 		bool _ShowsHScrollBar = true;
-		bool _ShowsVScrollBar = true;
 		bool _UseCtrlTabToMoveFocus = true;
 		int _WheelPos = 0;
 		BorderStyle _BorderStyle = BorderStyle.Fixed3D;
@@ -70,7 +68,6 @@ namespace Sgry.Azuki.WinForms
 		int _ImeCompositionCharCount = 0; // count of chars already input by IME which must be ignored
 #		endif
 		
-		GetIGraphicsProc _getIGraphicsProc = null;
 		InvalidateProc1 _invalidateProc1 = null;
 		InvalidateProc2 _invalidateProc2 = null;
 #		if !PocketPC
@@ -103,14 +100,10 @@ namespace Sgry.Azuki.WinForms
 			_Impl = new UiImpl( this );
 			Document = new Document();
 			ViewType = ViewType.Proportional; // (setting ViewType installs document event handlers)
+			LineDrawing += UriMarker.Inst.UI_LineDrawing;
 
 			// setup default keybind
 			ResetKeyBind();
-
-			// install exit event handler to dispose resources propely
-#			if !PocketPC
-			Application.ThreadExit += OnThreadExit;
-#			endif
 		}
 
 		/// <summary>
@@ -123,20 +116,8 @@ namespace Sgry.Azuki.WinForms
 			{
 				_Impl.Dispose();
 				_Impl = null;
-#				if !PocketPC
-				Application.ThreadExit -= OnThreadExit;
-#				endif
 			}
 		}
-
-#		if !PocketPC
-		void OnThreadExit( object sender, EventArgs e )
-		{
-			// if the GUI thread ended before this AzukiControl was disposed,
-			// dispose this to ensure that the child threads are terminated.
-			Dispose( true );
-		}
-#		endif
 
 		/// <summary>
 		/// Invokes HandleCreated event.
@@ -765,35 +746,6 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Whether to show vertical scroll bar or not.
-		/// </summary>
-#		if !PocketPC
-		[Category("Appearance")]
-		[DefaultValue(true)]
-		[Description("Set true to show vertical scroll bar.")]
-#		endif
-		public bool ShowsVScrollBar
-		{
-			get{ return _ShowsVScrollBar; }
-			set
-			{
-				_ShowsVScrollBar = value;
-
-				// make new style bits
-				long style = WinApi.GetWindowLong( Handle, WinApi.GWL_STYLE ).ToInt64();
-				if( _ShowsVScrollBar )
-					style |= WinApi.WS_VSCROLL;
-				else
-					style &= ~(WinApi.WS_VSCROLL);
-
-				// apply
-				WinApi.SetWindowLong( Handle, WinApi.GWL_STYLE, new IntPtr(style) );
-				WinApi.SetWindowPos( Handle, IntPtr.Zero, Left, Top, Width, Height, WinApi.SWP_FRAMECHANGED );
-				UpdateScrollBarRange();
-			}
-		}
-
-		/// <summary>
 		/// Gets or sets whether to show 'dirt bar' or not.
 		/// </summary>
 		/// <remarks>
@@ -837,19 +789,6 @@ namespace Sgry.Azuki.WinForms
 		{
 			get{ return View.HighlightsCurrentLine; }
 			set{ View.HighlightsCurrentLine = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets whether to highlight matched bracket or not.
-		/// </summary>
-#		if !PocketPC
-		[Category("Appearance")]
-		[DefaultValue(true)]
-#		endif
-		public bool HighlightsMatchedBracket
-		{
-			get{ return View.HighlightsMatchedBracket; }
-			set{ View.HighlightsMatchedBracket = value; }
 		}
 
 		/// <summary>
@@ -1013,7 +952,7 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Invalidate graphic of whole area
+		/// Invalidate and make 'dirty' whole area
 		/// (force to be redrawn by next paint event message).
 		/// </summary>
 		public new void Invalidate()
@@ -1027,7 +966,7 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Invalidate graphic of the specified area
+		/// Invalidate and make 'dirty' specified area
 		/// (force to be redrawn by next paint event message).
 		/// </summary>
 		public new void Invalidate( Rectangle rect )
@@ -1182,23 +1121,6 @@ namespace Sgry.Azuki.WinForms
 		{
 			get{ return _Impl.ConvertsFullWidthSpaceToSpace; }
 			set{ _Impl.ConvertsFullWidthSpaceToSpace = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets whether the content will be limited to a single line.
-		/// </summary>
-		/// <remarks>
-		/// The default value is false.
-		/// </remarks>
-#		if !PocketPC
-		[Category("Behavior")]
-		[DefaultValue(false)]
-		[Description("If this is true, the content will be limited to a single line.")]
-#		endif
-		public bool IsSingleLineMode
-		{
-			get{ return _Impl.IsSingleLineMode; }
-			set{ _Impl.IsSingleLineMode = value; }
 		}
 
 		/// <summary>
@@ -1642,60 +1564,20 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Gets number of characters currently selected.
-		/// </summary>
-		/// <returns>Number of characters currently selected.</returns>
-		/// <remarks>
-		/// <para>
-		/// This method gets number of characters currently selected,
-		/// properly even if the selection mode is rectangle selection.
-		/// </para>
-		/// <para>
-		/// Note that the difference between the end of selection and the beginning of selection
-		/// is not a number of selected characters if they are selected by rectangle selection.
-		/// </para>
-		/// </remarks>
-		public int GetSelectedTextLength()
-		{
-			return _Impl.GetSelectedTextLength();
-		}
-
-		/// <summary>
 		/// Gets currently selected text.
 		/// </summary>
 		/// <returns>Currently selected text.</returns>
 		/// <remarks>
 		/// <para>
 		/// This method gets currently selected text.
-		/// </para>
-		/// <para>
 		/// If current selection is rectangle selection,
-		/// return value will be a string that are consisted with selected partial lines (rows)
-		/// joined with CR+LF.
+		/// return value will be a text that are consisted with selected partial lines (rows)
+		/// joined with CR-LF.
 		/// </para>
 		/// </remarks>
 		public string GetSelectedText()
 		{
 			return _Impl.GetSelectedText();
-		}
-
-		/// <summary>
-		/// Gets currently selected text.
-		/// </summary>
-		/// <returns>Currently selected text.</returns>
-		/// <remarks>
-		/// <para>
-		/// This method gets currently selected text.
-		/// </para>
-		/// <para>
-		/// If current selection is rectangle selection,
-		/// return value will be a string that are consisted with selected partial lines (rows)
-		/// joined with specified string.
-		/// </para>
-		/// </remarks>
-		public string GetSelectedText( string separator )
-		{
-			return _Impl.GetSelectedText( separator );
 		}
 
 		/// <summary>
@@ -2012,12 +1894,6 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		public IGraphics GetIGraphics()
 		{
-			if( IsHandleCreated && InvokeRequired )
-			{
-				if( _getIGraphicsProc == null )
-					_getIGraphicsProc = GetIGraphics;
-				return (IGraphics)Invoke( _getIGraphicsProc );
-			}
 			return Plat.Inst.GetGraphics( this );
 		}
 
@@ -2256,9 +2132,9 @@ namespace Sgry.Azuki.WinForms
 			else if( control && !alt && !shift )
 			{
 				if( 0 < scrollOffset )
-					View.ZoomOut();
-				else
 					View.ZoomIn();
+				else
+					View.ZoomOut();
 			}
 			else if( !control && !alt && !shift )
 			{
@@ -2671,7 +2547,7 @@ namespace Sgry.Azuki.WinForms
 					return View.ColorScheme.BackColor;
 				else
 					return base.BackColor;
-			}
+				}
 			set
 			{
 				if( View != null )

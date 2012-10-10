@@ -1,7 +1,7 @@
 // file: View.Paint.cs
 // brief: Common painting logic
 // author: YAMAMOTO Suguru
-// update: 2011-09-11
+// update: 2010-11-27
 //=========================================================
 //DEBUG//#define DRAW_SLOWLY
 using System;
@@ -175,24 +175,18 @@ namespace Sgry.Azuki
 				}
 			}
 			// matched bracket
-			else if( HighlightsMatchedBracket
-				&& doc.CaretIndex == doc.AnchorIndex // ensure nothing is selected
+			else if( doc.CaretIndex == doc.AnchorIndex // ensure nothing is selected
 				&& doc.IsMatchedBracket(tokenIndex) )
 			{
-				Color fore = ColorScheme.MatchedBracketFore;
-				Color back = ColorScheme.MatchedBracketBack;
-				if( fore == Color.Transparent )
+				Color textColor = ColorScheme.MatchedBracketFore;
+				g.BackColor = ColorScheme.MatchedBracketBack;
+				if( textColor == Color.Transparent )
 				{
-					fore = foreColor;
+					textColor = foreColor;
 				}
-				if( back == Color.Transparent )
-				{
-					back = backColor;
-				}
-				g.BackColor = back;
 
 				g.FillRectangle( tokenPos.X, tokenPos.Y, tokenEndPos.X-tokenPos.X, LineSpacing );
-				g.DrawText( token, ref textPos, fore );
+				g.DrawText( token, ref textPos, textColor );
 			}
 			else
 			{
@@ -278,7 +272,9 @@ namespace Sgry.Azuki
 			else if( decoration.LineStyle == LineStyle.Waved )
 			{
 				int lineWidthSize = (_Font.Size / 24) + 1;
+				int lineLength = lineWidthSize + (lineWidthSize << 2);
 				int waveHeight = (_Font.Size / 6) + 1;
+				int lineSpacing = lineWidthSize << 3;
 				int offsetX = tokenPos.X % (waveHeight << 1);
 
 				int valleyY = tokenPos.Y + LineHeight - lineWidthSize;
@@ -831,14 +827,7 @@ namespace Sgry.Azuki
 		internal int MeasureTokenEndX( IGraphics g, string token, int virX )
 		{
 			int dummy;
-			int rightLimitX = Int32.MaxValue;
-
-			// ensure "(rightLimitX - virX) < Int32.MaxValue"
-			if( virX < 0 )
-			{
-				rightLimitX = Int32.MaxValue + virX;
-			}
-			return MeasureTokenEndX( g, token, virX, rightLimitX, out dummy );
+			return MeasureTokenEndX( g, token, virX, Int32.MaxValue, out dummy );
 		}
 
 		/// <summary>

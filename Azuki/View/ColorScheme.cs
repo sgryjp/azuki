@@ -1,7 +1,7 @@
 ﻿// file: ColorScheme.cs
 // brief: color set
 // author: YAMAMOTO Suguru
-// update: 2011-08-20
+// update: 2010-11-28
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -302,7 +302,7 @@ namespace Sgry.Azuki
 			SetColor( CharClass.AttributeValue, Color.Navy, Color.Transparent );
 			SetColor( CharClass.EmbededScript, Color.Gray, Color.Transparent );
 			SetColor( CharClass.Delimiter, Color.Blue, Color.Transparent );
-			SetColor( CharClass.CDataSection, Color.Purple, Color.Transparent );
+			SetColor( CharClass.CDataSection, Color.Silver, Color.Transparent );
 			SetColor( CharClass.LatexBracket, Color.Teal, Color.Transparent );
 			SetColor( CharClass.LatexCommand, sax_blue, Color.Transparent );
 			SetColor( CharClass.LatexCurlyBracket, Color.Maroon, Color.Transparent );
@@ -328,12 +328,13 @@ namespace Sgry.Azuki
 			this.MatchedBracketFore = Color.Transparent;
 			this.MatchedBracketBack = Color.FromArgb( 0x93, 0xff, 0xff );
 
-			for( int i=0; i<=Marking.MaxID; i++ )
+			_MarkingDecorations[0] = new UnderlineTextDecoration( // Marking.Uri
+					LineStyle.Solid, Color.Transparent
+				);
+			for( int i=1; i<=Marking.MaxID; i++ )
 			{
 				_MarkingDecorations[i] = TextDecoration.None;
 			}
-			SetMarkingDecoration( Marking.Uri,
-								  new UnderlineTextDecoration(LineStyle.Solid, Color.Transparent) );
 		}
 		#endregion
 

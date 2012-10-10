@@ -1,20 +1,18 @@
-// 2011-09-25
+// 2011-03-05
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Sgry.Azuki;
 using Sgry.Azuki.Highlighter;
 using Sgry.Azuki.WinForms;
 using Assembly = System.Reflection.Assembly;
 using CancelEventArgs = System.ComponentModel.CancelEventArgs;
-using Color = System.Drawing.Color;
 using Debug = System.Diagnostics.Debug;
-using PropertyChangedEventArgs = System.ComponentModel.PropertyChangedEventArgs;
 using AzukiDocument = Sgry.Azuki.Document;
 
 namespace Sgry.Ann
@@ -54,7 +52,7 @@ namespace Sgry.Ann
 		List<Document> _DAD_Documents = new List<Document>(); // Don't Access Directly
 		Document _DAD_ActiveDocument = null; // Don't Access Directly
 		int _UntitledFileCount = 1;
-		string[] _InitOpenFilePaths = null;
+		string _InitOpenFilePath = null;
 		SearchContext _SearchContext = new SearchContext();
 		Thread _MonitorThread;
 		bool _MonitorThreadCanContinue;
@@ -64,9 +62,12 @@ namespace Sgry.Ann
 		#endregion
 
 		#region Init / Dispose
-		public AppLogic( string[] initOpenFilePaths )
+		public AppLogic( string initOpenFilePath )
 		{
-			_InitOpenFilePaths = initOpenFilePaths;
+			_InitOpenFilePath = initOpenFilePath;
+			_MonitorThreadCanContinue = true;
+			_MonitorThread = new Thread( MonitorThreadProc );
+			_MonitorThread.Start();
 		}
 
 		~AppLogic()
@@ -118,40 +119,16 @@ namespace Sgry.Ann
 				_MainForm.Azuki.Resize += Azuki_Resize;
 				_MainForm.Azuki.Click += Azuki_Click;
 				_MainForm.Azuki.DoubleClick += Azuki_DoubleClick;
+				_MainForm.SearchPanel.PatternUpdated += SearchPanel_PatternUpdated;
 				_MainForm.TabPanel.Items = Documents;
 				_MainForm.TabPanel.TabSelected += TabPanel_TabSelected;
-				_MainForm.Load += delegate {
-					_MonitorThreadCanContinue = true;
-					_MonitorThread = new Thread( MonitorThreadProc );
-					_MonitorThread.Start();
-				};
-				_SearchContext.PropertyChanged += delegate( object sender, PropertyChangedEventArgs e ) {
-					if( e.PropertyName == "PatternFixed"
-						&& _SearchContext.PatternFixed == true )
-					{
-						OnSearchContextFixed();
-					}
-					else if( e.PropertyName == "MatchCase"
-						|| e.PropertyName == "Regex"
-						|| e.PropertyName == "TextPattern"
-						|| e.PropertyName == "UseRegex" )
-					{
-						OnSearchContextChanged( _SearchContext.Forward );
-					}
-				};
-
-				// register watching pattern for text search
-				Marking.Register( new MarkingInfo(0, "Text searching target") );
-				_MainForm.Azuki.ColorScheme.SetMarkingDecoration(
-						0, new OutlineTextDecoration( Color.Red )
-					);
 
 				// handle initially set document
 				Document doc = new Document();
 				AddDocument( doc );
 				ActiveDocument = doc;
 
-				// give the search context object to text search UI
+				// give find panel reference to find context object 
 				_MainForm.SearchPanel.SetContextRef( _SearchContext );
 			}
 		}
@@ -429,7 +406,6 @@ namespace Sgry.Ann
 		{
 			Debug.Assert( filePath != null );
 			Document doc;
-			string errorMessage = null;
 
 			// if specified file was already opened, just return the document
 			foreach( Document d in Documents )
@@ -447,35 +423,27 @@ namespace Sgry.Ann
 				LoadFileContentToDocument( doc, filePath, encoding, withBom );
 				return doc;
 			}
-			catch( ArgumentException ex )
-			{
-				// the path is "wild?cards.txt" for example.
-				errorMessage = String.Format( "{0}\n\nPath: {1}", ex.Message, filePath );
-			}
 			catch( NotSupportedException ex )
 			{
-				// the path is "http://sgry.jp/" for example.
-				errorMessage = String.Format( "{0}\n\nPath: {1}", ex.Message, filePath );
+				Alert( ex );
 			}
 			catch( UnauthorizedAccessException ex )
 			{
-				// the path is a directory or a file which the user has no permission to read
-				errorMessage = ex.Message;
+				Alert( ex );
 			}
 			catch( IOException ex )
 			{
-				errorMessage = String.Format( "{0}\n\nPath: {1}", ex.Message, filePath );
+				Alert( ex );
 			}
 			catch( System.Security.SecurityException ex )
 			{
-				errorMessage = ex.Message;
+				Alert( ex );
 			}
 			catch( OutOfMemoryException ex )
 			{
-				errorMessage = ex.Message;
+				Alert( ex );
 			}
 			
-			Alert( errorMessage, MessageBoxButtons.OK, MessageBoxIcon.Exclamation );
 			return null;
 		}
 
@@ -776,19 +744,9 @@ namespace Sgry.Ann
 			}
 		}
 
-		/// <exception cref="System.ArgumentException">Specified path is too long.</exception>
-		/// <exception cref="System.IO.PathTooLongException">Specified path is too long.</exception>
-		/// <exception cref="System.IO.DirectoryNotFoundException">Specified path string contains unexisting directory.</exception>
-		/// <exception cref="System.IO.IOException">An I/O error occurred.</exception>
-		/// <exception cref="System.IO.FileNotFoundException">Specified file was not found.</exception>
-		/// <exception cref="System.NotSupportedException">Format of the path string is not supported.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The path indicates a directory. -or- The caller does not have the required permission to read the file.</exception>
 		/// <exception cref="System.OutOfMemoryException">There is no enough memory to operate.</exception>
 		void LoadFileContentToDocument( Document doc, string filePath, Encoding encoding, bool withBom )
 		{
-			FileStream stream = null;
-			StreamReader file = null;
-
 			Debug.Assert( doc != null );
 			Debug.Assert( filePath != null );
 
@@ -801,14 +759,11 @@ namespace Sgry.Ann
 			doc.WithBom = withBom;
 
 			// load file content
-			try
+			using( FileStream stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite) )
+			using( StreamReader file = new StreamReader(stream, encoding) )
 			{
 				char[] buf = null;
 				int readCount = 0;
-
-				// open the file
-				stream = File.Open( filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite );
-				file = new StreamReader( stream, encoding );
 
 				// make the document content empty first
 				doc.Replace( "", 0, doc.Length );
@@ -835,15 +790,6 @@ namespace Sgry.Ann
 					doc.Replace( new String(buf, 0, readCount), doc.Length, doc.Length );
 				}
 			}
-			finally
-			{
-#				if !PocketPC
-				if( file != null )
-					file.Dispose();
-				if( stream != null )
-					stream.Dispose();
-#				endif
-			}
 
 			// set document properties
 			doc.ClearHistory();
@@ -858,38 +804,8 @@ namespace Sgry.Ann
 		#endregion
 
 		#region Text Search
-		public void UpdateWatchPatternForTextSearch()
+		void SearchPanel_PatternUpdated( bool forward )
 		{
-			if( _SearchContext.UseRegex )
-			{
-				ActiveDocument.SearchingPattern = _SearchContext.Regex;
-			}
-			else
-			{
-				ActiveDocument.SearchingPattern = new Regex(
-						Regex.Escape(_SearchContext.TextPattern),
-						_SearchContext.MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase
-					);
-			}
-		}
-
-		void OnSearchContextFixed()
-		{
-			// set text pattern to emphasize
-			UpdateWatchPatternForTextSearch();
-
-			// deactivate search panel
-			MainForm.DeactivateSearchPanel();
-		}
-
-		void OnSearchContextChanged( bool forward )
-		{
-			if( _MainForm.SearchPanel.Enabled == false )
-			{
-				return;
-			}
-
-			// search incrementally
 			if( forward )
 				FindNext();
 			else
@@ -1009,27 +925,26 @@ namespace Sgry.Ann
 			{
 				MainForm.WindowState = FormWindowState.Maximized;
 			}
-			MainForm.TabPanelEnabled				= AppConfig.TabPanelEnabled;
+			MainForm.TabPanelEnabled			= AppConfig.TabPanelEnabled;
 
-			MainForm.Azuki.DrawsEolCode				= AppConfig.DrawsEolCode;
-			MainForm.Azuki.DrawsFullWidthSpace		= AppConfig.DrawsFullWidthSpace;
-			MainForm.Azuki.DrawsSpace				= AppConfig.DrawsSpace;
-			MainForm.Azuki.DrawsTab					= AppConfig.DrawsTab;
-			MainForm.Azuki.DrawsEofMark				= AppConfig.DrawsEofMark;
-			MainForm.Azuki.HighlightsCurrentLine	= AppConfig.HighlightsCurrentLine;
-			MainForm.Azuki.HighlightsMatchedBracket	= AppConfig.HighlightsMatchedBracket;
-			MainForm.Azuki.ShowsLineNumber			= AppConfig.ShowsLineNumber;
-			MainForm.Azuki.ShowsHRuler				= AppConfig.ShowsHRuler;
-			MainForm.Azuki.ShowsDirtBar				= AppConfig.ShowsDirtBar;
-			MainForm.Azuki.TabWidth					= AppConfig.TabWidth;
-			MainForm.Azuki.LinePadding				= AppConfig.LinePadding;
-			MainForm.Azuki.LeftMargin				= AppConfig.LeftMargin;
-			MainForm.Azuki.TopMargin				= AppConfig.TopMargin;
-			MainForm.Azuki.ViewType					= AppConfig.ViewType;
-			MainForm.Azuki.UsesTabForIndent			= AppConfig.UsesTabForIndent;
+			MainForm.Azuki.DrawsEolCode			= AppConfig.DrawsEolCode;
+			MainForm.Azuki.DrawsFullWidthSpace	= AppConfig.DrawsFullWidthSpace;
+			MainForm.Azuki.DrawsSpace			= AppConfig.DrawsSpace;
+			MainForm.Azuki.DrawsTab				= AppConfig.DrawsTab;
+			MainForm.Azuki.DrawsEofMark			= AppConfig.DrawsEofMark;
+			MainForm.Azuki.HighlightsCurrentLine= AppConfig.HighlightsCurrentLine;
+			MainForm.Azuki.ShowsLineNumber		= AppConfig.ShowsLineNumber;
+			MainForm.Azuki.ShowsHRuler			= AppConfig.ShowsHRuler;
+			MainForm.Azuki.ShowsDirtBar			= AppConfig.ShowsDirtBar;
+			MainForm.Azuki.TabWidth				= AppConfig.TabWidth;
+			MainForm.Azuki.LinePadding			= AppConfig.LinePadding;
+			MainForm.Azuki.LeftMargin			= AppConfig.LeftMargin;
+			MainForm.Azuki.TopMargin			= AppConfig.TopMargin;
+			MainForm.Azuki.ViewType				= AppConfig.ViewType;
+			MainForm.Azuki.UsesTabForIndent		= AppConfig.UsesTabForIndent;
 			MainForm.Azuki.ConvertsFullWidthSpaceToSpace = AppConfig.ConvertsFullWidthSpaceToSpace;
-			MainForm.Azuki.HRulerIndicatorType		= AppConfig.HRulerIndicatorType;
-			MainForm.Azuki.ScrollsBeyondLastLine	= AppConfig.ScrollsBeyondLastLine;
+			MainForm.Azuki.HRulerIndicatorType	= AppConfig.HRulerIndicatorType;
+			MainForm.Azuki.ScrollsBeyondLastLine= AppConfig.ScrollsBeyondLastLine;
 
 			// update UI
 			MainForm.UpdateUI();
@@ -1044,27 +959,26 @@ namespace Sgry.Ann
 			{
 				AppConfig.WindowSize = MainForm.ClientSize;
 			}
-			AppConfig.TabPanelEnabled			= MainForm.TabPanelEnabled;
+			AppConfig.TabPanelEnabled		= MainForm.TabPanelEnabled;
 
-			AppConfig.DrawsEolCode				= MainForm.Azuki.DrawsEolCode;
-			AppConfig.DrawsFullWidthSpace		= MainForm.Azuki.DrawsFullWidthSpace;
-			AppConfig.DrawsSpace				= MainForm.Azuki.DrawsSpace;
-			AppConfig.DrawsTab					= MainForm.Azuki.DrawsTab;
-			AppConfig.DrawsEofMark				= MainForm.Azuki.DrawsEofMark;
-			AppConfig.HighlightsCurrentLine		= MainForm.Azuki.HighlightsCurrentLine;
-			AppConfig.HighlightsMatchedBracket	= MainForm.Azuki.HighlightsMatchedBracket;
-			AppConfig.ShowsLineNumber			= MainForm.Azuki.ShowsLineNumber;
-			AppConfig.ShowsHRuler				= MainForm.Azuki.ShowsHRuler;
-			AppConfig.ShowsDirtBar				= MainForm.Azuki.ShowsDirtBar;
-			AppConfig.TabWidth					= MainForm.Azuki.TabWidth;
-			AppConfig.LinePadding				= MainForm.Azuki.LinePadding;
-			AppConfig.LeftMargin				= MainForm.Azuki.LeftMargin;
-			AppConfig.TopMargin					= MainForm.Azuki.TopMargin;
-			AppConfig.ViewType					= MainForm.Azuki.ViewType;
-			AppConfig.UsesTabForIndent			= MainForm.Azuki.UsesTabForIndent;
+			AppConfig.DrawsEolCode			= MainForm.Azuki.DrawsEolCode;
+			AppConfig.DrawsFullWidthSpace	= MainForm.Azuki.DrawsFullWidthSpace;
+			AppConfig.DrawsSpace			= MainForm.Azuki.DrawsSpace;
+			AppConfig.DrawsTab				= MainForm.Azuki.DrawsTab;
+			AppConfig.DrawsEofMark			= MainForm.Azuki.DrawsEofMark;
+			AppConfig.HighlightsCurrentLine	= MainForm.Azuki.HighlightsCurrentLine;
+			AppConfig.ShowsLineNumber		= MainForm.Azuki.ShowsLineNumber;
+			AppConfig.ShowsHRuler			= MainForm.Azuki.ShowsHRuler;
+			AppConfig.ShowsDirtBar			= MainForm.Azuki.ShowsDirtBar;
+			AppConfig.TabWidth				= MainForm.Azuki.TabWidth;
+			AppConfig.LinePadding			= MainForm.Azuki.LinePadding;
+			AppConfig.LeftMargin			= MainForm.Azuki.LeftMargin;
+			AppConfig.TopMargin				= MainForm.Azuki.TopMargin;
+			AppConfig.ViewType				= MainForm.Azuki.ViewType;
+			AppConfig.UsesTabForIndent		= MainForm.Azuki.UsesTabForIndent;
 			AppConfig.ConvertsFullWidthSpaceToSpace = MainForm.Azuki.ConvertsFullWidthSpaceToSpace;
-			AppConfig.HRulerIndicatorType		= MainForm.Azuki.HRulerIndicatorType;
-			AppConfig.ScrollsBeyondLastLine		= MainForm.Azuki.ScrollsBeyondLastLine;
+			AppConfig.HRulerIndicatorType	= MainForm.Azuki.HRulerIndicatorType;
+			AppConfig.ScrollsBeyondLastLine	= MainForm.Azuki.ScrollsBeyondLastLine;
 
 			// save to file
 			AppConfig.Save();
@@ -1074,25 +988,19 @@ namespace Sgry.Ann
 		#region UI Event Handlers
 		void MainForm_Load( object sender, EventArgs e )
 		{
-			if( _InitOpenFilePaths == null || _InitOpenFilePaths.Length < 1 )
+			if( _InitOpenFilePath == null )
 				return;
 
 			Document prevActiveDoc;
 
-			// try to open the first file
+			// try to open initial document
 			prevActiveDoc = ActiveDocument;
-			OpenDocument( _InitOpenFilePaths[0] );
+			OpenDocument( _InitOpenFilePath );
 
 			// close default empty document if successfully opened
 			if( prevActiveDoc != ActiveDocument )
 			{
 				CloseDocument( prevActiveDoc );
-			}
-
-			// open second or later files
-			for( int i=1; i<_InitOpenFilePaths.Length; i++ )
-			{
-				OpenDocument( _InitOpenFilePaths[i] );
 			}
 		}
 
@@ -1399,10 +1307,15 @@ namespace Sgry.Ann
 			/// <summary>
 			/// Analyzes encoding.
 			/// </summary>
+			/// <exception cref="System.UnauthorizedAccessException">Reading the file associated with this document was not permitted.</exception>
+			/// <exception cref="System.NotSupportedException">Specified format of the path is not supported.</exception>
+			/// <exception cref="System.IO.PathTooLongException">Specified file path is too long.</exception>
+			/// <exception cref="System.IO.FileNotFoundException">The associated file of the document does not exist.</exception>
+			/// <exception cref="System.IO.DirectoryNotFoundException">Specified path is pointing to a file which is in non-existing directory.</exception>
+			/// <exception cref="System.IO.IOException">Other I/O error was occurred.</exception>
 			public static void AnalyzeEncoding( string filePath, out Encoding encoding, out bool withBom )
 			{
 				Debug.Assert( filePath != null );
-
 				const int MaxSize = 50 * 1024;
 				Stream file = null;
 				byte[] data;
@@ -1427,24 +1340,13 @@ namespace Sgry.Ann
 							encoding = Encoding.Default;
 							withBom = false;
 						}
-
-						return;
 					}
 				}
-				catch( ArgumentException )
-				{}
-				catch( NotSupportedException )
-				{}
-				catch( UnauthorizedAccessException )
-				{}
 				catch( IOException )
-				{}
-				catch( System.Security.SecurityException )
-				{}
-				catch( OutOfMemoryException )
-				{}
-				encoding = Encoding.Default;
-				withBom = false;
+				{
+					encoding = Encoding.Default;
+					withBom = false;
+				}
 			}
 
 			public static string AnalyzeEolCode( Document doc )

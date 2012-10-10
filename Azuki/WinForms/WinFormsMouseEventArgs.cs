@@ -13,9 +13,7 @@ namespace Sgry.Azuki.WinForms
 	{
 		int _ButtonIndex;
 		int _Index;
-#		if PocketPC
 		int _Clicks;
-#		endif
 		bool _Shift, _Control, _Alt, _Special;
 		bool _Handled;
 
@@ -23,9 +21,7 @@ namespace Sgry.Azuki.WinForms
 			: base( e.Button, clicks, e.X, e.Y, 0 )
 		{
 			_Index = index;
-#			if PocketPC
 			_Clicks = clicks;
-#			endif
 			_Shift = shift;
 			_Control = control;
 			_Alt = alt;

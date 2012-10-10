@@ -1,6 +1,5 @@
-// 2011-09-25
+// 2010-02-13
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
@@ -16,7 +15,7 @@ namespace Sgry.Ann
 		{
 			MyMutex mutex;
 			bool owned;
-			List<string> initOpenFilePaths = new List<string>();
+			string initOpenFilePath = null;
 
 			// get mutex object to control application instance
 			using( mutex = new MyMutex(true, AppLogic.AppInstanceMutexName) )
@@ -24,30 +23,30 @@ namespace Sgry.Ann
 				owned = mutex.WaitOne( 0 );
 
 				// parse arguments
-				for( int i=0; i<args.Length; i++ )
+				if( 1 <= args.Length )
 				{
-					initOpenFilePaths.Add( args[i] );
+					initOpenFilePath = args[0];
 				}
 
 				// if another instance already exists, activate it and exit
 				if( owned )
 				{
-					Main_LaunchFirstInstance( initOpenFilePaths.ToArray() );
+					Main_LaunchFirstInstance( initOpenFilePath );
 					mutex.ReleaseMutex();
 				}
 				else
 				{
-					Main_ActivateFirstInstance( initOpenFilePaths.ToArray() );
+					Main_ActivateFirstInstance( initOpenFilePath );
 				}
 			}
 		}
 
-		static void Main_LaunchFirstInstance( string[] initOpenFilePaths )
+		static void Main_LaunchFirstInstance( string initOpenFilePath )
 		{
 			AppLogic app;
 
 			// launch new application instance
-			using( app = new AppLogic(initOpenFilePaths) )
+			using( app = new AppLogic(initOpenFilePath) )
 			{
 				app.MainForm = new AnnForm( app );
 				app.LoadConfig();
@@ -59,18 +58,18 @@ namespace Sgry.Ann
 			}
 		}
 
-		static void Main_ActivateFirstInstance( string[] initOpenFilePaths )
+		static void Main_ActivateFirstInstance( string initOpenFilePath )
 		{
 			PseudoPipe pipe = new PseudoPipe();
-
+			
 			// write IPC file to tell existing instance what user wants to do
 			try
 			{
 				pipe.Connect( AppLogic.IpcFilePath );
 				pipe.WriteLine( "Activate", 1000 );
-				foreach( string path in initOpenFilePaths )
+				if( initOpenFilePath != null )
 				{
-					pipe.WriteLine( "OpenDocument," + path, 1000 );
+					pipe.WriteLine( "OpenDocument,"+initOpenFilePath, 1000 );
 				}
 			}
 			catch

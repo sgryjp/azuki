@@ -1,7 +1,7 @@
 // file: IUserInterface.cs
 // brief: interface of user interface module (platform dependent)
 // author: YAMAMOTO Suguru
-// update: 2011-07-31
+// update: 2011-02-05
 //=========================================================
 using System;
 using System.Drawing;
@@ -182,17 +182,9 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets or sets whether the current line would be drawn with underline or not.
+		/// Whether the current line would be drawn with underline or not.
 		/// </summary>
 		bool HighlightsCurrentLine
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets or sets whether to highlight matched bracket or not.
-		/// </summary>
-		bool HighlightsMatchedBracket
 		{
 			get; set;
 		}
@@ -274,13 +266,13 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Invalidate graphic of whole area
+		/// Invalidate and make 'dirty' whole area
 		/// (force to be redrawn by next paint event message).
 		/// </summary>
 		void Invalidate();
 
 		/// <summary>
-		/// Invalidate graphic of the specified area
+		/// Invalidate and make 'dirty' specified area
 		/// (force to be redrawn by next paint event message).
 		/// </summary>
 		void Invalidate( Rectangle rect );
@@ -386,20 +378,6 @@ namespace Sgry.Azuki
 		/// Gets or sets currently active selection mode.
 		/// </summary>
 		TextDataType SelectionMode
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets or sets whether the content should be limited to a single line.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property determines
-		/// whether the content of Azuki should be kept in single line or not.
-		/// </para>
-		/// </remarks>
-		bool IsSingleLineMode
 		{
 			get; set;
 		}
@@ -610,52 +588,16 @@ namespace Sgry.Azuki
 		string GetTextInRange( int begin, int end );
 
 		/// <summary>
-		/// Gets number of characters currently selected.
-		/// </summary>
-		/// <returns>Number of characters currently selected.</returns>
-		/// <remarks>
-		/// <para>
-		/// This method gets number of characters currently selected,
-		/// properly even if the selection mode is rectangle selection.
-		/// </para>
-		/// <para>
-		/// Note that the difference between the end of selection and the beginning of selection
-		/// is not a number of selected characters if they are selected by rectangle selection.
-		/// </para>
-		/// </remarks>
-		int GetSelectedTextLength();
-
-		/// <summary>
 		/// Gets currently selected text.
 		/// </summary>
 		/// <returns>Currently selected text.</returns>
 		/// <remarks>
-		/// <para>
 		/// This method gets currently selected text.
-		/// </para>
-		/// <para>
 		/// If current selection is rectangle selection,
-		/// return value will be a string that are consisted with selected partial lines (rows)
-		/// joined with CR+LF.
-		/// </para>
+		/// return value will be a text that are consisted with selected partial lines (rows)
+		/// joined with CR-LF.
 		/// </remarks>
 		string GetSelectedText();
-
-		/// <summary>
-		/// Gets currently selected text.
-		/// </summary>
-		/// <returns>Currently selected text.</returns>
-		/// <remarks>
-		/// <para>
-		/// This method gets currently selected text.
-		/// </para>
-		/// <para>
-		/// If current selection is rectangle selection,
-		/// return value will be a string that are consisted with selected partial lines (rows)
-		/// joined with specified string.
-		/// </para>
-		/// </remarks>
-		string GetSelectedText( string separator );
 
 		/// <summary>
 		/// Gets length of the specified line.

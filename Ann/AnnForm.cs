@@ -1,4 +1,4 @@
-// 2012-05-05
+// 2011-02-05
 using System;
 using System.Drawing;
 using System.Collections.Generic;
@@ -428,64 +428,20 @@ namespace Sgry.Ann
 #		if !PocketPC
 		void _Azuki_CaretMoved( object sender, EventArgs e )
 		{
-			int selLen;
+			int line, columnInHRuler, columnInChar;
 
-			selLen = _Azuki.GetSelectedTextLength();
-			if( 0 < selLen )
-			{
-				// There are selection. Display how many characters/bytes are selected.
-				int charCount;
-				string columnCountStr;
+			// get caret position
+			_Azuki.GetLineColumnIndexFromCharIndex(
+				_Azuki.CaretIndex, out line, out columnInChar
+			);
+			columnInHRuler = _Azuki.View.GetVirPosFromIndex( _Azuki.CaretIndex ).X
+				/ _Azuki.View.HRulerUnitWidth;
 
-				// calculate number of chars/bytes
-				charCount = selLen;
-				columnCountStr = "?";
-				if( charCount < 1 * 1024 * 1024 )
-				{
-					try
-					{
-						columnCountStr = _App.ActiveDocument.Encoding.GetByteCount(
-								_Azuki.GetSelectedText("")
-							).ToString("N0");
-					}
-					catch
-					{}
-				}
-
-				// Display the number
-				_Status_CaretPos.Text = String.Format(
-						"{0:N0} chars ({1} bytes) selected.",
-						charCount, columnCountStr
-					);
-			}
-			else
-			{
-				int line, columnInHRuler, columnInChar;
-
-				// get caret position
-				_Azuki.GetLineColumnIndexFromCharIndex(
-					_Azuki.CaretIndex, out line, out columnInChar
+			// display it in status bar
+			_Status_CaretPos.Text = String.Format(
+					"line:{0}, column:{1}, char:{2}",
+					line+1, columnInHRuler+1, columnInChar+1
 				);
-				columnInHRuler = _Azuki.View.GetVirPosFromIndex( _Azuki.CaretIndex ).X
-					/ _Azuki.View.HRulerUnitWidth;
-
-				// display it in status bar
-				_Status_CaretPos.Text = String.Format(
-						"line:{0}, col:{1}, char:{2}",
-						line+1, columnInHRuler+1, columnInChar+1
-					);
-			}
-
-			// expand status bar width if its text cannot be displayed
-			using( Graphics g = CreateGraphics() )
-			{
-				int textWidth = (int)g.MeasureString( _Status_CaretPos.Text,
-													  this.Font ).Width;
-				if( _Status_CaretPos.Width < textWidth )
-				{
-					_Status_CaretPos.Width = textWidth;
-				}
-			}
 		}
 #		endif
 		#endregion
@@ -544,6 +500,9 @@ namespace Sgry.Ann
 			//
 			_SearchPanel.Dock = DockStyle.Bottom;
 			_SearchPanel.Enabled = false;
+			_SearchPanel.PatternFixed += delegate {
+				DeactivateSearchPanel();
+			};
 #			if !PocketPC
 			//
 			// _StatusBar
@@ -554,10 +513,6 @@ namespace Sgry.Ann
 			});
 			_StatusBar.ShowPanels = true;
 			_StatusBar.SizingGrip = true;
-			//
-			// _Status_CaretPos
-			//
-			_Status_CaretPos.Alignment = HorizontalAlignment.Right;
 			//
 			// _Status_Message
 			//

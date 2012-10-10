@@ -2,7 +2,7 @@
 // brief: Actions for Azuki engine.
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// update: 2011-08-07
+// update: 2011-01-29
 //=========================================================
 using System;
 using System.Drawing;
@@ -408,16 +408,6 @@ namespace Sgry.Azuki
 			{
 				return;
 			}
-
-			// limit the content in a single line if it's in single line mode
-			if( ui.IsSingleLineMode )
-			{
-				int eolIndex = clipboardText.IndexOfAny( new char[]{'\r', '\n'} );
-				if( 0 <= eolIndex )
-				{
-					clipboardText = clipboardText.Remove( eolIndex, clipboardText.Length-eolIndex );
-				}
-			}
 			
 			// begin grouping edit action
 			doc.BeginUndo();
@@ -597,7 +587,7 @@ namespace Sgry.Azuki
 			int caretLine;
 			int insIndex;
 
-			if( doc.IsReadOnly || ui.IsSingleLineMode )
+			if( doc.IsReadOnly )
 				return;
 
 			// get index of the head of current line
@@ -629,10 +619,11 @@ namespace Sgry.Azuki
 		{
 			Document doc = ui.Document;
 			IView view = ui.View;
+			string eol = doc.EolCode;
 			int caretLine, caretLineHeadIndex;
 			int insIndex;
 
-			if( doc.IsReadOnly || ui.IsSingleLineMode )
+			if( doc.IsReadOnly )
 				return;
 
 			// get index of the end of current line

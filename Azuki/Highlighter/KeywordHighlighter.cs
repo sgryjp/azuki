@@ -1,7 +1,7 @@
 ﻿// file: KeywordHighlighter.cs
 // brief: Keyword based highlighter.
 // author: YAMAMOTO Suguru
-// update: 2011-07-10
+// update: 2011-02-19
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -122,7 +122,7 @@ namespace Sgry.Azuki.Highlighter
 #		if DEBUG
 		internal
 #		endif
-		SplitArray<int> _ReparsePoints = new SplitArray<int>( 64 );
+		SplitArray<int> _EPI = new SplitArray<int>( 32, 32 );
 		#endregion
 
 		#region Highlight Settings
@@ -492,43 +492,21 @@ namespace Sgry.Azuki.Highlighter
 
 			int index, nextIndex;
 			bool highlighted;
+//			int lastChangedCharIndex = 0;
 
-			// determine where to start highlighting
-			index = HighlighterUtl.FindLeastMaximum( _ReparsePoints, dirtyBegin );
-			if( 0 <= index )
-			{
-				dirtyBegin = _ReparsePoints[index];
-			}
-			else
-			{
-				dirtyBegin = 0;
-			}
-
-			// determine where to end highlighting
-			int x = HighlighterUtl.ReparsePointMinimumDistance;
-			dirtyEnd += x - (dirtyEnd % x); // next multiple of x
-			if( doc.Length < dirtyEnd )
-			{
-				dirtyEnd = doc.Length;
-			}
+			// update EPI and get index to start highlighting
+			UpdateEPI( doc, dirtyBegin, out dirtyBegin, out dirtyEnd );
+dirtyEnd = doc.Length;
 
 			// seek each chars and do pattern matching
 			index = dirtyBegin;
 			while( 0 <= index && index < dirtyEnd )
 			{
-				// if the document has been shrunken while highlighting, shrunk the range too.
-				// (although this is ad-hoc, but surely reduces risk of out-of-range exceptions)
-				if( doc.Length < dirtyEnd )
-				{
-					dirtyEnd = doc.Length;
-				}
-
-				// highlight line-comment if this token starts one
+				// highlight line-comment if this token is one
 				nextIndex = TryHighlightLineComment( doc, _LineHighlights, index, dirtyEnd );
 				if( index < nextIndex )
 				{
 					// successfully highlighted. skip to next.
-					HighlighterUtl.EntryReparsePoint( _ReparsePoints, index );
 					index = nextIndex;
 					continue;
 				}
@@ -538,7 +516,6 @@ namespace Sgry.Azuki.Highlighter
 				if( index < nextIndex )
 				{
 					// successfully highlighted. skip to next.
-					HighlighterUtl.EntryReparsePoint( _ReparsePoints, index );
 					index = nextIndex;
 					continue;
 				}
@@ -562,13 +539,8 @@ namespace Sgry.Azuki.Highlighter
 				// this token is normal class; reset classes and seek to next token
 				nextIndex = HighlighterUtl.FindNextToken( doc, index, _WordCharSet );
 				Highlight( doc, index, nextIndex, CharClass.Normal );
+//				lastChangedCharIndex = nextIndex-1;
 				index = nextIndex;
-			}
-
-			// report lastly parsed position
-			if( dirtyEnd < index )
-			{
-				dirtyEnd = index;
 			}
 		}
 
@@ -722,6 +694,82 @@ namespace Sgry.Azuki.Highlighter
 		}
 		#endregion
 
+		#region Management of Enclosing Pair Indexes
+		/// <summary>
+		/// This method maintains enlosing pair indexes and
+		/// returns range of text to be highlighted.
+		/// </summary>
+		void UpdateEPI( Document doc, int dirtyBegin, out int begin, out int end )
+		{
+			int epiIndex;
+			int closePos;
+			Enclosure pair;
+
+			// calculate re-parse begin index
+			epiIndex = Utl.FindLeastMaximum( _EPI, dirtyBegin );
+			if( epiIndex < 0 )
+			{
+				epiIndex = 0;
+				begin = doc.GetLineHeadIndexFromCharIndex( dirtyBegin );
+			}
+			else if( epiIndex % 2 == 0 )
+			{
+				begin = _EPI[epiIndex];
+			}
+			else
+			{
+				begin = _EPI[epiIndex];
+				epiIndex++;
+			}
+			end = doc.Length;
+
+			// remove deleted pair indexes in removed range
+			if( epiIndex < _EPI.Count )
+			{
+				_EPI.RemoveRange( epiIndex, _EPI.Count );
+			}
+
+			// find pairs
+			for( int i=begin; i<end; i++ )
+			{
+				// ensure a pair begins from here
+				pair = HighlighterUtl.StartsWith( doc, _Enclosures, i );
+				if( pair == null )
+				{
+					pair = HighlighterUtl.StartsWith( doc, _LineHighlights, i );
+					if( pair == null )
+					{
+						continue; // no pair matched
+					}
+				}
+
+				// remember opener index
+				_EPI.Insert( epiIndex, i );
+				epiIndex++;
+
+				// find closing pair
+				closePos = HighlighterUtl.FindCloser( doc, pair, i+pair.opener.Length, end );
+				if( closePos == -1 )
+				{
+					break; // no matching closer
+				}
+
+				// remember closer index and skip to the closer
+				if( pair.closer != null )
+				{
+					_EPI.Insert( epiIndex, closePos + pair.closer.Length );
+					i = closePos + pair.closer.Length;
+				}
+				else
+				{
+					_EPI.Insert( epiIndex, closePos );
+					i = closePos;
+				}
+				epiIndex++;
+			}
+		}
+		#endregion
+
 		#region Utilities
 		static bool Matches( char ch1, char ch2, bool ignoreCase )
 		{
@@ -742,7 +790,7 @@ namespace Sgry.Azuki.Highlighter
 			if( index+1 == doc.Length
 				|| (index+1 < doc.Length && HighlighterUtl.IsWordChar(wordChars, doc[index+1]) == false) )
 			{
-				// and, node.child is null or '\0'?
+				// and, ndoe.child is null or '\0'?
 				if( node.child == null || node.child.ch == '\0' )
 				{
 					return true;
@@ -767,6 +815,27 @@ namespace Sgry.Azuki.Highlighter
 			for( int i=begin; i<end; i++ )
 			{
 				doc.SetCharClass( i, klass );
+			}
+		}
+
+		static class Utl
+		{
+			public static int FindLeastMaximum( SplitArray<int> numbers, int value )
+			{
+				if( numbers.Count == 0 )
+				{
+					return -1;
+				}
+
+				for( int i=0; i<numbers.Count; i++ )
+				{
+					if( value <= numbers[i] )
+					{
+						return i - 1; // this may return -1 but it's okay.
+					}
+				}
+
+				return numbers.Count - 1;
 			}
 		}
 		#endregion

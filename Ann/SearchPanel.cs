@@ -1,91 +1,35 @@
-// 2011-09-23
+// 2011-01-26
 using System;
 using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Sgry.Azuki;
 using Sgry.Azuki.WinForms;
-using INotifyPropertyChanged = System.ComponentModel.INotifyPropertyChanged;
-using PropertyChangedEventHandler = System.ComponentModel.PropertyChangedEventHandler;
-using PropertyChangedEventArgs = System.ComponentModel.PropertyChangedEventArgs;
 
 namespace Sgry.Ann
 {
 	#region Search context object
-	class SearchContext : INotifyPropertyChanged
+	class SearchContext
 	{
-		bool _Forward = true;
-		int _AnchorIndex = -1;
-		bool _PatternFixed = true;
-		string _TextPattern = String.Empty;
 		bool _UseRegex = false;
 		Regex _Regex;
-		RegexOptions _RegexOptions = RegexOptions.Multiline | RegexOptions.IgnoreCase;
-
-		/// <summary>
-		/// Gets whether the search should be done toward the end of the document.
-		/// </summary>
-		public bool Forward
-		{
-			get{ return _Forward; }
-			set
-			{
-				if( Forward == value )
-					return;
-
-				_Forward = value;
-				InvokePropertyChanged( "Forward" );
-			}
-		}
+		RegexOptions _RegexOptions = RegexOptions.IgnoreCase;
 
 		/// <summary>
 		/// Gets or sets search anchor.
 		/// </summary>
-		public int AnchorIndex
-		{
-			get{ return _AnchorIndex; }
-			set
-			{
-				if( AnchorIndex == value )
-					return;
-
-				_AnchorIndex = value;
-				InvokePropertyChanged( "AnchorIndex" );
-			}
-		}
+		public int AnchorIndex = -1;
 
 		/// <summary>
 		/// Gets or sets whether the search condition was fixed in SearchPanel or not.
 		/// </summary>
-		public bool PatternFixed
-		{
-			get{ return _PatternFixed; }
-			set
-			{
-				if( PatternFixed == value )
-					return;
-
-				_PatternFixed = value;
-				InvokePropertyChanged( "PatternFixed" );
-			}
-		}
+		public bool PatternFixed = true;
 
 		/// <summary>
 		/// Gets or sets the text pattern to be found.
 		/// This will not be used on regular expression search.
 		/// </summary>
-		public string TextPattern
-		{
-			get{ return _TextPattern; }
-			set
-			{
-				if( TextPattern == value )
-					return;
-
-				_TextPattern = value;
-				InvokePropertyChanged( "TextPattern" );
-			}
-		}
+		public string TextPattern = String.Empty;
 
 		/// <summary>
 		/// Gets or sets whether to search text pattern by regular expression or not.
@@ -93,14 +37,7 @@ namespace Sgry.Ann
 		public bool UseRegex
 		{
 			get{ return _UseRegex; }
-			set
-			{
-				if( UseRegex == value )
-					return;
-
-				_UseRegex = value;
-				InvokePropertyChanged( "UseRegex" );
-			}
+			set{ _UseRegex = value; }
 		}
 
 		/// <summary>
@@ -114,17 +51,9 @@ namespace Sgry.Ann
 		{
 			set
 			{
-				if( _Regex == value
-					&& _RegexOptions == value.Options
-					&& TextPattern == _Regex.ToString() )
-				{
-					return;
-				}
-
 				_Regex = value;
 				_RegexOptions = value.Options;
 				TextPattern = _Regex.ToString();
-				InvokePropertyChanged( "Regex" );
 			}
 			get
 			{
@@ -132,8 +61,8 @@ namespace Sgry.Ann
 				try
 				{
 					if( _Regex == null
-						|| _Regex.Options != _RegexOptions
-						|| _Regex.ToString() != TextPattern )
+						|| _Regex.ToString() != TextPattern
+						|| _Regex.Options != _RegexOptions )
 					{
 						_Regex = new Regex( TextPattern, _RegexOptions );
 					}
@@ -154,23 +83,10 @@ namespace Sgry.Ann
 			get{ return (_RegexOptions & RegexOptions.IgnoreCase) == 0; }
 			set
 			{
-				if( MatchCase == value )
-					return;
-
 				if( value == true )
 					_RegexOptions &= ~( RegexOptions.IgnoreCase );
 				else
 					_RegexOptions |= RegexOptions.IgnoreCase;
-				InvokePropertyChanged( "MatchCase" );
-			}
-		}
-
-		public event PropertyChangedEventHandler PropertyChanged;
-		void InvokePropertyChanged( string name )
-		{
-			if( PropertyChanged != null )
-			{
-				PropertyChanged( this, new PropertyChangedEventArgs(name) );
 			}
 		}
 	}
@@ -210,7 +126,6 @@ namespace Sgry.Ann
 			this.Visible = true;
 			_Azuki_Pattern.SelectAll();
 			_ContextRef.AnchorIndex = anchorIndex;
-			_ContextRef.PatternFixed = false;
 			Show();
 			Focus();
 			_Azuki_Pattern.Focus();
@@ -220,7 +135,8 @@ namespace Sgry.Ann
 		{
 			this.Enabled = false;
 			this.Visible = false;
-			FixParameters();
+			_ContextRef.PatternFixed = true;
+			_ContextRef.AnchorIndex = -1;
 		}
 		#endregion
 
@@ -248,7 +164,7 @@ namespace Sgry.Ann
 				labelSize.Width = g.MeasureText( _Label_Pattern.Text ).Width + 2;
 				labelSize.Height = g.MeasureText( "Mp" ).Height;
 				_Label_Pattern.Size = labelSize;
-				_Azuki_Pattern.Size = new Size( labelSize.Width*3, labelSize.Height+4 );
+				_Azuki_Pattern.Size = new Size( labelSize.Width*3, labelSize.Height );
 				_Button_Next.Size = new Size( g.MeasureText(_Button_Next.Text).Width+2, labelSize.Height );
 				_Button_Prev.Size = new Size( g.MeasureText(_Button_Prev.Text).Width+2, labelSize.Height );
 				_Check_MatchCase.Size = new Size(
@@ -259,9 +175,9 @@ namespace Sgry.Ann
 					g.MeasureText(_Check_Regex.Text).Width + labelSize.Height,
 					labelSize.Height
 				);
-				_Panel_TextBox.Height = _Azuki_Pattern.Height + 2;
-				_Panel_Options.Height = _Label_Pattern.Height + 2;
-				_Panel_Actions.Height = _Label_Pattern.Height + 2;
+				_Panel_TextBox.Height
+					= _Panel_Options.Height
+					= _Panel_Actions.Height = _Label_Pattern.Height + 2;
 				_Panel_TextBox.Width = _Label_Pattern.Width + _Azuki_Pattern.Width + 2;
 				_Panel_Actions.Width = _Button_Next.Width + _Button_Prev.Width + 4;
 				_Panel_Options.Width = _Check_MatchCase.Width + _Check_Regex.Width + 2;
@@ -272,13 +188,12 @@ namespace Sgry.Ann
 		}
 		#endregion
 
-		void FixParameters()
+		#region Event Handlers
+		void FixParameters( IUserInterface ui )
 		{
-			_ContextRef.PatternFixed = true;
-			_ContextRef.AnchorIndex = -1;
+			InvokePatternFixed();
 		}
 
-		#region Event Handlers
 		void Panel_Resize( object sender, EventArgs e )
 		{
 			if( Width != _LastLayoutWidth )
@@ -290,14 +205,14 @@ namespace Sgry.Ann
 
 		void _Button_Next_Click( object sender, EventArgs e )
 		{
-			_ContextRef.Forward = true;
-			FixParameters();
+			InvokePatternFixed();
+			InvokePatternUpdated( true );
 		}
 
 		void _Button_Prev_Click( object sender, EventArgs e )
 		{
-			_ContextRef.Forward = false;
-			FixParameters();
+			InvokePatternFixed();
+			InvokePatternUpdated( false );
 		}
 
 		void _Check_MatchCase_Clicked( object sender, EventArgs e )
@@ -313,6 +228,26 @@ namespace Sgry.Ann
 		void _Azuki_Pattern_ContentChanged( object sender, ContentChangedEventArgs e )
 		{
 			_ContextRef.TextPattern = _Azuki_Pattern.Text;
+			InvokePatternUpdated( true );
+		}
+		#endregion
+
+		#region Event
+		public delegate void PatternUpdatedEventHandler( bool forward );
+		public event PatternUpdatedEventHandler PatternUpdated;
+		void InvokePatternUpdated( bool forward )
+		{
+			if( PatternUpdated != null )
+				PatternUpdated( forward );
+		}
+
+		public event EventHandler PatternFixed;
+		void InvokePatternFixed()
+		{
+			_ContextRef.PatternFixed = true;
+			_ContextRef.AnchorIndex = -1;
+			if( PatternFixed != null )
+				PatternFixed( this, EventArgs.Empty );
 		}
 		#endregion
 
@@ -346,27 +281,16 @@ namespace Sgry.Ann
 
 			// setup text field
 			_Azuki_Pattern.HighlightsCurrentLine = false;
-			_Azuki_Pattern.HighlightsMatchedBracket = false;
 			_Azuki_Pattern.ShowsHScrollBar = false;
-			_Azuki_Pattern.ShowsVScrollBar = false;
 			_Azuki_Pattern.ShowsLineNumber = false;
 			_Azuki_Pattern.ShowsDirtBar = false;
 			_Azuki_Pattern.AcceptsTab = false;
 			_Azuki_Pattern.AcceptsReturn = false;
-			_Azuki_Pattern.IsSingleLineMode = true;
 			_Azuki_Pattern.BorderStyle = BorderStyle.Fixed3D;
 			_Azuki_Pattern.Anchor = AnchorStyles.Left | AnchorStyles.Right;
 			_Azuki_Pattern.Document.ContentChanged += _Azuki_Pattern_ContentChanged;
-			_Azuki_Pattern.SetKeyBind( Keys.Enter,
-				delegate {
-					FixParameters();
-				}
-			);
-			_Azuki_Pattern.SetKeyBind( Keys.Escape,
-				delegate {
-					FixParameters();
-				}
-			);
+			_Azuki_Pattern.SetKeyBind( Keys.Enter, FixParameters );
+			_Azuki_Pattern.SetKeyBind( Keys.Escape, FixParameters );
 			_Azuki_Pattern.SetKeyBind( Keys.N | Keys.Control,
 				delegate {
 					_Button_Next_Click( this, EventArgs.Empty );
@@ -403,13 +327,13 @@ namespace Sgry.Ann
 			_Check_MatchCase.Click += _Check_MatchCase_Clicked;
 			_Check_MatchCase.KeyDown += delegate( object sender, KeyEventArgs e ) {
 				if( e.KeyCode == Keys.Enter || e.KeyCode == Keys.Escape )
-					FixParameters();
+					FixParameters( _Azuki_Pattern );
 			};
 			_Check_Regex.Text = "&Regex";
 			_Check_Regex.Click += _Check_Regex_Clicked;
 			_Check_Regex.KeyDown += delegate( object sender, KeyEventArgs e ) {
 				if( e.KeyCode == Keys.Enter || e.KeyCode == Keys.Escape )
-					FixParameters();
+					FixParameters( _Azuki_Pattern );
 			};
 
 			ResumeLayout();

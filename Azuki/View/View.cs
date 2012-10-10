@@ -1,7 +1,7 @@
 ﻿// file: View.cs
 // brief: Platform independent view implementation of Azuki engine.
 // author: YAMAMOTO Suguru
-// update: 2011-07-07
+// update: 2011-02-20
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -47,6 +47,7 @@ namespace Sgry.Azuki
 		int _HRulerHeight;	// height of the largest lines of the horizontal ruler
 		int _HRulerY_5;		// height of the middle lines of the horizontal ruler
 		int _HRulerY_1;		// height of the smallest lines of the horizontal ruler
+		int _HRulerTextHeight;
 		HRulerIndicatorType _HRulerIndicatorType = HRulerIndicatorType.Segment;
 
 		ColorScheme _ColorScheme = ColorScheme.Default;
@@ -60,8 +61,7 @@ namespace Sgry.Azuki
 			| DrawingOption.DrawsEol
 			| DrawingOption.HighlightCurrentLine
 			| DrawingOption.ShowsLineNumber
-			| DrawingOption.ShowsDirtBar
-			| DrawingOption.HighlightsMatchedBracket;
+			| DrawingOption.ShowsDirtBar;
 		bool _ScrollsBeyondLastLine = true;
 		#endregion
 
@@ -260,6 +260,7 @@ namespace Sgry.Azuki
 			_HRulerY_5 = (int)( _HRulerHeight / (GoldenRatio * GoldenRatio) );
 			_HRulerY_1 = (int)( _HRulerHeight / (GoldenRatio) );
 			g.FontInfo = _HRulerFont;
+			_HRulerTextHeight = (int)( g.MeasureText("Mp").Height * 0.97 );
 			g.FontInfo = _Font;
 
 			// calculate minimum text area width
@@ -376,22 +377,6 @@ namespace Sgry.Azuki
 					DrawingOption |= DrawingOption.HighlightCurrentLine;
 				else
 					DrawingOption &= ~DrawingOption.HighlightCurrentLine;
-				Invalidate();
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets whether to highlight matched bracket or not.
-		/// </summary>
-		public bool HighlightsMatchedBracket
-		{
-			get{ return (DrawingOption & DrawingOption.HighlightsMatchedBracket) != 0; }
-			set
-			{
-				if( value )
-					DrawingOption |= DrawingOption.HighlightsMatchedBracket;
-				else
-					DrawingOption &= ~DrawingOption.HighlightsMatchedBracket;
 				Invalidate();
 			}
 		}

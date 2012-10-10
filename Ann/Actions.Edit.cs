@@ -1,4 +1,4 @@
-// 2011-09-25
+// 2009-11-15
 using System;
 using System.Windows.Forms;
 
@@ -66,10 +66,6 @@ namespace Sgry.Ann
 		public static AnnAction FindNext
 			= delegate( AppLogic app )
 		{
-			// set text pattern to emphasize
-			app.UpdateWatchPatternForTextSearch();
-
-			// seek to next occurrence
 			app.FindNext();
 		};
 
@@ -79,10 +75,6 @@ namespace Sgry.Ann
 		public static AnnAction FindPrev
 			= delegate( AppLogic app )
 		{
-			// set text pattern to emphasize
-			app.UpdateWatchPatternForTextSearch();
-
-			// seek to previous occurrence
 			app.FindPrev();
 		};
 

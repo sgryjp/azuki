@@ -1,7 +1,7 @@
 // file: PropWrapView.cs
 // brief: Platform independent view (proportional, line-wrap).
 // author: YAMAMOTO Suguru
-// update: 2011-09-11
+// update: 2010-11-14
 //=========================================================
 //DEBUG//#define PLHI_DEBUG
 //DEBUG//#define DRAW_SLOWLY
@@ -211,7 +211,7 @@ namespace Sgry.Azuki
 				LineLogic.GetLineRange( Document.InternalBuffer, PLHI, lineIndex, out begin, out end );
 				line = Document.GetTextInRange( begin, end );
 				if( end+1 < Document.Length
-					&& !LineLogic.IsEolChar(Document[end]) )
+					&& !LineLogic.IsEolChar(Document.GetTextInRange(end, end+1)[0]) )
 				{
 					isWrapLine = true;
 				}
@@ -443,14 +443,8 @@ namespace Sgry.Azuki
 			}
 			bottom.Y += LineSpacing;
 
-			// prevent to draw on horizontal ruler
-			if( top.Y < YofTextArea )
-			{
-				top.Y = YofTextArea;
-			}
-
 			// adjust drawing position for line padding
-			// (move it up, a half of the height of line padding)
+			// (move it up, a half of line height)
 			top.Y -= (LinePadding >> 1);
 			bottom.Y -= (LinePadding >> 1);
 
@@ -815,6 +809,8 @@ namespace Sgry.Azuki
 			Point tokenEndPos = pos;
 			bool inSelection;
 
+			int physTextAreaRight = XofTextArea + (TextAreaWidth - ScrollPosX);
+
 			// calc position of head/end of this line
 			lineHead = PLHI[ lineIndex ];
 			if( lineIndex+1 < PLHI.Count )
@@ -883,17 +879,18 @@ namespace Sgry.Azuki
 				// if the token area crosses the LEFT boundary of the clip-rect, cut off extra
 				if( pos.X < clipRect.Left )
 				{
-					int invisibleCharCount, invisibleWidth; // invisible char count / width
+					int invisCharCount, invisWidth; // invisible char count / width
 					int rightLimit = clipRect.Left - pos.X;
 
 					// calculate how many chars will not be in the clip-rect
-					invisibleWidth = MeasureTokenEndX( g, token, 0, rightLimit, out invisibleCharCount );
-					if( 0 < invisibleCharCount && invisibleCharCount < token.Length )
+					invisWidth = MeasureTokenEndX( g, token, 0, rightLimit, out invisCharCount );
+					if( 0 < invisCharCount && invisCharCount < token.Length )
 					{
 						// cut extra (invisible) part of the token
-						token = token.Substring( invisibleCharCount );
-						begin += invisibleCharCount;
-						pos.X += invisibleWidth;
+						token = token.Substring( invisCharCount );
+
+						// advance drawing position as if the cut part was actually drawn
+						pos.X += invisWidth;
 					}
 				}
 

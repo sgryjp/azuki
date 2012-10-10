@@ -1,7 +1,7 @@
 // file: LatexHighlighter.cs
 // brief: Highlighter for LaTeX.
 // author: YAMAMOTO Suguru
-// update: 2011-07-10
+// update: 2011-02-19
 //=========================================================
 using System;
 using Sgry.Azuki.Highlighter.Coco.Latex;
@@ -62,10 +62,10 @@ namespace Sgry.Azuki.Highlighter
 
 			// set re-highlight range
 			dirtyBegin = doc.GetLineHeadIndexFromCharIndex( dirtyBegin );
-			//NO_NEED//dirtyEnd = something
+			dirtyEnd = doc.Length;
 
 			// highlight with generated parser
-			Parser parser = new Parser( doc, dirtyBegin, dirtyEnd );
+			Parser parser = new Parser( doc, dirtyBegin );
 			parser._Hook = this._Hook;
 			try
 			{

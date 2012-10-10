@@ -1,4 +1,4 @@
-﻿// 2011-08-15
+﻿// 2010-06-26
 #if TEST
 using System;
 
@@ -12,12 +12,10 @@ namespace Sgry.Azuki.Test
 			CaretMoveLogicTest.Test();
 			EditHistoryTest.Test();
 			SplitArrayTest.Test();
-			RleArrayTest.Test();
 			LineLogicTest.Test();
 			DocumentTest.Test();
 			KeywordHighlighterTest.Test();
 			UriMarkerTest.Test();
-			FixedBugsTest.Test();
 			
 			if( TestUtl.ErrorOccured )
 			{

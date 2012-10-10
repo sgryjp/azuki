@@ -8,19 +8,17 @@ namespace Sgry.Azuki.Highlighter.Coco
 	{
 		public const int EOF = Char.MaxValue + 1;
 		Document	_Document;
-		int			_Position;
-		int			_EndPosition;
+		int			_Position = 0;
 
-		public Buffer( Document doc, int startIndex, int endIndex )
+		public Buffer( Document doc, int startIndex )
 		{
 			_Document = doc;
 			_Position = startIndex;
-			_EndPosition = endIndex;
 		}
 
 		public int Read()
 		{
-			if( _Position < _Document.Length || _Position < _EndPosition )
+			if( _Position < _Document.Length )
 				return _Document[ _Position++ ];
 			else
 				return EOF;
@@ -28,7 +26,7 @@ namespace Sgry.Azuki.Highlighter.Coco
 
 		public int Peek()
 		{
-			if( _Position < _Document.Length || _Position < _EndPosition )
+			if( _Position < _Document.Length )
 				return _Document[ _Position ];
 			else
 				return EOF;
@@ -39,7 +37,7 @@ namespace Sgry.Azuki.Highlighter.Coco
 			get{ return _Position; }
 			set
 			{
-				if( _Position < 0 || _EndPosition < _Position )
+				if( _Position < 0 || _Document.Length < _Position )
 					throw new ArgumentOutOfRangeException();
 
 				_Position = value;
