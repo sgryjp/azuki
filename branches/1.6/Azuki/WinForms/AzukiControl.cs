@@ -1,7 +1,5 @@
 ﻿// file: AzukiControl.cs
 // brief: User interface for WinForms framework (both Desktop and CE).
-// author: YAMAMOTO Suguru
-// update: 2011-08-07
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -1431,7 +1429,7 @@ namespace Sgry.Azuki.WinForms
 #		endif
 		public bool CanCopy
 		{
-			get{ return _Impl.CanCut; }
+			get{ return _Impl.CanCopy; }
 		}
 		
 		/// <summary>
