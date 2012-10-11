@@ -1,7 +1,5 @@
 ﻿// file: UiImpl.cs
 // brief: User interface logic that independent from platform.
-// author: YAMAMOTO Suguru
-// update: 2012-05-05
 //=========================================================
 using System;
 using System.Text;
@@ -111,7 +109,13 @@ namespace Sgry.Azuki
 		/// </summary>
 		public bool CanCut
 		{
-			get{ return CanCopy; }
+			get
+			{
+				if( Document.IsReadOnly )
+					return false;
+				else
+					return CanCopy;
+			}
 		}
 
 		/// <summary>
@@ -123,14 +127,18 @@ namespace Sgry.Azuki
 			{
 				int begin, end;
 
-				if( UserPref.CopyLineWhenNoSelection )
+				Document.GetSelection( out begin, out end );
+				if( begin != end )
 				{
-					return true;
+					return true; // one or more characters are selected
+				}
+				else if( UserPref.CopyLineWhenNoSelection )
+				{
+					return true; // nothing selected
 				}
 				else
 				{
-					Document.GetSelection( out begin, out end );
-					return (begin == end);
+					return false;
 				}
 			}
 		}
@@ -144,6 +152,10 @@ namespace Sgry.Azuki
 			{
 				TextDataType dataType;
 				string text;
+
+				// always false in read-only mode
+				if( Document.IsReadOnly )
+					return false;
 
 				// get text from clipboard
 				text = Plat.Inst.GetClipboardText( out dataType );
