@@ -554,6 +554,11 @@ namespace Sgry.Azuki.Highlighter
 					return;
 				}
 			}
+			else// if( count == 0 )
+			{
+				if( index < ReparsePointMinimumDistance )
+					return;
+			}
 			reparsePoints.Add( index );
 		}
 		#endregion

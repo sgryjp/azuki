@@ -1,8 +1,7 @@
 ﻿// file: CharClass.cs
 // brief: Indicator for class of characters.
-// author: YAMAMOTO Suguru
-// update: 2009-08-13
 //=========================================================
+using System;
 
 namespace Sgry.Azuki
 {
@@ -130,6 +129,9 @@ namespace Sgry.Azuki
 		Heading5,
 
 		/// <summary>Heading 6 (LaTeX, Wiki, HTML).</summary>
-		Heading6
+		Heading6,
+
+		/// <summary>Invalid token.</summary>
+		Invalid = Byte.MaxValue - 1
 	}
 }
