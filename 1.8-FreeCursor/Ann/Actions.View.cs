@@ -14,7 +14,7 @@ namespace Sgry.Ann
 			= delegate( AppLogic app )
 		{
 			DialogResult result;
-			AzukiControl azuki = app.MainForm.Azuki;
+			AzukiControl azuki = app.Azuki;
 			EventHandler previewHandler;
 			DrawingOption orgDrawingOption;
 			int orgTabWidth;
@@ -66,7 +66,7 @@ namespace Sgry.Ann
 		public static AnnAction ToggleWrapLines
 			= delegate( AppLogic app )
 		{
-			AzukiControl azuki = app.MainForm.Azuki;
+			AzukiControl azuki = app.Azuki;
 			if( azuki.ViewType == ViewType.Proportional )
 			{
 				azuki.ViewType = ViewType.WrappedProportional;
