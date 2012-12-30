@@ -581,6 +581,8 @@ namespace Sgry.Azuki
 		void HandleTextInput( string text );
 		#endregion
 
+		void Delete( params Range[] ranges );
+
 		#region Selection
 		/// <summary>
 		/// Gets the index of where the caret is at (in char-index).
@@ -598,9 +600,12 @@ namespace Sgry.Azuki
 		void SetSelection( int anchor, int caret );
 
 		void Select( int anchor, int caret );
+
 		void Select( int anchor, int caret, TextDataType mode );
+
 		void Select( int anchorLine, int anchorColumn,
 					 int caretLine, int caretColumn );
+
 		void Select( int anchorLine, int anchorColumn,
 					 int caretLine, int caretColumn, TextDataType mode );
 
@@ -700,7 +705,7 @@ namespace Sgry.Azuki
 		int GetLineLength( int lineIndex );
 
 		/// <summary>
-		/// Gets number of lines currently inputted.
+		/// Gets number of lines currently input.
 		/// </summary>
 		int LineCount
 		{

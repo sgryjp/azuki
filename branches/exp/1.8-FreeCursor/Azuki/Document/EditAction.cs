@@ -1,6 +1,5 @@
 // file: EditAction.cs
 // brief: Recorded editing action for UNDO/REDO.
-// author: Suguru YAMAMOTO
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -24,8 +23,6 @@ namespace Sgry.Azuki
 		int _Index;
 		string _DeletedText;
 		string _InsertedText;
-		int _OldAnchorIndex;
-		int _OldCaretIndex;
 		LineDirtyStateUndoInfo _LdsUndoInfo;
 		EditAction _Next = null;
 		#endregion
@@ -38,17 +35,15 @@ namespace Sgry.Azuki
 		/// <param name="index">index indicatating where the replacement has occured</param>
 		/// <param name="deletedText">deleted text by the replacement</param>
 		/// <param name="insertedText">inserted text by the replacement</param>
-		/// <param name="oldAnchorIndex">index of the selection anchor at when the replacement has occured</param>
-		/// <param name="oldCaretIndex">index of the caret at when the replacement has occured</param>
 		/// <param name="ldsUndoInfo">line dirty states before the replacement</param>
-		public EditAction( Document doc, int index, string deletedText, string insertedText, int oldAnchorIndex, int oldCaretIndex, LineDirtyStateUndoInfo ldsUndoInfo )
+		public EditAction( Document doc, int index,
+						   string deletedText, string insertedText,
+						   LineDirtyStateUndoInfo ldsUndoInfo )
 		{
 			_Document = doc;
 			_Index = index;
 			_DeletedText = deletedText;
 			_InsertedText = insertedText;
-			_OldAnchorIndex = oldAnchorIndex;
-			_OldCaretIndex = oldCaretIndex;
 			_LdsUndoInfo = ldsUndoInfo;
 		}
 		#endregion
@@ -83,16 +78,8 @@ namespace Sgry.Azuki
 			bool wasRecordingHistory = _Document.IsRecordingHistory;
 			_Document.IsRecordingHistory = false;
 			{
-				// release selection to ensure that the graphic will be properly updated.
-				// because UNDO may cause some cases which is not supported by
-				// invalidation logic of Azuki
-				_Document.SetSelection( _Index, _Index );
-
 				// set text
 				_Document.Replace( _DeletedText, _Index, _Index+_InsertedText.Length );
-
-				// set selection
-				_Document.SetSelection( _OldAnchorIndex, _OldCaretIndex );
 
 				// set line dirty state
 				if( _LdsUndoInfo != null )
@@ -149,14 +136,6 @@ namespace Sgry.Azuki
 			// execute REDO actions during stopping to record actions.
 			_Document.IsRecordingHistory = false;
 			{
-				// release selection to ensure the graphic will properly be updated
-				// because REDO may cause some cases which is not supported by
-				// invalidation logic of Azuki
-				_Document.SetSelection( _Index, _Index );
-
-				// set selection
-				_Document.SetSelection( _OldAnchorIndex, _OldCaretIndex );
-
 				// set text
 				_Document.Replace( _InsertedText, _Index, _Index+_DeletedText.Length );
 
@@ -208,6 +187,16 @@ namespace Sgry.Azuki
 		{
 			get{ return _Next; }
 			set{ _Next = value; }
+		}
+		#endregion
+
+		#region Others
+		/// <summary>
+		/// Gets an EditAction which actually do nothing.
+		/// </summary>
+		public static EditAction Empty
+		{
+			get{ return new EditAction(null, 0, null, null, null); }
 		}
 		#endregion
 

@@ -1014,54 +1014,31 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( index < doc.Length );
 			DebugUtl.Assert( index<nextLineHead && nextLineHead<=doc.Length );
 			const int MaxPaintTokenLen = 128;
-			int selBegin, selEnd;
+			int nearestSelectionBorder = Int32.MaxValue;
 
-			// Get selection range on the line
-			doc.GetSelection( out selBegin, out selEnd );
-			if( doc.RectSelectRanges != null )
+			// Find nearest selection borders
+			inSelection = false;
+			foreach( Range r in doc.Selections )
 			{
-				// Determine whether a part of the line is selected by the
-				// rectangular selection or not, and get the selection range
-				// in this line. After determining it, drawing logic will be
-				// the same as case of normal selection.
-				selBegin = selEnd = Int32.MaxValue;
-				foreach( Range r in doc.RectSelectRanges )
+				if( r.IsEmpty )
+					continue;
+
+				if( index < r.Begin )
 				{
-					if( index <= r.End && r.End < nextLineHead )
-					{
-						selBegin = r.Begin;
-						selEnd = r.End;
-						break; // Selected.
-					}
+					nearestSelectionBorder = r.Begin;
+					break;
+				}
+				if( index < r.End )
+				{
+					nearestSelectionBorder = r.End;
+					inSelection = (r.Begin <= index);
+					break;
 				}
 			}
 
-			if( index < selBegin )
-			{
-				// Token being drawn exist before a selection
-				// so we must extract characters not in a selection range.
-				inSelection = false;
-				return Math.Min( Math.Min( selBegin,
-										   nextLineHead ),
-								 index + MaxPaintTokenLen );
-			}
-			else if( index < selEnd )
-			{
-				// Token being drawin exist in a selection
-				// so we must extract characters in a selection range.
-				inSelection = true;
-				return Math.Min( Math.Min( selEnd,
-										   nextLineHead ),
-								 index + MaxPaintTokenLen );
-			}
-			else
-			{
-				// Token being drawin exist after a selection or there is no
-				// characters selected so we don't need to care about selection
-				inSelection = false;
-				return Math.Min( nextLineHead,
-								 index + MaxPaintTokenLen );
-			}
+			return Utl.Min( nearestSelectionBorder,
+							nextLineHead,
+							index + MaxPaintTokenLen );
 		}
 
 		/// <summary>
@@ -1090,7 +1067,8 @@ namespace Sgry.Azuki
 			}
 
 			// calculate how many chars should be drawn as one token
-			tokenEndLimit = CalcTokenEndAtMost( doc, index, nextLineHead, out out_inSelection );
+			tokenEndLimit = CalcTokenEndAtMost( doc, index, nextLineHead,
+												out out_inSelection );
 			if( doc.IsMatchedBracket(index) )
 			{
 				// if specified index is a bracket paired with a bracket at caret, paint this single char
@@ -1235,9 +1213,15 @@ namespace Sgry.Azuki
 			/// <summary>
 			/// Gets minimum value in four integers.
 			/// </summary>
-			public static int Min( int a, int b, int c, int d )
+			public static int Min( params int[] numbers )
 			{
-				return Math.Min( a, Math.Min(b, Math.Min(c,d) ) );
+				Debug.Assert( numbers != null );
+				Debug.Assert( 0 < numbers.Length );
+				int min = numbers[0];
+				for( int i=1; i<numbers.Length; i++ )
+					if( numbers[i] < min )
+						min = numbers[i];
+				return min;
 			}
 
 			/// <summary>

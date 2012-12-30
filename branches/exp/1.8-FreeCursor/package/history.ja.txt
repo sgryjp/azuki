@@ -5,7 +5,7 @@
  * add: 選択範囲中にある空白文字をタブ文字に変換する Action.ConvertSpacesToTabs を追加
  * add: 選択範囲を foreach 列挙できるプロパティ AzukiControl.Selections を追加
  * add: IUserInterface.SetDesiredColumn メソッドを追加（IView.SetDesiredColumnへの別名）
- * mod: Document クラスの選択系メソッドを廃止
+ * mod: Document クラスの選択系メソッドやプロパティを廃止
  * fix: 効果が無いグループ UNDO は記録しないように
  * fix: LaTeXハイライタで見出しのハイライトが正常に更新されないことがある問題を修正
  * add: [Ann] Ctrl+Shift+R で選択行の行末にある空白文字をまとめて削除する機能を追加

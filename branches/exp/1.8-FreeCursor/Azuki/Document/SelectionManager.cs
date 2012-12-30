@@ -20,7 +20,6 @@ namespace Sgry.Azuki
 		int _LineSelectionAnchor1 = -1;
 		int _LineSelectionAnchor2 = -1; // temporal variable holding selection anchor on expanding line selection backward
 		Range[] _RectSelectRanges = null;
-		TextDataType _SelectionMode = TextDataType.Normal; // for user interface
 internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remembering how last selection was made
 		#endregion
 
@@ -71,20 +70,6 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 					return _OriginalAnchorIndex;
 				else
 					return _AnchorIndex;
-			}
-		}
-
-		public TextDataType SelectionMode
-		{
-			get{ return _SelectionMode; }
-			set
-			{
-				bool changed = (_SelectionMode != value);
-				_SelectionMode = value;
-				if( changed )
-				{
-					_Document.InvokeSelectionModeChanged();
-				}
 			}
 		}
 
@@ -157,25 +142,11 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 		/// </summary>
 		public bool IsInSelection( int index )
 		{
-			int begin, end;
+			foreach( Range r in _Document.Selections )
+				if( r.Begin <= index && index <= r.End )
+					return true;
 
-			if( _Document.RectSelectRanges != null )
-			{
-				// is in rectangular selection mode.
-				foreach( Range r in _Document.Selections )
-				{
-					if( r.Begin <= index && index <= r.End )
-						return true;
-				}
-
-				return false;
-			}
-			else
-			{
-				// is not in rectangular selection mode.
-				_Document.GetSelection( out begin, out end );
-				return (begin <= index && index < end);
-			}
+			return false;
 		}
 		#endregion
 

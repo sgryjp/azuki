@@ -38,6 +38,11 @@ namespace Sgry.Azuki
 			get{ return _Type; }
 		}
 
+		public bool IsEmpty
+		{
+			get{ return (_Begin == _End); }
+		}
+
 		[Obsolete("This should not be like this... Range.Length for Rectangle 'range' is impossible define.")]
 		public int Length
 		{

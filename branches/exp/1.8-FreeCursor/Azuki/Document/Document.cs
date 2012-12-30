@@ -343,34 +343,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Sets selection range.
-		/// </summary>
-		/// <param name="anchor">new index of the selection anchor</param>
-		/// <param name="caret">new index of the caret</param>
-		/// <exception cref="System.ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		/// <remarks>
-		///   <para>
-		///   This method sets selection range and invokes
-		///   <see cref="Sgry.Azuki.Document.SelectionChanged">Document.SelectionChanged</see> event.
-		///   If given index is at middle of an undividable character sequence such as surrogate pair,
-		///   selection range will be automatically expanded to avoid dividing the it.
-		///   </para>
-		///   <para>
-		///   This method always selects text as a sequence of character.
-		///   To select text by lines or by rectangle, use
-		///   <see cref="Sgry.Azuki.Document.SetSelection(int, int, IView)">other overload</see>
-		///   method instead.
-		///   </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.SelectionChanged">Document.SelectionChanged event</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.SetSelection(int, int, IView)">Document.SetSelection method (another overloaded method)</seealso>
-		public void SetSelection( int anchor, int caret )
-		{
-			SelectionMode = TextDataType.Normal;
-			_SelMan.SetSelection( anchor, caret, null, SelectionMode );
-		}
-
-		/// <summary>
 		/// Gets range of current selection.
 		/// Note that this method does not return [anchor, caret) pair but [begin, end) pair.
 		/// </summary>
@@ -381,24 +353,19 @@ namespace Sgry.Azuki
 			_SelMan.GetSelection( out begin, out end );
 		}
 
-		public IEnumerable<Range> Selections
+		public Range[] Selections
 		{
 			get
 			{
-				if( RectSelectRanges != null )
+				if( _SelMan.RectSelectRanges != null )
 				{
-					for( int i=0; i<RectSelectRanges.Length; i++ )
-					{
-						yield return RectSelectRanges[i];
-					}
-					yield break;
+					return (Range[])_SelMan.RectSelectRanges.Clone();
 				}
 				else
 				{
 					int begin, end;
 					GetSelection( out begin, out end );
-					yield return new Range( begin, end );
-					yield break;
+					return new Range[]{ new Range(begin, end) };
 				}
 			}
 		}
@@ -444,7 +411,6 @@ namespace Sgry.Azuki
 					value = String.Empty;
 
 				Replace( value, 0, this.Length );
-				SetSelection( 0, 0 );
 			}
 		}
 
@@ -960,7 +926,7 @@ namespace Sgry.Azuki
 			// stack UNDO history
 			if( _IsRecordingHistory )
 			{
-				undo = new EditAction( this, begin, oldText, text, oldAnchor, oldCaret, ldsUndoInfo );
+				undo = new EditAction( this, begin, oldText, text, ldsUndoInfo );
 				_History.Add( undo );
 			}
 			_LastModifiedTime = DateTime.Now;
@@ -1537,6 +1503,7 @@ namespace Sgry.Azuki
 		///   but setting this property itself does nothing to the content.
 		///   </para>
 		/// </remarks>
+#warning "Ç±ÇÍÇ‡UIÇ∂Ç·Ç»Ç¢ÅH"
 		public string EolCode
 		{
 			get{ return _EolCode; }
@@ -1546,15 +1513,6 @@ namespace Sgry.Azuki
 					throw new InvalidOperationException( "unsupported type of EOL code was set." );
 				_EolCode = value;
 			}
-		}
-
-		/// <summary>
-		/// Gets or sets how to select text.
-		/// </summary>
-		public TextDataType SelectionMode
-		{
-			get{ return _SelMan.SelectionMode; }
-			set{ _SelMan.SelectionMode = value; }
 		}
 		#endregion
 
@@ -2799,23 +2757,6 @@ namespace Sgry.Azuki
 				return true;
 			}
 			return false;
-		}
-
-		internal void DeleteRectSelectText()
-		{
-			int diff = 0;
-
-			foreach( Range r in Selections )
-			{
-				Debug.Assert( IsNotDividableIndex(r.Begin + diff) == false );
-				Debug.Assert( IsNotDividableIndex(r.End + diff) == false );
-				Replace( "", r.Begin + diff, r.End + diff );
-				diff -= r.Length;
-			}
-
-			// reset selection
-			int index = RectSelectRanges[0].Begin;
-			SetSelection( index, index );
 		}
 
 		internal void GetSelectedLineRange( out int selBeginL,

@@ -3,6 +3,8 @@ using System.Windows.Forms;
 
 namespace Sgry.Ann
 {
+	using Azuki;
+
 	static partial class Actions
 	{
 		/// <summary>
@@ -93,17 +95,15 @@ namespace Sgry.Ann
 		{
 			using( GotoForm form = new GotoForm() )
 			{
-				Document doc = app.ActiveDocument;
-				form.LineNumber = doc.GetLineIndexFromCharIndex( doc.CaretIndex ) + 1;
+				IUserInterface azuki = app.Azuki;
+				form.LineNumber = azuki.GetLineIndexFromCharIndex( azuki.CaretIndex ) + 1;
 				DialogResult result = form.ShowDialog();
 				if( result == DialogResult.OK
-					&& form.LineNumber < doc.LineCount)
+					&& form.LineNumber < azuki.LineCount )
 				{
-					int index = doc.GetLineHeadIndex(
-								form.LineNumber - 1
-							);
-					doc.SetSelection( index, index );
-					app.Azuki.ScrollToCaret();
+					int index = azuki.GetLineHeadIndex( form.LineNumber - 1 );
+					azuki.Select( index, index );
+					azuki.ScrollToCaret();
 				}
 			}
 		};

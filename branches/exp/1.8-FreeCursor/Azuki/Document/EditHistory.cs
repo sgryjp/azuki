@@ -1,6 +1,5 @@
 ﻿// file: EditHistory.cs
 // brief: History managemer for UNDO.
-// author: Suguru YAMAMOTO
 //=========================================================
 using System;
 
@@ -109,9 +108,7 @@ namespace Sgry.Azuki
 		{
 			if( _GroupingUndoChain == null )
 			{
-				_GroupingUndoChain = new EditAction( null,
-													 0, null, null,
-													 0, 0, null );
+				_GroupingUndoChain = EditAction.Empty;
 			}
 		}
 
