@@ -655,8 +655,8 @@ namespace Sgry.Azuki
 		/// </para>
 		/// <para>
 		/// If current selection is rectangle selection, return value will be a
-		/// string that are consisted with selected partial lines (rows) joined
-		/// with CR+LF.
+		/// string that are consisted with selected partial lines (rows) each
+		/// of which is terminated by specified separator.
 		/// </para>
 		/// </remarks>
 		public string GetSelectedText()
@@ -674,8 +674,8 @@ namespace Sgry.Azuki
 		/// </para>
 		/// <para>
 		/// If current selection is rectangle selection, return value will be a
-		/// string that are consisted with selected partial lines (rows) joined
-		/// with specified string.
+		/// string that are consisted with selected partial lines (rows) each
+		/// of which is terminated by specified separator.
 		/// </para>
 		/// </remarks>
 		public string GetSelectedText( string separator )
@@ -688,7 +688,10 @@ namespace Sgry.Azuki
 				rows.Add( Document.GetTextInRange(r.Begin, r.End) );
 			}
 
-			return String.Join( separator, rows.ToArray() );
+			if( 1 < rows.Count )
+				return String.Join( separator, rows.ToArray() ) + separator;
+			else
+				return rows[0];
 		}
 		#endregion
 

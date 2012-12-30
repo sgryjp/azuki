@@ -989,8 +989,8 @@ namespace Sgry.Azuki
 				int lastIndex = doc.RectSelectRanges.Length - 1;
 				doc.SelectionMode = TextDataType.Rectangle;
 				doc.SelectionManager.SetSelection(
-						doc.RectSelectRanges[0],
-						doc.RectSelectRanges[lastIndex] + delta,
+						doc.RectSelectRanges[0].Begin,
+						doc.RectSelectRanges[lastIndex].End + delta,
 						ui.View );
 			}
 			else

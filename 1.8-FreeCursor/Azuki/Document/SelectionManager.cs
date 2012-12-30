@@ -19,7 +19,7 @@ namespace Sgry.Azuki
 		int _OriginalAnchorIndex = -1;
 		int _LineSelectionAnchor1 = -1;
 		int _LineSelectionAnchor2 = -1; // temporal variable holding selection anchor on expanding line selection backward
-		int[] _RectSelectRanges = null;
+		Range[] _RectSelectRanges = null;
 		TextDataType _SelectionMode = TextDataType.Normal;
 		#endregion
 
@@ -87,7 +87,7 @@ namespace Sgry.Azuki
 			}
 		}
 
-		public int[] RectSelectRanges
+		public Range[] RectSelectRanges
 		{
 			get{ return _RectSelectRanges; }
 			set{ _RectSelectRanges = value; }
@@ -283,7 +283,7 @@ namespace Sgry.Azuki
 		void SetSelection_Normal( int anchor, int caret )
 		{
 			int oldAnchor, oldCaret;
-			int[] oldRectSelectRanges = null;
+			Range[] oldRectSelectRanges = null;
 
 			// if given parameters change nothing, do nothing
 			if( _AnchorIndex == anchor && _CaretIndex == caret )
