@@ -987,11 +987,10 @@ namespace Sgry.Azuki
 				doc.EndUndo();
 
 				int lastIndex = doc.RectSelectRanges.Length - 1;
-				doc.SelectionMode = TextDataType.Rectangle;
-				doc.SelectionManager.SetSelection(
+				ui.Select(
 						doc.RectSelectRanges[0].Begin,
 						doc.RectSelectRanges[lastIndex].End + delta,
-						ui.View );
+						TextDataType.Rectangle );
 			}
 			else
 			{

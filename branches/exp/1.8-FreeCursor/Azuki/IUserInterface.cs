@@ -582,6 +582,9 @@ namespace Sgry.Azuki
 		/// <param name="caret">the position where the caret is</param>
 		void SetSelection( int anchor, int caret );
 
+		void Select( int anchor, int caret );
+		void Select( int anchor, int caret, TextDataType mode );
+
 		/// <summary>
 		/// Gets range of current selection.
 		/// Note that this method does not return [anchor, caret) pair but [begin, end) pair.

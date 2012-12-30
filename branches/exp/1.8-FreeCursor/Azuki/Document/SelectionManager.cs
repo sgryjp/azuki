@@ -20,7 +20,8 @@ namespace Sgry.Azuki
 		int _LineSelectionAnchor1 = -1;
 		int _LineSelectionAnchor2 = -1; // temporal variable holding selection anchor on expanding line selection backward
 		Range[] _RectSelectRanges = null;
-		TextDataType _SelectionMode = TextDataType.Normal;
+		TextDataType _SelectionMode = TextDataType.Normal; // for user interface
+internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remembering how last selection was made
 		#endregion
 
 		#region Init / Dispose
@@ -90,7 +91,6 @@ namespace Sgry.Azuki
 		public Range[] RectSelectRanges
 		{
 			get{ return _RectSelectRanges; }
-			set{ _RectSelectRanges = value; }
 		}
 
 		public void GetSelection( out int begin, out int end )
@@ -107,33 +107,40 @@ namespace Sgry.Azuki
 			}
 		}
 
-		public void SetSelection( int anchor, int caret, IView view )
+		public void SetSelection( int anchor, int caret,
+								  IView view, TextDataType mode )
 		{
-			Debug.Assert( 0 <= anchor && anchor <= _Document.Length, "parameter 'anchor' out of range (anchor:"+anchor+", Document.Length:"+_Document.Length+")" );
-			Debug.Assert( 0 <= caret && caret <= _Document.Length, "parameter 'caret' out of range (anchor:"+anchor+", Document.Length:"+_Document.Length+")" );
-			Debug.Assert( _SelectionMode == TextDataType.Normal || view != null );
+			Debug.Assert( 0 <= anchor && anchor <= _Document.Length,
+						  "parameter 'anchor' out of range (anchor:" + anchor
+						  + ", Document.Length:" + _Document.Length + ")" );
+			Debug.Assert( 0 <= caret && caret <= _Document.Length,
+						  "parameter 'caret' out of range (anchor:" + anchor
+						  + ", Document.Length:" + _Document.Length + ")" );
 
 			// ensure that document can be divided at given index
 			Document.Utl.ConstrainIndex( _Document, ref anchor, ref caret );
 
 			// set selection
-			if( SelectionMode == TextDataType.Rectangle )
+			if( mode == TextDataType.Rectangle )
 			{
 				ClearLineSelectionData();
 				_OriginalAnchorIndex = -1;
 				SetSelection_Rect( anchor, caret, view );
+				_LastSelectionMode = TextDataType.Rectangle;
 			}
-			else if( SelectionMode == TextDataType.Line )
+			else if( mode == TextDataType.Line )
 			{
 				ClearRectSelectionData();
 				_OriginalAnchorIndex = -1;
 				SetSelection_Line( anchor, caret, view );
+				_LastSelectionMode = TextDataType.Line;
 			}
-			else if( SelectionMode == TextDataType.Words )
+			else if( mode == TextDataType.Words )
 			{
 				ClearLineSelectionData();
 				ClearRectSelectionData();
 				SetSelection_Words( anchor, caret );
+				_LastSelectionMode = TextDataType.Words;
 			}
 			else
 			{
@@ -141,6 +148,7 @@ namespace Sgry.Azuki
 				ClearRectSelectionData();
 				_OriginalAnchorIndex = -1;
 				SetSelection_Normal( anchor, caret );
+				_LastSelectionMode = TextDataType.Normal;
 			}
 		}
 
