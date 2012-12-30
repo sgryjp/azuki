@@ -79,7 +79,7 @@ namespace Sgry.Azuki
 			// update desired column
 			if( ui.UsesStickyCaret == false )
 			{
-				view.SetDesiredColumn();
+				ui.SetDesiredColumn();
 			}
 			view.ScrollToCaret();
 		}
@@ -132,7 +132,7 @@ namespace Sgry.Azuki
 			// update desired column
 			if( ui.UsesStickyCaret == false )
 			{
-				view.SetDesiredColumn();
+				ui.SetDesiredColumn();
 			}
 			view.ScrollToCaret();
 		}
@@ -193,7 +193,7 @@ namespace Sgry.Azuki
 			// update desired column
 			if( ui.UsesStickyCaret == false )
 			{
-				view.SetDesiredColumn();
+				ui.SetDesiredColumn();
 			}
 			view.ScrollToCaret();
 		}
@@ -244,7 +244,7 @@ namespace Sgry.Azuki
 			// update desired column
 			if( ui.UsesStickyCaret == false )
 			{
-				view.SetDesiredColumn();
+				ui.SetDesiredColumn();
 			}
 			view.ScrollToCaret();
 		}
@@ -324,7 +324,7 @@ namespace Sgry.Azuki
 			
 			if( ui.UsesStickyCaret == false )
 			{
-				ui.View.SetDesiredColumn();
+				ui.SetDesiredColumn();
 			}
 		}
 
@@ -503,7 +503,7 @@ namespace Sgry.Azuki
 			// move caret
 			if( ui.UsesStickyCaret == false )
 			{
-				ui.View.SetDesiredColumn();
+				ui.SetDesiredColumn();
 			}
 			ui.View.ScrollToCaret();
 		}
@@ -526,7 +526,7 @@ namespace Sgry.Azuki
 			view.Document.Undo();
 			if( ui.UsesStickyCaret == false )
 			{
-				view.SetDesiredColumn();
+				ui.SetDesiredColumn();
 			}
 			view.ScrollToCaret();
 
@@ -553,7 +553,7 @@ namespace Sgry.Azuki
 			view.Document.Redo();
 			if( ui.UsesStickyCaret == false )
 			{
-				view.SetDesiredColumn();
+				ui.SetDesiredColumn();
 			}
 			view.ScrollToCaret();
 		}

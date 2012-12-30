@@ -1354,6 +1354,24 @@ namespace Sgry.Azuki.WinForms
 			get{ return _Impl.MarksUri; }
 			set{ _Impl.MarksUri = value; }
 		}
+
+		/// <summary>
+		/// Remembers current column position as the "desired column".
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// "Desired column" is the column position to which the caret sticks
+		/// close. As default behavior, Azuki tries to keep x-corrdinate of
+		/// the caret on moving it up or down, and remembers the x-coordinate
+		/// until it is explicitly changed (for example, by pressing right or
+		/// left arrow key).
+		/// </para>
+		/// </remarks>
+		/// <seealso cref="UsesStickyCaret"/>
+		public void SetDesiredColumn()
+		{
+			View.SetDesiredColumn();
+		}
 		#endregion
 
 		#region IUserInterface - Edit Actions
@@ -1573,7 +1591,7 @@ namespace Sgry.Azuki.WinForms
 		public void SetSelection( int anchor, int caret )
 		{
 			Document.SetSelection( anchor, caret );
-			View.SetDesiredColumn();
+			SetDesiredColumn();
 		}
 
 		public void Select( int anchor, int caret )
@@ -1625,7 +1643,7 @@ namespace Sgry.Azuki.WinForms
 					return;
 
 				Document.Text = value;
-				View.SetDesiredColumn();
+				SetDesiredColumn();
 				ScrollToCaret();
 			}
 		}
