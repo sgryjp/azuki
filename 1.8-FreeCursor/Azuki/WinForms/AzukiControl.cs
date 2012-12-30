@@ -1576,6 +1576,16 @@ namespace Sgry.Azuki.WinForms
 			View.SetDesiredColumn();
 		}
 
+		public void Select( int anchor, int caret )
+		{
+			_Impl.Select( anchor, caret, SelectionMode );
+		}
+
+		public void Select( int anchor, int caret, TextDataType mode )
+		{
+			_Impl.Select( anchor, caret, mode );
+		}
+
 		/// <summary>
 		/// Gets range of current selection.
 		/// Note that this method does not return [anchor, caret) pair but [begin, end) pair.

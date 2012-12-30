@@ -1,7 +1,5 @@
 // file: CaretMoveLogic.cs
 // brief: Implementation of caret movement.
-// author: YAMAMOTO Suguru
-// update: 2010-06-26
 //=========================================================
 using System;
 using System.Drawing;
@@ -55,7 +53,7 @@ namespace Sgry.Azuki
 			}
 
 			// set new selection
-			doc.SetSelection( doc.AnchorIndex, nextIndex, view );
+			ui.Select( doc.AnchorIndex, nextIndex );
 			view.ScrollToCaret();
 		}
 		#endregion

@@ -395,73 +395,7 @@ namespace Sgry.Azuki
 		public void SetSelection( int anchor, int caret )
 		{
 			SelectionMode = TextDataType.Normal;
-			SetSelection( anchor, caret, null );
-		}
-
-		/// <summary>
-		/// Sets selection range.
-		/// </summary>
-		/// <param name="anchor">new index of the selection anchor.</param>
-		/// <param name="caret">new index of the caret.</param>
-		/// <param name="view">a View object to be used for calculating position/index conversion.</param>
-		/// <exception cref="System.ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		/// <exception cref="System.ArgumentNullException">Parameter 'view' is null but current SelectionMode is not TextDataType.Normal.</exception>
-		/// <remarks>
-		///   <para>
-		///   This method sets selection range and invokes
-		///   <see cref="Sgry.Azuki.Document.SelectionChanged">Document.SelectionChanged</see> event.
-		///   </para>
-		///   <para>
-		///   How text will be selected depends on the value of current
-		///   <see cref="Sgry.Azuki.Document.SelectionMode">SelectionMode</see> as below.
-		///   </para>
-		///   <list type="bullet">
-		///	    <item>
-		///	      <para>
-		///	      If SelectionMode is TextDataType.Normal,
-		///	      characters from <paramref name="anchor"/> to <paramref name="caret"/>
-		///	      will be selected.
-		///	      </para>
-		///	      <para>
-		///	      Note that if given index is at middle of an undividable character sequence such as surrogate pair,
-		///	      selection range will be automatically expanded to avoid dividing it.
-		///	      </para>
-		///	    </item>
-		///	    <item>
-		///	      <para>
-		///	      If SelectionMode is TextDataType.Line, lines between
-		///	      the line containing <paramref name="anchor"/> position
-		///	      and the line containing <paramref name="caret"/> position
-		///	      will be selected.
-		///	      </para>
-		///	      <para>
-		///	      Note that if caret is just at beginning of a line,
-		///	      the line will not be selected.
-		///	      </para>
-		///	    </item>
-		///	    <item>
-		///	      <para>
-		///	      If SelectionMode is TextDataType.Rectangle,
-		///	      text covered by the rectangle which is graphically made by
-		///	      <paramref name="anchor"/> position and <paramref name="caret"/> position
-		///	      will be selected.
-		///	      </para>
-		///	    </item>
-		///   </list>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.SelectionChanged">Document.SelectionChanged event</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.SelectionMode">Document.SelectionMode property</seealso>
-		/// <seealso cref="Sgry.Azuki.TextDataType">TextDataType enum</seealso>
-		public void SetSelection( int anchor, int caret, IView view )
-		{
-			if( anchor < 0 || _Buffer.Count < anchor )
-				throw new ArgumentOutOfRangeException( "anchor", "Parameter 'anchor' is out of valid range (anchor:"+anchor+", caret:"+caret+")." );
-			if( caret < 0 || _Buffer.Count < caret )
-				throw new ArgumentOutOfRangeException( "caret", "Parameter 'caret' is out of valid range (anchor:"+anchor+", caret:"+caret+")." );
-			if( view == null && SelectionMode != TextDataType.Normal )
-				throw new ArgumentNullException( "view", "Parameter 'view' must not be null if SelectionMode is not TextDataType.Normal. (SelectionMode:"+SelectionMode+")." );
-
-			_SelMan.SetSelection( anchor, caret, view );
+			_SelMan.SetSelection( anchor, caret, null, SelectionMode );
 		}
 
 		/// <summary>
@@ -504,7 +438,6 @@ namespace Sgry.Azuki
 		public Range[] RectSelectRanges
 		{
 			get{ return _SelMan.RectSelectRanges; }
-			set{ _SelMan.RectSelectRanges = value; }
 		}
 		#endregion
 

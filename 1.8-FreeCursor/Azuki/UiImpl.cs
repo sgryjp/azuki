@@ -616,6 +616,85 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Other
+		public void Select( int anchor, int caret )
+		{
+			Select( anchor, caret, Document.SelectionMode );
+		}
+
+		/// <summary>
+		/// Selects text.
+		/// </summary>
+		/// <param name="anchor">New index of the selection anchor.</param>
+		/// <param name="caret">NMew index of the caret.</param>
+///<param name="mode"></param>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// Specified index is out of valid range.
+		/// </exception>
+		/// <remarks>
+		///   <para>
+		///   This method sets selection range and invokes
+		///   <see cref="Sgry.Azuki.Document.SelectionChanged">
+		///   Document.SelectionChanged</see> event.
+		///   </para>
+		///   <para>
+		///   Actual text selection will be done according to the value of
+		///   parameter <paramref name="mode"/> as below.
+		///   </para>
+		///   <list type="bullet">
+		///     <item>
+		///       <para>
+		///       If <paramref name="mode"/> is TextDataType.Normal, characters
+		///       from <paramref name="anchor"/> to <paramref name="caret"/>
+		///       will be selected.
+		///       </para>
+		///       <para>
+		///       Note that if given index is at middle of an undividable
+		///       character sequence such as surrogate pair, selection range
+		///       will be automatically expanded to avoid dividing it.
+		///       </para>
+		///     </item>
+		///     <item>
+		///       <para>
+		///       If <paramref name="mode"/> is TextDataType.Line, lines
+		///       between (a) the line containing <paramref name="anchor"/>
+		///       position and (b) the line containing <paramref name="caret"/>
+		///       position will be selected.
+		///       </para>
+		///       <para>
+		///       Note that if caret is just at beginning of a line, the line
+		///       will not be selected.
+		///       </para>
+		///     </item>
+		///     <item>
+		///       <para>
+		///       If <paramref name="mode"/> is TextDataType.Rectangle, text
+		///       covered by the rectangle which is graphically made by
+		///       <paramref name="anchor"/> position and
+		///       <paramref name="caret"/> position will be selected.
+		///       </para>
+		///     </item>
+		///   </list>
+		/// </remarks>
+		/// <seealso cref="Sgry.Azuki.Document.SelectionChanged">
+		/// Document.SelectionChanged event</seealso>
+		/// <seealso cref="Sgry.Azuki.Document.SelectionMode">
+		/// Document.SelectionMode property</seealso>
+		/// <seealso cref="Sgry.Azuki.TextDataType">
+		/// TextDataType enum</seealso>
+		public void Select( int anchor, int caret, TextDataType mode )
+		{
+			if( anchor < 0 || Document.Length < anchor )
+				throw new ArgumentOutOfRangeException( "anchor",
+					"Parameter 'anchor' is out of valid range"
+					+ " (anchor:" + anchor + ", caret:" + caret + ")." );
+			if( caret < 0 || Document.Length < caret )
+				throw new ArgumentOutOfRangeException( "caret",
+					"Parameter 'caret' is out of valid range (anchor:"
+					+ anchor + ", caret:" + caret + ")." );
+
+			Document.SelectionManager.SetSelection( anchor, caret, View, mode );
+		}
+
 		/// <summary>
 		/// Gets number of characters currently selected.
 		/// </summary>
@@ -877,34 +956,33 @@ namespace Sgry.Azuki
 							{
 								newCaretIndex++;
 							}
-							Document.SetSelection( Document.AnchorIndex, newCaretIndex, View );
+							Select( Document.AnchorIndex, newCaretIndex );
 						}
 						else
 						{
 							//--- setting line selection ---
-							Document.SetSelection( clickedIndex, clickedIndex, View );
+							Select( clickedIndex, clickedIndex );
 						}
 					}
 					else if( e.Shift )
 					{
 						//--- expanding selection ---
-						_UI.SelectionMode = (e.Control) ? TextDataType.Words : TextDataType.Normal;
-						Document.SetSelection(
-								Document.SelectionManager.OriginalAnchorIndex,
-								clickedIndex, View
-							);
+						_UI.SelectionMode = (e.Control) ? TextDataType.Words
+														: TextDataType.Normal;
+						Select( Document.SelectionManager.OriginalAnchorIndex,
+								clickedIndex );
 					}
 					else if( e.Alt )
 					{
 						//--- rectangle selection ---
 						_UI.SelectionMode = TextDataType.Rectangle;
-						Document.SetSelection( clickedIndex, clickedIndex, View );
+						Select( clickedIndex, clickedIndex );
 					}
 					else if( e.Control )
 					{
 						//--- expanding selection ---
 						_UI.SelectionMode = TextDataType.Words;
-						Document.SetSelection( clickedIndex, clickedIndex, View );
+						Select( clickedIndex, clickedIndex );
 					}
 					else if( onSelectedText
 						&& Document.RectSelectRanges == null ) // currently dragging rectangle selection is out of support
@@ -933,7 +1011,7 @@ namespace Sgry.Azuki
 			if( e.Location.X < 0 || e.Location.Y < 0 )
 				return;
 
-			// remember mouse down screen position and convert it to virtual view's coordinate
+			// remember screen position and convert it to virtual view's coord
 			_MouseDownVirPos = e.Location;
 
 			// select a word there if it is in the text area
@@ -945,7 +1023,7 @@ namespace Sgry.Azuki
 				View.ScreenToVirtual( ref pos );
 				clickedIndex = View.GetIndexFromVirPos( pos );
 				_UI.SelectionMode = TextDataType.Words;
-				Document.SetSelection( clickedIndex, clickedIndex, View );
+				Select( clickedIndex, clickedIndex );
 			}
 		}
 
@@ -1044,7 +1122,7 @@ namespace Sgry.Azuki
 			{
 				//--- rectangle selection ---
 				// expand selection to the point
-				Document.SetSelection( Document.AnchorIndex, curPosIndex, View );
+				Select( Document.AnchorIndex, curPosIndex );
 			}
 			else if( _UI.SelectionMode == TextDataType.Line )
 			{
@@ -1057,15 +1135,13 @@ namespace Sgry.Azuki
 				{
 					newCaretIndex++;
 				}
-				Document.SetSelection( Document.AnchorIndex, newCaretIndex, View );
+				Select( Document.AnchorIndex, newCaretIndex );
 			}
 			else if( _UI.SelectionMode == TextDataType.Words )
 			{
 				//--- word selection ---
-				Document.SetSelection(
-						Document.SelectionManager.OriginalAnchorIndex,
-						curPosIndex, View
-					);
+				Select( Document.SelectionManager.OriginalAnchorIndex,
+						curPosIndex );
 			}
 			else
 			{
@@ -1073,7 +1149,7 @@ namespace Sgry.Azuki
 				// expand selection to the point if it was different from previous index
 				if( curPosIndex != Document.CaretIndex )
 				{
-					Document.SetSelection( Document.AnchorIndex, curPosIndex );
+					Select( Document.AnchorIndex, curPosIndex );
 				}
 			}
 			View.SetDesiredColumn( g );
