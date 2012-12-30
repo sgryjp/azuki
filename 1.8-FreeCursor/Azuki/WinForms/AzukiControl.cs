@@ -1604,6 +1604,25 @@ namespace Sgry.Azuki.WinForms
 			_Impl.Select( anchor, caret, mode );
 		}
 
+		public void Select( int anchorLine, int anchorColumn,
+							int caretLine, int caretColumn )
+		{
+			Select( anchorLine, anchorColumn,
+					caretLine, caretColumn, SelectionMode );
+		}
+
+		public void Select( int anchorLine, int anchorColumn,
+							int caretLine, int caretColumn, TextDataType mode )
+		{
+			int anchor = GetLineHeadIndex( anchorLine );
+			anchor += Math.Min( anchorColumn, GetLineLength(anchorLine) );
+
+			int caret = GetLineHeadIndex( caretLine );
+			caret += Math.Min( caretColumn, GetLineLength(caretLine) );
+
+			_Impl.Select( anchor, caret, mode );
+		}
+
 		/// <summary>
 		/// Gets range of current selection.
 		/// Note that this method does not return [anchor, caret) pair but [begin, end) pair.
