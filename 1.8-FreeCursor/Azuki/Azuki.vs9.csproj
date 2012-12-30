@@ -68,6 +68,7 @@
     <Compile Include="Document\SplitArray.cs" />
     <Compile Include="Document\TextBuffer.cs" />
     <Compile Include="Document\TextDataType.cs" />
+    <Compile Include="Document\Range.cs" />
     <Compile Include="Document\UriMarker.cs" />
     <Compile Include="Document\ViewParam.cs" />
     <Compile Include="Document\WatchPattern.cs" />

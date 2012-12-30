@@ -3,6 +3,8 @@
  * add: Added Action.TrimLeadingSpace which removes whitespaces from beginning of selected lines
  * add: Added Action.ConvertTabsToSpaces which replaces every tab characters in selection range to equivalent amount of space characters
  * add: Added Action.ConvertSpacesToTabs which replaces space characters in selection range to tab characters as much as possible
+ * add: Added AzukiControl.Selections by which selection ranges can be enumerated (can be used for foreach statement)
+ * mod: In case of rectangular selection, now AzukiControl.GetSelectedText method returns a string composed with rows connected with CR+LF, and no CR+LF is appended after the final row
  * fix: Group undo action will not be stacked if it has no effect at all
  * fix: LaTeX highlighter may not update highlight of headings
  * add: [Ann] Added feature to remove spaces from end of each selected lines (shortcut key is Ctrl+Shift+R)
