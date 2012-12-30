@@ -451,6 +451,21 @@ namespace Sgry.Azuki
 		{
 			get; set;
 		}
+
+		/// <summary>
+		/// Remembers current column position as the "desired column".
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// "Desired column" is the column position to which the caret sticks
+		/// close. As default behavior, Azuki tries to keep x-corrdinate of
+		/// the caret on moving it up or down, and remembers the x-coordinate
+		/// until it is explicitly changed (for example, by pressing right or
+		/// left arrow key).
+		/// </para>
+		/// </remarks>
+		/// <seealso cref="UsesStickyCaret"/>
+		void SetDesiredColumn();
 		#endregion
 
 		#region Edit Actions

@@ -1,6 +1,5 @@
 ﻿// file: Actions.Selection.cs
 // brief: Actions for Azuki engine (actions to change selection).
-// author: Suguru YAMAMOTO
 //=========================================================
 using System;
 using System.Drawing;
@@ -33,7 +32,7 @@ namespace Sgry.Azuki
 			}
 
 			// update desired column
-			view.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -59,7 +58,7 @@ namespace Sgry.Azuki
 			}
 
 			// update desired column
-			view.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -99,7 +98,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_NextWord, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -121,7 +120,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_PrevWord, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -143,7 +142,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_LineHead, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -165,7 +164,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_LineHeadSmart, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -187,7 +186,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_LineEnd, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -270,7 +269,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_FileHead, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -292,7 +291,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_FileEnd, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -351,7 +350,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_Right, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -363,7 +362,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_Left, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -393,7 +392,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_NextWord, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -405,7 +404,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_PrevWord, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -417,7 +416,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_LineHead, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -429,7 +428,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_LineHeadSmart, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -441,7 +440,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_LineEnd, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -512,7 +511,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_FileHead, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -524,7 +523,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_FileEnd, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 		#endregion
 
@@ -617,7 +616,7 @@ namespace Sgry.Azuki
 
 			// expand selection
 			SelectToDown( ui );
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -630,7 +629,7 @@ namespace Sgry.Azuki
 
 			// expand selection
 			SelectToUp( ui );
-			ui.View.SetDesiredColumn();
+			ui.SetDesiredColumn();
 		}
 		#endregion
 
@@ -641,16 +640,15 @@ namespace Sgry.Azuki
 		public static void SelectAll( IUserInterface ui )
 		{
 			Document doc = ui.Document;
-			IView view = ui.View;
 			
 			// set parameters
 			doc.SetSelection( 0, doc.Length );
 
 			// update desired column
-			view.SetDesiredColumn();
-			view.ScrollToCaret();
+			ui.SetDesiredColumn();
+			ui.ScrollToCaret();
 
-			view.Invalidate(); // this is needed because Azuki's invalidation logic only supports selection change by caret movement
+			ui.Invalidate(); // this is needed because Azuki's invalidation logic only supports selection change by caret movement
 		}
 		#endregion
 	}

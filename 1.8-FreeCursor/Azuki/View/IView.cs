@@ -1,7 +1,5 @@
 ﻿// file: IView.cs
 // brief: Interface for view implementations.
-// author: YAMAMOTO Suguru
-// update: 2011-07-07
 //=========================================================
 using System;
 using System.Drawing;
@@ -216,33 +214,35 @@ namespace Sgry.Azuki
 
 		#region Desired Column Management
 		/// <summary>
-		/// Sets column index of the current caret position to "desired column" value.
+		/// Remembers current column position as the "desired column".
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// Normally the caret tries to keep its x-coordinate
-		/// on moving line to line unless user explicitly changes x-coordinate of it.
-		/// The term 'Desired Column' means this x-coordinate which the caret tries to stick close to.
-		/// </para>
-		/// <para>
-		/// Note that the desired column is associated with each document.
+		/// "Desired column" is the column position to which the caret sticks
+		/// close. As default behavior, Azuki tries to keep x-corrdinate of
+		/// the caret on moving it up or down, and remembers the x-coordinate
+		/// until it is explicitly changed (for example, by pressing right or
+		/// left arrow key).
 		/// </para>
 		/// </remarks>
+		/// <seealso cref="UsesStickyCaret"/>
+		/// <seealso cref="GetDesiredColumn"/>
 		void SetDesiredColumn();
 
 		/// <summary>
-		/// Gets current "desired column" value.
+		/// Remembers current column position as the "desired column".
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// Normally the caret tries to keep its x-coordinate
-		/// on moving line to line unless user explicitly changes x-coordinate of it.
-		/// The term 'Desired Column' means this x-coordinate which the caret tries to stick close to.
-		/// </para>
-		/// <para>
-		/// Note that the desired column is associated with each document.
+		/// "Desired column" is the column position to which the caret sticks
+		/// close. As default behavior, Azuki tries to keep x-corrdinate of
+		/// the caret on moving it up or down, and remembers the x-coordinate
+		/// until it is explicitly changed (for example, by pressing right or
+		/// left arrow key).
 		/// </para>
 		/// </remarks>
+		/// <seealso cref="UsesStickyCaret"/>
+		/// <seealso cref="SetDesiredColumn"/>
 		int GetDesiredColumn();
 		#endregion
 

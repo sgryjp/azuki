@@ -957,7 +957,7 @@ namespace Sgry.Ann
 			if( result != null )
 			{
 				Azuki.Document.SetSelection( result.Begin, result.End );
-				Azuki.View.SetDesiredColumn();
+				Azuki.SetDesiredColumn();
 				Azuki.ScrollToCaret();
 			}
 		}
@@ -1006,7 +1006,7 @@ namespace Sgry.Ann
 			if( result != null )
 			{
 				Azuki.Document.SetSelection( result.End, result.Begin );
-				Azuki.View.SetDesiredColumn();
+				Azuki.SetDesiredColumn();
 				Azuki.ScrollToCaret();
 			}
 		}
