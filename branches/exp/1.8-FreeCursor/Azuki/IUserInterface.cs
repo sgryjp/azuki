@@ -599,6 +599,10 @@ namespace Sgry.Azuki
 
 		void Select( int anchor, int caret );
 		void Select( int anchor, int caret, TextDataType mode );
+		void Select( int anchorLine, int anchorColumn,
+					 int caretLine, int caretColumn );
+		void Select( int anchorLine, int anchorColumn,
+					 int caretLine, int caretColumn, TextDataType mode );
 
 		/// <summary>
 		/// Gets range of current selection.

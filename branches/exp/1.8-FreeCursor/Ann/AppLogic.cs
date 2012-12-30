@@ -725,7 +725,8 @@ namespace Sgry.Ann
 				int line, column;
 
 				// remember caret position
-				doc.GetCaretIndex( out line, out column );
+				doc.GetLineColumnIndexFromCharIndex( doc.CaretIndex,
+													 out line, out column );
 
 				// detach highlighter temporarily
 				highlighter = doc.Highlighter;
@@ -740,7 +741,7 @@ namespace Sgry.Ann
 				// restore caret position and scroll to it
 				line = Math.Min( line, doc.LineCount-1 );
 				column = Math.Min( column, doc.GetLineLength(line) );
-				doc.SetCaretIndex( line, column );
+				Azuki.Select( line, column, line, column, TextDataType.Normal );
 
 				_MainForm.UpdateUI();
 			}

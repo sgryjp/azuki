@@ -343,34 +343,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets caret location by logical line/column index.
-		/// </summary>
-		/// <param name="lineIndex">line index of where the caret is at</param>
-		/// <param name="columnIndex">column index of where the caret is at</param>
-		public void GetCaretIndex( out int lineIndex, out int columnIndex )
-		{
-			GetLineColumnIndexFromCharIndex( _SelMan.CaretIndex, out lineIndex, out columnIndex );
-		}
-
-		/// <summary>
-		/// Sets caret location by logical line/column index.
-		/// Note that calling this method will release selection.
-		/// </summary>
-		/// <param name="lineIndex">new line index of where the caret is at</param>
-		/// <param name="columnIndex">new column index of where the caret is at</param>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		public void SetCaretIndex( int lineIndex, int columnIndex )
-		{
-			if( lineIndex < 0 || columnIndex < 0 )
-				throw new ArgumentOutOfRangeException( "lineIndex or columnIndex", "index must not be negative value. (lineIndex:"+lineIndex+", columnIndex:"+columnIndex+")" );
-			if( _LHI.Count <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "too large line index was given (given:"+lineIndex+", actual line count:"+_LHI.Count+")" );
-			
-			int caretIndex = LineLogic.GetCharIndexFromLineColumnIndex( _Buffer, _LHI, lineIndex, columnIndex );
-			SetSelection( caretIndex, caretIndex );
-		}
-
-		/// <summary>
 		/// Sets selection range.
 		/// </summary>
 		/// <param name="anchor">new index of the selection anchor</param>
