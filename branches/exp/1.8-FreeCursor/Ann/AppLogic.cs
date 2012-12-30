@@ -102,6 +102,14 @@ namespace Sgry.Ann
 
 		#region Properties
 		/// <summary>
+		/// Gets the editor engine.
+		/// </summary>
+		public AzukiControl Azuki
+		{
+			get{ return _MainForm.Azuki; }
+		}
+
+		/// <summary>
 		/// Gets or sets application's main form.
 		/// </summary>
 		public AnnForm MainForm
@@ -180,9 +188,9 @@ namespace Sgry.Ann
 
 				// activate document
 				_DAD_ActiveDocument = value;
-				MainForm.Azuki.Document = value;
-				MainForm.Azuki.ScrollToCaret();
-				MainForm.Azuki.UpdateCaretGraphic();
+				Azuki.Document = value;
+				Azuki.ScrollToCaret();
+				Azuki.UpdateCaretGraphic();
 				MainForm.TabPanel.SelectedItem = value;
 
 				// update UI
@@ -351,9 +359,9 @@ namespace Sgry.Ann
 
 			if( doc == ActiveDocument )
 			{
-				_MainForm.Azuki.AutoIndentHook = fileType.AutoIndentHook;
-				_MainForm.UpdateUI();
-				_MainForm.Azuki.Invalidate();
+				Azuki.AutoIndentHook = fileType.AutoIndentHook;
+				MainForm.UpdateUI();
+				Azuki.Invalidate();
 			}
 		}
 
@@ -369,13 +377,13 @@ namespace Sgry.Ann
 				throw new ArgumentException( "EOL code must be one of the CR+LF, CR, LF.", "eolCode" );
 
 			// if newly specified EOL code is same as currently set one, do nothing
-			if( MainForm.Azuki.Document.EolCode == eolCode )
+			if( Azuki.Document.EolCode == eolCode )
 			{
 				return;
 			}
 
 			// set input EOL code
-			MainForm.Azuki.Document.EolCode = eolCode;
+			Azuki.Document.EolCode = eolCode;
 
 			// ask user whether to unify currently existing all EOL codes to the new one
 			reply = AskUserToUnifyExistingEolOrNot( eolCode );
@@ -536,8 +544,8 @@ namespace Sgry.Ann
 			// activate it
 			ActiveDocument = doc;
 			SetFileType( doc, FileType.GetFileTypeByFileName(filePath) );
-			MainForm.Azuki.SetSelection( 0, 0 );
-			MainForm.Azuki.ScrollToCaret();
+			Azuki.SetSelection( 0, 0 );
+			Azuki.ScrollToCaret();
 		}
 
 		/// <summary>
@@ -948,9 +956,9 @@ namespace Sgry.Ann
 			// select the result
 			if( result != null )
 			{
-				MainForm.Azuki.Document.SetSelection( result.Begin, result.End );
-				MainForm.Azuki.View.SetDesiredColumn();
-				MainForm.Azuki.ScrollToCaret();
+				Azuki.Document.SetSelection( result.Begin, result.End );
+				Azuki.View.SetDesiredColumn();
+				Azuki.ScrollToCaret();
 			}
 		}
 
@@ -997,9 +1005,9 @@ namespace Sgry.Ann
 			// select the result
 			if( result != null )
 			{
-				MainForm.Azuki.Document.SetSelection( result.End, result.Begin );
-				MainForm.Azuki.View.SetDesiredColumn();
-				MainForm.Azuki.ScrollToCaret();
+				Azuki.Document.SetSelection( result.End, result.Begin );
+				Azuki.View.SetDesiredColumn();
+				Azuki.ScrollToCaret();
 			}
 		}
 		#endregion
@@ -1011,28 +1019,28 @@ namespace Sgry.Ann
 			AppConfig.Load();
 
 			// apply config
-			MainForm.Azuki.FontInfo				= AppConfig.FontInfo;
-			MainForm.TabPanelEnabled				= AppConfig.TabPanelEnabled;
+			Azuki.FontInfo					= AppConfig.FontInfo;
+			MainForm.TabPanelEnabled		= AppConfig.TabPanelEnabled;
 
-			MainForm.Azuki.DrawsEolCode				= AppConfig.DrawsEolCode;
-			MainForm.Azuki.DrawsFullWidthSpace		= AppConfig.DrawsFullWidthSpace;
-			MainForm.Azuki.DrawsSpace				= AppConfig.DrawsSpace;
-			MainForm.Azuki.DrawsTab					= AppConfig.DrawsTab;
-			MainForm.Azuki.DrawsEofMark				= AppConfig.DrawsEofMark;
-			MainForm.Azuki.HighlightsCurrentLine	= AppConfig.HighlightsCurrentLine;
-			MainForm.Azuki.HighlightsMatchedBracket	= AppConfig.HighlightsMatchedBracket;
-			MainForm.Azuki.ShowsLineNumber			= AppConfig.ShowsLineNumber;
-			MainForm.Azuki.ShowsHRuler				= AppConfig.ShowsHRuler;
-			MainForm.Azuki.ShowsDirtBar				= AppConfig.ShowsDirtBar;
-			MainForm.Azuki.TabWidth					= AppConfig.TabWidth;
-			MainForm.Azuki.LinePadding				= AppConfig.LinePadding;
-			MainForm.Azuki.LeftMargin				= AppConfig.LeftMargin;
-			MainForm.Azuki.TopMargin				= AppConfig.TopMargin;
-			MainForm.Azuki.ViewType					= AppConfig.ViewType;
-			MainForm.Azuki.UsesTabForIndent			= AppConfig.UsesTabForIndent;
-			MainForm.Azuki.ConvertsFullWidthSpaceToSpace = AppConfig.ConvertsFullWidthSpaceToSpace;
-			MainForm.Azuki.HRulerIndicatorType		= AppConfig.HRulerIndicatorType;
-			MainForm.Azuki.ScrollsBeyondLastLine	= AppConfig.ScrollsBeyondLastLine;
+			Azuki.DrawsEolCode				= AppConfig.DrawsEolCode;
+			Azuki.DrawsFullWidthSpace		= AppConfig.DrawsFullWidthSpace;
+			Azuki.DrawsSpace				= AppConfig.DrawsSpace;
+			Azuki.DrawsTab					= AppConfig.DrawsTab;
+			Azuki.DrawsEofMark				= AppConfig.DrawsEofMark;
+			Azuki.HighlightsCurrentLine		= AppConfig.HighlightsCurrentLine;
+			Azuki.HighlightsMatchedBracket	= AppConfig.HighlightsMatchedBracket;
+			Azuki.ShowsLineNumber			= AppConfig.ShowsLineNumber;
+			Azuki.ShowsHRuler				= AppConfig.ShowsHRuler;
+			Azuki.ShowsDirtBar				= AppConfig.ShowsDirtBar;
+			Azuki.TabWidth					= AppConfig.TabWidth;
+			Azuki.LinePadding				= AppConfig.LinePadding;
+			Azuki.LeftMargin				= AppConfig.LeftMargin;
+			Azuki.TopMargin					= AppConfig.TopMargin;
+			Azuki.ViewType					= AppConfig.ViewType;
+			Azuki.UsesTabForIndent			= AppConfig.UsesTabForIndent;
+			Azuki.ConvertsFullWidthSpaceToSpace = AppConfig.ConvertsFullWidthSpaceToSpace;
+			Azuki.HRulerIndicatorType		= AppConfig.HRulerIndicatorType;
+			Azuki.ScrollsBeyondLastLine		= AppConfig.ScrollsBeyondLastLine;
 
 			// apply window config
 			if( includeWindowConfig )
@@ -1051,7 +1059,7 @@ namespace Sgry.Ann
 		public void SaveConfig()
 		{
 			// update config fields
-			AppConfig.FontInfo				= MainForm.Azuki.FontInfo;
+			AppConfig.FontInfo				= Azuki.FontInfo;
 			AppConfig.WindowMaximized		= (MainForm.WindowState == FormWindowState.Maximized);
 			if( MainForm.WindowState == FormWindowState.Normal )
 			{
@@ -1059,25 +1067,25 @@ namespace Sgry.Ann
 			}
 			AppConfig.TabPanelEnabled			= MainForm.TabPanelEnabled;
 
-			AppConfig.DrawsEolCode				= MainForm.Azuki.DrawsEolCode;
-			AppConfig.DrawsFullWidthSpace		= MainForm.Azuki.DrawsFullWidthSpace;
-			AppConfig.DrawsSpace				= MainForm.Azuki.DrawsSpace;
-			AppConfig.DrawsTab					= MainForm.Azuki.DrawsTab;
-			AppConfig.DrawsEofMark				= MainForm.Azuki.DrawsEofMark;
-			AppConfig.HighlightsCurrentLine		= MainForm.Azuki.HighlightsCurrentLine;
-			AppConfig.HighlightsMatchedBracket	= MainForm.Azuki.HighlightsMatchedBracket;
-			AppConfig.ShowsLineNumber			= MainForm.Azuki.ShowsLineNumber;
-			AppConfig.ShowsHRuler				= MainForm.Azuki.ShowsHRuler;
-			AppConfig.ShowsDirtBar				= MainForm.Azuki.ShowsDirtBar;
-			AppConfig.TabWidth					= MainForm.Azuki.TabWidth;
-			AppConfig.LinePadding				= MainForm.Azuki.LinePadding;
-			AppConfig.LeftMargin				= MainForm.Azuki.LeftMargin;
-			AppConfig.TopMargin					= MainForm.Azuki.TopMargin;
-			AppConfig.ViewType					= MainForm.Azuki.ViewType;
-			AppConfig.UsesTabForIndent			= MainForm.Azuki.UsesTabForIndent;
-			AppConfig.ConvertsFullWidthSpaceToSpace = MainForm.Azuki.ConvertsFullWidthSpaceToSpace;
-			AppConfig.HRulerIndicatorType		= MainForm.Azuki.HRulerIndicatorType;
-			AppConfig.ScrollsBeyondLastLine		= MainForm.Azuki.ScrollsBeyondLastLine;
+			AppConfig.DrawsEolCode				= Azuki.DrawsEolCode;
+			AppConfig.DrawsFullWidthSpace		= Azuki.DrawsFullWidthSpace;
+			AppConfig.DrawsSpace				= Azuki.DrawsSpace;
+			AppConfig.DrawsTab					= Azuki.DrawsTab;
+			AppConfig.DrawsEofMark				= Azuki.DrawsEofMark;
+			AppConfig.HighlightsCurrentLine		= Azuki.HighlightsCurrentLine;
+			AppConfig.HighlightsMatchedBracket	= Azuki.HighlightsMatchedBracket;
+			AppConfig.ShowsLineNumber			= Azuki.ShowsLineNumber;
+			AppConfig.ShowsHRuler				= Azuki.ShowsHRuler;
+			AppConfig.ShowsDirtBar				= Azuki.ShowsDirtBar;
+			AppConfig.TabWidth					= Azuki.TabWidth;
+			AppConfig.LinePadding				= Azuki.LinePadding;
+			AppConfig.LeftMargin				= Azuki.LeftMargin;
+			AppConfig.TopMargin					= Azuki.TopMargin;
+			AppConfig.ViewType					= Azuki.ViewType;
+			AppConfig.UsesTabForIndent			= Azuki.UsesTabForIndent;
+			AppConfig.ConvertsFullWidthSpaceToSpace = Azuki.ConvertsFullWidthSpaceToSpace;
+			AppConfig.HRulerIndicatorType		= Azuki.HRulerIndicatorType;
+			AppConfig.ScrollsBeyondLastLine		= Azuki.ScrollsBeyondLastLine;
 
 			// save to file
 			AppConfig.Save();
@@ -1228,7 +1236,7 @@ namespace Sgry.Ann
 
 		void Azuki_Resize( object sender, EventArgs e )
 		{
-			if( MainForm.Azuki.ViewType == ViewType.WrappedProportional )
+			if( Azuki.ViewType == ViewType.WrappedProportional )
 			{
 				_ShouldUpdateTextAreaWidth = true;
 			}
@@ -1236,14 +1244,13 @@ namespace Sgry.Ann
 
 		void Azuki_Click( object sender, EventArgs e )
 		{
-			AzukiControl azuki = MainForm.Azuki;
-			AzukiDocument doc = azuki.Document;
+			AzukiDocument doc = Azuki.Document;
 			IMouseEventArgs mea = (IMouseEventArgs)e;
 			int urlBegin, urlEnd, selBegin, selEnd;
 
 			if( mea.Index < doc.Length
 				&& doc.IsMarked(mea.Index, Marking.Uri)
-				&& azuki.View.TextAreaRectangle.Contains(mea.Location) )
+				&& Azuki.View.TextAreaRectangle.Contains(mea.Location) )
 			{
 				// select entire URI if not selected, or deselect if selected.
 				doc.GetMarkedRange( mea.Index, Marking.Uri, out urlBegin, out urlEnd );
@@ -1262,8 +1269,7 @@ namespace Sgry.Ann
 
 		void Azuki_DoubleClick( object sender, EventArgs e )
 		{
-			AzukiControl azuki = MainForm.Azuki;
-			AzukiDocument doc = azuki.Document;
+			AzukiDocument doc = Azuki.Document;
 			IMouseEventArgs mea = (IMouseEventArgs)e;
 
 			if( mea.Index < doc.Length
@@ -1273,7 +1279,7 @@ namespace Sgry.Ann
 				DialogResult result;
 
 				// ask user to jump to the URI
-				uriString = azuki.Document.GetMarkedText( mea.Index, Marking.Uri );
+				uriString = Azuki.Document.GetMarkedText( mea.Index, Marking.Uri );
 				if( uriString != null )
 				{
 					result = MessageBox.Show(
@@ -1332,8 +1338,8 @@ namespace Sgry.Ann
 
 		public void ApplyNewTextAreaWidth()
 		{
-			AzukiControl azuki = MainForm.Azuki;
-			azuki.ViewWidth = azuki.ClientSize.Width - azuki.View.HRulerUnitWidth * 2;
+			Azuki.ViewWidth = Azuki.ClientSize.Width
+							  - Azuki.View.HRulerUnitWidth * 2;
 		}
 
 		void ParseIpcFile()

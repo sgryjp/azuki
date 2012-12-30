@@ -11,7 +11,7 @@ namespace Sgry.Ann
 		public static AnnAction Undo
 			= delegate( AppLogic app )
 		{
-			app.MainForm.Azuki.Undo();
+			app.Azuki.Undo();
 		};
 
 		/// <summary>
@@ -20,7 +20,7 @@ namespace Sgry.Ann
 		public static AnnAction Redo
 			= delegate( AppLogic app )
 		{
-			app.MainForm.Azuki.Redo();
+			app.Azuki.Redo();
 		};
 
 		/// <summary>
@@ -29,7 +29,7 @@ namespace Sgry.Ann
 		public static AnnAction Cut
 			= delegate( AppLogic app )
 		{
-			app.MainForm.Azuki.Cut();
+			app.Azuki.Cut();
 		};
 
 		/// <summary>
@@ -38,7 +38,7 @@ namespace Sgry.Ann
 		public static AnnAction Copy
 			= delegate( AppLogic app )
 		{
-			app.MainForm.Azuki.Copy();
+			app.Azuki.Copy();
 		};
 
 		/// <summary>
@@ -47,7 +47,7 @@ namespace Sgry.Ann
 		public static AnnAction Paste
 			= delegate( AppLogic app )
 		{
-			app.MainForm.Azuki.Paste();
+			app.Azuki.Paste();
 		};
 
 		/// <summary>
@@ -103,7 +103,7 @@ namespace Sgry.Ann
 								form.LineNumber - 1
 							);
 					doc.SetSelection( index, index );
-					app.MainForm.Azuki.ScrollToCaret();
+					app.Azuki.ScrollToCaret();
 				}
 			}
 		};
@@ -114,7 +114,7 @@ namespace Sgry.Ann
 		public static AnnAction TrimTrailingSpace
 			= delegate( AppLogic app )
 		{
-			Sgry.Azuki.Actions.TrimTrailingSpace( app.MainForm.Azuki );
+			Sgry.Azuki.Actions.TrimTrailingSpace( app.Azuki );
 		};
 
 		/// <summary>
@@ -123,7 +123,7 @@ namespace Sgry.Ann
 		public static AnnAction TrimLeadingSpace
 			= delegate( AppLogic app )
 		{
-			Sgry.Azuki.Actions.TrimLeadingSpace( app.MainForm.Azuki );
+			Sgry.Azuki.Actions.TrimLeadingSpace( app.Azuki );
 		};
 
 		/// <summary>
@@ -133,7 +133,7 @@ namespace Sgry.Ann
 		public static AnnAction ConvertTabsToSpaces
 			= delegate( AppLogic app )
 		{
-			Sgry.Azuki.Actions.ConvertTabsToSpaces( app.MainForm.Azuki );
+			Sgry.Azuki.Actions.ConvertTabsToSpaces( app.Azuki );
 		};
 
 		/// <summary>
@@ -143,7 +143,7 @@ namespace Sgry.Ann
 		public static AnnAction ConvertSpacesToTabs
 			= delegate( AppLogic app )
 		{
-			Sgry.Azuki.Actions.ConvertSpacesToTabs( app.MainForm.Azuki );
+			Sgry.Azuki.Actions.ConvertSpacesToTabs( app.Azuki );
 		};
 
 		/// <summary>
@@ -152,7 +152,7 @@ namespace Sgry.Ann
 		public static AnnAction SelectAll
 			= delegate( AppLogic app )
 		{
-			app.MainForm.Azuki.SelectAll();
+			app.Azuki.SelectAll();
 		};
 
 		/// <summary>
