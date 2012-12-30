@@ -1020,25 +1020,19 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( doc.RectSelectRanges != null )
 			{
-				int i;
-
 				// Determine whether a part of the line is selected by the
 				// rectangular selection or not, and get the selection range
 				// in this line. After determining it, drawing logic will be
 				// the same as case of normal selection.
-				for( i=0; i<doc.RectSelectRanges.Length; i+=2 )
+				selBegin = selEnd = Int32.MaxValue;
+				foreach( Range r in doc.RectSelectRanges )
 				{
-					selBegin = doc.RectSelectRanges[i];
-					selEnd = doc.RectSelectRanges[i+1];
-					if( index <= selEnd && selEnd < nextLineHead )
+					if( index <= r.End && r.End < nextLineHead )
 					{
+						selBegin = r.Begin;
+						selEnd = r.End;
 						break; // Selected.
 					}
-				}
-				if( doc.RectSelectRanges.Length <= i )
-				{
-					// Not selected.
-					selBegin = selEnd = Int32.MaxValue;
 				}
 			}
 

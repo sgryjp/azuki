@@ -481,10 +481,9 @@ namespace Sgry.Azuki
 			{
 				if( RectSelectRanges != null )
 				{
-					for( int i=0; i<RectSelectRanges.Length; i+=2 )
+					for( int i=0; i<RectSelectRanges.Length; i++ )
 					{
-						yield return new Range( RectSelectRanges[i],
-												RectSelectRanges[i+1] );
+						yield return RectSelectRanges[i];
 					}
 					yield break;
 				}
@@ -501,20 +500,8 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets or sets text ranges selected by rectangle selection.
 		/// </summary>
-		/// <remarks>
-		///   <para>
-		///   (This property is basically for internal use only.
-		///   Using this method from outside of Azuki assembly is not recommended.)
-		///   </para>
-		///   <para>
-		///   The value of this method is an array of text indexes
-		///   that is consisted with beginning index of first text range (row),
-		///   ending index of first text range,
-		///   beginning index of second text range,
-		///   ending index of second text range and so on.
-		///   </para>
-		/// </remarks>
-		public int[] RectSelectRanges
+[Obsolete]
+		public Range[] RectSelectRanges
 		{
 			get{ return _SelMan.RectSelectRanges; }
 			set{ _SelMan.RectSelectRanges = value; }
@@ -2560,23 +2547,24 @@ namespace Sgry.Azuki
 		/// Occurs when the selection was changed.
 		/// </summary>
 		public event SelectionChangedEventHandler SelectionChanged;
-		internal void InvokeSelectionChanged( int oldAnchor, int oldCaret, int[] oldRectSelectRanges, bool byContentChanged )
+		internal void InvokeSelectionChanged( int oldAnchor, int oldCaret,
+											  Range[] oldRectSelectRanges,
+											  bool byContentChanged )
 		{
-#			if DEBUG
 			Debug.Assert( 0 <= oldAnchor );
 			Debug.Assert( 0 <= oldCaret );
-			if( oldRectSelectRanges != null )
-			{
-				Debug.Assert( oldRectSelectRanges.Length % 2 == 0 );
-			}
-#			endif
 
 			if( SelectionChanged != null )
 			{
 				SelectionChanged(
-						this,
-						new SelectionChangedEventArgs(oldAnchor, oldCaret, oldRectSelectRanges, byContentChanged)
-					);
+					this,
+					new SelectionChangedEventArgs(
+						oldAnchor,
+						oldCaret,
+						oldRectSelectRanges,
+						byContentChanged
+					)
+				);
 			}
 		}
 
@@ -2921,7 +2909,8 @@ namespace Sgry.Azuki
 			}
 
 			// reset selection
-			SetSelection( RectSelectRanges[0], RectSelectRanges[0] );
+			int index = RectSelectRanges[0].Begin;
+			SetSelection( index, index );
 		}
 
 		internal void GetSelectedLineRange( out int selBeginL,
@@ -3024,13 +3013,16 @@ namespace Sgry.Azuki
 	{
 		int _OldAnchor;
 		int _OldCaret;
-		int[] _OldRectSelectRanges;
+		Range[] _OldRectSelectRanges;
 		bool _ByContentChanged;
 
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
-		public SelectionChangedEventArgs( int anchorIndex, int caretIndex, int[] oldRectSelectRanges, bool byContentChanged )
+		public SelectionChangedEventArgs( int anchorIndex,
+										  int caretIndex,
+										  Range[] oldRectSelectRanges,
+										  bool byContentChanged )
 		{
 			_OldAnchor = anchorIndex;
 			_OldCaret = caretIndex;
@@ -3057,7 +3049,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Text ranges selected by previous rectangle selection (indexes are valid in current text.)
 		/// </summary>
-		public int[] OldRectSelectRanges
+		public Range[] OldRectSelectRanges
 		{
 			get{ return _OldRectSelectRanges; }
 		}

@@ -891,17 +891,10 @@ namespace Sgry.Azuki
 		/// executed by view implementations, the result of this method will be changed
 		/// according to the interface implementation.
 		/// </para>
-		/// <para>
-		/// Return value of this method is an array of text indexes
-		/// that is consisted with beginning index of first text range (row),
-		/// ending index of first text range,
-		/// beginning index of second text range,
-		/// ending index of second text range and so on.
-		/// </para>
 		/// </remarks>
-		public int[] GetRectSelectRanges( Rectangle selRect )
+		public Range[] GetRectSelectRanges( Rectangle selRect )
 		{
-			List<int> selRanges = new List<int>();
+			List<Range> selections = new List<Range>();
 			Point leftPos = new Point();
 			Point rightPos = new Point();
 			int leftIndex;
@@ -927,7 +920,8 @@ namespace Sgry.Azuki
 				leftPos.Y = rightPos.Y = y;
 				leftIndex = this.GetIndexFromVirPos( leftPos );
 				rightIndex = this.GetIndexFromVirPos( rightPos );
-				if( 1 < selRanges.Count && selRanges[selRanges.Count-1] == rightIndex )
+				if( 1 < selections.Count
+					&& selections[selections.Count-1].End == rightIndex )
 				{
 					break; // reached EOF
 				}
@@ -935,14 +929,13 @@ namespace Sgry.Azuki
 				Debug.Assert( Document.IsNotDividableIndex(rightIndex) == false );
 
 				// add this sub-selection range
-				selRanges.Add( leftIndex );
-				selRanges.Add( rightIndex );
+				selections.Add( new Range(leftIndex, rightIndex) );
 
 				// go to next line
 				y += LineSpacing;
 			}
 
-			return selRanges.ToArray();
+			return selections.ToArray();
 		}
 
 		/// <summary>
