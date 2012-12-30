@@ -1015,14 +1015,6 @@ namespace Sgry.Azuki
 			return (str == "\r" || str == "\n" || str == "\r\n");
 		}
 
-		int Min( int a, int b, int c )
-		{
-			return Math.Min(
-				Math.Min(a, b),
-				c
-			);
-		}
-
 		static bool IsWrappedLineHead( Document doc, SplitArray<int> plhi, int index )
 		{
 			int lineHeadIndex = LineLogic.GetLineHeadIndexFromCharIndex( doc.InternalBuffer, plhi, index );

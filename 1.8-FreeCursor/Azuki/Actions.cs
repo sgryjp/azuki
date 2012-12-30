@@ -38,10 +38,8 @@ namespace Sgry.Azuki
 			if( doc.RectSelectRanges != null )
 			{
 				//--- case of rectangle selection ---
-				doc.BeginUndo();
-				doc.DeleteRectSelectText();
-				doc.EndUndo();
-				ui.View.Invalidate();
+				ui.Delete( doc.Selections );
+				ui.Invalidate();
 			}
 			else if( doc.AnchorIndex != doc.CaretIndex )
 			{
@@ -103,10 +101,8 @@ namespace Sgry.Azuki
 			if( doc.RectSelectRanges != null )
 			{
 				//--- case of rectangle selection ---
-				doc.BeginUndo();
-				doc.DeleteRectSelectText();
-				doc.EndUndo();
-				ui.View.Invalidate();
+				ui.Delete( doc.Selections );
+				ui.Invalidate();
 			}
 			else if( doc.AnchorIndex != doc.CaretIndex )
 			{
@@ -125,7 +121,7 @@ namespace Sgry.Azuki
 				}
 
 				// delete between previous word start position and the caret position
-				int prevWordIndex = CaretMoveLogic.Calc_PrevWord( view );
+				int prevWordIndex = CaretMoveLogic.Calc_PrevWord( ui );
 				doc.Replace( String.Empty, prevWordIndex, doc.CaretIndex );
 			}
 
@@ -156,10 +152,8 @@ namespace Sgry.Azuki
 			if( doc.RectSelectRanges != null )
 			{
 				//--- case of rectangle selection ---
-				doc.BeginUndo();
-				doc.DeleteRectSelectText();
-				doc.EndUndo();
-				ui.View.Invalidate();
+				ui.Delete( doc.Selections );
+				ui.Invalidate();
 			}
 			else if( doc.AnchorIndex != doc.CaretIndex )
 			{
@@ -217,10 +211,8 @@ namespace Sgry.Azuki
 			if( doc.RectSelectRanges != null )
 			{
 				//--- case of rectangle selection ---
-				doc.BeginUndo();
-				doc.DeleteRectSelectText();
-				doc.EndUndo();
-				ui.View.Invalidate();
+				ui.Delete( doc.Selections );
+				ui.Invalidate();
 			}
 			else if( doc.AnchorIndex != doc.CaretIndex )
 			{
@@ -230,7 +222,7 @@ namespace Sgry.Azuki
 			else
 			{
 				//--- case of no selection ---
-				int nextWordIndex = CaretMoveLogic.Calc_NextWord( view );
+				int nextWordIndex = CaretMoveLogic.Calc_NextWord( ui );
 				if( nextWordIndex == doc.Length && doc.CaretIndex == nextWordIndex )
 				{
 					Plat.Inst.MessageBeep();
@@ -287,9 +279,7 @@ namespace Sgry.Azuki
 				// delete selected text
 				if( doc.RectSelectRanges != null )
 				{
-					doc.BeginUndo();
-					doc.DeleteRectSelectText();
-					doc.EndUndo();
+					ui.Delete( doc.Selections );
 					Plat.Inst.SetClipboardText( text, TextDataType.Rectangle );
 				}
 				else
@@ -426,8 +416,8 @@ namespace Sgry.Azuki
 			{
 				//--- case of rectangle selection ---
 				// delete selected text
-				doc.DeleteRectSelectText();
-				ui.View.Invalidate();
+				ui.Delete( doc.Selections );
+				ui.Invalidate();
 			}
 			else if( begin != end )
 			{
@@ -635,7 +625,7 @@ namespace Sgry.Azuki
 			}
 
 			// insert an EOL code
-			doc.SetSelection( insIndex, insIndex );
+			ui.Select( insIndex, insIndex );
 			ui.HandleTextInput( "\n" );
 			ui.ScrollToCaret();
 		}
@@ -645,21 +635,20 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void BreakNextLine( IUserInterface ui )
 		{
-			Document doc = ui.Document;
 			IView view = ui.View;
 			int caretLine, caretLineHeadIndex;
 			int insIndex;
 
-			if( doc.IsReadOnly || ui.IsSingleLineMode )
+			if( ui.IsReadOnly || ui.IsSingleLineMode )
 				return;
 
 			// get index of the end of current line
-			caretLine = view.GetLineIndexFromCharIndex( doc.CaretIndex );
-			caretLineHeadIndex = view.GetLineHeadIndexFromCharIndex( doc.CaretIndex );
+			caretLine = view.GetLineIndexFromCharIndex( ui.CaretIndex );
+			caretLineHeadIndex = view.GetLineHeadIndexFromCharIndex( ui.CaretIndex );
 			insIndex = caretLineHeadIndex + view.GetLineLength( caretLine );
 
 			// insert an EOL code
-			doc.SetSelection( insIndex, insIndex );
+			ui.Select( insIndex, insIndex );
 			ui.HandleTextInput( "\n" );
 			ui.ScrollToCaret();
 		}
@@ -736,7 +725,7 @@ namespace Sgry.Azuki
 			{
 				endLineHead = doc.Length;
 			}
-			doc.SetSelection( beginLineHead, endLineHead );
+			ui.Select( beginLineHead, endLineHead );
 		}
 
 		/// <summary>
@@ -797,7 +786,7 @@ namespace Sgry.Azuki
 			{
 				endLineHead = doc.Length;
 			}
-			doc.SetSelection( beginLineHead, endLineHead );
+			ui.Select( beginLineHead, endLineHead );
 		}
 		#endregion
 

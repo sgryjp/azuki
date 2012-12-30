@@ -142,7 +142,7 @@ namespace Sgry.Ann
 
 			// update status bar
 #			if !PocketPC
-			switch( doc.SelectionMode )
+			switch( Azuki.SelectionMode )
 			{
 				case TextDataType.Line:
 					_Status_SelectionMode.Text = "LINE";

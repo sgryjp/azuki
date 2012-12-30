@@ -1283,10 +1283,10 @@ namespace Sgry.Azuki.WinForms
 #		endif
 		public TextDataType SelectionMode
 		{
-			get{ return Document.SelectionMode; }
+			get{ return _Impl.SelectionMode; }
 			set
 			{
-				Document.SelectionMode = value;
+				_Impl.SelectionMode = value;
 #				if !PocketPC
 				Point cursorPos = PointToClient( Cursor.Position );
 				_Impl.ResetCursorGraphic( cursorPos );
@@ -1535,6 +1535,11 @@ namespace Sgry.Azuki.WinForms
 			Actions.Delete( this );
 		}
 
+		public void Delete( params Range[] ranges )
+		{
+			_Impl.Delete( ranges );
+		}
+
 		/// <summary>
 		/// Processes specified text as an input by user.
 		/// </summary>
@@ -1569,7 +1574,7 @@ namespace Sgry.Azuki.WinForms
 #		endif
 		public int CaretIndex
 		{
-			get{ return Document.CaretIndex; }
+			get{ return Document.SelectionManager.CaretIndex; }
 		}
 
 		/// <summary>
@@ -1590,7 +1595,7 @@ namespace Sgry.Azuki.WinForms
 		/// </remarks>
 		public void SetSelection( int anchor, int caret )
 		{
-			Document.SetSelection( anchor, caret );
+			_Impl.Select( anchor, caret, TextDataType.Normal );
 			SetDesiredColumn();
 		}
 
@@ -2673,7 +2678,7 @@ namespace Sgry.Azuki.WinForms
 			// select target string to make it being replaced by reconverted new string
 			selBegin = stringBodyIndex + (int)(reconv->dwTargetStrOffset / 2);
 			selEnd = selBegin + (int)reconv->dwTargetStrLen;
-			Document.SetSelection( selBegin, selEnd );
+			Select( selBegin, selEnd );
 
 			// adjust position of IME composition window
 			WinApi.SetImeWindowPos( this.Handle,

@@ -37,9 +37,11 @@ namespace Sgry.Azuki
 		bool _ConvertsFullWidthSpaceToSpace = false;
 		bool _UsesStickyCaret = false;
 		bool _IsSingleLineMode = false;
+		TextDataType _SelectionMode = TextDataType.Normal;
 
 		// X coordinate of this also be used as a flag to determine
 		// whether the mouse button is down or not.
+		Point _LastMouseMoveScreenPos = Point.Empty;
 		Point _MouseDownVirPos = new Point( Int32.MinValue, 0 );
 		bool _MouseDragging = false;
 		bool _MouseDragEditing = false;
@@ -296,6 +298,19 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
+		/// Gets or sets how to select text.
+		/// </summary>
+		public TextDataType SelectionMode
+		{
+			get{ return _SelectionMode; }
+			set
+			{
+				_SelectionMode = value;
+				ResetCursorGraphic( _LastMouseMoveScreenPos );
+			}
+		}
+
+		/// <summary>
 		/// Gets or sets whether URIs in the active document
 		/// should be marked automatically with built-in URI marker or not.
 		/// </summary>
@@ -445,7 +460,7 @@ namespace Sgry.Azuki
 				// clear rectangle selection
 				if( doc.RectSelectRanges != null )
 				{
-					doc.DeleteRectSelectText();
+					Delete( doc.Selections );
 				}
 
 				// handle input characters
@@ -512,7 +527,7 @@ namespace Sgry.Azuki
 
 				// replace selection to input char
 				doc.Replace( input.ToString(), selBegin, selEnd );
-				doc.SetSelection( newCaretIndex, newCaretIndex );
+				Select( newCaretIndex, newCaretIndex );
 
 				// set desired column
 				if( UsesStickyCaret == false )
@@ -618,7 +633,7 @@ namespace Sgry.Azuki
 		#region Other
 		public void Select( int anchor, int caret )
 		{
-			Select( anchor, caret, Document.SelectionMode );
+			Select( anchor, caret, _UI.SelectionMode );
 		}
 
 		/// <summary>
@@ -693,6 +708,36 @@ namespace Sgry.Azuki
 					+ anchor + ", caret:" + caret + ")." );
 
 			Document.SelectionManager.SetSelection( anchor, caret, View, mode );
+		}
+
+		/// <exception cref="ArgumentNullException"/>
+		internal void Delete( params Range[] ranges )
+		{
+			if( ranges == null )
+				throw new ArgumentNullException();
+
+			if( 0 < ranges.Length )
+			{
+				int diff = 0;
+				Document doc = Document;
+
+				doc.BeginUndo();
+
+				// Delete every selected text parts
+				int beginningIndex = ranges[0].Begin;
+				foreach( Range r in ranges )
+				{
+					Debug.Assert(doc.IsNotDividableIndex(r.Begin+diff)==false);
+					Debug.Assert(doc.IsNotDividableIndex(r.End+diff)==false);
+					doc.Replace( "", r.Begin + diff, r.End + diff );
+					diff -= r.Length;
+				}
+
+				doc.EndUndo();
+
+				// reset selection
+				Select( beginningIndex, beginningIndex );
+			}
 		}
 
 		/// <summary>
@@ -849,7 +894,7 @@ namespace Sgry.Azuki
 					_MouseDragEditDelayTimer.Dispose();
 					View.ScreenToVirtual( ref pos );
 					int targetIndex = View.GetIndexFromVirPos( pos );
-					Document.SetSelection( targetIndex, targetIndex );
+					Select( targetIndex, targetIndex );
 				}
 			}
 			ClearDragState( pos );
@@ -893,7 +938,7 @@ namespace Sgry.Azuki
 
 				// insert new text
 				Document.Replace( selText, targetIndex, targetIndex );
-				Document.SetSelection( targetIndex, targetIndex + selText.Length );
+				Select( targetIndex, targetIndex + selText.Length );
 			}
 			finally
 			{
@@ -996,7 +1041,7 @@ namespace Sgry.Azuki
 					else
 					{
 						//--- setting caret ---
-						Document.SetSelection( clickedIndex, clickedIndex );
+						Select( clickedIndex, clickedIndex );
 					}
 					View.SetDesiredColumn( g );
 					View.ScrollToCaret( g );
@@ -1032,7 +1077,7 @@ namespace Sgry.Azuki
 			if( _IsDisposed )
 				return;
 
-			Point pos = e.Location;
+			Point pos = _LastMouseMoveScreenPos = e.Location;
 
 			// update mouse cursor graphic
 			ResetCursorGraphic( pos );

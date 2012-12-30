@@ -1,7 +1,5 @@
 ﻿// file: AutoIndentLogic.cs
 // brief: Logic around auto-indentation.
-// author: YAMAMOTO Suguru
-// update: 2011-07-31
 //=========================================================
 using System;
 using System.Text;
@@ -69,7 +67,7 @@ namespace Sgry.Azuki
 				// replace selection
 				newCaretIndex = Math.Min( doc.AnchorIndex, doc.CaretIndex ) + str.Length;
 				doc.Replace( str.ToString() );
-				doc.SetSelection( newCaretIndex, newCaretIndex );
+				ui.Select( newCaretIndex, newCaretIndex );
 
 				return true;
 			}
@@ -184,7 +182,7 @@ namespace Sgry.Azuki
 					newCaretIndex += extraPadding.Length;
 				}
 
-				doc.SetSelection( newCaretIndex, newCaretIndex );
+				ui.Select( newCaretIndex, newCaretIndex );
 
 				return true;
 			}

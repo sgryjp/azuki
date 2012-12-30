@@ -22,8 +22,8 @@ namespace Sgry.Azuki
 			view.Document.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				view.Document.SetSelection( selEnd, selEnd );
-				view.ScrollToCaret();
+				ui.Select( selEnd, selEnd );
+				ui.ScrollToCaret();
 			}
 			// otherwise, move caret right
 			else
@@ -48,7 +48,7 @@ namespace Sgry.Azuki
 			view.Document.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				view.Document.SetSelection( selBegin, selBegin );
+				ui.SetSelection( selBegin, selBegin );
 				view.ScrollToCaret();
 			}
 			// otherwise, move caret left
@@ -91,7 +91,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				ui.Select( doc.CaretIndex, doc.CaretIndex );
 			}
 
 			// then, move caret
@@ -113,7 +113,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				ui.Select( doc.CaretIndex, doc.CaretIndex );
 			}
 
 			// then, move caret
@@ -135,7 +135,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				ui.Select( doc.CaretIndex, doc.CaretIndex );
 			}
 
 			// then, move caret
@@ -157,7 +157,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				ui.Select( doc.CaretIndex, doc.CaretIndex );
 			}
 
 			// then, move caret
@@ -179,7 +179,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				ui.Select( doc.CaretIndex, doc.CaretIndex );
 			}
 
 			// then, move caret
@@ -215,7 +215,7 @@ namespace Sgry.Azuki
 			nextIndex = view.GetIndexFromVirPos( pt );
 
 			// move caret and scroll
-			doc.SetSelection( nextIndex, nextIndex );
+			ui.Select( nextIndex, nextIndex );
 			view.Scroll( diff );
 			view.ScrollToCaret();
 		}
@@ -245,7 +245,7 @@ namespace Sgry.Azuki
 			nextIndex = view.GetIndexFromVirPos( pt );
 
 			// move caret and scroll
-			doc.SetSelection( nextIndex, nextIndex );
+			ui.Select( nextIndex, nextIndex );
 			view.Scroll( -diff );
 			view.ScrollToCaret();
 		}
@@ -262,7 +262,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				ui.Select( doc.CaretIndex, doc.CaretIndex );
 			}
 
 			// then, move caret
@@ -284,7 +284,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				ui.Select( doc.CaretIndex, doc.CaretIndex );
 			}
 
 			// then, move caret
@@ -469,7 +469,7 @@ namespace Sgry.Azuki
 			nextIndex = view.GetIndexFromVirPos( pt );
 
 			// move caret and scroll
-			doc.SetSelection( doc.AnchorIndex, nextIndex );
+			ui.Select( doc.AnchorIndex, nextIndex );
 			view.Scroll( diff );
 		}
 
@@ -498,7 +498,7 @@ namespace Sgry.Azuki
 			nextIndex = view.GetIndexFromVirPos( pt );
 
 			// move caret and scroll
-			doc.SetSelection( doc.AnchorIndex, nextIndex );
+			ui.Select( doc.AnchorIndex, nextIndex );
 			view.Scroll( -diff );
 		}
 
@@ -639,16 +639,10 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectAll( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			
-			// set parameters
-			doc.SetSelection( 0, doc.Length );
-
-			// update desired column
-			ui.SetDesiredColumn();
+			ui.Select( 0, ui.TextLength );
 			ui.ScrollToCaret();
-
-			ui.Invalidate(); // this is needed because Azuki's invalidation logic only supports selection change by caret movement
+			ui.Invalidate(); // This is needed because Azuki does not
+							 // invalidate graphic by selection change API
 		}
 		#endregion
 	}

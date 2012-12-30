@@ -37,7 +37,7 @@ namespace Sgry.Azuki
 			// force to release selection here)
 			if( Document != null )
 			{
-				Document.SetSelection( Document.CaretIndex, Document.CaretIndex );
+				_UI.Select( Document.CaretIndex, Document.CaretIndex );
 
 				// scroll to caret manually.
 				// (because text graphic was not drawn yet,

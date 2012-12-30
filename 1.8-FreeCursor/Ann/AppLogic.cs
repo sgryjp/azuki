@@ -544,7 +544,7 @@ namespace Sgry.Ann
 			// activate it
 			ActiveDocument = doc;
 			SetFileType( doc, FileType.GetFileTypeByFileName(filePath) );
-			Azuki.SetSelection( 0, 0 );
+			Azuki.Select( 0, 0, TextDataType.Normal );
 			Azuki.ScrollToCaret();
 		}
 
@@ -715,7 +715,9 @@ namespace Sgry.Ann
 		/// <summary>
 		/// Reloads document.
 		/// </summary>
-		public void ReloadDocument( Document doc, Encoding encoding, bool withBom )
+		public void ReloadDocument( Document doc,
+									Encoding encoding,
+									bool withBom )
 		{
 			Debug.Assert( doc != null );
 
@@ -741,7 +743,7 @@ namespace Sgry.Ann
 				// restore caret position and scroll to it
 				line = Math.Min( line, doc.LineCount-1 );
 				column = Math.Min( column, doc.GetLineLength(line) );
-				Azuki.Select( line, column, line, column, TextDataType.Normal );
+				Azuki.Select( line, column, line, column, TextDataType.Normal);
 
 				_MainForm.UpdateUI();
 			}
@@ -957,8 +959,8 @@ namespace Sgry.Ann
 			// select the result
 			if( result != null )
 			{
-				Azuki.Document.SetSelection( result.Begin, result.End );
-				Azuki.SetDesiredColumn();
+				Azuki.Select( result.Begin, result.End );
+Azuki.View.SetDesiredColumn();
 				Azuki.ScrollToCaret();
 			}
 		}
@@ -1006,8 +1008,8 @@ namespace Sgry.Ann
 			// select the result
 			if( result != null )
 			{
-				Azuki.Document.SetSelection( result.End, result.Begin );
-				Azuki.SetDesiredColumn();
+				Azuki.Select( result.End, result.Begin );
+Azuki.View.SetDesiredColumn();
 				Azuki.ScrollToCaret();
 			}
 		}
@@ -1258,11 +1260,11 @@ namespace Sgry.Ann
 				doc.GetSelection( out selBegin, out selEnd );
 				if( selBegin != urlBegin && selEnd != urlEnd )
 				{
-					doc.SetSelection( urlBegin, urlEnd );
+					Azuki.Select( urlBegin, urlEnd );
 				}
 				else
 				{
-					doc.SetSelection( mea.Index, mea.Index );
+					Azuki.Select( mea.Index, mea.Index );
 				}
 				mea.Handled = true;
 			}
