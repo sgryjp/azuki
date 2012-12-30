@@ -622,39 +622,27 @@ namespace Sgry.Azuki
 		/// <returns>Number of characters currently selected.</returns>
 		/// <remarks>
 		/// <para>
-		/// This method gets number of characters currently selected,
-		/// properly even if the selection mode is rectangle selection.
+		/// This method gets number of characters currently selected, properly
+		/// even if the selection mode is rectangle selection.
 		/// </para>
 		/// <para>
-		/// Note that the difference between the end of selection and the beginning of selection
-		/// is not a number of selected characters if they are selected by rectangle selection.
+		/// Note that the difference between the end of selection and the
+		/// beginning of selection is not a number of selected characters if
+		/// they are selected by rectangle selection.
 		/// </para>
 		/// </remarks>
 		public int GetSelectedTextLength()
 		{
 			Debug.Assert( _IsDisposed == false );
 
-			int count;
+			int count = 0;
 
-			if( Document.RectSelectRanges != null )
+			foreach( Range r in Document.Selections )
 			{
-				// Get number of characters in each line of the rectangle
-				count = 0;
-				for( int i=0; i<Document.RectSelectRanges.Length; i+=2 )
-				{
-					// get this row content
-					count += Document.RectSelectRanges[i+1]
-						- Document.RectSelectRanges[i];
-				}
+				count += r.Length;
+			}
 
-				return count;
-			}
-			else
-			{
-				int begin, end;
-				Document.GetSelection( out begin, out end );
-				return end - begin;
-			}
+			return count;
 		}
 
 		/// <summary>
@@ -666,9 +654,9 @@ namespace Sgry.Azuki
 		/// This method gets currently selected text.
 		/// </para>
 		/// <para>
-		/// If current selection is rectangle selection,
-		/// return value will be a string that are consisted with selected partial lines (rows)
-		/// joined with CR+LF.
+		/// If current selection is rectangle selection, return value will be a
+		/// string that are consisted with selected partial lines (rows) joined
+		/// with CR+LF.
 		/// </para>
 		/// </remarks>
 		public string GetSelectedText()
@@ -685,38 +673,22 @@ namespace Sgry.Azuki
 		/// This method gets currently selected text.
 		/// </para>
 		/// <para>
-		/// If current selection is rectangle selection,
-		/// return value will be a string that are consisted with selected partial lines (rows)
-		/// joined with specified string.
+		/// If current selection is rectangle selection, return value will be a
+		/// string that are consisted with selected partial lines (rows) joined
+		/// with specified string.
 		/// </para>
 		/// </remarks>
 		public string GetSelectedText( string separator )
 		{
 			Debug.Assert( _IsDisposed == false );
+			List<string> rows = new List<string>();
 
-			if( Document.RectSelectRanges != null )
+			foreach( Range r in Document.Selections )
 			{
-				StringBuilder text = new StringBuilder();
-
-				// get text in the rect
-				for( int i=0; i<Document.RectSelectRanges.Length; i+=2 )
-				{
-					// get this row content
-					string row = Document.GetTextInRange(
-							Document.RectSelectRanges[i],
-							Document.RectSelectRanges[i+1]
-						);
-					text.Append( row + separator );
-				}
-
-				return text.ToString();
+				rows.Add( Document.GetTextInRange(r.Begin, r.End) );
 			}
-			else
-			{
-				int begin, end;
-				Document.GetSelection( out begin, out end );
-				return Document.GetTextInRange( begin, end );
-			}
+
+			return String.Join( separator, rows.ToArray() );
 		}
 		#endregion
 

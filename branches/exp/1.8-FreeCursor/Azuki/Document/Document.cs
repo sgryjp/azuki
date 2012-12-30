@@ -475,6 +475,29 @@ namespace Sgry.Azuki
 			_SelMan.GetSelection( out begin, out end );
 		}
 
+		public IEnumerable<Range> Selections
+		{
+			get
+			{
+				if( RectSelectRanges != null )
+				{
+					for( int i=0; i<RectSelectRanges.Length; i+=2 )
+					{
+						yield return new Range( RectSelectRanges[i],
+												RectSelectRanges[i+1] );
+					}
+					yield break;
+				}
+				else
+				{
+					int begin, end;
+					GetSelection( out begin, out end );
+					yield return new Range( begin, end );
+					yield break;
+				}
+			}
+		}
+
 		/// <summary>
 		/// Gets or sets text ranges selected by rectangle selection.
 		/// </summary>
@@ -2889,22 +2912,12 @@ namespace Sgry.Azuki
 		{
 			int diff = 0;
 
-			for( int i=0; i<RectSelectRanges.Length; i+=2 )
+			foreach( Range r in Selections )
 			{
-				// recalculate range of this row
-				RectSelectRanges[i] -= diff;
-				RectSelectRanges[i+1] -= diff;
-
-				// replace this row
-				Debug.Assert( IsNotDividableIndex(RectSelectRanges[i]) == false );
-				Debug.Assert( IsNotDividableIndex(RectSelectRanges[i+1]) == false );
-				Replace( String.Empty,
-						RectSelectRanges[i],
-						RectSelectRanges[i+1]
-					);
-
-				// go to next row
-				diff += RectSelectRanges[i+1] - RectSelectRanges[i];
+				Debug.Assert( IsNotDividableIndex(r.Begin + diff) == false );
+				Debug.Assert( IsNotDividableIndex(r.End + diff) == false );
+				Replace( "", r.Begin + diff, r.End + diff );
+				diff -= r.Length;
 			}
 
 			// reset selection

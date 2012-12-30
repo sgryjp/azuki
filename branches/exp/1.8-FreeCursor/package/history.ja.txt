@@ -3,6 +3,8 @@
  * add: 選択行から行頭の空白文字をまとめて削除する Action.TrimLeadingSpace を追加
  * add: 選択範囲中にあるタブ文字を空白文字に変換する Action.ConvertTabsToSpaces を追加
  * add: 選択範囲中にある空白文字をタブ文字に変換する Action.ConvertSpacesToTabs を追加
+ * add: 選択範囲を foreach 列挙できるプロパティ AzukiControl.Selections を追加
+ * mod: 矩形選択、AzukiControl.GetSelectedText メソッドは選択範囲の各行を CR+LF で結合した文字列を返すように（最後の行にはCR+LFを付与しない）
  * fix: 効果が無いグループ UNDO は記録しないように
  * fix: LaTeXハイライタで見出しのハイライトが正常に更新されないことがある問題を修正
  * add: [Ann] Ctrl+Shift+R で選択行の行末にある空白文字をまとめて削除する機能を追加

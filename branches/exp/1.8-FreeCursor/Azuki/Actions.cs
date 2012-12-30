@@ -980,11 +980,9 @@ namespace Sgry.Azuki
 			if( doc.RectSelectRanges != null )
 			{
 				doc.BeginUndo();
-				for( int i=0; i<doc.RectSelectRanges.Length; i+=2 )
+				foreach( Range r in doc.Selections )
 				{
-					begin = doc.RectSelectRanges[i] + delta;
-					end = doc.RectSelectRanges[i+1] + delta;
-					predicate( ui, begin, end, ref delta );
+					predicate( ui, r.Begin+delta, r.End+delta, ref delta );
 				}
 				doc.EndUndo();
 

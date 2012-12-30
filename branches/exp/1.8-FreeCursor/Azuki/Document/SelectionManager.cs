@@ -1,7 +1,5 @@
 ﻿// file: SelectionManager.cs
 // brief: Internal class to manage text selection range.
-// author: YAMAMOTO Suguru
-// update: 2010-08-13
 //=========================================================
 using System;
 using System.Diagnostics;
@@ -20,7 +18,7 @@ namespace Sgry.Azuki
 		int _AnchorIndex = 0;
 		int _OriginalAnchorIndex = -1;
 		int _LineSelectionAnchor1 = -1;
-		int _LineSelectionAnchor2 = -1; // temporary variable holding selection anchor on expanding line selection backward
+		int _LineSelectionAnchor2 = -1; // temporal variable holding selection anchor on expanding line selection backward
 		int[] _RectSelectRanges = null;
 		TextDataType _SelectionMode = TextDataType.Normal;
 		#endregion
@@ -156,14 +154,10 @@ namespace Sgry.Azuki
 			if( _Document.RectSelectRanges != null )
 			{
 				// is in rectangular selection mode.
-				for( int i=0; i<_Document.RectSelectRanges.Length; i+=2 )
+				foreach( Range r in _Document.Selections )
 				{
-					begin = _Document.RectSelectRanges[i];
-					end = _Document.RectSelectRanges[i+1];
-					if( begin <= index && index < end )
-					{
+					if( r.Begin <= index && index <= r.End )
 						return true;
-					}
 				}
 
 				return false;
