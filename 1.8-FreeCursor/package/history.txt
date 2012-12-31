@@ -6,7 +6,8 @@
  * add: Added AzukiControl.Selections by which selection ranges can be enumerated (can be used for foreach statement)
  * add: Added method IUserInterface.SetDesiredColumn which is an alias to IView.SetDesiredColumn
  * mod: Removed Document class's methods and properties which is related to selection
- * fix: Group undo action will not be stacked if it has no effect at all
+ * fix: Now group undo action will not be stacked if it has no effect at all
+ * fix: Now cascading call of BeginUndo/EndUndo works properly
  * fix: LaTeX highlighter may not update highlight of headings
  * add: [Ann] Added feature to remove spaces from end of each selected lines (shortcut key is Ctrl+Shift+R)
  * add: [Ann] Added feature to remove spaces from beginning of each selected lines (shortcut key is Ctrl+Shift+L)
