@@ -1599,6 +1599,16 @@ namespace Sgry.Azuki.WinForms
 			SetDesiredColumn();
 		}
 
+		public bool SelectionExists
+		{
+			get{ return _Impl.SelectionExists; }
+		}
+
+		public void ReleaseSelection()
+		{
+			_Impl.ReleaseSelection();
+		}
+
 		public void Select( int anchor, int caret )
 		{
 			_Impl.Select( anchor, caret, SelectionMode );

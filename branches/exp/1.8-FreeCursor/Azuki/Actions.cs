@@ -34,21 +34,16 @@ namespace Sgry.Azuki
 				return;
 			}
 
-			// switch logic according to selection state
-			if( doc.RectSelectRanges != null )
+			if( ui.SelectionExists )
 			{
-				//--- case of rectangle selection ---
+				// Just delete selected text
+				bool shouldInvalidate = (2 <= doc.Selections.Length);
 				ui.Delete( doc.Selections );
-				ui.Invalidate();
-			}
-			else if( doc.AnchorIndex != doc.CaretIndex )
-			{
-				//--- case of normal selection ---
-				doc.Replace( String.Empty );
+				if( shouldInvalidate )
+					ui.Invalidate();
 			}
 			else
 			{
-				//--- case of no selection ---
 				int delLen = 1;
 				int caret = doc.CaretIndex;
 
@@ -97,22 +92,16 @@ namespace Sgry.Azuki
 				return;
 			}
 
-			// switch logic according to selection state
-			if( doc.RectSelectRanges != null )
+			if( ui.SelectionExists )
 			{
-				//--- case of rectangle selection ---
+				// Just delete selected text
+				bool shouldInvalidate = (2 <= doc.Selections.Length);
 				ui.Delete( doc.Selections );
-				ui.Invalidate();
-			}
-			else if( doc.AnchorIndex != doc.CaretIndex )
-			{
-				//--- case of normal selection ---
-				doc.Replace( String.Empty );
+				if( shouldInvalidate )
+					ui.Invalidate();
 			}
 			else
 			{
-				//--- case of no selection ---
-				
 				// if the caret is at document head, there is no chars to delete
 				if( doc.CaretIndex <= 0 )
 				{
@@ -148,21 +137,16 @@ namespace Sgry.Azuki
 				return;
 			}
 
-			// switch logic according to selection state
-			if( doc.RectSelectRanges != null )
+			if( ui.SelectionExists )
 			{
-				//--- case of rectangle selection ---
+				// Just delete selected text
+				bool shouldInvalidate = (2 <= doc.Selections.Length);
 				ui.Delete( doc.Selections );
-				ui.Invalidate();
-			}
-			else if( doc.AnchorIndex != doc.CaretIndex )
-			{
-				//--- case of normal selection ---
-				doc.Replace( String.Empty );
+				if( shouldInvalidate )
+					ui.Invalidate();
 			}
 			else
 			{
-				//--- case of no selection ---
 				int begin = doc.CaretIndex;
 				int end = begin + 1;
 
@@ -207,21 +191,16 @@ namespace Sgry.Azuki
 				return;
 			}
 
-			// switch logic according to selection state
-			if( doc.RectSelectRanges != null )
+			if( ui.SelectionExists )
 			{
-				//--- case of rectangle selection ---
+				// Just delete selected text
+				bool shouldInvalidate = (2 <= doc.Selections.Length);
 				ui.Delete( doc.Selections );
-				ui.Invalidate();
-			}
-			else if( doc.AnchorIndex != doc.CaretIndex )
-			{
-				//--- case of normal selection ---
-				doc.Replace( String.Empty );
+				if( shouldInvalidate )
+					ui.Invalidate();
 			}
 			else
 			{
-				//--- case of no selection ---
 				int nextWordIndex = CaretMoveLogic.Calc_NextWord( ui );
 				if( nextWordIndex == doc.Length && doc.CaretIndex == nextWordIndex )
 				{
@@ -261,7 +240,6 @@ namespace Sgry.Azuki
 		public static void Cut( IUserInterface ui )
 		{
 			Document doc = ui.Document;
-			string text;
 
 			// do nothing if the document is read-only
 			if( doc.IsReadOnly )
@@ -270,35 +248,28 @@ namespace Sgry.Azuki
 				return;
 			}
 
-			// is there any selection?
-			text = ui.GetSelectedText();
-			if( 0 < text.Length )
+			if( ui.SelectionExists )
 			{
-				// there is selection.
-				
-				// delete selected text
-				if( doc.RectSelectRanges != null )
-				{
-					ui.Delete( doc.Selections );
-					Plat.Inst.SetClipboardText( text, TextDataType.Rectangle );
-				}
-				else
-				{
-					doc.Replace( String.Empty );
-					Plat.Inst.SetClipboardText( text, TextDataType.Normal );
-				}
+				TextDataType type;
+
+				// Remember selected text
+				string text = ui.GetSelectedText();
+				type = (2 <= doc.Selections.Length) ? TextDataType.Rectangle
+													: TextDataType.Normal;
+
+				// Delete it
+				ui.Delete( doc.Selections );
+				Plat.Inst.SetClipboardText( text, type );
 			}
 			else
 			{
-				// no selection.
-				if( !UserPref.CopyLineWhenNoSelection )
-				{
-					return; // nothing should be done
-				}
-
-				// if the user prefers to use cuting/copying without selection
-				// to cut/copy current line, change the begin/end position to line head/end
 				int lineIndex;
+				string text;
+
+				if( !UserPref.CopyLineWhenNoSelection )
+					return;
+
+				// Cut the entire line which the caret is on
 				lineIndex = doc.GetLineIndexFromCharIndex( doc.CaretIndex );
 				text = doc.GetLineContentWithEolCode( lineIndex );
 				Plat.Inst.SetClipboardText( text, TextDataType.Line );
@@ -336,38 +307,27 @@ namespace Sgry.Azuki
 		public static void Copy( IUserInterface ui )
 		{
 			Document doc = ui.Document;
-			string text;
-			
-			// is there any selection?
-			text = ui.GetSelectedText();
-			if( 0 < text.Length )
+
+			if( ui.SelectionExists )
 			{
-				// there is selection.
-				// copy selected text.
-				if( doc.RectSelectRanges != null )
-				{
-					Plat.Inst.SetClipboardText( text, TextDataType.Rectangle );
-				}
-				else
-				{
-					Plat.Inst.SetClipboardText( text, TextDataType.Normal );
-				}
+				TextDataType type;
+
+				string text = ui.GetSelectedText();
+				type = (2 <= doc.Selections.Length) ? TextDataType.Rectangle
+													: TextDataType.Normal;
+				Plat.Inst.SetClipboardText( text, type );
 			}
 			else
 			{
-				// no selection.
 				if( !UserPref.CopyLineWhenNoSelection )
-				{
 					return; // nothing should be done
-				}
 
-				// if the user prefers to use cuting/copying without selection
-				// to cut/copy current line, change the begin/end position to line head/end
+				// Copy the entire line which the caret is on
 				int lineIndex;
 				lineIndex = doc.GetLineIndexFromCharIndex( doc.CaretIndex );
 				
 				// get line content
-				text = doc.GetLineContentWithEolCode( lineIndex );
+				string text = doc.GetLineContentWithEolCode( lineIndex );
 				Plat.Inst.SetClipboardText( text, TextDataType.Line );
 			}
 		}
@@ -379,7 +339,6 @@ namespace Sgry.Azuki
 		{
 			Document doc = ui.Document;
 			string clipboardText;
-			int begin, end;
 			int insertIndex;
 			TextDataType dataType;
 
@@ -400,31 +359,23 @@ namespace Sgry.Azuki
 			// limit the content in a single line if it's in single line mode
 			if( ui.IsSingleLineMode )
 			{
-				int eolIndex = clipboardText.IndexOfAny( new char[]{'\r', '\n'} );
+				int eolIndex = clipboardText.IndexOfAny( LineLogic.EolChars );
 				if( 0 <= eolIndex )
 				{
-					clipboardText = clipboardText.Remove( eolIndex, clipboardText.Length-eolIndex );
+					clipboardText
+						= clipboardText.Remove( eolIndex,
+												clipboardText.Length-eolIndex);
 				}
 			}
-			
+
 			// begin grouping edit action
 			doc.BeginUndo();
 
 			// delete currently selected text before insertion
-			doc.GetSelection( out begin, out end );
-			if( doc.RectSelectRanges != null )
-			{
-				//--- case of rectangle selection ---
-				// delete selected text
-				ui.Delete( doc.Selections );
+			bool shouldInvalidate = (2 <= doc.Selections.Length);
+			ui.Delete( doc.Selections );
+			if( shouldInvalidate )
 				ui.Invalidate();
-			}
-			else if( begin != end )
-			{
-				//--- case of normal selection ---
-				// delete selected text
-				doc.Replace( "" );
-			}
 
 			// paste according type of the text data
 			if( dataType == TextDataType.Rectangle )
@@ -476,11 +427,11 @@ namespace Sgry.Azuki
 			{
 				//--- normal or line text data ---
 				// calculate insertion index
-				insertIndex = begin;
+				insertIndex = doc.CaretIndex;
 				if( dataType == TextDataType.Line )
 				{
 					// make the insertion point to caret line head if it is line data type
-					insertIndex = doc.GetLineHeadIndexFromCharIndex( begin );
+					insertIndex = doc.GetLineHeadIndexFromCharIndex( insertIndex );
 				}
 
 				// insert

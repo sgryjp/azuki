@@ -41,7 +41,6 @@ namespace Sgry.Azuki
 			Document doc = ui.Document;
 			StringBuilder str = new StringBuilder();
 			int lineHead;
-			int newCaretIndex;
 
 			// do nothing if Azuki is in single line mode
 			if( ui.IsSingleLineMode )
@@ -65,9 +64,10 @@ namespace Sgry.Azuki
 				}
 
 				// replace selection
-				newCaretIndex = Math.Min( doc.AnchorIndex, doc.CaretIndex ) + str.Length;
-				doc.Replace( str.ToString() );
-				ui.Select( newCaretIndex, newCaretIndex );
+				doc.BeginUndo();
+				ui.Delete( doc.Selections );
+				doc.Replace( str.ToString(), doc.CaretIndex, doc.CaretIndex );
+				doc.EndUndo();
 
 				return true;
 			}

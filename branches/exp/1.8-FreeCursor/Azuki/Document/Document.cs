@@ -788,26 +788,24 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Replaces current selection.
+		/// Replaces specified range [begin, end) of the content into the given
+		/// string.
 		/// </summary>
-		/// <exception cref="ArgumentNullException">Parameter text is null.</exception>
-		public void Replace( string text )
-		{
-			int begin, end;
-
-			GetSelection( out begin, out end );
-
-			Replace( text, begin, end );
-		}
-
-		/// <summary>
-		/// Replaces specified range [begin, end) of the content into the given string.
-		/// </summary>
-		/// <param name="text">specified range will be replaced with this text</param>
-		/// <param name="begin">begin index of the range to be replaced</param>
-		/// <param name="end">end index of the range to be replaced</param>
-		/// <exception cref="ArgumentNullException">Parameter text is null.</exception>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
+		/// <param name="text">
+		/// Specified range will be replaced with this text.
+		/// </param>
+		/// <param name="begin">
+		/// Begin index of the range to be replaced.
+		/// </param>
+		/// <param name="end">
+		/// End index of the range to be replaced.
+		/// </param>
+		/// <exception cref="ArgumentNullException">
+		/// Parameter '<paramref name="text"/>' is null.
+		/// </exception>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// Specified index is out of valid range.
+		/// </exception>
 		public void Replace( string text, int begin, int end )
 		{
 			Debug.Assert( _LHI.Count == _LDS.Count, "LHI.Count("+_LHI.Count+") is not LDS.Count("+_LDS.Count+")" );

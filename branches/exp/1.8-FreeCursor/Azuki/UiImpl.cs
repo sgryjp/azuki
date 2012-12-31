@@ -631,6 +631,24 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Other
+		public bool SelectionExists
+		{
+			get
+			{
+				return ( 2 <= Document.Selections.Length
+						|| 0 < Document.Selections[0].Length );
+			}
+		}
+
+		public void ReleaseSelection()
+		{
+			if( SelectionExists )
+			{
+				Document doc = Document;
+				Select( doc.CaretIndex, doc.CaretIndex, TextDataType.Normal );
+			}
+		}
+
 		public void Select( int anchor, int caret )
 		{
 			Select( anchor, caret, _UI.SelectionMode );
@@ -923,25 +941,14 @@ namespace Sgry.Azuki
 			Document.BeginUndo();
 			try
 			{
-				int begin, end;
-				string selText;
+				// Get Selected text and move caret to insertion point
+				string text = GetSelectedText();
+				Range[] oldSelections = Document.Selections;
 
-				// remove current selection
-				Document.GetSelection( out begin, out end );
-				selText = Document.GetTextInRange( begin, end );
-				Document.Replace( "" );
-				if( end <= targetIndex )
-					targetIndex -= selText.Length;
-				else if( begin <= targetIndex )
-					targetIndex = begin;
-				/*NO_NEED//
-				else
-					targetIndex = targetIndex;
-				*/
-
-				// insert new text
-				Document.Replace( selText, targetIndex, targetIndex );
-				Select( targetIndex, targetIndex + selText.Length );
+				// Replace text
+				Document.Replace( text, targetIndex, targetIndex );
+				Select( targetIndex, targetIndex+text.Length );
+				Delete( oldSelections );
 			}
 			finally
 			{
