@@ -724,19 +724,22 @@ namespace Sgry.Azuki
 				doc.BeginUndo();
 
 				// Delete every selected text parts
-				int beginningIndex = ranges[0].Begin;
+				int caretIndex = doc.CaretIndex;
 				foreach( Range r in ranges )
 				{
 					Debug.Assert(doc.IsNotDividableIndex(r.Begin+diff)==false);
 					Debug.Assert(doc.IsNotDividableIndex(r.End+diff)==false);
 					doc.Replace( "", r.Begin + diff, r.End + diff );
+					caretIndex = caretIndex
+								 - Math.Max( 0, caretIndex - (r.Begin+diff) )
+								 + Math.Max( 0, caretIndex - (r.End+diff) );
 					diff -= r.Length;
 				}
 
 				doc.EndUndo();
 
 				// reset selection
-				Select( beginningIndex, beginningIndex );
+				Select( caretIndex, caretIndex );
 			}
 		}
 
