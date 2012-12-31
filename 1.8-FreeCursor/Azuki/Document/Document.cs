@@ -348,6 +348,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <param name="begin">index of where the selection begins.</param>
 		/// <param name="end">index of where the selection ends (selection do not includes the char at this index).</param>
+[Obsolete]
 		public void GetSelection( out int begin, out int end )
 		{
 			_SelMan.GetSelection( out begin, out end );
@@ -368,15 +369,6 @@ namespace Sgry.Azuki
 					return new Range[]{ new Range(begin, end) };
 				}
 			}
-		}
-
-		/// <summary>
-		/// Gets or sets text ranges selected by rectangle selection.
-		/// </summary>
-[Obsolete]
-		public Range[] RectSelectRanges
-		{
-			get{ return _SelMan.RectSelectRanges; }
 		}
 		#endregion
 
@@ -2760,17 +2752,28 @@ namespace Sgry.Azuki
 		internal void GetSelectedLineRange( out int selBeginL,
 											out int selEndL )
 		{
-			int selBegin, selEnd;
+			Debug.Assert( 1 <= Selections.Length );
 
-			GetSelection( out selBegin, out selEnd );
-			selBeginL = GetLineIndexFromCharIndex( selBegin );
-			selEndL = GetLineIndexFromCharIndex( selEnd );
-			if( selBeginL == selEndL
-				|| GetLineHeadIndex(selEndL) != selEnd )
+			selBeginL = Int32.MaxValue;
+			selEndL = Int32.MinValue;
+
+			foreach( Range r in Selections )
 			{
-				selEndL++; // Target the final line too unless multiple lines
-						   // are selected and at least one char is selected
+				int beginL = GetLineIndexFromCharIndex( r.Begin );
+				int endL = GetLineIndexFromCharIndex( r.End );
+				if( beginL == endL
+					|| GetLineHeadIndex(endL) != r.End )
+				{
+					endL++; // Target the final line too unless multiple
+							   // lines are selected and at least one char is
+							   // selected
+				}
+				selBeginL = Math.Min( selBeginL, beginL );
+				selEndL = Math.Max( selEndL, endL );
 			}
+
+			Debug.Assert( selBeginL != Int32.MaxValue );
+			Debug.Assert( selEndL != Int32.MinValue );
 		}
 
 		internal class Utl

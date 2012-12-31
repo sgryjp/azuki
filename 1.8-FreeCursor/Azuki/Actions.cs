@@ -915,28 +915,20 @@ namespace Sgry.Azuki
 
 			Document doc = ui.Document;
 			int delta = 0;
-			int begin, end;
+			Range[] selRanges = doc.Selections;
 
-			if( doc.RectSelectRanges != null )
+			doc.BeginUndo();
+			foreach( Range r in selRanges )
 			{
-				doc.BeginUndo();
-				foreach( Range r in doc.Selections )
-				{
-					predicate( ui, r.Begin+delta, r.End+delta, ref delta );
-				}
-				doc.EndUndo();
+				predicate( ui, r.Begin+delta, r.End+delta, ref delta );
+			}
+			doc.EndUndo();
 
-				int lastIndex = doc.RectSelectRanges.Length - 1;
-				ui.Select(
-						doc.RectSelectRanges[0].Begin,
-						doc.RectSelectRanges[lastIndex].End + delta,
-						TextDataType.Rectangle );
-			}
-			else
-			{
-				doc.GetSelection( out begin, out end );
-				predicate( ui, begin, end, ref delta );
-			}
+			//TODO:いつか編集前後での選択範囲維持を復活させる
+//			int lastIndex = selRanges.Length - 1;
+//			ui.Select( selRanges[0].From,
+//					   selRanges[lastIndex].To + delta,
+//					   TextDataType.Rectangle );
 		}
 		#endregion
 	}

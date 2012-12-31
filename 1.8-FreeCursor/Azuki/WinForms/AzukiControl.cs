@@ -1593,6 +1593,7 @@ namespace Sgry.Azuki.WinForms
 		/// The term 'Desired Column' means this x-coordinate which the caret tries to stick close to.
 		/// </para>
 		/// </remarks>
+[Obsolete]
 		public void SetSelection( int anchor, int caret )
 		{
 			_Impl.Select( anchor, caret, TextDataType.Normal );

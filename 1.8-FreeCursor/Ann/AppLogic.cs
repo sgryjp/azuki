@@ -1249,7 +1249,7 @@ Azuki.View.SetDesiredColumn();
 		{
 			AzukiDocument doc = Azuki.Document;
 			IMouseEventArgs mea = (IMouseEventArgs)e;
-			int urlBegin, urlEnd, selBegin, selEnd;
+			int urlBegin, urlEnd;
 
 			if( mea.Index < doc.Length
 				&& doc.IsMarked(mea.Index, Marking.Uri)
@@ -1257,8 +1257,9 @@ Azuki.View.SetDesiredColumn();
 			{
 				// select entire URI if not selected, or deselect if selected.
 				doc.GetMarkedRange( mea.Index, Marking.Uri, out urlBegin, out urlEnd );
-				doc.GetSelection( out selBegin, out selEnd );
-				if( selBegin != urlBegin && selEnd != urlEnd )
+				if( doc.Selections.Length == 1
+					&& doc.Selections[0].Begin != urlBegin
+					&& doc.Selections[0].End != urlEnd )
 				{
 					Azuki.Select( urlBegin, urlEnd );
 				}
