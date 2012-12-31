@@ -7,6 +7,7 @@
  * add: IUserInterface.SetDesiredColumn メソッドを追加（IView.SetDesiredColumnへの別名）
  * mod: Document クラスの選択系メソッドやプロパティを廃止
  * fix: 効果が無いグループ UNDO は記録しないように
+ * fix: BeginUndo と EndUndo の多段で呼び出しても正常動作するように
  * fix: LaTeXハイライタで見出しのハイライトが正常に更新されないことがある問題を修正
  * add: [Ann] Ctrl+Shift+R で選択行の行末にある空白文字をまとめて削除する機能を追加
  * add: [Ann] Ctrl+Shift+L で選択行の行頭にある空白文字をまとめて削除する機能を追加

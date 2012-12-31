@@ -2,6 +2,7 @@
 // brief: History managemer for UNDO.
 //=========================================================
 using System;
+using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki
 {
@@ -16,6 +17,7 @@ namespace Sgry.Azuki
 		int _NextIndex = 0;
 		EditAction _GroupingUndoChain = null;
 		EditAction _LastSavedAction = null;
+		int _GroupUndoDepth = 0;
 		#endregion
 
 		#region Init / Dispose
@@ -110,6 +112,7 @@ namespace Sgry.Azuki
 			{
 				_GroupingUndoChain = EditAction.Empty;
 			}
+			_GroupUndoDepth++;
 		}
 
 		/// <summary>
@@ -117,8 +120,10 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void EndUndo()
 		{
-			if( _GroupingUndoChain != null )
+			_GroupUndoDepth = Math.Max( _GroupUndoDepth-1, 0 );
+			if( _GroupUndoDepth == 0 )
 			{
+				Debug.Assert( _GroupingUndoChain != null );
 				EditAction groupedAction = _GroupingUndoChain;
 				_GroupingUndoChain = null;
 				if( groupedAction.HasNoEffect == false )
