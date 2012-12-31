@@ -98,24 +98,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public bool CanCopy
 		{
-			get
-			{
-				int begin, end;
-
-				Document.GetSelection( out begin, out end );
-				if( begin != end )
-				{
-					return true; // one or more characters are selected
-				}
-				else if( UserPref.CopyLineWhenNoSelection )
-				{
-					return true; // nothing selected
-				}
-				else
-				{
-					return false;
-				}
-			}
+			get{return (SelectionExists || UserPref.CopyLineWhenNoSelection);}
 		}
 
 		/// <summary>
@@ -427,14 +410,16 @@ namespace Sgry.Azuki
 		internal void HandleTextInput( string text )
 		{
 			if( _IsDisposed )
-				throw new InvalidOperationException( "This "+this.GetType().Name+" object is already disposed." );
+				throw new InvalidOperationException(
+					"This "+GetType().Name+" object is already disposed." );
 			if( text == null )
 				throw new ArgumentNullException( "text" );
 
 			int newCaretIndex;
 			Document doc = Document;
 			int selBegin, selEnd;
-			StringBuilder input = new StringBuilder( Math.Max(64, text.Length) );
+			StringBuilder input = new StringBuilder( Math.Max(256,
+															  text.Length) );
 			IGraphics g = null;
 
 			// if in read only mode, just notify and return 
@@ -458,7 +443,7 @@ namespace Sgry.Azuki
 				doc.BeginUndo();
 
 				// clear rectangle selection
-				if( doc.RectSelectRanges != null )
+				if( 2 <= doc.Selections.Length )
 				{
 					Delete( doc.Selections );
 				}
@@ -1040,7 +1025,7 @@ namespace Sgry.Azuki
 						Select( clickedIndex, clickedIndex );
 					}
 					else if( onSelectedText
-						&& Document.RectSelectRanges == null ) // currently dragging rectangle selection is out of support
+						&& 2 <= Document.Selections.Length ) // currently dragging rectangle selection is out of support
 					{
 						//--- starting timer to wait small delay of drag-editing ---
 						Debug.Assert( _MouseDragEditDelayTimer == null );
@@ -1249,7 +1234,7 @@ namespace Sgry.Azuki
 				{
 					onHRulerArea = true;
 				}
-				else if( Document.RectSelectRanges == null )
+				else if( 2 <= Document.Selections.Length )
 				{
 					Point virPos = cursorScreenPos.Value;
 					View.ScreenToVirtual( ref virPos );

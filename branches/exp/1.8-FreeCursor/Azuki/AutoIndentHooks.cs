@@ -21,22 +21,27 @@ namespace Sgry.Azuki
 	/// <summary>
 	/// Static class containing hook delegates for auto-indentation.
 	/// </summary>
-	/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.AutoIndentHook">AzukiControl.AutoIndentHook property</seealso>
+	/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.AutoIndentHook">
+	/// AzukiControl.AutoIndentHook property
+	/// </seealso>
 	public static class AutoIndentHooks
 	{
 		/// <summary>
-		/// Hook delegate to execute basic auto-indentation;
-		/// indent same amount of spaces as the previous line.
+		/// Hook delegate to execute basic auto-indentation; indent same amount
+		/// of spaces as the previous line.
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This member is a hook delegate to execute auto-indentation.
-		/// This delegate just copies previous indentation characters
-		/// on making a new line.
+		/// This member is a hook delegate to execute auto-indentation. This
+		/// delegate just copies previous indentation characters on making a
+		/// new line.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.AutoIndentHook">AzukiControl.AutoIndentHook property</seealso>
-		public static readonly AutoIndentHook GenericHook = delegate( IUserInterface ui, char ch )
+		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.AutoIndentHook">
+		/// AzukiControl.AutoIndentHook property
+		/// </seealso>
+		public static readonly AutoIndentHook
+			GenericHook = delegate( IUserInterface ui, char ch )
 		{
 			Document doc = ui.Document;
 			StringBuilder str = new StringBuilder();
@@ -80,22 +85,28 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This member is a hook delegate to execute auto-indentation for C styled source code.
-		/// Here 'C style' means that curly brackets are used to enclose each logical block.
+		/// This member is a hook delegate to execute auto-indentation for C
+		/// styled source code. Here 'C style' means that curly brackets are
+		/// used to enclose each logical block.
 		/// </para>
 		/// <para>
-		/// Note that if user hits the Enter key on a line
-		///	that ends with a closing curly bracket (<c> } </c>),
-		///	newly generated line will be indented one more level
-		///	by inserting additional indent characters.
-		///	The additional indent characters will be chosen according to the value of
-		///	<see cref="Sgry.Azuki.WinForms.AzukiControl.UsesTabForIndent">AzukiControl.UsesTabForIndent</see>
-		/// property.
+		/// Note that if user hits the Enter key on a line that ends with a
+		/// closing curly bracket (<c> } </c>), newly generated line will be
+		/// indented one more level by inserting additional indent characters.
+		///	The additional indent characters will be chosen according to the
+		///	value of
+		///	<see cref="Sgry.Azuki.WinForms.AzukiControl.UsesTabForIndent">
+		///	AzukiControl.UsesTabForIndent</see> property.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.AutoIndentHook">AzukiControl.AutoIndentHook property</seealso>
-		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.UsesTabForIndent">AzukiControl.UsesTabForIndent property</seealso>
-		public static readonly AutoIndentHook CHook = delegate( IUserInterface ui, char ch )
+		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.AutoIndentHook">
+		/// AzukiControl.AutoIndentHook property
+		/// </seealso>
+		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.UsesTabForIndent">
+		/// AzukiControl.UsesTabForIndent property
+		/// </seealso>
+		public static readonly AutoIndentHook
+			CHook = delegate( IUserInterface ui, char ch )
 		{
 			Document doc = ui.Document;
 			StringBuilder indentChars = new StringBuilder( 64 );
@@ -159,14 +170,17 @@ namespace Sgry.Azuki
 				// determine whether extra padding is needed or not
 				// (because replacement changes line end index
 				// determination after replacement will be much harder)
-				if( Utl.FindPairedBracket_Backward(doc, selBegin, lineHead, '}', '{') != -1
+				if( -1 != Utl.FindPairedBracket_Backward(doc,
+														 selBegin, lineHead,
+														 '}', '{')
 					&& Utl.IndexOf(doc, '}', selBegin, lineEnd) == -1 )
 				{
 					extraPaddingNeeded = true;
 				}
 
 				// replace selection
-				newCaretIndex = Math.Min( doc.AnchorIndex, selBegin ) + indentChars.Length;
+				newCaretIndex = Math.Min( doc.AnchorIndex, selBegin )
+								+ indentChars.Length;
 				doc.Replace( indentChars.ToString(), selBegin, selEnd );
 
 				// if there is a '{' without pair before caret
@@ -177,7 +191,7 @@ namespace Sgry.Azuki
 					string extraPadding;
 					Point pos = ui.View.GetVirPosFromIndex( newCaretIndex );
 					pos.X += ui.View.TabWidthInPx;
-					extraPadding = UiImpl.GetNeededPaddingChars( ui, pos, true );
+					extraPadding = UiImpl.GetNeededPaddingChars(ui, pos, true);
 					doc.Replace( extraPadding, newCaretIndex, newCaretIndex );
 					newCaretIndex += extraPadding.Length;
 				}
@@ -201,12 +215,14 @@ namespace Sgry.Azuki
 					}
 					else if( doc[i] != ' ' && doc[i] != '\t' )
 					{
-						return false; // this line contains a non white space char
+						return false; // this line contains a non whitespace ch
 					}
 				}
 
 				// find the paired open bracket
-				pairIndex = Utl.FindPairedBracket_Backward( doc, selBegin, 0, '}', '{' );
+				pairIndex = Utl.FindPairedBracket_Backward( doc,
+															selBegin, 0,
+															'}', '{' );
 				if( pairIndex == -1 )
 				{
 					return false; // no pair exists. nothing to do
