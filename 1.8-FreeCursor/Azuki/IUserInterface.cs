@@ -599,6 +599,10 @@ namespace Sgry.Azuki
 		/// <param name="caret">the position where the caret is</param>
 		void SetSelection( int anchor, int caret );
 
+		bool SelectionExists{ get; }
+
+		void ReleaseSelection();
+
 		void Select( int anchor, int caret );
 
 		void Select( int anchor, int caret, TextDataType mode );

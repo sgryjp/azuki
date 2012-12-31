@@ -43,6 +43,11 @@ namespace Sgry.Azuki
 			get{ return (_Begin == _End); }
 		}
 
+		public bool Includes( int index )
+		{
+			return (_Begin <= index && index < _End);
+		}
+
 		[Obsolete("This should not be like this... Range.Length for Rectangle 'range' is impossible define.")]
 		public int Length
 		{
