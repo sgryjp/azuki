@@ -1,7 +1,5 @@
 // file: PropWrapView.cs
-// brief: Platform independent view (proportional, line-wrap).
-// author: YAMAMOTO Suguru
-// update: 2011-09-11
+// brief: Platform independent view (proportional, line-wrapped).
 //=========================================================
 //DEBUG//#define PLHI_DEBUG
 //DEBUG//#define DRAW_SLOWLY
@@ -715,7 +713,6 @@ namespace Sgry.Azuki
 			Debug.Assert( FontInfo != null, "invalid state; FontInfo is null" );
 			Debug.Assert( Document != null, "invalid state; Document is null" );
 
-			int selBegin, selEnd;
 			Point pos = new Point();
 			bool shouldRedraw1, shouldRedraw2;
 
@@ -787,9 +784,8 @@ namespace Sgry.Azuki
 				g.DrawLine( x, YofTextArea, x, VisibleSize.Height );
 			}
 
-			// draw underline to highlight current line if there is no selection
-			Document.GetSelection( out selBegin, out selEnd );
-			if( HighlightsCurrentLine && selBegin == selEnd )
+			// Draw underline to highlight current line if nothing selected
+			if( HighlightsCurrentLine && _UI.SelectionExists == false )
 			{
 				int caretLine, caretPosY;
 
