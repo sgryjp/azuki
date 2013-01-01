@@ -5,6 +5,7 @@
  * add: 選択範囲中にある空白文字をタブ文字に変換する Action.ConvertSpacesToTabs を追加
  * add: 選択範囲を foreach 列挙できるプロパティ AzukiControl.Selections を追加
  * add: IUserInterface.SetDesiredColumn メソッドを追加（IView.SetDesiredColumnへの別名）
+ * add: BeginUndo メソッドは using 文で確実に破棄（同時にEndUndo）できるコンテクストオブジェクトを返すように
  * mod: Document クラスの選択系メソッドやプロパティを廃止
  * fix: 効果が無いグループ UNDO は記録しないように
  * fix: BeginUndo と EndUndo の多段で呼び出しても正常動作するように

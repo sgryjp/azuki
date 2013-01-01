@@ -19,6 +19,7 @@ namespace Sgry.Azuki
 		int _OriginalAnchorIndex = -1;
 		int _LineSelectionAnchor1 = -1;
 		int _LineSelectionAnchor2 = -1; // temporal variable holding selection anchor on expanding line selection backward
+		int _PrimarySelectionIndex = Int32.MaxValue;
 		Range[] _RectSelectRanges = null;
 internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remembering how last selection was made
 		#endregion
@@ -73,6 +74,18 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 			}
 		}
 
+		public Range PrimarySelection
+		{
+			get
+			{
+				if( _RectSelectRanges != null
+					&& _PrimarySelectionIndex < _RectSelectRanges.Length )
+					return _RectSelectRanges[_PrimarySelectionIndex];
+				else
+					return new Range( AnchorIndex, CaretIndex );
+			}
+		}
+
 		public Range[] RectSelectRanges
 		{
 			get{ return _RectSelectRanges; }
@@ -106,6 +119,7 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 			Document.Utl.ConstrainIndex( _Document, ref anchor, ref caret );
 
 			// set selection
+			_PrimarySelectionIndex = Int32.MaxValue;
 			if( mode == TextDataType.Rectangle )
 			{
 				ClearLineSelectionData();
@@ -159,8 +173,17 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 
 			// calculate ranges selected by the rectangle made with the two points
 			_RectSelectRanges = view.GetRectSelectRanges(
-					Utl.MakeRectFromTwoPoints(anchorPos, caretPos)
+					Utl.MakeRectFromTwoPoints(anchorPos, caretPos),
+					(anchorPos.X < caretPos.X)
 				);
+			if( 0 < _RectSelectRanges.Length )
+			{
+				if( _RectSelectRanges[0].Begin == caret
+					|| _RectSelectRanges[0].End == caret )
+					_PrimarySelectionIndex = 0;
+				else
+					_PrimarySelectionIndex = _RectSelectRanges.Length - 1;
+			}
 
 			// set selection
 			SetSelection_Normal( anchor, caret );

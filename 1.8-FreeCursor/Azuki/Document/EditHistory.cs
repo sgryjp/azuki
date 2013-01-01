@@ -106,13 +106,15 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Begins grouping up editing actions into a single UNDO action.
 		/// </summary>
-		public void BeginUndo()
+		public UndoContext BeginUndo()
 		{
 			if( _GroupingUndoChain == null )
 			{
 				_GroupingUndoChain = EditAction.Empty;
 			}
 			_GroupUndoDepth++;
+
+			return new UndoContext( this );
 		}
 
 		/// <summary>
@@ -254,4 +256,19 @@ namespace Sgry.Azuki
 		}
 		#endregion
 	}
+
+		public class UndoContext : IDisposable
+		{
+			EditHistory _History;
+
+			internal UndoContext( EditHistory history )
+			{
+				_History = history;
+			}
+
+			public void Dispose()
+			{
+				_History.EndUndo();
+			}
+		}
 }

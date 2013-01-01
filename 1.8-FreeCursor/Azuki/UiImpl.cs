@@ -405,8 +405,12 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Handles text input event.
 		/// </summary>
-		/// <exception cref="System.InvalidOperationException">This object is already disposed.</exception>
-		/// <exception cref="System.ArgumentNullException">Parameter 'text' is null.</exception>
+		/// <exception cref="System.InvalidOperationException">
+		/// This object is already disposed.
+		/// </exception>
+		/// <exception cref="System.ArgumentNullException">
+		/// Parameter 'text' is null.
+		/// </exception>
 		internal void HandleTextInput( string text )
 		{
 			if( _IsDisposed )
@@ -415,14 +419,8 @@ namespace Sgry.Azuki
 			if( text == null )
 				throw new ArgumentNullException( "text" );
 
-			int newCaretIndex;
-			Document doc = Document;
-			int selBegin, selEnd;
-			StringBuilder input = new StringBuilder( Math.Max(256,
-															  text.Length) );
-			IGraphics g = null;
-
 			// if in read only mode, just notify and return 
+			Document doc = Document;
 			if( doc.IsReadOnly )
 			{
 				Plat.Inst.MessageBeep();
@@ -435,20 +433,11 @@ namespace Sgry.Azuki
 				return;
 			}
 
-			try
+			using( IGraphics g = _UI.GetIGraphics() )
+			using( doc.BeginUndo() )
 			{
-				g = _UI.GetIGraphics();
-
-				// begin grouping UNDO action
-				doc.BeginUndo();
-
-				// clear rectangle selection
-				if( 2 <= doc.Selections.Length )
-				{
-					Delete( doc.Selections );
-				}
-
 				// handle input characters
+				StringBuilder input = new StringBuilder( 256 );
 				foreach( char ch in text )
 				{
 					// try to use hook delegate
@@ -499,20 +488,33 @@ namespace Sgry.Azuki
 				}
 
 				// calculate new caret position
-				doc.GetSelection( out selBegin, out selEnd );
-				newCaretIndex = selBegin + input.Length;
+				Range sel = doc.SelectionManager.PrimarySelection;
 
-				// calc replacement target range
+				// Calculate replacement target range
+				int beginDelta = 0;
+				int endDelta = 0;
+				Range repRange = new Range( sel.To, sel.To );
 				if( IsOverwriteMode
-					&& selBegin == selEnd && selEnd+1 < doc.Length
-					&& LineLogic.IsEolChar(doc[selBegin]) != true )
+					&& sel.IsEmpty && sel.End+1 < doc.Length
+					&& LineLogic.IsEolChar(doc[sel.Begin]) != true )
 				{
-					selEnd++;
+					repRange.End++;
+				}
+				foreach( Range r in doc.Selections )
+				{
+					repRange.Begin = AdjustIndexAfterRemoval( r,
+															  repRange.Begin,
+															  ref beginDelta );
+					repRange.End = AdjustIndexAfterRemoval( r,
+															repRange.End,
+															ref endDelta );
 				}
 
-				// replace selection to input char
-				doc.Replace( input.ToString(), selBegin, selEnd );
-				Select( newCaretIndex, newCaretIndex );
+				// replace sel to input char
+				Delete( doc.Selections );
+				doc.Replace( input.ToString(), repRange );
+				Select( repRange.To + input.Length,
+						repRange.To + input.Length );
 
 				// set desired column
 				if( UsesStickyCaret == false )
@@ -523,15 +525,6 @@ namespace Sgry.Azuki
 				// update graphic
 				_View.ScrollToCaret( g );
 				//NO_NEED//_View.Invalidate( xxx ); // Doc_ContentChanged will do invalidation well.
-			}
-			finally
-			{
-				doc.EndUndo();
-				input.Length = 0;
-				if( g != null )
-				{
-					g.Dispose();
-				}
 			}
 		}
 		#endregion
@@ -1453,6 +1446,20 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Utilitites
+		static int AdjustIndexAfterRemoval( Range range,
+											int index, ref int delta )
+		{
+			int begin = range.Begin + delta;
+			int end = range.End + delta;
+			if( begin + delta < index )
+			{
+				int d = (Math.Min(end, index) - begin);
+				index -= d;
+				delta -= d;
+			}
+			return index;
+		}
+
 		int GetIndexOfLastVisibleCharacter()
 		{
 			int lastDrawnLineIndex;
