@@ -677,6 +677,17 @@ namespace Sgry.Azuki
 			return GetTextInRange( ref begin, ref end );
 		}
 
+		public string GetTextInRange( ref Range range )
+		{
+			int begin = range.Begin;
+			int end = range.End;
+			string text = GetTextInRange( ref begin, ref end );
+			range.End = end;
+			range.Begin = begin;
+
+			return text;
+		}
+
 		/// <summary>
 		/// Gets text in the range [begin, end).
 		/// </summary>

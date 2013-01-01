@@ -1404,11 +1404,13 @@ namespace Sgry.Azuki
 			{
 				using( IGraphics g = _UI.GetIGraphics() )
 				{
-					int selBegin, selEnd;
-					Document.GetSelection( out selBegin, out selEnd );
-					if( selBegin == selEnd )
+					if( _UI.SelectionExists == false )
 					{
-						DrawUnderLine( g, YofLine(GetLineIndexFromCharIndex(selBegin)), ColorScheme.HighlightColor );
+						int caret = _UI.CaretIndex;
+						int lineIndex = GetLineIndexFromCharIndex( caret );
+						DrawUnderLine( g,
+									   YofLine(lineIndex),
+									   ColorScheme.HighlightColor );
 					}
 				}
 			}
@@ -1421,11 +1423,13 @@ namespace Sgry.Azuki
 			{
 				using( IGraphics g = _UI.GetIGraphics() )
 				{
-					int selBegin, selEnd;
-					Document.GetSelection( out selBegin, out selEnd );
-					if( selBegin == selEnd )
+					if( _UI.SelectionExists == false )
 					{
-						DrawUnderLine( g, YofLine(GetLineIndexFromCharIndex(selBegin)), ColorScheme.BackColor );
+						int caret = _UI.CaretIndex;
+						int lineIndex = GetLineIndexFromCharIndex( caret );
+						DrawUnderLine( g,
+									   YofLine(lineIndex),
+									   ColorScheme.BackColor );
 					}
 				}
 			}

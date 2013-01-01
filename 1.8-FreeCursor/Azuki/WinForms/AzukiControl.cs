@@ -464,9 +464,9 @@ namespace Sgry.Azuki.WinForms
 			using( IGraphics g = GetIGraphics() )
 			{
 				_CaretSize.Height = View.LineHeight;
-				_CaretSize.Width = Utl.CalcOverwriteCaretWidth(
-						g, Document, _Impl.View, CaretIndex, IsOverwriteMode
-					);
+				_CaretSize.Width = CalcOverwriteCaretWidth( g,
+															CaretIndex,
+															IsOverwriteMode );
 			}
 
 			// update graphic
@@ -1640,14 +1640,19 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Gets range of current selection.
-		/// Note that this method does not return [anchor, caret) pair but [begin, end) pair.
+		/// Gets range of primary selection.
 		/// </summary>
-		/// <param name="begin">index of where the selection begins.</param>
-		/// <param name="end">index of where the selection ends (selection do not includes the char at this index).</param>
+		/// <param name="begin">
+		/// Index of where the primary selection begins.
+		/// </param>
+		/// <param name="end">
+		/// Index of where the primary selection ends (the character at this
+		/// index is not selected).
+		/// </param>
 		public void GetSelection( out int begin, out int end )
 		{
-			Document.GetSelection( out begin, out end );
+			begin = Document.SelectionManager.PrimarySelection.Begin;
+			end = Document.SelectionManager.PrimarySelection.End;
 		}
 
 		/// <summary>
@@ -2504,12 +2509,9 @@ namespace Sgry.Azuki.WinForms
 			// block-indent command
 			if( e.KeyChar == '\t' )
 			{
-				int selBegin, selEnd;
 				int selBeginL, selEndL;
 
-				Document.GetSelection( out selBegin, out selEnd );
-				selBeginL = Document.GetLineIndexFromCharIndex( selBegin );
-				selEndL = Document.GetLineIndexFromCharIndex( selEnd );
+				Document.GetSelectedLineRange( out selBeginL, out selEndL );
 				if( selBeginL != selEndL )
 				{
 					if( WinApi.IsKeyDown(Keys.ShiftKey) )
@@ -2572,6 +2574,9 @@ namespace Sgry.Azuki.WinForms
 			 * This time, Azuki copies string body to the buffer and
 			 * set structure members and return non-zero value (meaning OK).
 			 * Then, IME will execute reconversion.
+			 * 
+			 * Azuki does not support applying IME reconversion for multiple
+			 * selections.
 			 */
 			const int MaxRangeLength = 40;
 			int		rc;
@@ -2583,7 +2588,8 @@ namespace Sgry.Azuki.WinForms
 			int		infoBufSize;
 
 			// determine string body
-			Document.GetSelection( out selBegin, out selEnd );
+			selBegin = Document.SelectionManager.PrimarySelection.Begin;
+			selEnd = Document.SelectionManager.PrimarySelection.End;
 			if( selBegin != selEnd )
 			{
 				// something selected.
@@ -3086,6 +3092,43 @@ namespace Sgry.Azuki.WinForms
 		#endregion
 
 		#region Utilities
+		int CalcOverwriteCaretWidth( IGraphics g, int caretIndex, bool isOverwriteMode )
+		{
+			char ch;
+
+			// if it's no in overwrite mode, return default width
+			if( !isOverwriteMode )
+			{
+				return UiImpl.DefaultCaretWidth;
+			}
+
+			// if something selected, return default width
+			if( SelectionExists
+				|| Document.Length <= caretIndex )
+			{
+				return UiImpl.DefaultCaretWidth;
+			}
+
+			// calculate and return width
+			ch = Document.GetCharAt( caretIndex );
+			if( ch != '\t' )
+			{
+				// this is not a tab so return width of this char
+				return (View as View).MeasureTokenEndX( g, ch.ToString(), 0 );
+			}
+			else
+			{
+				// this is a tab so calculate distance
+				// from current position to next tab-stop and return it
+				View view = (View)View;
+				int lineHead = view.GetLineHeadIndexFromCharIndex( caretIndex );
+				string leftPart = Document.GetTextInRange( lineHead, caretIndex );
+				int currentX = view.MeasureTokenEndX( g, leftPart, 0 );
+				int nextTabStopX = view.MeasureTokenEndX( g, leftPart+'\t', 0 );
+				return nextTabStopX - currentX;
+			}
+		}
+
 		static class Utl
 		{
 			public static bool IsClick( Point lastMouseUpPos, Point lastMouseDownPos )
@@ -3116,43 +3159,6 @@ namespace Sgry.Azuki.WinForms
 				bool special = ( WinApi.IsKeyDown(Keys.LWin) || WinApi.IsKeyDown(Keys.RWin) );
 
 				return new WinFormsMouseEventArgs( e, index, clicks, shift, ctrl, alt, special );
-			}
-
-			public static int CalcOverwriteCaretWidth( IGraphics g, Document doc, View view, int caretIndex, bool isOverwriteMode )
-			{
-				int begin, end;
-				char ch;
-
-				// if it's no in overwrite mode, return default width
-				if( !isOverwriteMode )
-				{
-					return UiImpl.DefaultCaretWidth;
-				}
-
-				// if something selected, return default width
-				doc.GetSelection( out begin, out end );
-				if( begin != end || doc.Length <= end )
-				{
-					return UiImpl.DefaultCaretWidth;
-				}
-
-				// calculate and return width
-				ch = doc.GetCharAt( begin );
-				if( ch != '\t' )
-				{
-					// this is not a tab so return width of this char
-					return view.MeasureTokenEndX( g, ch.ToString(), 0 );
-				}
-				else
-				{
-					// this is a tab so calculate distance
-					// from current position to next tab-stop and return it
-					int lineHead = view.GetLineHeadIndexFromCharIndex( caretIndex );
-					string leftPart = doc.GetTextInRange( lineHead, caretIndex );
-					int currentX = view.MeasureTokenEndX( g, leftPart, 0 );
-					int nextTabStopX = view.MeasureTokenEndX( g, leftPart+'\t', 0 );
-					return nextTabStopX - currentX;
-				}
 			}
 		}
 		#endregion

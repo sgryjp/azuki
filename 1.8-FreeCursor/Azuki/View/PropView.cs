@@ -1,7 +1,5 @@
 // file: PropView.cs
 // brief: Platform independent view (proportional).
-// author: YAMAMOTO Suguru
-// update: 2011-09-11
 //=========================================================
 //DEBUG//#define DRAW_SLOWLY
 using System;
@@ -739,7 +737,6 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( FontInfo != null, "invalid state; FontInfo is null" );
 			DebugUtl.Assert( Document != null, "invalid state; Document is null" );
 
-			int selBegin, selEnd;
 			Point pos = new Point();
 			int longestLineLength = 0;
 			bool shouldRedraw1, shouldRedraw2;
@@ -808,9 +805,8 @@ namespace Sgry.Azuki
 			g.EndPaint();
 #			endif
 
-			// draw underline to highlight current line if there is no selection
-			Document.GetSelection( out selBegin, out selEnd );
-			if( HighlightsCurrentLine && selBegin == selEnd )
+			// Draw underline to highlight current line if nothing selected
+			if( HighlightsCurrentLine && _UI.SelectionExists == false )
 			{
 				int caretLine, caretPosY;
 
