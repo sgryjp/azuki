@@ -779,6 +779,11 @@ namespace Sgry.Azuki
 			_Buffer.SetCharClassAt( index, klass );
 		}
 
+		public void Replace( string text, Range range )
+		{
+			Replace( text, range.Begin, range.End );
+		}
+
 		/// <summary>
 		/// Replaces specified range [begin, end) of the content into the given
 		/// string.
@@ -1340,9 +1345,9 @@ namespace Sgry.Azuki
 		///   </para>
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.Document.EndUndo">Document.EndUndo method</seealso>
-		public void BeginUndo()
+		public UndoContext BeginUndo()
 		{
-			_History.BeginUndo();
+			return _History.BeginUndo();
 		}
 
 		/// <summary>
@@ -2597,6 +2602,27 @@ namespace Sgry.Azuki
 			{
 				Debug.Assert( 0 <= index && index < Length, "Document.this[int] needs a valid index (given index:"+index+", this.Length:"+Length+")" );
 				return _Buffer[index];
+			}
+		}
+
+		/// <summary>
+		/// Gets substring in specified range safely.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// This indexer extracts a substring from specified range. Note that
+		/// even if an invalid range is given, the range will be shurinked to
+		/// fit the valid range and extracts an String object always.
+		/// </para>
+		/// </remarks>
+		public string this[ Range range ]
+		{
+			get
+			{
+				if( range == null )
+					return "";
+				return GetTextInRange( Math.Max(range.Begin, 0),
+									   Math.Min(range.End, Length) );
 			}
 		}
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Sgry.Azuki
 {
@@ -6,36 +7,62 @@ namespace Sgry.Azuki
 	{
 		int _Begin;
 		int _End;
-		TextDataType _Type;
+		bool _Reversed;
 
-		public Range()
-			: this( 0, 0, TextDataType.Normal )
+		public Range( Range range )
+			: this( range.From, range.To )
 		{}
 
-		public Range( int begin, int end )
-			: this( begin, end, TextDataType.Normal )
-		{}
-
-		public Range( int begin, int end, TextDataType type )
+		public Range( int from, int to )
 		{
-			_Begin = begin;
-			_End = end;
-			_Type = type;
+			if( from < to )
+			{
+				_Begin = from;
+				_End = to;
+				_Reversed = false;
+			}
+			else
+			{
+				_Begin = to;
+				_End = from;
+				_Reversed = true;
+			}
 		}
 
 		public int Begin
 		{
 			get{ return _Begin; }
+			set{ _Begin = value; }
 		}
 
 		public int End
 		{
 			get{ return _End; }
+			set{ _End = value; }
 		}
 
-		public TextDataType Type
+		public int From
 		{
-			get{ return _Type; }
+			get{ return _Reversed ? _End : _Begin; }
+			set
+			{
+				if( _Reversed )
+					_End = value;
+				else
+					_Begin = value;
+			}
+		}
+
+		public int To
+		{
+			get{ return _Reversed ? _Begin : _End; }
+			set
+			{
+				if( _Reversed )
+					_Begin = value;
+				else
+					_End = value;
+			}
 		}
 
 		public bool IsEmpty
@@ -48,16 +75,9 @@ namespace Sgry.Azuki
 			return (_Begin <= index && index < _End);
 		}
 
-		[Obsolete("This should not be like this... Range.Length for Rectangle 'range' is impossible define.")]
 		public int Length
 		{
-			get
-			{
-				if( _Type == TextDataType.Rectangle )
-					throw new InvalidOperationException();
-
-				return _End - _Begin;
-			}
+			get{ return _End - _Begin; }
 		}
 	}
 }

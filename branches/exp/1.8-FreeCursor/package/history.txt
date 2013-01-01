@@ -5,6 +5,7 @@
  * add: Added Action.ConvertSpacesToTabs which replaces space characters in selection range to tab characters as much as possible
  * add: Added AzukiControl.Selections by which selection ranges can be enumerated (can be used for foreach statement)
  * add: Added method IUserInterface.SetDesiredColumn which is an alias to IView.SetDesiredColumn
+ * add: Now BeginUndo method returns a context object which can be disposed with using statement
  * mod: Removed Document class's methods and properties which is related to selection
  * fix: Now group undo action will not be stacked if it has no effect at all
  * fix: Now cascading call of BeginUndo/EndUndo works properly

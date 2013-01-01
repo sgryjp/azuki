@@ -876,29 +876,31 @@ namespace Sgry.Azuki
 		public abstract int GetCharIndexFromLineColumnIndex( int lineIndex, int columnIndex );
 
 		/// <summary>
-		/// Calculates and returns text ranges that will be selected by specified rectangle.
+		/// Calculates and returns text ranges that will be selected by
+		/// specified rectangle.
 		/// </summary>
-		/// <param name="selRect">Rectangle to be used to specify selection target.</param>
-		/// <returns>Array of indexes (1st begin, 1st end, 2nd begin, 2nd end, ...)</returns>
+		/// <param name="selRect">
+		/// Rectangle to be used to specify selection target.
+		/// </param>
+		/// <returns>Array of ranges.</returns>
 		/// <remarks>
 		/// <para>
 		/// (This method is basically for internal use.
 		/// I do not recommend to use this from outside of Azuki.)
 		/// </para>
 		/// <para>
-		/// This method calculates text ranges which will be selected by given rectangle.
-		/// Because mapping of character indexes and graphical position (layout) are
-		/// executed by view implementations, the result of this method will be changed
-		/// according to the interface implementation.
+		/// This method calculates text ranges which will be selected by given
+		/// rectangle. Because mapping of character indexes and graphical
+		/// position (layout) are executed by view implementations, the result
+		/// of this method will be changed according to the interface
+		/// implementation.
 		/// </para>
 		/// </remarks>
-		public Range[] GetRectSelectRanges( Rectangle selRect )
+		public Range[] GetRectSelectRanges( Rectangle selRect, bool leftToRight )
 		{
 			List<Range> selections = new List<Range>();
 			Point leftPos = new Point();
 			Point rightPos = new Point();
-			int leftIndex;
-			int rightIndex;
 			int y;
 			int selRectBottom;
 
@@ -918,8 +920,8 @@ namespace Sgry.Azuki
 			{
 				// calculate sub-selection range made with this line
 				leftPos.Y = rightPos.Y = y;
-				leftIndex = this.GetIndexFromVirPos( leftPos );
-				rightIndex = this.GetIndexFromVirPos( rightPos );
+				int leftIndex = this.GetIndexFromVirPos( leftPos );
+				int rightIndex = this.GetIndexFromVirPos( rightPos );
 				if( 1 < selections.Count
 					&& selections[selections.Count-1].End == rightIndex )
 				{
@@ -929,7 +931,18 @@ namespace Sgry.Azuki
 				Debug.Assert( Document.IsNotDividableIndex(rightIndex) == false );
 
 				// add this sub-selection range
-				selections.Add( new Range(leftIndex, rightIndex) );
+				int from, to;
+				if( leftToRight )
+				{
+					from = leftIndex;
+					to = rightIndex;
+				}
+				else
+				{
+					from = rightIndex;
+					to = leftIndex;
+				}
+				selections.Add( new Range(from, to) );
 
 				// go to next line
 				y += LineSpacing;

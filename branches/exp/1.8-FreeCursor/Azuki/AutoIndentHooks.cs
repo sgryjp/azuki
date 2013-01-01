@@ -108,151 +108,153 @@ namespace Sgry.Azuki
 		public static readonly AutoIndentHook
 			CHook = delegate( IUserInterface ui, char ch )
 		{
-			Document doc = ui.Document;
-			StringBuilder indentChars = new StringBuilder( 64 );
-			int lineHead, lineEnd;
-			int newCaretIndex;
-			int selBegin, selEnd;
-			int selBeginL;
-			
-			doc.GetSelection( out selBegin, out selEnd );
-			selBeginL = doc.GetLineIndexFromCharIndex( selBegin );
-
-			// calculate line head and line end
-			lineHead = doc.GetLineHeadIndex( selBeginL );
-			if( selBeginL+1 < doc.LineCount )
+			if( LineLogic.IsEolChar(ch) ) // Enter key
 			{
-				lineEnd = doc.GetLineHeadIndex( selBeginL+1 );
+				return CHook_OnEnter( ui, ch );
 			}
-			else
-			{
-				lineEnd = doc.Length;
-			}
-
-			// user hit Enter key?
-			if( LineLogic.IsEolChar(ch) )
-			{
-				int i;
-				bool extraPaddingNeeded = false;
-
-				// do nothing if it's in single line mode
-				if( ui.IsSingleLineMode )
-				{
-					return false;
-				}
-
-				indentChars.Append( doc.EolCode );
-
-				// if the line is empty, do nothing
-				if( lineHead == lineEnd )
-				{
-					return false;
-				}
-
-				// get indent chars
-				for( i=lineHead; i<selBegin; i++ )
-				{
-					if( doc[i] == ' ' || doc[i] == '\t' )
-						indentChars.Append( doc[i] );
-					else
-						break;
-				}
-
-				// if there are following white spaces, remove them
-				for( i=selEnd; i<lineEnd; i++ )
-				{
-					if( doc[i] == ' ' || doc[i] == '\t' || doc[i] == '\x3000' )
-						selEnd++;
-					else
-						break;
-				}
-
-				// determine whether extra padding is needed or not
-				// (because replacement changes line end index
-				// determination after replacement will be much harder)
-				if( -1 != Utl.FindPairedBracket_Backward(doc,
-														 selBegin, lineHead,
-														 '}', '{')
-					&& Utl.IndexOf(doc, '}', selBegin, lineEnd) == -1 )
-				{
-					extraPaddingNeeded = true;
-				}
-
-				// replace selection
-				newCaretIndex = Math.Min( doc.AnchorIndex, selBegin )
-								+ indentChars.Length;
-				doc.Replace( indentChars.ToString(), selBegin, selEnd );
-
-				// if there is a '{' without pair before caret
-				// and is no '}' after caret, add indentation
-				if( extraPaddingNeeded )
-				{
-					// make indentation characters
-					string extraPadding;
-					Point pos = ui.View.GetVirPosFromIndex( newCaretIndex );
-					pos.X += ui.View.TabWidthInPx;
-					extraPadding = UiImpl.GetNeededPaddingChars(ui, pos, true);
-					doc.Replace( extraPadding, newCaretIndex, newCaretIndex );
-					newCaretIndex += extraPadding.Length;
-				}
-
-				ui.Select( newCaretIndex, newCaretIndex );
-
-				return true;
-			}
-			// user hit '}'?
 			else if( ch == '}' )
 			{
-				int pairIndex, pairLineHead, pairLineEnd;
-				int pairLineIndex;
-
-				// ensure this line contains only white spaces
-				for( int i=lineHead; i<lineEnd; i++ )
-				{
-					if( LineLogic.IsEolChar(doc[i]) )
-					{
-						break;
-					}
-					else if( doc[i] != ' ' && doc[i] != '\t' )
-					{
-						return false; // this line contains a non whitespace ch
-					}
-				}
-
-				// find the paired open bracket
-				pairIndex = Utl.FindPairedBracket_Backward( doc,
-															selBegin, 0,
-															'}', '{' );
-				if( pairIndex == -1 )
-				{
-					return false; // no pair exists. nothing to do
-				}
-				
-				// get indent char of the line where the pair exists
-				pairLineIndex = ui.GetLineIndexFromCharIndex( pairIndex );
-				pairLineHead = ui.GetLineHeadIndex( pairLineIndex );
-				pairLineEnd = pairLineHead + ui.GetLineLength( pairLineIndex );
-				for( int i=pairLineHead; i<pairLineEnd; i++ )
-				{
-					if( doc[i] == ' ' || doc[i] == '\t' )
-						indentChars.Append( doc[i] );
-					else
-						break;
-				}
-				
-				// replace indent chars of current line
-				indentChars.Append( '}' );
-				doc.Replace( indentChars.ToString(), lineHead, selBegin );
-				
-				return true;
+				return CHook_OnOpenBracket( ui, ch );
 			}
 
 			return false;
 		};
 
+		static bool CHook_OnEnter( IUserInterface ui, char ch )
+		{
+			Document doc = ui.Document;
+			StringBuilder indentChars = new StringBuilder( 256 );
+			bool extraPaddingNeeded = false;
+
+			// do nothing if it's in single line mode
+			if( ui.IsSingleLineMode )
+				return false;
+
+			using( doc.BeginUndo() )
+			{
+				// Firstly delete selected text
+				ui.Delete( doc.Selections );
+				int caret = doc.CaretIndex;
+
+				// Quit if the current line is empty
+				int lineHead = doc.GetLineHeadIndexFromCharIndex( caret );
+				int lineEnd = lineHead + doc.GetLineLengthFromCharIndex(caret);
+				if( lineHead == lineEnd )
+				{
+					return false;
+				}
+
+				// Compose character sequence for indentation
+				indentChars.Append( doc.EolCode );
+				for( int i=lineHead; i<caret; i++ )
+				{
+					if( Utl.IsIndentChar(doc[i]) )
+						indentChars.Append( doc[i] );
+					else
+						break;
+				}
+
+				// Remove following whitespaces
+				if( Utl.IsIndentChar(doc[caret]) )
+				{
+					int begin = caret, end = caret;
+					do
+					{
+						end++;
+					}
+					while( Utl.IsIndentChar(doc[end]) );
+
+					doc.Replace( "", begin, end );
+				}
+
+				// Determine whether extra padding is needed or not
+				if( -1 != Utl.FindPairedBracket_Backward(doc,
+														 caret, lineHead,
+														 '}', '{')
+					&& Utl.IndexOf(doc, '}', caret, lineEnd) == -1 )
+				{
+					extraPaddingNeeded = true;
+				}
+
+				// Insert an EOL code and indentation
+				doc.Replace( indentChars.ToString(), caret, caret );
+				caret += indentChars.Length;
+
+				// If there is a '{' without pair before caret
+				// and is no '}' after caret, add indentation
+				if( extraPaddingNeeded )
+				{
+					// make indentation characters
+					string extraPadding;
+					Point pos = ui.View.GetVirPosFromIndex( caret );
+					pos.X += ui.View.TabWidthInPx;
+					extraPadding = UiImpl.GetNeededPaddingChars(ui, pos, true);
+					doc.Replace( extraPadding, caret, caret );
+					caret += extraPadding.Length;
+				}
+
+				ui.Select( caret, caret );
+
+				return true;
+			}
+		}
+
+		static bool CHook_OnOpenBracket( IUserInterface ui, char ch )
+		{
+			Document doc = ui.Document;
+			StringBuilder indentChars = new StringBuilder( 256 );
+			int pairIndex, pairLineHead, pairLineEnd;
+			int pairLineIndex;
+
+			// Quit if this line contains a non-whitespace character
+			int caret = doc.CaretIndex;
+			int lineHead = doc.GetLineHeadIndexFromCharIndex( caret );
+			int lineEnd = lineHead + doc.GetLineLengthFromCharIndex( caret );
+			for( int i=lineHead; i<lineEnd; i++ )
+			{
+				if( Utl.IsIndentChar(doc[i]) == false )
+				{
+					return false; // this line contains a non whitespace ch
+				}
+			}
+
+			// Find the paired open bracket
+			pairIndex = Utl.FindPairedBracket_Backward( doc,
+														caret, 0,
+														'}', '{' );
+			if( pairIndex == -1 )
+			{
+				return false; // No pair exists. Do nothing.
+			}
+
+			// Get indent sequence of the line in which the pair exists
+			pairLineIndex = ui.GetLineIndexFromCharIndex( pairIndex );
+			pairLineHead = ui.GetLineHeadIndex( pairLineIndex );
+			pairLineEnd = pairLineHead + ui.GetLineLength( pairLineIndex );
+			for( int i=pairLineHead; i<pairLineEnd; i++ )
+			{
+				if( Utl.IsIndentChar(doc[i]) )
+					indentChars.Append( doc[i] );
+				else
+					break;
+			}
+
+			// Replace indent chars of current line
+			indentChars.Append( '}' );
+			doc.Replace( indentChars.ToString(), lineHead, caret );
+
+			return true;
+		}
+
 		#region Utilities
 		static class Utl
 		{
+			public static bool IsIndentChar( char ch )
+			{
+				return (Char.IsWhiteSpace(ch)
+						&& LineLogic.IsEolChar(ch) == false);
+			}
+
 			public static int IndexOf( Document doc, char value, int startIndex, int endIndex )
 			{
 				for( int i=startIndex; i<endIndex; i++ )

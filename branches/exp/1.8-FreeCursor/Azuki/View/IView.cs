@@ -396,7 +396,7 @@ namespace Sgry.Azuki
 		/// ending index of second text range and so on.
 		/// </para>
 		/// </remarks>
-		Range[] GetRectSelectRanges( Rectangle selRect );
+		Range[] GetRectSelectRanges( Rectangle selRect, bool leftToRight );
 
 		/// <summary>
 		/// Calculates location of character at specified index in horizontal ruler index.
