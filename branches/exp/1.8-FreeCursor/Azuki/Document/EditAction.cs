@@ -72,7 +72,8 @@ namespace Sgry.Azuki
 			if( _Document == null )
 				return;
 
-			Debug.Assert( _Index <= _Document.Length, "Invalid state; _Index:"+_Index+", _Document.Length:"+_Document.Length );
+			Debug.Assert( _Index <= _Document.Length, "Invalid state; _Index:" + _Index
+						 + ", _Document.Length:" + _Document.Length );
 
 			// execute UNDO actions during stopping to record actions.
 			bool wasRecordingHistory = _Document.IsRecordingHistory;
@@ -84,8 +85,8 @@ namespace Sgry.Azuki
 				// set line dirty state
 				if( _LdsUndoInfo != null )
 				{
-					// Note that by executing Document.Replace, number of LDS entries is
-					// already restored. Just overwriting to old state does the work.
+					// By executing Document.Replace, number of LDS entries is already
+					// restored. Just overwriting to old state does the work.
 					Debug.Assert( 0 < _LdsUndoInfo.DeletedStates.Length );
 					for( int i=0; i<_LdsUndoInfo.DeletedStates.Length; i++ )
 					{

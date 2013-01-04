@@ -1574,30 +1574,7 @@ namespace Sgry.Azuki.WinForms
 #		endif
 		public int CaretIndex
 		{
-			get{ return Document.SelectionManager.CaretIndex; }
-		}
-
-		/// <summary>
-		/// Sets selection range and update the desired column.
-		/// </summary>
-		/// <param name="anchor">the position where the selection begins</param>
-		/// <param name="caret">the position where the caret is</param>
-		/// <remarks>
-		/// <para>
-		/// This method sets the selection range and also updates
-		/// the desired column.
-		/// </para>
-		/// <para>
-		/// Normally the caret tries to keep its x-coordinate
-		/// on moving line to line unless user explicitly changes x-coordinate of it.
-		/// The term 'Desired Column' means this x-coordinate which the caret tries to stick close to.
-		/// </para>
-		/// </remarks>
-[Obsolete]
-		public void SetSelection( int anchor, int caret )
-		{
-			_Impl.Select( anchor, caret, TextDataType.Normal );
-			SetDesiredColumn();
+			get{ return Document.SelectionManager.Selections.Caret; }
 		}
 
 		public bool SelectionExists
@@ -1639,20 +1616,9 @@ namespace Sgry.Azuki.WinForms
 			_Impl.Select( anchor, caret, mode );
 		}
 
-		/// <summary>
-		/// Gets range of primary selection.
-		/// </summary>
-		/// <param name="begin">
-		/// Index of where the primary selection begins.
-		/// </param>
-		/// <param name="end">
-		/// Index of where the primary selection ends (the character at this
-		/// index is not selected).
-		/// </param>
-		public void GetSelection( out int begin, out int end )
+		public Selections Selections
 		{
-			begin = Document.SelectionManager.PrimarySelection.Begin;
-			end = Document.SelectionManager.PrimarySelection.End;
+			get{ return Document.SelectionManager.Selections; }
 		}
 
 		/// <summary>
@@ -2588,8 +2554,8 @@ namespace Sgry.Azuki.WinForms
 			int		infoBufSize;
 
 			// determine string body
-			selBegin = Document.SelectionManager.PrimarySelection.Begin;
-			selEnd = Document.SelectionManager.PrimarySelection.End;
+			selBegin = Document.SelectionManager.Selections.LastRange.Begin;
+			selEnd = Document.SelectionManager.Selections.LastRange.End;
 			if( selBegin != selEnd )
 			{
 				// something selected.

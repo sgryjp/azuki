@@ -308,7 +308,7 @@ namespace Sgry.Azuki
 		/// <seealso cref="Sgry.Azuki.Document.SetSelection(int, int)">Document.SetSelection Method</seealso>
 		public int CaretIndex
 		{
-			get{ return _SelMan.CaretIndex; }
+			get{ return _SelMan.Selections.Caret; }
 		}
 
 		/// <summary>
@@ -331,7 +331,7 @@ namespace Sgry.Azuki
 		/// <seealso cref="Sgry.Azuki.Document.SetSelection(int, int)">Document.SetSelection Method</seealso>
 		public int AnchorIndex
 		{
-			get{ return _SelMan.AnchorIndex; }
+			get{ return _SelMan.Selections.Anchor; }
 		}
 
 		/// <summary>
@@ -342,33 +342,9 @@ namespace Sgry.Azuki
 			get{ return _SelMan; }
 		}
 
-		/// <summary>
-		/// Gets range of current selection.
-		/// Note that this method does not return [anchor, caret) pair but [begin, end) pair.
-		/// </summary>
-		/// <param name="begin">index of where the selection begins.</param>
-		/// <param name="end">index of where the selection ends (selection do not includes the char at this index).</param>
-[Obsolete]
-		public void GetSelection( out int begin, out int end )
-		{
-			_SelMan.GetSelection( out begin, out end );
-		}
-
 		public Range[] Selections
 		{
-			get
-			{
-				if( _SelMan.RectSelectRanges != null )
-				{
-					return (Range[])_SelMan.RectSelectRanges.Clone();
-				}
-				else
-				{
-					int begin, end;
-					GetSelection( out begin, out end );
-					return new Range[]{ new Range(begin, end) };
-				}
-			}
+			get{ return _SelMan.Selections.Ranges.ToArray(); }
 		}
 		#endregion
 
@@ -796,18 +772,11 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Replaces specified range [begin, end) of the content into the given
-		/// string.
+		/// Replaces specified range [begin, end) of the content into the given string.
 		/// </summary>
-		/// <param name="text">
-		/// Specified range will be replaced with this text.
-		/// </param>
-		/// <param name="begin">
-		/// Begin index of the range to be replaced.
-		/// </param>
-		/// <param name="end">
-		/// End index of the range to be replaced.
-		/// </param>
+		/// <param name="text">Specified range will be replaced with this text.</param>
+		/// <param name="begin">Begin index of the range to be replaced.</param>
+		/// <param name="end">End index of the range to be replaced.</param>
 		/// <exception cref="ArgumentNullException">
 		/// Parameter '<paramref name="text"/>' is null.
 		/// </exception>
@@ -816,18 +785,23 @@ namespace Sgry.Azuki
 		/// </exception>
 		public void Replace( string text, int begin, int end )
 		{
-			Debug.Assert( _LHI.Count == _LDS.Count, "LHI.Count("+_LHI.Count+") is not LDS.Count("+_LDS.Count+")" );
+			Debug.Assert( _LHI.Count == _LDS.Count, "LHI.Count(" + _LHI.Count + ") is"
+						  + " not LDS.Count(" + _LDS.Count + ")" );
 			if( begin < 0 || _Buffer.Count < begin )
-				throw new ArgumentOutOfRangeException( "begin", "Invalid index was given (begin:"+begin+", this.Length:"+Length+")." );
+				throw new ArgumentOutOfRangeException( "begin", "Invalid index was"
+													   + " given (begin:" + begin
+													   + ", this.Length:"+Length+").");
 			if( end < begin || _Buffer.Count < end )
-				throw new ArgumentOutOfRangeException( "end", "Invalid index was given (begin:"+begin+", end:"+end+", this.Length:"+Length+")." );
+				throw new ArgumentOutOfRangeException( "end",
+													   "Invalid index was given"
+													   + " (begin:" + begin + ", end:"
+													   + end + ", this.Length:"+Length
+													   + ")." );
 			if( text == null )
 				throw new ArgumentNullException( "text" );
 
+			Selections oldSelections;
 			string oldText = String.Empty;
-			int oldAnchor, anchorDelta;
-			int oldCaret, caretDelta;
-			int newAnchor, newCaret;
 			EditAction undo;
 			LineDirtyStateUndoInfo ldsUndoInfo = null;
 			int affectedBeginLI = -1;
@@ -837,22 +811,23 @@ namespace Sgry.Azuki
 			if( text == "" && begin == end )
 				return;
 
-			// first of all, remember current dirty state of the lines
-			// which will be modified by this replacement
+			// Remember current state
 			wasSavedState = _History.IsSavedState;
 			if( _IsRecordingHistory )
 			{
 				ldsUndoInfo = new LineDirtyStateUndoInfo();
 
-				// calculate range of the lines which will be affectd by this replacement
+				// Calculate range of lines to be affected
 				affectedBeginLI = GetLineIndexFromCharIndex( begin );
 				if( 0 < begin-1 && _Buffer[begin-1] == '\r' )
 				{
 					if( (0 < text.Length && text[0] == '\n')
-						|| (text.Length == 0 && end < _Buffer.Count && _Buffer[end] == '\n') )
+						|| (text.Length == 0
+							&& end < _Buffer.Count
+							&& _Buffer[end] == '\n') )
 					{
-						// A new CR+LF will be created by this replacement
-						// so one previous line will also be affected.
+						// A new CR+LF will be created by this replacement so one
+						// previous line will also be affected.
 						affectedBeginLI--;
 					}
 				}
@@ -860,7 +835,7 @@ namespace Sgry.Azuki
 				int affectedLineCount = affectedEndLI - affectedBeginLI + 1;
 				Debug.Assert( 0 < affectedLineCount );
 
-				// store current state of the lines as 'deleted' history
+				// Record current state of the lines
 				ldsUndoInfo.LineIndex = affectedBeginLI;
 				ldsUndoInfo.DeletedStates = new LineDirtyState[ affectedLineCount ];
 				for( int i=0; i<affectedLineCount; i++ )
@@ -868,66 +843,30 @@ namespace Sgry.Azuki
 					ldsUndoInfo.DeletedStates[i] = _LDS[ affectedBeginLI + i ];
 				}
 			}
-
-			// keep copy of the part which will be deleted by this replacement
 			if( begin < end )
 			{
 				char[] oldChars = new char[ end-begin ];
 				_Buffer.CopyTo( begin, end, oldChars );
 				oldText = new String( oldChars );
 			}
+			oldSelections = _SelMan.Selections;
 
-			// keep copy of old caret/anchor index
-			oldAnchor = newAnchor = AnchorIndex;
-			oldCaret = newCaret = CaretIndex;
-
-			// delete target range
+			// Delete target range
 			if( begin < end )
 			{
-				// manage line head indexes and delete content
 				LineLogic.LHI_Delete( _LHI, _LDS, _Buffer, begin, end );
 				_Buffer.RemoveRange( begin, end );
-
-				// manage caret/anchor index
-				if( begin < newCaret )
-				{
-					newCaret -= end - begin;
-					if( newCaret < begin )
-						newCaret = begin;
-				}
-				if( begin < newAnchor )
-				{
-					newAnchor -= end - begin;
-					if( newAnchor < begin )
-						newAnchor = begin;
-				}
+				end = begin;
 			}
 
 			// then, insert text
 			if( 0 < text.Length )
 			{
-				// manage line head indexes and insert content
 				LineLogic.LHI_Insert( _LHI, _LDS, _Buffer, text, begin );
 				_Buffer.Insert( begin, text.ToCharArray() );
-
-				// manage caret/anchor index
-				if( begin <= newCaret )
-				{
-					newCaret += text.Length;
-					if( _Buffer.Count < newCaret ) // this is not "end" but "_Buffer.Count"
-						newCaret = _Buffer.Count;
-				}
-				if( begin <= newAnchor )
-				{
-					newAnchor += text.Length;
-					if( _Buffer.Count < newAnchor )
-						newAnchor = _Buffer.Count;
-				}
 			}
-
-			// calc diff of anchor/caret between old and new positions
-			anchorDelta = newAnchor - oldAnchor;
-			caretDelta = newCaret - oldCaret;
+			Debug.Assert( _LHI.Count == _LDS.Count, "LHI.Count(" + _LHI.Count + ") is"
+						  + " not LDS.Count(" + _LDS.Count + ")" );
 
 			// stack UNDO history
 			if( _IsRecordingHistory )
@@ -937,27 +876,17 @@ namespace Sgry.Azuki
 			}
 			_LastModifiedTime = DateTime.Now;
 
-			// convert anchor/caret index in current text
-			oldAnchor += anchorDelta;
-			oldCaret += caretDelta;
-
 			// update selection
-			_SelMan.AnchorIndex = newAnchor;
-			_SelMan.CaretIndex = newCaret;
+			_SelMan.Selections.Set( new Range(begin, begin) );
 
-			// examine post assertions
-			Debug.Assert( newAnchor <= Length );
-			Debug.Assert( newCaret <= Length );
-			Debug.Assert( _LHI.Count == _LDS.Count, "LHI.Count("+_LHI.Count+") is not LDS.Count("+_LDS.Count+")" );
-
-			// cast event
+			// Cast event
 			if( _IsSuppressingDirtyStateChangedEvent == false
 				&& _History.IsSavedState != wasSavedState )
 			{
 				InvokeDirtyStateChanged();
 			}
 			InvokeContentChanged( begin, oldText, text );
-			InvokeSelectionChanged( oldAnchor, oldCaret, null, true );
+			InvokeSelectionChanged( oldSelections, true );
 		}
 		#endregion
 
@@ -2416,22 +2345,15 @@ namespace Sgry.Azuki
 		/// Occurs when the selection was changed.
 		/// </summary>
 		public event SelectionChangedEventHandler SelectionChanged;
-		internal void InvokeSelectionChanged( int oldAnchor, int oldCaret,
-											  Range[] oldRectSelectRanges,
+		internal void InvokeSelectionChanged( Selections oldSelections,
 											  bool byContentChanged )
 		{
-			Debug.Assert( 0 <= oldAnchor );
-			Debug.Assert( 0 <= oldCaret );
-
 			if( SelectionChanged != null )
 			{
 				SelectionChanged(
 					this,
 					new SelectionChangedEventArgs(
-						oldAnchor,
-						oldCaret,
-						oldRectSelectRanges,
-						byContentChanged
+						oldSelections, byContentChanged
 					)
 				);
 			}
@@ -2895,51 +2817,47 @@ namespace Sgry.Azuki
 	/// </summary>
 	public class SelectionChangedEventArgs : EventArgs
 	{
-		int _OldAnchor;
-		int _OldCaret;
-		Range[] _OldRectSelectRanges;
+		Selections _OldSelections;
 		bool _ByContentChanged;
 
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
-		public SelectionChangedEventArgs( int anchorIndex,
-										  int caretIndex,
-										  Range[] oldRectSelectRanges,
+		public SelectionChangedEventArgs( Selections oldSelections,
 										  bool byContentChanged )
 		{
-			_OldAnchor = anchorIndex;
-			_OldCaret = caretIndex;
-			_OldRectSelectRanges = oldRectSelectRanges;
+			Debug.Assert( oldSelections != null );
+			_OldSelections = oldSelections;
 			_ByContentChanged = byContentChanged;
 		}
 
 		/// <summary>
-		/// Anchor index (in current text) of the previous selection.
+		/// Anchor index (in current text) of the previous last selection.
 		/// </summary>
 		public int OldAnchor
 		{
-			get{ return _OldAnchor; }
+			get{ return _OldSelections.LastRange.From; }
 		}
 
 		/// <summary>
-		/// Caret index (in current text) of the previous selection.
+		/// Caret index (in current text) of the previous last  selection.
 		/// </summary>
 		public int OldCaret
 		{
-			get{ return _OldCaret; }
+			get{ return _OldSelections.LastRange.To; }
 		}
 
 		/// <summary>
-		/// Text ranges selected by previous rectangle selection (indexes are valid in current text.)
+		/// Text ranges previously selected (valid in CURRENT document.)
 		/// </summary>
-		public Range[] OldRectSelectRanges
+		public Selections OldSelections
 		{
-			get{ return _OldRectSelectRanges; }
+			get{ return _OldSelections; }
 		}
 
 		/// <summary>
-		/// This value will be true if this event has been occured because the document was modified.
+		/// Indicates whether this event has been raised because the document
+		/// was modified or not.
 		/// </summary>
 		public bool ByContentChanged
 		{

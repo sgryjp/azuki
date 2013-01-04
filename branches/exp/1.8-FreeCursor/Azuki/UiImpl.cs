@@ -488,7 +488,7 @@ namespace Sgry.Azuki
 				}
 
 				// calculate new caret position
-				Range sel = doc.SelectionManager.PrimarySelection;
+				Range sel = doc.SelectionManager.Selections.LastRange;
 
 				// Calculate replacement target range
 				int beginDelta = 0;

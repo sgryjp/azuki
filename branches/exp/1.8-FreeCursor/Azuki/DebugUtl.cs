@@ -1,6 +1,5 @@
 // file: DebugUtl.cs
 // brief: Sgry's utilities for debug
-// update: 2012-05-05
 //=========================================================
 using System;
 using System.IO;

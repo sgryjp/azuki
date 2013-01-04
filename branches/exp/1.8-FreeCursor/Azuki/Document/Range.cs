@@ -3,6 +3,9 @@ using System.Diagnostics;
 
 namespace Sgry.Azuki
 {
+#if	!PocketPC
+	[DebuggerDisplay("[{_Begin}, {_End}){_Reversed?\"r\":\"\",nq}")]
+#endif
 	public class Range
 	{
 		int _Begin;
@@ -15,7 +18,7 @@ namespace Sgry.Azuki
 
 		public Range( int from, int to )
 		{
-			if( from < to )
+			if( from <= to )
 			{
 				_Begin = from;
 				_End = to;
