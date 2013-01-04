@@ -3,6 +3,7 @@
 //=========================================================
 //DEBUG//#define DRAW_SLOWLY
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Diagnostics;
 
@@ -263,7 +264,7 @@ namespace Sgry.Azuki
 				}
 
 				// if in rectangle selection mode, execute special logic
-				if( e.OldRectSelectRanges != null )
+				if( 2 <= e.OldSelections.Ranges.Count )
 				{
 					HandleSelectionChanged_OnRectSelect( g, e );
 					return;
@@ -354,7 +355,8 @@ namespace Sgry.Azuki
 			}
 		}
 
-		void HandleSelectionChanged_OnRectSelect( IGraphics g, SelectionChangedEventArgs e )
+		void HandleSelectionChanged_OnRectSelect( IGraphics g,
+												  SelectionChangedEventArgs e )
 		{
 			int firstBegin, lastEnd;
 			Point firstBeginPos, lastEndPos;
@@ -365,8 +367,9 @@ namespace Sgry.Azuki
 			// 2) extra lines for both upper and lower direction
 			
 			// calculate rectangle in virtual space
-			firstBegin = e.OldRectSelectRanges[0].Begin;
-			lastEnd = e.OldRectSelectRanges[ e.OldRectSelectRanges.Length - 1 ].End;
+			List<Range> ranges = e.OldSelections.Ranges;
+			firstBegin = ranges[0].Begin;
+			lastEnd = ranges[ ranges.Count - 1 ].End;
 			Debug.Assert( 0 <= firstBegin && firstBegin <= Document.Length );
 			Debug.Assert( 0 <= lastEnd && lastEnd <= Document.Length );
 			firstBeginPos = this.GetVirPosFromIndex( g, firstBegin );

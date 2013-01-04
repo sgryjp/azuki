@@ -2,6 +2,7 @@
 // brief: Internal class to manage text selection range.
 //=========================================================
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 
@@ -14,13 +15,10 @@ namespace Sgry.Azuki
 	{
 		#region Fields
 		Document _Document;
-		int _CaretIndex = 0;
-		int _AnchorIndex = 0;
 		int _OriginalAnchorIndex = -1;
 		int _LineSelectionAnchor1 = -1;
 		int _LineSelectionAnchor2 = -1; // temporal variable holding selection anchor on expanding line selection backward
-		int _PrimarySelectionIndex = Int32.MaxValue;
-		Range[] _RectSelectRanges = null;
+		Selections _Selections;
 internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remembering how last selection was made
 		#endregion
 
@@ -29,37 +27,11 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 		{
 			Debug.Assert( doc != null );
 			_Document = doc;
+			_Selections = new Selections();
 		}
 		#endregion
 
 		#region Selection State
-		/// <summary>
-		/// Gets or sets current position of the caret.
-		/// </summary>
-		public int CaretIndex
-		{
-			get{ return _CaretIndex; }
-			set
-			{
-				Debug.Assert( 0 <= value && value <= _Document.Length, "invalid value ("+value+") was set to SelectionManager.CaretIndex (Document.Length:"+_Document.Length+")" );
-				_CaretIndex = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets current position of selection anchor.
-		/// </summary>
-		public int AnchorIndex
-		{
-			get{ return _AnchorIndex; }
-			set
-			{
-				Debug.Assert( 0 <= value && value <= _Document.Length, "invalid value ("+value+") was set to SelectionManager.AnchorIndex (Document.Length:"+_Document.Length+")" );
-				_OriginalAnchorIndex = -1;
-				_AnchorIndex = value;
-			}
-		}
-
 		/// <summary>
 		/// Gets originally set position of selection anchor.
 		/// </summary>
@@ -70,39 +42,13 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 				if( 0 <= _OriginalAnchorIndex )
 					return _OriginalAnchorIndex;
 				else
-					return _AnchorIndex;
+					return _Selections.Anchor;
 			}
 		}
 
-		public Range PrimarySelection
+		public Selections Selections
 		{
-			get
-			{
-				if( _RectSelectRanges != null
-					&& _PrimarySelectionIndex < _RectSelectRanges.Length )
-					return _RectSelectRanges[_PrimarySelectionIndex];
-				else
-					return new Range( AnchorIndex, CaretIndex );
-			}
-		}
-
-		public Range[] RectSelectRanges
-		{
-			get{ return _RectSelectRanges; }
-		}
-
-		public void GetSelection( out int begin, out int end )
-		{
-			if( _AnchorIndex < _CaretIndex )
-			{
-				begin = _AnchorIndex;
-				end = _CaretIndex;
-			}
-			else
-			{
-				begin = _CaretIndex;
-				end = _AnchorIndex;
-			}
+			get{ return _Selections; }
 		}
 
 		public void SetSelection( int anchor, int caret,
@@ -119,7 +65,7 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 			Document.Utl.ConstrainIndex( _Document, ref anchor, ref caret );
 
 			// set selection
-			_PrimarySelectionIndex = Int32.MaxValue;
+			_Selections.LastRangeIndex = 0;
 			if( mode == TextDataType.Rectangle )
 			{
 				ClearLineSelectionData();
@@ -129,7 +75,6 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 			}
 			else if( mode == TextDataType.Line )
 			{
-				ClearRectSelectionData();
 				_OriginalAnchorIndex = -1;
 				SetSelection_Line( anchor, caret, view );
 				_LastSelectionMode = TextDataType.Line;
@@ -137,14 +82,12 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 			else if( mode == TextDataType.Words )
 			{
 				ClearLineSelectionData();
-				ClearRectSelectionData();
 				SetSelection_Words( anchor, caret );
 				_LastSelectionMode = TextDataType.Words;
 			}
 			else
 			{
 				ClearLineSelectionData();
-				ClearRectSelectionData();
 				_OriginalAnchorIndex = -1;
 				SetSelection_Normal( anchor, caret );
 				_LastSelectionMode = TextDataType.Normal;
@@ -167,26 +110,30 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 		#region Internal Logic
 		void SetSelection_Rect( int anchor, int caret, IView view )
 		{
-			// calculate graphical position of both anchor and new caret
+			// Calculate ranges to be selected newly
 			Point anchorPos = view.GetVirPosFromIndex( anchor );
 			Point caretPos = view.GetVirPosFromIndex( caret );
-
-			// calculate ranges selected by the rectangle made with the two points
-			_RectSelectRanges = view.GetRectSelectRanges(
+			Range[] ranges = MakeRectSelectRanges(
+					view,
 					Utl.MakeRectFromTwoPoints(anchorPos, caretPos),
 					(anchorPos.X < caretPos.X)
 				);
-			if( 0 < _RectSelectRanges.Length )
+
+			// Apply new selection ranges
+			Selections oldSelections = _Selections.Clone();
+			_Selections.Ranges.Clear();
+			_Selections.Ranges.AddRange( ranges );
+			if( 0 < ranges.Length )
 			{
-				if( _RectSelectRanges[0].Begin == caret
-					|| _RectSelectRanges[0].End == caret )
-					_PrimarySelectionIndex = 0;
+				if( ranges[0].Begin <= caret && caret <= ranges[0].End ) // [*]
+					_Selections.LastRangeIndex = 0;
 				else
-					_PrimarySelectionIndex = _RectSelectRanges.Length - 1;
+					_Selections.LastRangeIndex = ranges.Length - 1;
 			}
 
 			// set selection
-			SetSelection_Normal( anchor, caret );
+			_Document.InvokeSelectionChanged( oldSelections,
+											  false );
 		}
 
 		void SetSelection_Line( int anchor, int caret, IView view )
@@ -284,46 +231,10 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 
 		void SetSelection_Normal( int anchor, int caret )
 		{
-			int oldAnchor, oldCaret;
-			Range[] oldRectSelectRanges = null;
-
-			// if given parameters change nothing, do nothing
-			if( _AnchorIndex == anchor && _CaretIndex == caret )
-			{
-				// but on executing rectangle selection with mouse,
-				// slight movement that does not change the selection in the line under the mouse cursor
-				// might change selection in other lines which is not under the mouse cursor.
-				// so invoke event only if it is rectangle selection mode.
-				if( _RectSelectRanges != null )
-				{
-					_Document.InvokeSelectionChanged( AnchorIndex, CaretIndex, _RectSelectRanges, false );
-				}
-				return;
-			}
-
-			// remember old selection state
-			oldAnchor = _AnchorIndex;
-			oldCaret = _CaretIndex;
-			oldRectSelectRanges = _RectSelectRanges;
-
-			// apply new selection
-			_AnchorIndex = anchor;
-			_CaretIndex = caret;
-
-			// invoke event
-			if( oldRectSelectRanges != null )
-			{
-				_Document.InvokeSelectionChanged( oldAnchor, oldCaret, oldRectSelectRanges, false );
-			}
-			else
-			{
-				_Document.InvokeSelectionChanged( oldAnchor, oldCaret, oldRectSelectRanges, false );
-			}
-		}
-
-		void ClearRectSelectionData()
-		{
-			_RectSelectRanges = null;
+			Selections oldSelections = _Selections.Clone();
+			_Selections.Set( new Range(anchor, caret) );
+			_Document.InvokeSelectionChanged( oldSelections,
+											  false );
 		}
 
 		void ClearLineSelectionData()
@@ -334,6 +245,54 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 		#endregion
 
 		#region Utilities
+		/// <summary>
+		/// Calculates and returns text ranges that will be selected by
+		/// specified rectangle.
+		/// </summary>
+		Range[] MakeRectSelectRanges( IView view, Rectangle selRect, bool leftToRight )
+		{
+			List<Range> selections = new List<Range>();
+			Point leftPos = new Point();
+			Point rightPos = new Point();
+			int y;
+			int selRectBottom;
+
+			// Sanitize invalid coordinate values
+			selRectBottom = selRect.Bottom;
+			if( selRect.Bottom < 0 )
+				selRectBottom = 0;
+
+			// Calculate new selection range in each line
+			leftPos.X = selRect.Left;
+			rightPos.X = selRect.Right;
+			y = selRect.Top - (selRect.Top % view.LineSpacing);
+			while( y <= selRectBottom )
+			{
+				// Calculate ranges of substring which is covered by the rectangle
+				leftPos.Y = rightPos.Y = y;
+				int leftIndex = view.GetIndexFromVirPos( leftPos );
+				int rightIndex = view.GetIndexFromVirPos( rightPos );
+				if( 1 < selections.Count
+					&& selections[selections.Count-1].End == rightIndex )
+				{
+					break; // reached EOF
+				}
+				Debug.Assert( view.Document.IsNotDividableIndex(leftIndex) == false );
+				Debug.Assert( view.Document.IsNotDividableIndex(rightIndex) == false );
+
+				// Append it to an array
+				if( leftToRight )
+					selections.Add( new Range(leftIndex, rightIndex) );
+				else
+					selections.Add( new Range(rightIndex, leftIndex) );
+
+				// Go to next line
+				y += view.LineSpacing;
+			}
+
+			return selections.ToArray();
+		}
+
 		static class Utl
 		{
 			public static Rectangle MakeRectFromTwoPoints( Point pt1, Point pt2 )

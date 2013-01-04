@@ -339,7 +339,7 @@ namespace Sgry.Azuki
 		{
 			Document doc = ui.Document;
 			string clipboardText;
-			int insertIndex;
+			int firstSelCharIndex;
 			TextDataType dataType;
 
 			// do nothing if the document is read-only
@@ -371,7 +371,17 @@ namespace Sgry.Azuki
 			// begin grouping edit action
 			doc.BeginUndo();
 
-			// delete currently selected text before insertion
+			// Remember index position of the first selected character as rectangular
+			// text data must be inserted to the position, not to the caret position
+			firstSelCharIndex = doc.Length;
+			if( dataType == TextDataType.Rectangle )
+			{
+				foreach( Range r in doc.Selections )
+					if( r.Begin < firstSelCharIndex )
+						firstSelCharIndex = r.Begin;
+			}
+
+			// Delete currently selected text
 			bool shouldInvalidate = (2 <= doc.Selections.Length);
 			ui.Delete( doc.Selections );
 			if( shouldInvalidate )
@@ -388,7 +398,7 @@ namespace Sgry.Azuki
 				string padding;
 
 				// Insert every row at same column position
-				insertPos = ui.View.GetVirPosFromIndex( doc.CaretIndex );
+				insertPos = ui.View.GetVirPosFromIndex( firstSelCharIndex );
 				rowBegin = 0;
 				rowEnd = LineLogic.NextLineHead( clipboardText, rowBegin );
 				while( 0 <= rowEnd )
@@ -414,8 +424,8 @@ namespace Sgry.Azuki
 					padding = UiImpl.GetNeededPaddingChars( ui, insertPos, false );
 
 					// insert this row
-					insertIndex = ui.View.GetIndexFromVirPos( insertPos );
-					doc.Replace( padding.ToString() + rowText, insertIndex, insertIndex );
+					int index = ui.View.GetIndexFromVirPos( insertPos );
+					doc.Replace( padding.ToString() + rowText, index, index );
 
 					// goto next line
 					insertPos.Y += ui.LineSpacing;
@@ -427,7 +437,7 @@ namespace Sgry.Azuki
 			{
 				//--- normal or line text data ---
 				// calculate insertion index
-				insertIndex = doc.CaretIndex;
+				int insertIndex = doc.SelectionManager.Selections.Caret;
 				if( dataType == TextDataType.Line )
 				{
 					// make the insertion point to caret line head if it is line data type

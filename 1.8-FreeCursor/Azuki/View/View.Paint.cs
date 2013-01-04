@@ -41,7 +41,7 @@ namespace Sgry.Azuki
 			textPos.Y += (LinePadding >> 1);
 
 #			if DRAW_SLOWLY
-			if(!Windows.WinApi.IsKeyDownAsync(System.Windows.Forms.Keys.ControlKey))
+			if(!WinForms.WinApi.IsKeyDownAsync(System.Windows.Forms.Keys.ControlKey))
 			{ g.BackColor=Color.Red; g.FillRectangle(tokenPos.X, tokenPos.Y, 2, LineHeight); DebugUtl.Sleep(400); }
 #			endif
 

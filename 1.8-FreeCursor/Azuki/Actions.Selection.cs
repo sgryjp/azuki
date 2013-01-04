@@ -216,7 +216,7 @@ namespace Sgry.Azuki
 			if( pairIndex != -1 )
 			{
 				// found.
-				ui.SetSelection( pairIndex, pairIndex );
+				ui.Select( pairIndex, pairIndex, TextDataType.Normal );
 				ui.ScrollToCaret();
 				return;
 			}
@@ -235,7 +235,7 @@ namespace Sgry.Azuki
 					if( pairIndex != -1 )
 					{
 						// found.
-						ui.SetSelection( pairIndex, pairIndex );
+						ui.Select( pairIndex, pairIndex, TextDataType.Normal );
 						ui.ScrollToCaret();
 						return;
 					}

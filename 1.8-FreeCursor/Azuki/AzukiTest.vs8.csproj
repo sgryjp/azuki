@@ -53,6 +53,7 @@
     <Compile Include="Document\Range.cs" />
     <Compile Include="Document\RleArray.cs" />
     <Compile Include="Document\SearchResult.cs" />
+    <Compile Include="Document\Selection.cs" />
     <Compile Include="Document\SelectionManager.cs" />
     <Compile Include="Document\SplitArray.cs" />
     <Compile Include="Document\TextBuffer.cs" />

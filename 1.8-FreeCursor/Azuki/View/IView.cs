@@ -373,32 +373,6 @@ namespace Sgry.Azuki
 		int GetCharIndexFromLineColumnIndex( int lineIndex, int columnIndex );
 
 		/// <summary>
-		/// Calculates and returns text ranges that will be selected by specified rectangle.
-		/// </summary>
-		/// <param name="selRect">Rectangle to be used to specify selection target.</param>
-		/// <returns>Array of indexes (1st begin, 1st end, 2nd begin, 2nd end, ...)</returns>
-		/// <remarks>
-		/// <para>
-		/// (This method is basically for internal use.
-		/// I do not recommend to use this from outside of Azuki.)
-		/// </para>
-		/// <para>
-		/// This method calculates text ranges which will be selected by given rectangle.
-		/// Because mapping of character indexes and graphical position (layout) are
-		/// executed by view implementations, the result of this method will be changed
-		/// according to the interface implementation.
-		/// </para>
-		/// <para>
-		/// Return value of this method is an array of text indexes
-		/// that is consisted with beginning index of first text range (row),
-		/// ending index of first text range,
-		/// beginning index of second text range,
-		/// ending index of second text range and so on.
-		/// </para>
-		/// </remarks>
-		Range[] GetRectSelectRanges( Rectangle selRect, bool leftToRight );
-
-		/// <summary>
 		/// Calculates location of character at specified index in horizontal ruler index.
 		/// </summary>
 		/// <param name="charIndex">The index of the character to calculate its location.</param>
