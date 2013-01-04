@@ -146,7 +146,7 @@ namespace Sgry.Azuki
 
 				// Compose character sequence for indentation
 				indentChars.Append( doc.EolCode );
-				for( int i=lineHead; i<caret; i++ )
+				for( int i=lineHead; i<caret && i<doc.Length; i++ )
 				{
 					if( Utl.IsIndentChar(doc[i]) )
 						indentChars.Append( doc[i] );
@@ -155,14 +155,14 @@ namespace Sgry.Azuki
 				}
 
 				// Remove following whitespaces
-				if( Utl.IsIndentChar(doc[caret]) )
+				if( caret < doc.Length && Utl.IsIndentChar(doc[caret]) )
 				{
 					int begin = caret, end = caret;
 					do
 					{
 						end++;
 					}
-					while( Utl.IsIndentChar(doc[end]) );
+					while( end < doc.Length && Utl.IsIndentChar(doc[end]) );
 
 					doc.Replace( "", begin, end );
 				}

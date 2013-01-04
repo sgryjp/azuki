@@ -37,7 +37,6 @@ namespace Sgry.Azuki
 		bool _ConvertsFullWidthSpaceToSpace = false;
 		bool _UsesStickyCaret = false;
 		bool _IsSingleLineMode = false;
-		TextDataType _SelectionMode = TextDataType.Normal;
 
 		// X coordinate of this also be used as a flag to determine
 		// whether the mouse button is down or not.
@@ -281,14 +280,14 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets or sets how to select text.
+		/// Gets or sets how to select text in currently active document.
 		/// </summary>
 		public TextDataType SelectionMode
 		{
-			get{ return _SelectionMode; }
+			get{ return Document.SelectionManager.SelectionMode; }
 			set
 			{
-				_SelectionMode = value;
+				Document.SelectionManager.SelectionMode = value;
 				ResetCursorGraphic( _LastMouseMoveScreenPos );
 			}
 		}
@@ -620,6 +619,7 @@ namespace Sgry.Azuki
 
 		public void ReleaseSelection()
 		{
+			Document.SelectionManager.DesiredAnchor = null;
 			if( SelectionExists )
 			{
 				Document doc = Document;
@@ -978,44 +978,40 @@ namespace Sgry.Azuki
 					{
 						//--- line selection ---
 						_UI.SelectionMode = TextDataType.Line;
-						if( e.Shift )
-						{
-							//--- expanding line selection ---
-							// expand selection to one char next of clicked position
-							// (if caret is at head of a line,
-							// the line will not be selected by SetSelection.)
-							int newCaretIndex = clickedIndex;
-							if( newCaretIndex+1 < Document.Length )
-							{
-								newCaretIndex++;
-							}
-							Select( Document.AnchorIndex, newCaretIndex );
-						}
-						else
-						{
-							//--- setting line selection ---
-							Select( clickedIndex, clickedIndex );
-						}
+						int lineEnd
+							= clickedIndex
+							  + Document.GetLineLengthFromCharIndex( clickedIndex );
+						if( e.Shift == false )
+							Document.SelectionManager.DesiredAnchor = clickedIndex;
+						else if( !Document.SelectionManager.DesiredAnchor.HasValue )
+							Document.SelectionManager.DesiredAnchor = clickedIndex;
+						Select( Document.SelectionManager.DesiredAnchor.Value,
+								lineEnd );
 					}
 					else if( e.Shift )
 					{
 						//--- expanding selection ---
 						_UI.SelectionMode = (e.Control) ? TextDataType.Words
 														: TextDataType.Normal;
-						Select( Document.SelectionManager.OriginalAnchorIndex,
+						if( Document.SelectionManager.DesiredAnchor.HasValue == false )
+							Document.SelectionManager.DesiredAnchor = clickedIndex;
+						Select( Document.SelectionManager.DesiredAnchor.Value,
 								clickedIndex );
 					}
 					else if( e.Alt )
 					{
 						//--- rectangle selection ---
 						_UI.SelectionMode = TextDataType.Rectangle;
+						Document.SelectionManager.DesiredAnchor = null;
 						Select( clickedIndex, clickedIndex );
 					}
 					else if( e.Control )
 					{
 						//--- expanding selection ---
 						_UI.SelectionMode = TextDataType.Words;
-						Select( clickedIndex, clickedIndex );
+						Document.SelectionManager.DesiredAnchor = clickedIndex;
+						Select( Document.SelectionManager.DesiredAnchor.Value,
+								clickedIndex );
 					}
 					else if( onSelectedText
 						&& 2 <= Document.Selections.Length ) // currently dragging rectangle selection is out of support
@@ -1023,13 +1019,15 @@ namespace Sgry.Azuki
 						//--- starting timer to wait small delay of drag-editing ---
 						Debug.Assert( _MouseDragEditDelayTimer == null );
 						_MouseDragEditDelayTimer = new Timer(
-								_MouseDragEditDelayTimer_Tick, null, 500, Timeout.Infinite
+								_MouseDragEditDelayTimer_Tick, null, 500,
+								Timeout.Infinite
 							);
 					}
 					else
 					{
 						//--- setting caret ---
 						Select( clickedIndex, clickedIndex );
+						Document.SelectionManager.DesiredAnchor = null;
 					}
 					View.SetDesiredColumn( g );
 					View.ScrollToCaret( g );
@@ -1056,6 +1054,8 @@ namespace Sgry.Azuki
 				View.ScreenToVirtual( ref pos );
 				clickedIndex = View.GetIndexFromVirPos( pos );
 				_UI.SelectionMode = TextDataType.Words;
+				if( Document.SelectionManager.DesiredAnchor.HasValue == false )
+					Document.SelectionManager.DesiredAnchor = clickedIndex;
 				Select( clickedIndex, clickedIndex );
 			}
 		}
@@ -1154,32 +1154,27 @@ namespace Sgry.Azuki
 			if( _UI.SelectionMode == TextDataType.Rectangle )
 			{
 				//--- rectangle selection ---
-				// expand selection to the point
 				Select( Document.AnchorIndex, curPosIndex );
 			}
 			else if( _UI.SelectionMode == TextDataType.Line )
 			{
 				//--- line selection ---
-				// expand selection to one char next of clicked position
-				// (if caret is at head of a line,
-				// the line will not be selected by SetSelection.)
-				int newCaretIndex = curPosIndex;
-				if( newCaretIndex+1 < Document.Length )
-				{
-					newCaretIndex++;
-				}
-				Select( Document.AnchorIndex, newCaretIndex );
+				_UI.SelectionMode = TextDataType.Line;
+				int lineEnd = Document.GetLineHeadIndexFromCharIndex( curPosIndex )
+							  + Document.GetLineLengthFromCharIndex( curPosIndex );
+				if( !Document.SelectionManager.DesiredAnchor.HasValue )
+					Document.SelectionManager.DesiredAnchor = curPosIndex;
+				Select( Document.SelectionManager.DesiredAnchor.Value,
+						lineEnd );
 			}
 			else if( _UI.SelectionMode == TextDataType.Words )
 			{
 				//--- word selection ---
-				Select( Document.SelectionManager.OriginalAnchorIndex,
-						curPosIndex );
+				Select( Document.SelectionManager.DesiredAnchor.Value, curPosIndex );
 			}
 			else
 			{
 				//--- normal selection ---
-				// expand selection to the point if it was different from previous index
 				if( curPosIndex != Document.CaretIndex )
 				{
 					Select( Document.AnchorIndex, curPosIndex );
