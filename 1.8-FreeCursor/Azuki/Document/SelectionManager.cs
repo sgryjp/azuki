@@ -15,12 +15,22 @@ namespace Sgry.Azuki
 	{
 		#region Fields
 		Document _Document;
-		int _OriginalAnchorIndex = -1;
-		int _LineSelectionAnchor1 = -1;
-		int _LineSelectionAnchor2 = -1; // temporal variable holding selection anchor on expanding line selection backward
 		Selections _Selections;
-internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remembering how last selection was made
+		int? _DesiredAnchor;
+		TextDataType _SelectionMode = TextDataType.Normal;
 		#endregion
+
+		public int? DesiredAnchor
+		{
+			get{ return _DesiredAnchor; }
+			set{ _DesiredAnchor = value; }
+		}
+
+		public TextDataType SelectionMode
+		{
+			get{ return _SelectionMode; }
+			set{ _SelectionMode = value; }
+		}
 
 		#region Init / Dispose
 		public SelectionManager( Document doc )
@@ -32,20 +42,6 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 		#endregion
 
 		#region Selection State
-		/// <summary>
-		/// Gets originally set position of selection anchor.
-		/// </summary>
-		public int OriginalAnchorIndex
-		{
-			get
-			{
-				if( 0 <= _OriginalAnchorIndex )
-					return _OriginalAnchorIndex;
-				else
-					return _Selections.Anchor;
-			}
-		}
-
 		public Selections Selections
 		{
 			get{ return _Selections; }
@@ -55,10 +51,10 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 								  IView view, TextDataType mode )
 		{
 			Debug.Assert( 0 <= anchor && anchor <= _Document.Length,
-						  "parameter 'anchor' out of range (anchor:" + anchor
+						  "Parameter 'anchor' out of range (anchor:" + anchor
 						  + ", Document.Length:" + _Document.Length + ")" );
 			Debug.Assert( 0 <= caret && caret <= _Document.Length,
-						  "parameter 'caret' out of range (anchor:" + anchor
+						  "Parameter 'caret' out of range (anchor:" + anchor
 						  + ", Document.Length:" + _Document.Length + ")" );
 
 			// ensure that document can be divided at given index
@@ -68,29 +64,19 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 			_Selections.LastRangeIndex = 0;
 			if( mode == TextDataType.Rectangle )
 			{
-				ClearLineSelectionData();
-				_OriginalAnchorIndex = -1;
 				SetSelection_Rect( anchor, caret, view );
-				_LastSelectionMode = TextDataType.Rectangle;
 			}
 			else if( mode == TextDataType.Line )
 			{
-				_OriginalAnchorIndex = -1;
 				SetSelection_Line( anchor, caret, view );
-				_LastSelectionMode = TextDataType.Line;
 			}
 			else if( mode == TextDataType.Words )
 			{
-				ClearLineSelectionData();
 				SetSelection_Words( anchor, caret );
-				_LastSelectionMode = TextDataType.Words;
 			}
 			else
 			{
-				ClearLineSelectionData();
-				_OriginalAnchorIndex = -1;
 				SetSelection_Normal( anchor, caret );
-				_LastSelectionMode = TextDataType.Normal;
 			}
 		}
 
@@ -99,7 +85,7 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 		/// </summary>
 		public bool IsInSelection( int index )
 		{
-			foreach( Range r in _Document.Selections )
+			foreach( Range r in _Selections.Ranges )
 				if( r.Begin <= index && index <= r.End )
 					return true;
 
@@ -138,77 +124,35 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 
 		void SetSelection_Line( int anchor, int caret, IView view )
 		{
-			int toLineIndex;
-
-			// get line index of the lines where selection starts and ends
-			toLineIndex = view.GetLineIndexFromCharIndex( caret );
-			if( _LineSelectionAnchor1 < 0
-				|| (anchor != _LineSelectionAnchor1 && anchor != _LineSelectionAnchor2) )
+			Range range = new Range( 0, 0 );
+			if( anchor <= caret )
 			{
-				//-- line selection anchor changed or did not exists --
-				// select between head of the line and end of the line
+				int toLineIndex = view.GetLineIndexFromCharIndex( caret );
+				if( toLineIndex+1 < view.LineCount-1 )
+					range.To = view.GetLineHeadIndex( toLineIndex+1 );
+				else
+					range.To = view.Document.Length;
+
+				range.From = view.GetLineHeadIndexFromCharIndex( anchor );
+			}
+			else
+			{
+				range.To = view.GetLineHeadIndexFromCharIndex( caret );
+
 				int fromLineIndex = view.GetLineIndexFromCharIndex( anchor );
-				anchor = view.GetLineHeadIndex( fromLineIndex );
-				if( fromLineIndex+1 < view.LineCount )
-				{
-					caret = view.GetLineHeadIndex( fromLineIndex + 1 );
-				}
+				if( fromLineIndex+1 < view.LineCount-1 )
+					range.From = view.GetLineHeadIndex( fromLineIndex+1 );
 				else
-				{
-					caret = _Document.Length;
-				}
-				_LineSelectionAnchor1 = anchor;
-				_LineSelectionAnchor2 = anchor;
-			}
-			else if( _LineSelectionAnchor1 < caret )
-			{
-				//-- selecting to the line (or after) where selection started --
-				// select between head of the starting line and the end of the destination line
-				anchor = view.GetLineHeadIndexFromCharIndex( _LineSelectionAnchor1 );
-				if( Document.Utl.IsLineHead(_Document, view, caret) == false )
-				{
-					toLineIndex = view.GetLineIndexFromCharIndex( caret );
-					if( toLineIndex+1 < view.LineCount )
-					{
-						caret = view.GetLineHeadIndex( toLineIndex + 1 );
-					}
-					else
-					{
-						caret = _Document.Length;
-					}
-				}
-			}
-			else// if( caret < LineSelectionAnchor )
-			{
-				//-- selecting to foregoing lines where selection started --
-				// select between head of the destination line and end of the starting line
-				int anchorLineIndex;
-
-				caret = view.GetLineHeadIndex( toLineIndex );
-				anchorLineIndex = view.GetLineIndexFromCharIndex( _LineSelectionAnchor1 );
-				if( anchorLineIndex+1 < view.LineCount )
-				{
-					anchor = view.GetLineHeadIndex( anchorLineIndex + 1 );
-				}
-				else
-				{
-					anchor = _Document.Length;
-				}
-				//DO_NOT//_LineSelectionAnchor1 = anchor;
-				_LineSelectionAnchor2 = anchor;
+					range.From = view.Document.Length;
 			}
 
-			// apply new selection
-			SetSelection_Normal( anchor, caret );
+			SetSelection_Normal( range.From, range.To );
 		}
 
 		void SetSelection_Words( int anchor, int caret )
 		{
 			int waBegin, waEnd; // wa = Word at Anchor
 			int wcBegin, wcEnd; // wc = Word at Caret
-
-			// remember original position of anchor 
-			_OriginalAnchorIndex = anchor;
 
 			// ensure both selection boundaries are on word boundary
 			_Document.GetWordAt( anchor, out waBegin, out waEnd );
@@ -235,12 +179,6 @@ internal TextDataType _LastSelectionMode = TextDataType.Normal; // just remember
 			_Selections.Set( new Range(anchor, caret) );
 			_Document.InvokeSelectionChanged( oldSelections,
 											  false );
-		}
-
-		void ClearLineSelectionData()
-		{
-			_LineSelectionAnchor1 = -1;
-			_LineSelectionAnchor2 = -1;
 		}
 		#endregion
 
