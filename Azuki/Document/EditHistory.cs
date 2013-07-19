@@ -17,7 +17,6 @@ namespace Sgry.Azuki
 		int _NextIndex = 0;
 		EditAction _GroupingUndoChain = null;
 		EditAction _LastSavedAction = null;
-		int _GroupUndoDepth = 0;
 		#endregion
 
 		#region Init / Dispose
@@ -114,7 +113,6 @@ namespace Sgry.Azuki
 													 0, null, null,
 													 0, 0, null );
 			}
-			_GroupUndoDepth++;
 		}
 
 		/// <summary>
@@ -122,19 +120,14 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void EndUndo()
 		{
-			_GroupUndoDepth--;
-			if( _GroupUndoDepth <= 0 )
+			if( _GroupingUndoChain != null )
 			{
-				if( _GroupingUndoChain != null )
+				EditAction groupedAction = _GroupingUndoChain;
+				_GroupingUndoChain = null;
+				if( groupedAction.HasNoEffect == false )
 				{
-					EditAction groupedAction = _GroupingUndoChain;
-					_GroupingUndoChain = null;
-					if( groupedAction.HasNoEffect == false )
-					{
-						Add( groupedAction );
-					}
+					Add( groupedAction );
 				}
-				_GroupUndoDepth = 0;
 			}
 		}
 
