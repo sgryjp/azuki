@@ -732,14 +732,7 @@ namespace Sgry.Azuki
 				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
 
 			int begin, end;
-
-			// get line range
-			if( includesEolCode )
-				LineLogic.GetLineRangeWithEol( _Buffer, _LHI, lineIndex, out begin, out end );
-			else
-				LineLogic.GetLineRange( _Buffer, _LHI, lineIndex, out begin, out end );
-
-			// return length
+			LineLogic.GetLineRange( _Buffer, _LHI, lineIndex, includesEolCode, out begin, out end );
 			return end - begin;
 		}
 
@@ -756,7 +749,7 @@ namespace Sgry.Azuki
 			char[] lineContent;
 
 			// prepare buffer to store line content
-			LineLogic.GetLineRange( _Buffer, _LHI, lineIndex, out begin, out end );
+			LineLogic.GetLineRange( _Buffer, _LHI, lineIndex, false, out begin, out end );
 			if( end <= begin )
 			{
 				return String.Empty;
@@ -782,7 +775,7 @@ namespace Sgry.Azuki
 			char[] lineContent;
 
 			// prepare buffer to store line content
-			LineLogic.GetLineRangeWithEol( _Buffer, _LHI, lineIndex, out begin, out end );
+			LineLogic.GetLineRange( _Buffer, _LHI, lineIndex, true, out begin, out end );
 			if( end <= begin )
 			{
 				return String.Empty;
