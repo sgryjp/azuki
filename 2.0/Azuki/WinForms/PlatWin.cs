@@ -204,14 +204,7 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		public Size DragSize
 		{
-			get
-			{
-#				if !PocketPC
-				return SystemInformation.DragSize;
-#				else
-				return new Size( 4, 4 );
-#				endif
-			}
+			get{ return SystemInformation.DragSize; }
 		}
 		#endregion
 
@@ -244,22 +237,16 @@ namespace Sgry.Azuki.WinForms
 		class Utl
 		{
 			#region Handle Allocation
+			[Obsolete]
 			public static IntPtr MyGlobalLock( IntPtr handle )
 			{
-#				if !PocketPC
 				return WinApi.GlobalLock( handle );
-#				else
-				return handle;
-#				endif
 			}
 
+			[Obsolete]
 			public static void MyGlobalUnlock( IntPtr handle )
 			{
-#				if !PocketPC
 				WinApi.GlobalUnlock( handle );
-#				else
-				// do nothing
-#				endif
 			}
 			#endregion
 
@@ -289,22 +276,10 @@ namespace Sgry.Azuki.WinForms
 
 			/// <exception cref="ArgumentOutOfRangeException">Too long text was given.</exception>
 			/// <exception cref="OutOfMemoryException">No enough memory.</exception>
+			[Obsolete]
 			public static IntPtr MyStringToHGlobalUni( string text )
 			{
-#				if !PocketPC
 				return Marshal.StringToHGlobalUni( text );
-#				else
-				unsafe {
-					IntPtr handle = Marshal.AllocHGlobal( sizeof(char)*(text.Length + 1) );
-					for( int i=0; i<text.Length; i++ )
-					{
-						Marshal.WriteInt16( handle, i*sizeof(char), (short)text[i] ); // handle[i] = text[i];
-					}
-					Marshal.WriteInt16( handle, text.Length*sizeof(char), 0 ); // buf[text.Length] = '\0';
-					
-					return handle;
-				}
-#				endif
 			}
 			#endregion
 		}
@@ -650,12 +625,7 @@ namespace Sgry.Azuki.WinForms
 			oldPen = WinApi.SelectObject( DC, NullPen );
 			oldBrush = WinApi.SelectObject( DC, _Brush );
 
-#			if !PocketPC
 			WinApi.Rectangle( DC, x, y, x+width+1, y+height+1 );
-#			else
-			WinApi.Rectangle( DC, x, y, x+width, y+height );
-#			endif
-
 			WinApi.SelectObject( DC, oldPen );
 			WinApi.SelectObject( DC, oldBrush );
 		}
