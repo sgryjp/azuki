@@ -1,7 +1,6 @@
 ﻿// file: SelectionManager.cs
 // brief: Internal class to manage text selection range.
 // author: YAMAMOTO Suguru
-// update: 2010-08-13
 //=========================================================
 using System;
 using System.Diagnostics;
@@ -261,27 +260,24 @@ namespace Sgry.Azuki
 
 		void SetSelection_Words( int anchor, int caret )
 		{
-			int waBegin, waEnd; // wa = Word at Anchor
-			int wcBegin, wcEnd; // wc = Word at Caret
-
-			// remember original position of anchor 
+			// Remember original position of anchor 
 			_OriginalAnchorIndex = anchor;
 
-			// ensure both selection boundaries are on word boundary
-			_Document.GetWordAt( anchor, out waBegin, out waEnd );
-			_Document.GetWordAt( caret, out wcBegin, out wcEnd );
+			// Ensure both selection boundaries are on word boundary
+			var wordAtAnchorRange = _Document.GetWordRange( anchor );
+			var wordAtCaretRange = _Document.GetWordRange( caret );
 			if( anchor <= caret )
 			{
-				anchor = waBegin;
-				caret = wcEnd;
+				anchor = wordAtAnchorRange.Begin;
+				caret = wordAtCaretRange.End;
 			}
 			else
 			{
-				caret = wcBegin;
-				anchor = waEnd;
+				caret = wordAtCaretRange.Begin;
+				anchor = wordAtAnchorRange.End;
 			}
 
-			// select normally
+			// Select normally
 			SetSelection_Normal( anchor, caret );
 
 		}
