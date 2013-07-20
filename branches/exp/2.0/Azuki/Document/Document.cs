@@ -4,14 +4,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
-using Point = System.Drawing.Point;
-using Rectangle = System.Drawing.Rectangle;
-using Color = System.Drawing.Color;
+using Debug = System.Diagnostics.Debug;
 using Regex = System.Text.RegularExpressions.Regex;
 using RegexOptions = System.Text.RegularExpressions.RegexOptions;
-using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki
 {
@@ -374,7 +369,7 @@ namespace Sgry.Azuki
 			if( LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "too large line index was given (given:"+lineIndex+", actual line count:"+LineCount+")" );
 			
-			int caretIndex = LineLogic.GetCharIndexFromLineColumnIndex( _Buffer, _LHI, lineIndex, columnIndex );
+			int caretIndex = TextUtil.GetCharIndexFromLineColumnIndex( _Buffer, _LHI, lineIndex, columnIndex );
 			SetSelection( caretIndex, caretIndex );
 		}
 
@@ -732,7 +727,7 @@ namespace Sgry.Azuki
 				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
 
 			int begin, end;
-			LineLogic.GetLineRange( _Buffer, _LHI, lineIndex, includesEolCode, out begin, out end );
+			TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, includesEolCode, out begin, out end );
 			return end - begin;
 		}
 
@@ -749,7 +744,7 @@ namespace Sgry.Azuki
 			char[] lineContent;
 
 			// prepare buffer to store line content
-			LineLogic.GetLineRange( _Buffer, _LHI, lineIndex, false, out begin, out end );
+			TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, false, out begin, out end );
 			if( end <= begin )
 			{
 				return String.Empty;
@@ -775,7 +770,7 @@ namespace Sgry.Azuki
 			char[] lineContent;
 
 			// prepare buffer to store line content
-			LineLogic.GetLineRange( _Buffer, _LHI, lineIndex, true, out begin, out end );
+			TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, true, out begin, out end );
 			if( end <= begin )
 			{
 				return String.Empty;
@@ -836,7 +831,7 @@ namespace Sgry.Azuki
 			}
 
 			// constrain indexes to avoid dividing a grapheme cluster
-			Utl.ConstrainIndex( this, ref begin, ref end );
+			TextUtil.ConstrainIndex( _Buffer, ref begin, ref end );
 			
 			// retrieve a part of the content
 			char[] buf = new char[end - begin];
@@ -1001,7 +996,7 @@ namespace Sgry.Azuki
 			if( begin < end )
 			{
 				// manage line head indexes and delete content
-				LineLogic.LHI_Delete( _LHI, _LDS, _Buffer, begin, end );
+				TextUtil.LHI_Delete( _LHI, _LDS, _Buffer, begin, end );
 				_Buffer.RemoveRange( begin, end );
 
 				// manage caret/anchor index
@@ -1023,7 +1018,7 @@ namespace Sgry.Azuki
 			if( 0 < text.Length )
 			{
 				// manage line head indexes and insert content
-				LineLogic.LHI_Insert( _LHI, _LDS, _Buffer, text, begin );
+				TextUtil.LHI_Insert( _LHI, _LDS, _Buffer, text, begin );
 				_Buffer.Insert( begin, text.ToCharArray() );
 
 				// manage caret/anchor index
@@ -1677,7 +1672,7 @@ namespace Sgry.Azuki
 					"Invalid index was given (charIndex:" + charIndex
 					+ ", document.Length:" + Length + ")." );
 
-			return LineLogic.GetLineHeadIndexFromCharIndex( _Buffer, _LHI, charIndex );
+			return TextUtil.GetLineHeadIndexFromCharIndex( _Buffer, _LHI, charIndex );
 		}
 
 		/// <summary>
@@ -1711,7 +1706,7 @@ namespace Sgry.Azuki
 					"Invalid index was given (charIndex:" + charIndex
 					+ ", document.Length:" + Length + ")." );
 
-			return LineLogic.GetLineIndexFromCharIndex( _LHI, charIndex );
+			return TextUtil.GetLineIndexFromCharIndex( _LHI, charIndex );
 		}
 
 		/// <summary>
@@ -1729,7 +1724,7 @@ namespace Sgry.Azuki
 					"Invalid index was given (charIndex:" + charIndex
 					+ ", document.Length:" + Length + ")." );
 
-			LineLogic.GetLineColumnIndexFromCharIndex( _Buffer,
+			TextUtil.GetLineColumnIndexFromCharIndex( _Buffer,
 													   _LHI,
 													   charIndex,
 													   out lineIndex,
@@ -1756,7 +1751,7 @@ namespace Sgry.Azuki
 
 			int index;
 
-			index = LineLogic.GetCharIndexFromLineColumnIndex( _Buffer,
+			index = TextUtil.GetCharIndexFromLineColumnIndex( _Buffer,
 															   _LHI,
 															   lineIndex,
 															   columnIndex );
@@ -2643,13 +2638,7 @@ namespace Sgry.Azuki
 			if( index < 0 || Length < index )
 				throw new ArgumentOutOfRangeException( "index" );
 
-			do
-			{
-				index++;
-			}
-			while( index < Length && IsNotDividableIndex(index) );
-
-			return index;
+			return TextUtil.NextGraphemeClusterIndex( _Buffer, index );
 		}
 
 		/// <summary>
@@ -2686,13 +2675,7 @@ namespace Sgry.Azuki
 			if( index < 0 || Length < index )
 				throw new ArgumentOutOfRangeException( "index" );
 
-			do
-			{
-				index--;
-			}
-			while( 0 < index && IsNotDividableIndex(index) );
-
-			return index;
+			return TextUtil.PrevGraphemeClusterIndex( _Buffer, index );
 		}
 
 		/// <summary>
@@ -2775,67 +2758,7 @@ namespace Sgry.Azuki
 			if( index <= 0 || Length <= index )
 				return false;
 
-			return Document.IsNotDividableIndex( this[index-1], this[index] );
-		}
-
-		/// <summary>
-		/// Determines whether text can not be divided at given index or not.
-		/// </summary>
-		/// <param name="text">The text to be examined.</param>
-		/// <param name="index">The index to determine whether it points to middle of an undividable character sequence or not.</param>
-		/// <remarks>
-		///   <para>
-		///   This method determines whether a string can not be divided at given index or not.
-		///   This is only an utility method.
-		///   Please refer to the document of
-		///   <see cref="Sgry.Azuki.Document.IsNotDividableIndex(int)">Document.IsNotDividableIndex instance method</see>
-		///   for detail.
-		///   </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.IsNotDividableIndex(int)">Document.IsNotDividableIndex method</seealso>
-		public static bool IsNotDividableIndex( string text, int index )
-		{
-			if( text == null || index <= 0 || text.Length <= index )
-				return false;
-
-			return IsNotDividableIndex( text[index-1], text[index] );
-		}
-
-		/// <summary>
-		/// Determines whether text can not be divided at given index or not.
-		/// </summary>
-		static bool IsNotDividableIndex( char prevCh, char ch )
-		{
-			if( prevCh == '\r' && ch == '\n' )
-			{
-				return true;
-			}
-			if( IsHighSurrogate(prevCh) && IsLowSurrogate(ch) )
-			{
-				return true;
-			}
-			if( IsCombiningCharacter(ch) && LineLogic.IsEolChar(prevCh) == false )
-			{
-				return true;
-			}
-
-			return false;
-		}
-
-		/// <summary>
-		/// Determines whether given char is a high surrogate or not.
-		/// </summary>
-		public static bool IsHighSurrogate( char ch )
-		{
-			return (0xd800 <= ch && ch <= 0xdbff);
-		}
-
-		/// <summary>
-		/// Determines whether given char is a low surrogate or not.
-		/// </summary>
-		public static bool IsLowSurrogate( char ch )
-		{
-			return (0xdc00 <= ch && ch <= 0xdfff);
+			return TextUtil.IsNotDividableIndex( this[index-1], this[index] );
 		}
 
 		/// <summary>
@@ -2847,29 +2770,6 @@ namespace Sgry.Azuki
 				return false;
 
 			return IsCombiningCharacter( this[index] );
-		}
-
-		/// <summary>
-		/// Determines whether given character is a combining character or not.
-		/// </summary>
-		public static bool IsCombiningCharacter( string text, int index )
-		{
-			if( index < 0 || text.Length <= index )
-				return false;
-
-			return IsCombiningCharacter( text[index] );
-		}
-
-		/// <summary>
-		/// Determines whether given character is a combining character or not.
-		/// </summary>
-		public static bool IsCombiningCharacter( char ch )
-		{
-			UnicodeCategory category = Char.GetUnicodeCategory( ch );
-			return ( category == UnicodeCategory.NonSpacingMark
-					|| category == UnicodeCategory.SpacingCombiningMark
-					|| category == UnicodeCategory.EnclosingMark
-				);
 		}
 
 		/// <summary>
@@ -2930,56 +2830,26 @@ namespace Sgry.Azuki
 			}
 		}
 
-		internal class Utl
+		internal bool IsLineHead( IView view, int index )
 		{
-			public static void ConstrainIndex( Document doc, ref int anchor, ref int caret )
+			DebugUtl.Assert( view != null );
+
+			if( index < 0 )
 			{
-				if( anchor < caret )
-				{
-					while( doc.IsNotDividableIndex(anchor) )
-						anchor--;
-					while( doc.IsNotDividableIndex(caret) )
-						caret++;
-				}
-				else if( caret < anchor )
-				{
-					while( doc.IsNotDividableIndex(caret) )
-						caret--;
-					while( doc.IsNotDividableIndex(anchor) )
-						anchor++;
-				}
-				else// if( anchor == caret )
-				{
-					while( doc.IsNotDividableIndex(caret) )
-					{
-						anchor--;
-						caret--;
-					}
-				}
+				return false;
 			}
-
-			public static bool IsLineHead( Document doc, IView view, int index )
+			else if( index == 0 )
 			{
-				DebugUtl.Assert( doc != null );
-				DebugUtl.Assert( view != null );
-
-				if( index < 0 )
-				{
-					return false;
-				}
-				else if( index == 0 )
-				{
-					return true;
-				}
-				else if( index < doc.Length )
-				{
-					int lineHeadIndex = view.GetLineHeadIndexFromCharIndex( index );
-					return (lineHeadIndex == index);
-				}
-				else
-				{
-					return false;
-				}
+				return true;
+			}
+			else if( index < Length )
+			{
+				int lineHeadIndex = view.GetLineHeadIndexFromCharIndex( index );
+				return (lineHeadIndex == index);
+			}
+			else
+			{
+				return false;
 			}
 		}
 
@@ -2987,11 +2857,11 @@ namespace Sgry.Azuki
 		{
 			// is the index indicates end of the document or end of a line?
 			if( index == Length
-				|| index < Length && LineLogic.IsEolChar(this[index]))
+				|| index < Length && TextUtil.IsEolChar(this[index]))
 			{
 				// is the index indicates start of the document or start of a line?
 				if( index == 0
-					|| 0 <= index-1 && LineLogic.IsEolChar(this[index-1]) )
+					|| 0 <= index-1 && TextUtil.IsEolChar(this[index-1]) )
 				{
 					return true;
 				}

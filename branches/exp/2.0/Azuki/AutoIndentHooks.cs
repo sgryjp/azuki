@@ -1,7 +1,6 @@
 ﻿// file: AutoIndentLogic.cs
 // brief: Logic around auto-indentation.
 // author: YAMAMOTO Suguru
-// update: 2011-07-31
 //=========================================================
 using System;
 using System.Text;
@@ -52,7 +51,7 @@ namespace Sgry.Azuki
 			}
 
 			// if EOL code was detected, perform indentation
-			if( LineLogic.IsEolChar(ch) )
+			if( TextUtil.IsEolChar(ch) )
 			{
 				str.Append( doc.EolCode );
 
@@ -121,7 +120,7 @@ namespace Sgry.Azuki
 			}
 
 			// user hit Enter key?
-			if( LineLogic.IsEolChar(ch) )
+			if( TextUtil.IsEolChar(ch) )
 			{
 				int i;
 				bool extraPaddingNeeded = false;
@@ -197,7 +196,7 @@ namespace Sgry.Azuki
 				// ensure this line contains only white spaces
 				for( int i=lineHead; i<lineEnd; i++ )
 				{
-					if( LineLogic.IsEolChar(doc[i]) )
+					if( TextUtil.IsEolChar(doc[i]) )
 					{
 						break;
 					}

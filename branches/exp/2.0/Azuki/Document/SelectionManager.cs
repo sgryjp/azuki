@@ -116,7 +116,7 @@ namespace Sgry.Azuki
 			Debug.Assert( _SelectionMode == TextDataType.Normal || view != null );
 
 			// ensure that document can be divided at given index
-			Document.Utl.ConstrainIndex( _Document, ref anchor, ref caret );
+			TextUtil.ConstrainIndex( _Document.InternalBuffer, ref anchor, ref caret );
 
 			// set selection
 			if( SelectionMode == TextDataType.Rectangle )
@@ -222,7 +222,7 @@ namespace Sgry.Azuki
 				//-- selecting to the line (or after) where selection started --
 				// select between head of the starting line and the end of the destination line
 				anchor = view.GetLineHeadIndexFromCharIndex( _LineSelectionAnchor1 );
-				if( Document.Utl.IsLineHead(_Document, view, caret) == false )
+				if( _Document.IsLineHead(view, caret) == false )
 				{
 					toLineIndex = view.GetLineIndexFromCharIndex( caret );
 					if( toLineIndex+1 < view.LineCount )

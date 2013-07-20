@@ -92,7 +92,7 @@
     <Compile Include="Highlighter\JavaScriptHighlighter.cs" />
     <Compile Include="IUserInterface.cs" />
     <Compile Include="IWordProc.cs" />
-    <Compile Include="LineLogic.cs" />
+    <Compile Include="TextUtil.cs" />
     <Compile Include="Platform.cs" />
     <Compile Include="UiImpl.cs" />
     <Compile Include="UserPref.cs" />

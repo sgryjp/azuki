@@ -519,13 +519,13 @@ namespace Sgry.Azuki.WinForms
 
 			// (MUST DO AFTER GETTING EXTENTS)
 			// extend length if it ends with in a grapheme cluster
-			if( 0 < drawableLength && Document.IsNotDividableIndex(text, drawableLength) )
+			if( 0 < drawableLength && TextUtil.IsNotDividableIndex(text, drawableLength) )
 			{
 				do
 				{
 					drawableLength++;
 				}
-				while( Document.IsNotDividableIndex(text, drawableLength) );
+				while( TextUtil.IsNotDividableIndex(text, drawableLength) );
 			}
 
 			WinApi.SelectObject( DC, oldFont );

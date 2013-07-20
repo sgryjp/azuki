@@ -133,7 +133,7 @@ namespace Sgry.Azuki
 			// should select the line and a line below.
 			// To select a line below, calculate index of the char at one more line below.
 			if( doc.SelectionMode == TextDataType.Line
-				&& Document.Utl.IsLineHead(doc, view, newIndex) )
+				&& doc.IsLineHead(view, newIndex) )
 			{
 				Point pt2 = new Point( pt.X, pt.Y+view.LineSpacing );
 				int skippedNewIndex = view.GetIndexFromVirPos( pt2 );
@@ -174,7 +174,7 @@ namespace Sgry.Azuki
 			// To select a line above, calculate index of the char at one more line above.
 			if( doc.SelectionMode == TextDataType.Line
 				&& newIndex == doc.AnchorIndex
-				&& Document.Utl.IsLineHead(doc, view, newIndex) )
+				&& doc.IsLineHead(view, newIndex) )
 			{
 				pt.Y -= view.LineSpacing;
 				if( 0 <= pt.Y )

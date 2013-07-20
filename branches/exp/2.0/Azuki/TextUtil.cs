@@ -1,22 +1,23 @@
-// file: LineLogic.cs
-// brief: Logics to manipulate line/column in a string.
+// file: TextUtil.cs
+// brief: Utility functions to manipulate strings.
 //=========================================================
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki
 {
 	/// <summary>
-	/// Logics to handle line/column in a buffer.
-	/// In this logic, "line" means characters with one EOL code at tail.
+	/// Utility functions to manipulate strings.
 	/// </summary>
-	static class LineLogic
+	static class TextUtil
 	{
 		public static readonly char[] EolChars = new char[]{ '\r', '\n' };
 
-		#region Index Conversion
-		public static int GetCharIndexFromLineColumnIndex( TextBuffer text,
-														   SplitArray<int> lhi,
+		#region Line/Column
+		public static int GetCharIndexFromLineColumnIndex( IList<char> text,
+														   IList<int> lhi,
 														   int lineIndex,
 														   int columnIndex )
 		{
@@ -49,19 +50,19 @@ namespace Sgry.Azuki
 			return lineHeadIndex + columnIndex;
 		}
 
-		public static int GetLineIndexFromCharIndex( SplitArray<int> lhi,
+		public static int GetLineIndexFromCharIndex( IList<int> lhi,
 													 int charIndex )
 		{
 			DebugUtl.Assert( 0<=charIndex,"invalid args; given charIndex was "
 							 + charIndex );
 
-			int index = lhi.BinarySearch( charIndex );
+			int index = BinarySearch( lhi, charIndex );
 			return (0 <= index) ? index : ~(index) - 1;
 		}
 
 		public static void
-			GetLineColumnIndexFromCharIndex( TextBuffer text,
-											 SplitArray<int> lhi,
+			GetLineColumnIndexFromCharIndex( IList<char> text,
+											 IList<int> lhi,
 											 int charIndex,
 											 out int lineIndex,
 											 out int columnIndex )
@@ -73,15 +74,15 @@ namespace Sgry.Azuki
 							 "given charIndex was too large (given:{0} "
 							 + "actual text count:{1})",charIndex,text.Count));
 
-			int index = lhi.BinarySearch( charIndex );
+			int index = BinarySearch( lhi, charIndex );
 			lineIndex = ( 0 <= index ) ? index : ~(index) - 1;
 			if( lhi.Count <= lineIndex )
 				lineIndex = lhi.Count - 1;
 			columnIndex = charIndex - lhi[lineIndex];
 		}
 
-		public static int GetLineHeadIndexFromCharIndex( TextBuffer text,
-														 SplitArray<int> lhi,
+		public static int GetLineHeadIndexFromCharIndex( IList<char> text,
+														 IList<int> lhi,
 														 int charIndex )
 		{
 			DebugUtl.Assert( text != null && lhi != null );
@@ -91,17 +92,15 @@ namespace Sgry.Azuki
 							 "too large char-index was given (given:{0} actual"
 							 + " text count:{1})", charIndex, text.Count) );
 
-			int index = lhi.BinarySearch( charIndex );
+			int index = BinarySearch( lhi, charIndex );
 			int lineIndex = ( 0 <= index ) ? index : ~(index) - 1;
 			if( lhi.Count <= lineIndex )
 				lineIndex = lhi.Count - 1;
 			return lhi[lineIndex];
 		}
-		#endregion
 
-		#region Line Range
-		public static void GetLineRange( TextBuffer text,
-										 SplitArray<int> lhi,
+		public static void GetLineRange( IList<char> text,
+										 IList<int> lhi,
 										 int lineIndex,
 										 bool includesEolCode,
 										 out int begin,
@@ -112,7 +111,6 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( 0 <= lineIndex && lineIndex < lhi.Count,
 							 "argument out of range; given lineIndex is "
 							 + lineIndex + " but lhi.Count is " + lhi.Count );
-			int length;
 
 			// Get range of the specified line
 			begin = lhi[lineIndex];
@@ -130,7 +128,7 @@ namespace Sgry.Azuki
 			// Subtract length of the trailing EOL code
 			if( includesEolCode == false )
 			{
-				length = end - begin;
+				int length = end - begin;
 				if( 1 <= length && text[end-1] == '\n' )
 				{
 					if( 2 <= length && text[end-2] == '\r' )
@@ -144,9 +142,212 @@ namespace Sgry.Azuki
 				}
 			}
 		}
+
+		public static int GetLineLengthByCharIndex( IList<char> text,
+													int charIndex )
+		{
+			int prevLH = PrevLineHead( text, charIndex );
+			int nextLH = NextLineHead( text, charIndex );
+			if( nextLH == -1 )
+			{
+				nextLH = text.Count - 1;
+			}
+
+			return (nextLH - prevLH);
+		}
+
+		public static int GetLineLengthByCharIndex( string text, int charIndex )
+		{
+			int prevLH = PrevLineHead( text, charIndex );
+			int nextLH = NextLineHead( text, charIndex );
+			if( nextLH == -1 )
+			{
+				nextLH = text.Length - 1;
+			}
+
+			return (nextLH - prevLH);
+		}
+
+		public static bool IsMultiLine( string text )
+		{
+			int lineHead = 0;
+
+			lineHead = NextLineHead( text, lineHead );
+			if( lineHead != -1 )
+			{
+				return true;
+			}
+
+			return false;
+		}
+
+		public static int CountLines( string text )
+		{
+			int count = 0;
+			int lineHead = 0;
+
+			lineHead = NextLineHead( text, lineHead );
+			while( lineHead != -1 )
+			{
+				count++;
+				lineHead = NextLineHead( text, lineHead );
+			}
+
+			return count + 1;
+		}
+
+		public static bool IsEolChar( char ch )
+		{
+			return (ch == '\r' || ch == '\n');
+		}
+
+		public static bool IsEolChar( string str, int index )
+		{
+			if( 0 <= index && index < str.Length )
+			{
+				char ch = str[index];
+				return (ch == '\r' || ch == '\n');
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		public static int NextLineHead( IList<char> str, int startIndex )
+		{
+			DebugUtl.Assert( str != null );
+			for( int i=startIndex; i<str.Count; i++ )
+			{
+				// found EOL code?
+				if( str[i] == '\r' )
+				{
+					if( i+1 < str.Count
+						&& str[i+1] == '\n' )
+					{
+						return i+2;
+					}
+
+					return i+1;
+				}
+				else if( str[i] == '\n' )
+				{
+					return i+1;
+				}
+			}
+
+			return -1; // not found
+		}
+
+		public static int NextLineHead( string str, int startIndex )
+		{
+			DebugUtl.Assert( str != null );
+			for( int i=startIndex; i<str.Length; i++ )
+			{
+				// found EOL code?
+				if( str[i] == '\r' )
+				{
+					if( i+1 < str.Length
+						&& str[i+1] == '\n' )
+					{
+						return i+2;
+					}
+
+					return i+1;
+				}
+				else if( str[i] == '\n' )
+				{
+					return i+1;
+				}
+			}
+
+			return -1; // not found
+		}
+
+		public static int PrevLineHead( IList<char> str, int startIndex )
+		{
+			DebugUtl.Assert( startIndex <= str.Count,
+							 "invalid argument; startIndex is ("
+							 +startIndex+" but str.Count is "+str.Count+")" );
+
+			if( str.Count <= startIndex )
+			{
+				startIndex = str.Count - 1;
+			}
+
+			for( int i=startIndex-1; 0<=i; i-- )
+			{
+				// found EOL code?
+				if( str[i] == '\n' )
+				{
+					return i+1;
+				}
+				else if( str[i] == '\r' )
+				{
+					if( i+1 < str.Count
+						&& str[i+1] == '\n' )
+					{
+						continue;
+					}
+					return i+1;
+				}
+			}
+
+			return 0;
+		}
+
+		public static int PrevLineHead( string str, int startIndex )
+		{
+			DebugUtl.Assert( startIndex <= str.Length,
+							 "invalid argument; startIndex is ("
+							 +startIndex+" but str.Length is "+str.Length+")" );
+
+			if( str.Length <= startIndex )
+			{
+				startIndex = str.Length - 1;
+			}
+
+			for( int i=startIndex-1; 0<=i; i-- )
+			{
+				// found EOL code?
+				if( str[i] == '\n' )
+				{
+					return i+1;
+				}
+				else if( str[i] == '\r' )
+				{
+					if( i+1 < str.Length
+						&& str[i+1] == '\n' )
+					{
+						continue;
+					}
+					return i+1;
+				}
+			}
+
+			return 0;
+		}
+
+		/// <summary>
+		/// Find non-EOL char from specified index.
+		/// Note that the char at specified index always be skipped.
+		/// </summary>
+		public static int PrevNonEolChar( IList<char> str, int startIndex )
+		{
+			for( int i=startIndex-1; 0<=i; i-- )
+			{
+				if( IsEolChar(str[i]) != true )
+				{
+					// found non-EOL code
+					return i;
+				}
+			}
+
+			return -1; // not found
+		}
 		#endregion
 
-		#region Line Head Index Management
+		#region LHI_Insert and LHI_Delete
 		/// <summary>
 		/// Maintain line head indexes for text insertion.
 		/// THIS MUST BE CALLED BEFORE ACTUAL INSERTION.
@@ -154,7 +355,7 @@ namespace Sgry.Azuki
 		public static void LHI_Insert(
 				SplitArray<int> lhi,
 				SplitArray<LineDirtyState> lds,
-				TextBuffer text,
+				IList<char> text,
 				string insertText, int insertIndex
 			)
 		{
@@ -164,7 +365,7 @@ namespace Sgry.Azuki
 							 "lds must have at one or more items." );
 			DebugUtl.Assert( lhi.Count == lds.Count, "lhi.Count(" + lhi.Count
 							 + ") is not lds.Count(" + lds.Count + ")" );
-			DebugUtl.Assert( insertText != null && 0 < insertText.Length,
+			DebugUtl.Assert( String.IsNullOrEmpty(insertText) == false,
 							 "insertText must not be null nor empty." );
 			DebugUtl.Assert( 0 <= insertIndex && insertIndex <= text.Count,
 							 "insertIndex is out of range (" + insertIndex
@@ -268,7 +469,7 @@ namespace Sgry.Azuki
 		public static void LHI_Delete(
 				SplitArray<int> lhi,
 				SplitArray<LineDirtyState> lds,
-				TextBuffer text,
+				IList<char> text,
 				int delBegin, int delEnd
 			)
 		{
@@ -346,13 +547,44 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
-		#region Utilities
-		public static bool IsMultiLine( string text )
+		#region Unicode character sequence
+		/// <summary>
+		/// Determines whether given character is a combining character or not.
+		/// </summary>
+		public static bool IsCombiningCharacter( char ch )
 		{
-			int lineHead = 0;
+			UnicodeCategory category = Char.GetUnicodeCategory( ch );
+			return ( category == UnicodeCategory.NonSpacingMark
+					|| category == UnicodeCategory.SpacingCombiningMark
+					|| category == UnicodeCategory.EnclosingMark
+				);
+		}
 
-			lineHead = NextLineHead( text, lineHead );
-			if( lineHead != -1 )
+		/// <summary>
+		/// Determines whether given character is a combining character or not.
+		/// </summary>
+		public static bool IsCombiningCharacter( string text, int index )
+		{
+			if( index < 0 || text.Length <= index )
+				return false;
+
+			return IsCombiningCharacter( text[index] );
+		}
+
+		/// <summary>
+		/// Determines whether text can not be divided at given index or not.
+		/// </summary>
+		public static bool IsNotDividableIndex( char prevCh, char ch )
+		{
+			if( prevCh == '\r' && ch == '\n' )
+			{
+				return true;
+			}
+			if( Char.IsHighSurrogate(prevCh) && Char.IsLowSurrogate(ch) )
+			{
+				return true;
+			}
+			if( IsCombiningCharacter(ch) && IsEolChar(prevCh) == false )
 			{
 				return true;
 			}
@@ -360,194 +592,146 @@ namespace Sgry.Azuki
 			return false;
 		}
 
-		public static int CountLines( string text )
+		/// <summary>
+		/// Determines whether text can not be divided at given index or not.
+		/// </summary>
+		/// <param name="text">The text to be examined.</param>
+		/// <param name="index">The index to determine whether it points to middle of an undividable character sequence or not.</param>
+		/// <remarks>
+		///   <para>
+		///   This method determines whether a string can not be divided at given index or not.
+		///   This is only an utility method.
+		///   Please refer to the document of
+		///   <see cref="Sgry.Azuki.Document.IsNotDividableIndex(int)">Document.IsNotDividableIndex instance method</see>
+		///   for detail.
+		///   </para>
+		/// </remarks>
+		/// <seealso cref="Sgry.Azuki.Document.IsNotDividableIndex(int)">Document.IsNotDividableIndex method</seealso>
+		public static bool IsNotDividableIndex( string text, int index )
 		{
-			int count = 0;
-			int lineHead = 0;
-
-			lineHead = NextLineHead( text, lineHead );
-			while( lineHead != -1 )
-			{
-				count++;
-				lineHead = NextLineHead( text, lineHead );
-			}
-
-			return count + 1;
-		}
-
-		public static bool IsEolChar( char ch )
-		{
-			return (ch == '\r' || ch == '\n');
-		}
-
-		public static bool IsEolChar( string str, int index )
-		{
-			if( 0 <= index && index < str.Length )
-			{
-				char ch = str[index];
-				return (ch == '\r' || ch == '\n');
-			}
-			else
-			{
+			if( text == null || index <= 0 || text.Length <= index )
 				return false;
-			}
-		}
 
-		public static int NextLineHead( TextBuffer str, int startIndex )
-		{
-			DebugUtl.Assert( str != null );
-			for( int i=startIndex; i<str.Count; i++ )
-			{
-				// found EOL code?
-				if( str[i] == '\r' )
-				{
-					if( i+1 < str.Count
-						&& str[i+1] == '\n' )
-					{
-						return i+2;
-					}
-
-					return i+1;
-				}
-				else if( str[i] == '\n' )
-				{
-					return i+1;
-				}
-			}
-
-			return -1; // not found
-		}
-
-		public static int NextLineHead( string str, int startIndex )
-		{
-			DebugUtl.Assert( str != null );
-			for( int i=startIndex; i<str.Length; i++ )
-			{
-				// found EOL code?
-				if( str[i] == '\r' )
-				{
-					if( i+1 < str.Length
-						&& str[i+1] == '\n' )
-					{
-						return i+2;
-					}
-
-					return i+1;
-				}
-				else if( str[i] == '\n' )
-				{
-					return i+1;
-				}
-			}
-
-			return -1; // not found
-		}
-
-		public static int PrevLineHead( TextBuffer str, int startIndex )
-		{
-			DebugUtl.Assert( startIndex <= str.Count,
-							 "invalid argument; startIndex is ("
-							 +startIndex+" but str.Count is "+str.Count+")" );
-
-			if( str.Count <= startIndex )
-			{
-				startIndex = str.Count - 1;
-			}
-
-			for( int i=startIndex-1; 0<=i; i-- )
-			{
-				// found EOL code?
-				if( str[i] == '\n' )
-				{
-					return i+1;
-				}
-				else if( str[i] == '\r' )
-				{
-					if( i+1 < str.Count
-						&& str[i+1] == '\n' )
-					{
-						continue;
-					}
-					return i+1;
-				}
-			}
-
-			return 0;
-		}
-
-		public static int PrevLineHead( string str, int startIndex )
-		{
-			DebugUtl.Assert( startIndex <= str.Length,
-							 "invalid argument; startIndex is ("
-							 +startIndex+" but str.Length is "+str.Length+")" );
-
-			if( str.Length <= startIndex )
-			{
-				startIndex = str.Length - 1;
-			}
-
-			for( int i=startIndex-1; 0<=i; i-- )
-			{
-				// found EOL code?
-				if( str[i] == '\n' )
-				{
-					return i+1;
-				}
-				else if( str[i] == '\r' )
-				{
-					if( i+1 < str.Length
-						&& str[i+1] == '\n' )
-					{
-						continue;
-					}
-					return i+1;
-				}
-			}
-
-			return 0;
+			return IsNotDividableIndex( text[index-1], text[index] );
 		}
 
 		/// <summary>
-		/// Find non-EOL char from specified index.
-		/// Note that the char at specified index always be skipped.
+		/// Determines whether text can not be divided at given index or not.
 		/// </summary>
-		public static int PrevNonEolChar( TextBuffer str, int startIndex )
+		/// <param name="text">The text to be examined.</param>
+		/// <param name="index">The index to determine whether it points to middle of an undividable character sequence or not.</param>
+		/// <remarks>
+		///   <para>
+		///   This method determines whether a string can not be divided at given index or not.
+		///   This is only an utility method.
+		///   Please refer to the document of
+		///   <see cref="Sgry.Azuki.Document.IsNotDividableIndex(int)">Document.IsNotDividableIndex instance method</see>
+		///   for detail.
+		///   </para>
+		/// </remarks>
+		/// <seealso cref="Sgry.Azuki.Document.IsNotDividableIndex(int)">Document.IsNotDividableIndex method</seealso>
+		public static bool IsNotDividableIndex( IList<char> text, int index )
 		{
-			for( int i=startIndex-1; 0<=i; i-- )
+			if( text == null || index <= 0 || text.Count <= index )
+				return false;
+
+			return IsNotDividableIndex( text[index-1], text[index] );
+		}
+
+		public static void ConstrainIndex( IList<char> text, ref int anchor, ref int caret )
+		{
+			if( anchor < caret )
 			{
-				if( IsEolChar(str[i]) != true )
+				while( IsNotDividableIndex(text, anchor) )
+					anchor--;
+				while( IsNotDividableIndex(text, caret) )
+					caret++;
+			}
+			else if( caret < anchor )
+			{
+				while( IsNotDividableIndex(text, caret) )
+					caret--;
+				while( IsNotDividableIndex(text, anchor) )
+					anchor++;
+			}
+			else// if( anchor == caret )
+			{
+				while( IsNotDividableIndex(text, caret) )
 				{
-					// found non-EOL code
-					return i;
+					anchor--;
+					caret--;
 				}
 			}
-
-			return -1; // not found
 		}
 
-		public static int GetLineLengthByCharIndex( TextBuffer text,
-													int charIndex )
+		public static int NextGraphemeClusterIndex( IList<char> text, int index )
 		{
-			int prevLH = PrevLineHead( text, charIndex );
-			int nextLH = NextLineHead( text, charIndex );
-			if( nextLH == -1 )
-			{
-				nextLH = text.Count - 1;
-			}
+			Debug.Assert( text != null );
+			Debug.Assert( 0 <= index );
+			Debug.Assert( index < text.Count );
 
-			return (nextLH - prevLH);
+			do
+			{
+				index++;
+			}
+			while( index < text.Count && IsNotDividableIndex(text, index) );
+
+			return index;
 		}
 
-		public static int GetLineLengthByCharIndex( string text, int charIndex )
+		public static int PrevGraphemeClusterIndex( IList<char> text, int index )
 		{
-			int prevLH = PrevLineHead( text, charIndex );
-			int nextLH = NextLineHead( text, charIndex );
-			if( nextLH == -1 )
-			{
-				nextLH = text.Length - 1;
-			}
+			Debug.Assert( text != null );
+			Debug.Assert( 0 <= index );
+			Debug.Assert( index <= text.Count );
 
-			return (nextLH - prevLH);
+			do
+			{
+				index--;
+			}
+			while( 0 < index && IsNotDividableIndex(text, index) );
+
+			return index;
+		}
+		#endregion
+
+		#region Others
+		public static int BinarySearch<T>( IList<T> list, T item )
+		{
+			return BinarySearch( list, item, Comparer<T>.Default.Compare );
+		}
+
+		public static int BinarySearch<T>( IList<T> list, T item, Comparison<T> compare )
+		{
+			Debug.Assert( compare != null );
+
+			if( list.Count == 0 )
+				return ~(0);
+
+			int left = 0;
+			int right = list.Count;
+			int middle;
+			for(;;)
+			{
+				middle = left + ( (right - left) >> 1 );
+				int result = compare( list[middle], item );
+				if( 0 < result )
+				{
+					if( right == middle )
+						return ~(middle);
+					right = middle;
+				}
+				else if( result < 0 )
+				{
+					if( left == middle )
+						return ~(middle + 1);
+					left = middle;
+				}
+				else
+				{
+					return middle;
+				}
+			}
 		}
 		#endregion
 	}
