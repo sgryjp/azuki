@@ -726,9 +726,7 @@ namespace Sgry.Azuki
 			if( lineIndex < 0 || LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
 
-			int begin, end;
-			TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, includesEolCode, out begin, out end );
-			return end - begin;
+			return TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, includesEolCode ).Length;
 		}
 
 		/// <summary>
@@ -749,31 +747,28 @@ namespace Sgry.Azuki
 			if( lineIndex < 0 || LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
 
-			int begin, end;
-			char[] lineContent;
-
 			// prepare buffer to store line content
-			TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, withEolCode, out begin, out end );
-			if( end <= begin )
+			var range = TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, withEolCode );
+			if( range.IsEmpty )
 			{
 				return String.Empty;
 			}
-			lineContent = new char[ end-begin ];
+			var lineContent = new char[ range.Length ];
 			
 			// copy line content
-			_Buffer.CopyTo( begin, end, lineContent );
+			_Buffer.CopyTo( range.Begin, range.End, lineContent );
 
 			return new String( lineContent );
 		}
 
 		/// <summary>
-		/// Gets text in the range [begin, end).
+		/// Gets text within a specified range [begin, end).
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
 		/// <remarks>
 		///   <para>
-		///   If given index is at middle of an undividable character sequence such as surrogate pair,
-		///   given range will be automatically expanded to avoid dividing the pair.
+		///   If given index is at middle of an undividable character sequence such as surrogate
+		///   pair, the range will be automatically expanded to avoid dividing the pair.
 		///   </para>
 		///   <para>
 		///   If expanded range is needed, use <see cref="Sgry.Azuki.Document.GetTextInRangeRef"/>.
@@ -1192,14 +1187,9 @@ namespace Sgry.Azuki
 		/// <param name="markingID">
 		///   The text range marked with this ID will be retrieved.
 		/// </param>
-		/// <param name="begin">
-		///   When this method returns, contains the beginning index of the text range.
-		/// </param>
-		/// <param name="end">
-		///   When this method returns, contains the ending index of the text range.
-		/// </param>
 		/// <returns>
-		///   Whether a text range marked with specified marking ID was retrieved or not.
+		///   Range of the text part if specified index was marked with the ID.
+		///   Otherwise returns an empty range.
 		/// </returns>
 		/// <exception cref="System.ArgumentOutOfRangeException">
 		///   Parameter <paramref name="index"/> is out of valid range.
@@ -1209,7 +1199,7 @@ namespace Sgry.Azuki
 		///   Parameter <paramref name="markingID"/> is not registered in Marking class.
 		/// </exception>
 		/// <seealso cref="Sgry.Azuki.Marking">Marking class</seealso>
-		public bool GetMarkedRange( int index, int markingID, out int begin, out int end )
+		public Range GetMarkedRange( int index, int markingID )
 		{
 			if( index < 0 || _Buffer.Count <= index )
 				throw new ArgumentOutOfRangeException( "index",
@@ -1221,34 +1211,32 @@ namespace Sgry.Azuki
 											 + " (markingID:" + markingID + ")",
 											 "markingID" );
 
-			uint markingBitMask;
+			var range = new Range( index, index );
 
 			// make bit mask
-			markingBitMask = (uint)( 1 << markingID );
+			var markingBitMask = (uint)( 1 << markingID );
 			if( (_Buffer.Marks[index] & markingBitMask) == 0 )
 			{
-				begin = index;
-				end = index;
-				return false;
+				return range;
 			}
 
 			// seek back until the marking bit was disabled
-			begin = index;
-			while( 0 <= begin-1
-				&& (_Buffer.Marks[begin-1] & markingBitMask) != 0 )
+			range.Begin = index;
+			while( 0 <= range.Begin-1
+				&& (_Buffer.Marks[range.Begin-1] & markingBitMask) != 0 )
 			{
-				begin--;
+				range.Begin--;
 			}
 
 			// seek forward until the marking bit was disabled
-			end = index;
-			while( end < _Buffer.Count
-				&& (_Buffer.Marks[end] & markingBitMask) != 0 )
+			range.End = index;
+			while( range.End < _Buffer.Count
+				&& (_Buffer.Marks[range.End] & markingBitMask) != 0 )
 			{
-				end++;
+				range.End++;
 			}
 
-			return true;
+			return new Range( range.Begin, range.End );
 		}
 
 		/// <summary>
@@ -1276,18 +1264,15 @@ namespace Sgry.Azuki
 											 + " (markingID:" + markingID + ")",
 											 "markingID" );
 
-			int begin, end;
-			bool found;
-
 			// get range of the marked text
-			found = GetMarkedRange( index, markingID, out begin, out end );
-			if( !found )
+			var range = GetMarkedRange( index, markingID );
+			if( range.IsEmpty )
 			{
 				return null;
 			}
 
 			// extract that range
-			return GetTextInRange( begin, end );
+			return GetTextInRange( range.Begin, range.End );
 		}
 
 		/// <summary>

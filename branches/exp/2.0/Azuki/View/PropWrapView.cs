@@ -153,19 +153,15 @@ namespace Sgry.Azuki
 			if( columnIndex < 0 )
 				throw new ArgumentOutOfRangeException( "columnIndex("+columnIndex+")" );
 
-			Point pos = new Point();
-
 			// set value for when the columnIndex is 0
-			pos.X = 0;
-			pos.Y = (lineIndex * LineSpacing) + (LinePadding >> 1);
+			var pos = new Point( 0, (lineIndex * LineSpacing) + (LinePadding >> 1) );
 
 			// if the location is not the head of the line, calculate x-coord.
 			if( 0 < columnIndex )
 			{
 				// get partial content of the line which exists before the caret
-				int lineBegin, lineEnd;
-				TextUtil.GetLineRange( Document.InternalBuffer, PLHI, lineIndex, true, out lineBegin, out lineEnd );
-				string leftPart = Document.GetTextInRange( lineBegin, lineBegin+columnIndex );
+				Range r = TextUtil.GetLineRange( Document.InternalBuffer, PLHI, lineIndex, true );
+				string leftPart = Document.GetTextInRange( r.Begin, r.Begin + columnIndex );
 
 				// measure the characters
 				pos.X = MeasureTokenEndX( g, leftPart, pos.X );
@@ -201,15 +197,14 @@ namespace Sgry.Azuki
 			columnIndex = 0;
 			if( 0 < pt.X )
 			{
-				int begin, end;
 				string line;
 				bool isWrapLine = false;
-				
+
 				// get content of the line
-				TextUtil.GetLineRange( Document.InternalBuffer, PLHI, lineIndex, false, out begin, out end );
-				line = Document.GetTextInRange( begin, end );
-				if( end+1 < Document.Length
-					&& !TextUtil.IsEolChar(Document[end]) )
+				Range range = TextUtil.GetLineRange( Document.InternalBuffer, PLHI, lineIndex, false );
+				line = Document.GetTextInRange( range.Begin, range.End );
+				if( range.End+1 < Document.Length
+					&& !TextUtil.IsEolChar(Document[range.End]) )
 				{
 					isWrapLine = true;
 				}
