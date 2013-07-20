@@ -371,8 +371,8 @@ namespace Sgry.Azuki
 		{
 			if( lineIndex < 0 || columnIndex < 0 )
 				throw new ArgumentOutOfRangeException( "lineIndex or columnIndex", "index must not be negative value. (lineIndex:"+lineIndex+", columnIndex:"+columnIndex+")" );
-			if( _LHI.Count <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "too large line index was given (given:"+lineIndex+", actual line count:"+_LHI.Count+")" );
+			if( LineCount <= lineIndex )
+				throw new ArgumentOutOfRangeException( "lineIndex", "too large line index was given (given:"+lineIndex+", actual line count:"+LineCount+")" );
 			
 			int caretIndex = LineLogic.GetCharIndexFromLineColumnIndex( _Buffer, _LHI, lineIndex, columnIndex );
 			SetSelection( caretIndex, caretIndex );
@@ -728,7 +728,7 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public int GetLineLength( int lineIndex, bool includesEolCode )
 		{
-			if( lineIndex < 0 || _LHI.Count <= lineIndex )
+			if( lineIndex < 0 || LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
 
 			int begin, end;
@@ -742,7 +742,7 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
 		public string GetLineContent( int lineIndex )
 		{
-			if( lineIndex < 0 || _LHI.Count <= lineIndex )
+			if( lineIndex < 0 || LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
 
 			int begin, end;
@@ -768,7 +768,7 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
 		public string GetLineContentWithEolCode( int lineIndex )
 		{
-			if( lineIndex < 0 || _LHI.Count <= lineIndex )
+			if( lineIndex < 0 || LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
 
 			int begin, end;
@@ -850,7 +850,7 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
 		public string GetTextInRange( int beginLineIndex, int beginColumnIndex, int endLineIndex, int endColumnIndex )
 		{
-			if( endLineIndex < 0 || _LHI.Count <= endLineIndex )
+			if( endLineIndex < 0 || LineCount <= endLineIndex )
 				throw new ArgumentOutOfRangeException( "endLineIndex", "Invalid index was given (endLineIndex:"+endLineIndex+", this.Length:"+Length+")." );
 			if( beginLineIndex < 0 || endLineIndex < beginLineIndex )
 				throw new ArgumentOutOfRangeException( "beginLineIndex", "Invalid index was given (beginLineIndex:"+beginLineIndex+", endLineIndex:"+endLineIndex+")." );
@@ -1655,7 +1655,7 @@ namespace Sgry.Azuki
 		/// </exception>
 		public int GetLineHeadIndex( int lineIndex )
 		{
-			if( lineIndex < 0 || _LHI.Count <= lineIndex )
+			if( lineIndex < 0 || LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex",
 					"Invalid index was given (lineIndex:" + lineIndex
 					+ ", document.LineCount:" + LineCount + ")." );
@@ -1745,7 +1745,7 @@ namespace Sgry.Azuki
 		public int GetCharIndexFromLineColumnIndex( int lineIndex,
 													int columnIndex )
 		{
-			if( lineIndex < 0 || _LHI.Count <= lineIndex )
+			if( lineIndex < 0 || LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex",
 					"Invalid index was given (lineIndex:" + lineIndex
 					+ ", this.LineCount:" + LineCount + ")." );
