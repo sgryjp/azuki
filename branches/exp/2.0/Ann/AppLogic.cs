@@ -541,7 +541,7 @@ namespace Sgry.Ann
 			if( AppConfig.MruFiles.TryGet(filePath, out mru) )
 			{
 				initialLine = Math.Min( mru.LineIndex, doc.LineCount-1 );
-				initialColumn = Math.Min( mru.ColumnIndex, doc.GetLineLength(initialLine) );
+				initialColumn = Math.Min( mru.ColumnIndex, doc.GetLineRange(initialLine).Length );
 			}
 			AppConfig.MruFiles.Put( filePath );
 
@@ -730,7 +730,7 @@ namespace Sgry.Ann
 
 				// restore caret position and scroll to it
 				line = Math.Min( line, doc.LineCount-1 );
-				column = Math.Min( column, doc.GetLineLength(line) );
+				column = Math.Min( column, doc.GetLineRange(line).Length );
 				doc.SetCaretIndex( line, column );
 
 				_MainForm.UpdateUI();
@@ -1250,18 +1250,18 @@ namespace Sgry.Ann
 			AzukiControl azuki = MainForm.Azuki;
 			AzukiDocument doc = azuki.Document;
 			IMouseEventArgs mea = (IMouseEventArgs)e;
-			int urlBegin, urlEnd, selBegin, selEnd;
+			int selBegin, selEnd;
 
 			if( mea.Index < doc.Length
 				&& doc.IsMarked(mea.Index, Marking.Uri)
 				&& azuki.View.TextAreaRectangle.Contains(mea.Location) )
 			{
 				// select entire URI if not selected, or deselect if selected.
-				doc.GetMarkedRange( mea.Index, Marking.Uri, out urlBegin, out urlEnd );
+				var urlRange = doc.GetMarkedRange( mea.Index, Marking.Uri );
 				doc.GetSelection( out selBegin, out selEnd );
-				if( selBegin != urlBegin && selEnd != urlEnd )
+				if( selBegin != urlRange.Begin && selEnd != urlRange.End )
 				{
-					doc.SetSelection( urlBegin, urlEnd );
+					doc.SetSelection( urlRange.Begin, urlRange.End );
 				}
 				else
 				{

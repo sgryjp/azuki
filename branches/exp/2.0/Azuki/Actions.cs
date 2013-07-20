@@ -721,7 +721,7 @@ namespace Sgry.Azuki
 			for( int i=beginL; i<endL; i++ )
 			{
 				int lineHead = doc.GetLineHeadIndex( i );
-				if( 0 < doc.GetLineLength(i) )
+				if( 0 < doc.GetLineRange(i).Length )
 					doc.Replace( indentChars, lineHead, lineHead );
 			}
 			doc.EndUndo();
@@ -821,7 +821,7 @@ namespace Sgry.Azuki
 			for( int i=beginL; i<endL; i++ )
 			{
 				int lineBegin = doc.GetLineHeadIndex( i );
-				int lineEnd = lineBegin + doc.GetLineLength( i );
+				int lineEnd = lineBegin + doc.GetLineRange( i ).Length;
 				int index = lineEnd;
 				while( lineBegin<=index-1 && Char.IsWhiteSpace(doc[index-1]) )
 				{
@@ -854,7 +854,7 @@ namespace Sgry.Azuki
 			for( int i=beginL; i<endL; i++ )
 			{
 				int lineBegin = doc.GetLineHeadIndex( i );
-				int lineEnd = lineBegin + doc.GetLineLength( i );
+				int lineEnd = lineBegin + doc.GetLineRange( i ).Length;
 				int index = lineBegin;
 				while( index < lineEnd && Char.IsWhiteSpace(doc[index]) )
 				{
