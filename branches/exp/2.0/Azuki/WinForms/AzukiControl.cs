@@ -1471,15 +1471,6 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Gets a word at specified index.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
-		public string GetWordAt( int index )
-		{
-			return Document.GetWordAt( index );
-		}
-
-		/// <summary>
 		/// Gets text in the range [begin, end).
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified range was invalid.</exception>

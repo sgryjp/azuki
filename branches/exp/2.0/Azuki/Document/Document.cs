@@ -552,63 +552,48 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets a word at specified index.
+		/// Gets a range of a word at specified index.
 		/// </summary>
-		/// <param name="index">The word at this index will be retrieved.</param>
+		/// <param name="index">The range of a word at this index will be retrieved.</param>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		public string GetWordAt( int index )
-		{
-			int begin, end;
-			return GetWordAt( index, out begin, out end );
-		}
-
-		/// <summary>
-		/// Gets a word at specified index.
-		/// </summary>
-		/// <param name="index">The word at this index will be retrieved.</param>
-		/// <param name="begin">The index of the char which starts the word.</param>
-		/// <param name="end">The index of where the word ends.</param>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		public string GetWordAt( int index, out int begin, out int end )
+		public Range GetWordRange( int index )
 		{
 			if( index < 0 || _Buffer.Count < index ) // index can be equal to char-count
 				throw new ArgumentOutOfRangeException( "index", "Invalid index was given (index:"+index+", this.Length:"+Length+")." );
 
+			var range = new Range( index, index );
+
 			// if specified position indicates an empty line, select nothing
 			if( IsEmptyLine(index) )
 			{
-				begin = end = index;
-				return String.Empty;
+				return range;
 			}
 
 			// ask word processor where the word starting/ending positions are
-			begin = WordProc.PrevWordStart( this, index );
-			end = WordProc.NextWordEnd( this, index );
-			if( begin == end )
+			range.Begin = WordProc.PrevWordStart( this, index );
+			range.End = WordProc.NextWordEnd( this, index );
+			if( range.IsEmpty )
 			{
-				if( Length <= end || Char.IsWhiteSpace(this[end]) )
+				if( Length <= range.End || Char.IsWhiteSpace(this[range.End]) )
 				{
 					if( 0 <= index-1 )
-						begin = WordProc.PrevWordStart( this, index-1 );
+						range.Begin = WordProc.PrevWordStart( this, index-1 );
 					else
-						begin = 0;
+						range.Begin = 0;
 				}
 				else
 				{
 					if( index+1 < Length )
-						end = WordProc.NextWordEnd( this, index+1 );
+						range.End = WordProc.NextWordEnd( this, index+1 );
 					else
-						end = Length;
+						range.End = Length;
 				}
 			}
+			Debug.Assert( 0 <= range.Begin );
+			Debug.Assert( 0 <= range.End );
+			Debug.Assert( range.End <= range.Begin );
 
-			// validate result
-			if( begin < 0 || end < 0 || end <= begin )
-			{
-				return String.Empty;
-			}
-
-			return GetTextInRangeRef( ref begin, ref end );
+			return range;
 		}
 
 		/// <summary>
