@@ -16,8 +16,8 @@ namespace Sgry.Azuki.Test
 			int testNum = 0;
 			Console.WriteLine( "[Test for Azuki.Document]" );
 
-			// Text / GetLineContent / GetLineContentWithEolCode
-			Console.WriteLine("test {0} - Text / GetLineContent / GetLineContentWithEolCode", testNum++);
+			// Text / GetLineContent
+			Console.WriteLine("test {0} - Text / GetLineContent", testNum++);
 			TestUtl.Do( Test_GetText );
 
 			// GetLineColumnIndexFromCharIndex
@@ -148,13 +148,13 @@ namespace Sgry.Azuki.Test
 			doc.Text = "keep it as simple as possible\r\nbut\nnot simpler.\r\n";
 			TestUtl.AssertEquals( "keep it as simple as possible\r\nbut\nnot simpler.\r\n", doc.Text );
 			TestUtl.AssertEquals( "keep it as simple as possible", doc.GetLineContent(0) );
-			TestUtl.AssertEquals( "keep it as simple as possible\r\n", doc.GetLineContentWithEolCode(0) );
+			TestUtl.AssertEquals( "keep it as simple as possible\r\n", doc.GetLineContent(0, true) );
 			TestUtl.AssertEquals( "but", doc.GetLineContent(1) );
-			TestUtl.AssertEquals( "but\n", doc.GetLineContentWithEolCode(1) );
+			TestUtl.AssertEquals( "but\n", doc.GetLineContent(1, true) );
 			TestUtl.AssertEquals( "not simpler.", doc.GetLineContent(2) );
-			TestUtl.AssertEquals( "not simpler.\r\n", doc.GetLineContentWithEolCode(2) );
+			TestUtl.AssertEquals( "not simpler.\r\n", doc.GetLineContent(2, true) );
 			TestUtl.AssertEquals( "", doc.GetLineContent(3) );
-			TestUtl.AssertEquals( "", doc.GetLineContentWithEolCode(3) );
+			TestUtl.AssertEquals( "", doc.GetLineContent(3, true) );
 		}
 
 		static void Test_GetTextInRange()

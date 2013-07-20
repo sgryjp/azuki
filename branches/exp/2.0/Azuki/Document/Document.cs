@@ -732,36 +732,19 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets content of the logical line.
+		/// Gets content of specified logical line without EOL code.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
 		public string GetLineContent( int lineIndex )
 		{
-			if( lineIndex < 0 || LineCount <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
-
-			int begin, end;
-			char[] lineContent;
-
-			// prepare buffer to store line content
-			TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, false, out begin, out end );
-			if( end <= begin )
-			{
-				return String.Empty;
-			}
-			lineContent = new char[ end-begin ];
-
-			// copy line content
-			_Buffer.CopyTo( begin, end, lineContent );
-
-			return new String( lineContent );
+			return GetLineContent( lineIndex, false );
 		}
 
 		/// <summary>
-		/// Gets content of the logical line without trimming EOL code.
+		/// Gets content of specified logical line.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		public string GetLineContentWithEolCode( int lineIndex )
+		public string GetLineContent( int lineIndex, bool withEolCode )
 		{
 			if( lineIndex < 0 || LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
@@ -770,7 +753,7 @@ namespace Sgry.Azuki
 			char[] lineContent;
 
 			// prepare buffer to store line content
-			TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, true, out begin, out end );
+			TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, withEolCode, out begin, out end );
 			if( end <= begin )
 			{
 				return String.Empty;
