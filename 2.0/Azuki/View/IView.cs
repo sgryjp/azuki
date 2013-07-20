@@ -1,7 +1,5 @@
 ﻿// file: IView.cs
 // brief: Interface for view implementations.
-// author: YAMAMOTO Suguru
-// update: 2011-07-07
 //=========================================================
 using System;
 using System.Drawing;
@@ -364,7 +362,7 @@ namespace Sgry.Azuki
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		void GetLineColumnIndexFromCharIndex( int charIndex, out int lineIndex, out int columnIndex );
+		TextPoint GetTextPosition( int charIndex );
 
 		/// <summary>
 		/// Calculates char-index from screen line/column index.

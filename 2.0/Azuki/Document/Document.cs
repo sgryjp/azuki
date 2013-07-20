@@ -352,7 +352,9 @@ namespace Sgry.Azuki
 		/// <param name="columnIndex">column index of where the caret is at</param>
 		public void GetCaretIndex( out int lineIndex, out int columnIndex )
 		{
-			GetLineColumnIndexFromCharIndex( _SelMan.CaretIndex, out lineIndex, out columnIndex );
+			var pos = GetTextPosition( _SelMan.CaretIndex );
+			lineIndex = pos.Line;
+			columnIndex = pos.Column;
 		}
 
 		/// <summary>
@@ -1643,20 +1645,14 @@ namespace Sgry.Azuki
 		/// <exception cref="System.ArgumentOutOfRangeException">
 		/// Specified index is out of valid range.
 		/// </exception>
-		public void GetLineColumnIndexFromCharIndex( int charIndex,
-													 out int lineIndex,
-													 out int columnIndex )
+		public TextPoint GetTextPosition( int charIndex )
 		{
 			if( charIndex < 0 || _Buffer.Count < charIndex )
 				throw new ArgumentOutOfRangeException( "charIndex",
 					"Invalid index was given (charIndex:" + charIndex
 					+ ", document.Length:" + Length + ")." );
 
-			TextUtil.GetLineColumnIndexFromCharIndex( _Buffer,
-													   _LHI,
-													   charIndex,
-													   out lineIndex,
-													   out columnIndex );
+			return TextUtil.GetTextPosition( _Buffer, _LHI, charIndex );
 		}
 
 		/// <summary>

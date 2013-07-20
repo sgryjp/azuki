@@ -128,17 +128,8 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
 		public override Point GetVirPosFromIndex( IGraphics g, int index )
 		{
-			int line, column;
-
-			TextUtil.GetLineColumnIndexFromCharIndex(
-					Document.InternalBuffer,
-					PLHI,
-					index,
-					out line,
-					out column
-				);
-
-			return GetVirPosFromIndex( g, line, column );
+			var pos = TextUtil.GetTextPosition( Document.InternalBuffer, PLHI, index );
+			return GetVirPosFromIndex( g, pos.Line, pos.Column );
 		}
 
 		/// <summary>
@@ -268,14 +259,12 @@ namespace Sgry.Azuki
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public override void GetLineColumnIndexFromCharIndex( int charIndex, out int lineIndex, out int columnIndex )
+		public override TextPoint GetTextPosition( int charIndex )
 		{
 			if( charIndex < 0 || Document.Length < charIndex )
 				throw new ArgumentOutOfRangeException( "charIndex", "Invalid index was given (charIndex:"+charIndex+", document.Length:"+Document.Length+")." );
 
-			TextUtil.GetLineColumnIndexFromCharIndex(
-					Document.InternalBuffer, PLHI, charIndex, out lineIndex, out columnIndex
-				);
+			return TextUtil.GetTextPosition( Document.InternalBuffer, PLHI, charIndex );
 		}
 
 		/// <summary>

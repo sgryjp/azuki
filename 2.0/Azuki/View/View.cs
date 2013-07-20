@@ -856,18 +856,14 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
 		public int GetLineIndexFromCharIndex( int charIndex )
 		{
-			int lineIndex, columnIndex;
-
-			GetLineColumnIndexFromCharIndex( charIndex, out lineIndex, out columnIndex );
-
-			return lineIndex;
+			return GetTextPosition( charIndex ).Line;
 		}
 
 		/// <summary>
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public abstract void GetLineColumnIndexFromCharIndex( int charIndex, out int lineIndex, out int columnIndex );
+		public abstract TextPoint GetTextPosition( int charIndex );
 
 		/// <summary>
 		/// Calculates char-index from screen line/column index.

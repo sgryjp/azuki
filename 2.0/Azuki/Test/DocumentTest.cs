@@ -19,9 +19,9 @@ namespace Sgry.Azuki.Test
 			Console.WriteLine("test {0} - Text / GetLineContent", testNum++);
 			TestUtl.Do( Test_GetText );
 
-			// GetLineColumnIndexFromCharIndex
-			Console.WriteLine("test {0} - GetLineColumnIndexFromCharIndex", testNum++);
-			TestUtl.Do( Test_GetLineColumnIndexFromCharIndex );
+			// GetTextPosition
+			Console.WriteLine("test {0} - GetTextPosition", testNum++);
+			TestUtl.Do( Test_GetTextPosition );
 
 			// GetLineIndexFromCharIndex
 			Console.WriteLine("test {0} - GetLineIndexFromCharIndex", testNum++);
@@ -68,13 +68,13 @@ namespace Sgry.Azuki.Test
 			Console.WriteLine();
 		}
 
-		static void Test_GetLineColumnIndexFromCharIndex()
+		static void Test_GetTextPosition()
 		{
 			// keep it as simple as possible\r\n
 			// but\n
 			// not simpler.\r\n
 			Document doc = new Document();
-			int line, column;
+			TextPoint pos;
 			int i = 0;
 
 			doc.Text = "keep it as simple as possible\r\nbut\nnot simpler.\r\n";
@@ -82,28 +82,28 @@ namespace Sgry.Azuki.Test
 			i = 0;
 			for( ; i<31; i++ )
 			{
-				doc.GetLineColumnIndexFromCharIndex( i, out line, out column );
-				TestUtl.AssertEquals( 0, line );
-				TestUtl.AssertEquals( i, column );
+				pos = doc.GetTextPosition( i );
+				TestUtl.AssertEquals( 0, pos.Line );
+				TestUtl.AssertEquals( i, pos.Column );
 			}
 			for( ; i<35; i++ )
 			{
-				doc.GetLineColumnIndexFromCharIndex( i, out line, out column );
-				TestUtl.AssertEquals( 1, line );
-				TestUtl.AssertEquals( i-31, column );
+				pos = doc.GetTextPosition( i );
+				TestUtl.AssertEquals( 1, pos.Line );
+				TestUtl.AssertEquals( i-31, pos.Column );
 			}
 			for( ; i<49; i++ )
 			{
-				doc.GetLineColumnIndexFromCharIndex( i, out line, out column );
-				TestUtl.AssertEquals( 2, line );
-				TestUtl.AssertEquals( i-35, column );
+				pos = doc.GetTextPosition( i );
+				TestUtl.AssertEquals( 2, pos.Line );
+				TestUtl.AssertEquals( i-35, pos.Column );
 			}
-			doc.GetLineColumnIndexFromCharIndex( 49, out line, out column );
-			TestUtl.AssertEquals( 3, line );
-			TestUtl.AssertEquals( i-49, column );
+			pos = doc.GetTextPosition( 49 );
+			TestUtl.AssertEquals( 3, pos.Line );
+			TestUtl.AssertEquals( i-49, pos.Column );
 
 			// out of range
-			try{ doc.GetLineColumnIndexFromCharIndex(50, out line, out column); TestUtl.Fail("Exception wasn't thrown as expected."); }
+			try{ doc.GetTextPosition(50); TestUtl.Fail("Exception wasn't thrown as expected."); }
 			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
 		}
 

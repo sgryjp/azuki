@@ -760,7 +760,7 @@ namespace Sgry.Azuki
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
-		void GetLineColumnIndexFromCharIndex( int charIndex, out int lineIndex, out int columnIndex );
+		TextPoint GetTextPosition( int charIndex );
 
 		/// <summary>
 		/// Calculates char-index from screen line/column index.

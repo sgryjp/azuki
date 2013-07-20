@@ -59,12 +59,9 @@ namespace Sgry.Azuki
 			return (0 <= index) ? index : ~(index) - 1;
 		}
 
-		public static void
-			GetLineColumnIndexFromCharIndex( IList<char> text,
-											 IList<int> lhi,
-											 int charIndex,
-											 out int lineIndex,
-											 out int columnIndex )
+		public static TextPoint GetTextPosition( IList<char> text,
+												 IList<int> lhi,
+												 int charIndex )
 		{
 			DebugUtl.Assert( text != null && lhi != null );
 			DebugUtl.Assert( 0<=charIndex,"invalid args; given charIndex was "
@@ -74,10 +71,12 @@ namespace Sgry.Azuki
 							 + "actual text count:{1})",charIndex,text.Count));
 
 			int index = BinarySearch( lhi, charIndex );
-			lineIndex = ( 0 <= index ) ? index : ~(index) - 1;
-			if( lhi.Count <= lineIndex )
-				lineIndex = lhi.Count - 1;
-			columnIndex = charIndex - lhi[lineIndex];
+			int line = (0 <= index) ? index : ~(index) - 1;
+			if( lhi.Count <= line )
+				line = lhi.Count - 1;
+			int column = charIndex - lhi[line];
+
+			return new TextPoint( line, column );
 		}
 
 		public static int GetLineHeadIndexFromCharIndex( IList<char> text,
@@ -372,16 +371,15 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( 0 <= insertIndex && insertIndex <= text.Count,
 							 "insertIndex is out of range (" + insertIndex
 							 + ")." );
-			int insTargetLine, dummy;
+			TextPoint insPos;
 			int lineIndex; // work variable
 			int lineHeadIndex;
 			int lineEndIndex;
 			int insLineCount;
 
 			// at first, find the line which contains the insertion point
-			GetLineColumnIndexFromCharIndex( text, lhi, insertIndex,
-											 out insTargetLine, out dummy );
-			lineIndex = insTargetLine;
+			insPos = GetTextPosition( text, lhi, insertIndex );
+			lineIndex = insPos.Line;
 
 			// if the inserting divides a CR+LF, insert an entry for the CR
 			// separated
@@ -455,12 +453,12 @@ namespace Sgry.Azuki
 				// Since newly made CR+LF is regarded as part of the line
 				// which originally ended with a CR, the line should be marked
 				// as modified.
-				DebugUtl.Assert( 0 < insTargetLine );
-				lds[insTargetLine-1] = LineDirtyState.Dirty;
+				DebugUtl.Assert( 0 < insPos.Line );
+				lds[insPos.Line-1] = LineDirtyState.Dirty;
 			}
 			else
 			{
-				lds[insTargetLine] = LineDirtyState.Dirty;
+				lds[insPos.Line] = LineDirtyState.Dirty;
 			}
 		}
 		
@@ -486,16 +484,12 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( delBegin <= delEnd && delEnd <= text.Count,
 							 "delEnd is out of range." );
 			int delFirstLine;
-			int delFromL, delToL;
-			int dummy;
 			int delLen = delEnd - delBegin;
 
 			// calculate line indexes of both ends of the range
-			GetLineColumnIndexFromCharIndex( text, lhi, delBegin,
-											 out delFromL, out dummy );
-			GetLineColumnIndexFromCharIndex( text, lhi, delEnd,
-											 out delToL, out dummy );
-			delFirstLine = delFromL;
+			var delFromPos = GetTextPosition( text, lhi, delBegin );
+			var delToPos = GetTextPosition( text, lhi, delEnd );
+			delFirstLine = delFromPos.Line;
 
 			if( 0 < delBegin && text[delBegin-1] == '\r' )
 			{
@@ -503,32 +497,32 @@ namespace Sgry.Azuki
 				{
 					// Delete an entry of a line terminated with a CR in case
 					// of that the CR will be merged into an CR+LF.
-					lhi.RemoveAt( delToL );
-					lds.RemoveAt( delToL );
-					delToL--;
+					lhi.RemoveAt( delToPos.Line );
+					lds.RemoveAt( delToPos.Line );
+					delToPos.Line--;
 				}
 				else if( text[delBegin] == '\n' )
 				{
 					// Insert an entry of a line terminated with a CR in case
 					// of that an LF was removed from an CR+LF.
-					lhi.Insert( delToL, delBegin );
-					lds.Insert( delToL, LineDirtyState.Dirty );
-					delFromL++;
-					delToL++;
+					lhi.Insert( delToPos.Line, delBegin );
+					lds.Insert( delToPos.Line, LineDirtyState.Dirty );
+					delFromPos.Line++;
+					delToPos.Line++;
 				}
 			}
 
 			// subtract line head indexes for lines after deletion point
-			for( int i=delToL+1; i<lhi.Count; i++ )
+			for( int i=delToPos.Line+1; i<lhi.Count; i++ )
 			{
 				lhi[i] -= delLen;
 			}
 
 			// if deletion decreases line count, delete entries
-			if( delFromL < delToL )
+			if( delFromPos.Line < delToPos.Line )
 			{
-				lhi.RemoveRange( delFromL+1, delToL+1 );
-				lds.RemoveRange( delFromL+1, delToL+1 );
+				lhi.RemoveRange( delFromPos.Line+1, delToPos.Line+1 );
+				lds.RemoveRange( delFromPos.Line+1, delToPos.Line+1 );
 			}
 
 			// mark the deletion target line as 'dirty'

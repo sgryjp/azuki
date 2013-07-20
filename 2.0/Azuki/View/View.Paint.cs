@@ -614,12 +614,11 @@ namespace Sgry.Azuki
 			else if( HRulerIndicatorType == HRulerIndicatorType.CharCount )
 			{
 				int indicatorX, indicatorWidth;
-				int caretLineIndex, caretColumnIndex;
 
 				// calculate indicator region
-				GetLineColumnIndexFromCharIndex( Document.CaretIndex, out caretLineIndex, out caretColumnIndex );
+				var caretPos = GetTextPosition( Document.CaretIndex );
 				indicatorWidth = HRulerUnitWidth - 1;
-				indicatorX = leftMostLineX + (caretColumnIndex - leftMostRulerIndex) * HRulerUnitWidth;
+				indicatorX = leftMostLineX + (caretPos.Column - leftMostRulerIndex) * HRulerUnitWidth;
 				if( indicatorX < XofTextArea )
 				{
 					indicatorWidth -= XofTextArea - indicatorX;
@@ -765,15 +764,11 @@ namespace Sgry.Azuki
 			}
 			else if( HRulerIndicatorType == HRulerIndicatorType.CharCount )
 			{
-				int dummy;
-				int newCaretColumnIndex;
 				int oldSegmentX, newSegmentX;
 
 				// calculate new segment of horizontal ruler
-				GetLineColumnIndexFromCharIndex(
-						Document.CaretIndex, out dummy, out newCaretColumnIndex
-					);
-				newSegmentX = (newCaretColumnIndex * HRulerUnitWidth) + XofTextArea - ScrollPosX;
+				var newCaretPos = GetTextPosition( Document.CaretIndex );
+				newSegmentX = (newCaretPos.Column * HRulerUnitWidth) + XofTextArea - ScrollPosX;
 
 				// calculate previous segment of horizontal ruler
 				oldSegmentX = Document.ViewParam.PrevHRulerVirX + XofTextArea - ScrollPosX;

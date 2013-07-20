@@ -518,8 +518,8 @@ namespace Sgry.Ann
 				if( String.Compare(d.FilePath, filePath, true) == 0 )
 				{
 					ActiveDocument = d;
-					d.GetLineColumnIndexFromCharIndex( d.CaretIndex, out initialLine, out initialColumn );
-					AppConfig.MruFiles.Put( d.FilePath, initialLine, initialColumn );
+					var pos = d.GetTextPosition( d.CaretIndex );
+					AppConfig.MruFiles.Put( d.FilePath, pos.Line, pos.Column );
 					return;
 				}
 			}
@@ -759,7 +759,6 @@ namespace Sgry.Ann
 		public void CloseDocument( Document doc )
 		{
 			DialogResult result;
-			int line, column;
 
 			// confirm to discard modification
 			if( doc.IsDirty )
@@ -776,8 +775,8 @@ namespace Sgry.Ann
 			}
 
 			// Record current editing state
-			doc.GetLineColumnIndexFromCharIndex( doc.CaretIndex, out line, out column );
-			AppConfig.MruFiles.Put( doc.FilePath, line, column );
+			var caretPos = doc.GetTextPosition( doc.CaretIndex );
+			AppConfig.MruFiles.Put( doc.FilePath, caretPos.Line, caretPos.Column );
 
 			// close
 			RemoveDocument( doc );
@@ -1153,9 +1152,8 @@ namespace Sgry.Ann
 			// Record current editing state
 			foreach( Document doc in Documents )
 			{
-				int line, column;
-				doc.GetLineColumnIndexFromCharIndex( doc.CaretIndex, out line, out column );
-				AppConfig.MruFiles.Put( doc.FilePath, line, column );
+				var caretPos = doc.GetTextPosition( doc.CaretIndex );
+				AppConfig.MruFiles.Put( doc.FilePath, caretPos.Line, caretPos.Column );
 			}
 
 			// Save all configurations
