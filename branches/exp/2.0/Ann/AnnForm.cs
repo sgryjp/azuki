@@ -513,7 +513,7 @@ namespace Sgry.Ann
 		void _Azuki_CaretMoved( object sender, EventArgs e )
 		{
 			int selLen;
-			int line, columnInHRuler, columnInChar;
+			int columnInHRuler;
 
 			selLen = _Azuki.GetSelectedTextLength();
 			if( 0 < selLen )
@@ -550,13 +550,11 @@ namespace Sgry.Ann
 			}
 
 			// Display caret position on status bar
-			_Azuki.GetLineColumnIndexFromCharIndex(
-					_Azuki.CaretIndex, out line, out columnInChar
-				);
+			var caretPos = _Azuki.GetTextPosition( _Azuki.CaretIndex );
 			columnInHRuler = _Azuki.View.GetVirPosFromIndex( _Azuki.CaretIndex ).X
 				/ _Azuki.View.HRulerUnitWidth;
 			_Status_CaretPos.Text = String.Format( StatusMsg_CaretPos,
-					line+1, columnInHRuler+1, columnInChar+1,
+					caretPos.Line+1, columnInHRuler+1, caretPos.Column+1,
 					_Azuki.CaretIndex
 				);
 

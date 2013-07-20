@@ -1674,9 +1674,9 @@ namespace Sgry.Azuki.WinForms
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
-		public void GetLineColumnIndexFromCharIndex( int charIndex, out int lineIndex, out int columnIndex )
+		public TextPoint GetTextPosition( int charIndex )
 		{
-			View.GetLineColumnIndexFromCharIndex( charIndex, out lineIndex, out columnIndex );
+			return View.GetTextPosition( charIndex );
 		}
 
 		/// <summary>

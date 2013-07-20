@@ -48,8 +48,8 @@ namespace Sgry.Azuki.Test
 			Console.WriteLine( "test {0} - GetLineIndexFromCharIndex()", testNum++ );
 			TestUtl.Do( Test_GetLineIndexFromCharIndex );
 
-			Console.WriteLine( "test {0} - GetLineColumnIndexFromCharIndex()", testNum++ );
-			TestUtl.Do( Test_GetLineColumnIndexFromCharIndex );
+			Console.WriteLine( "test {0} - GetTextPosition()", testNum++ );
+			TestUtl.Do( Test_GetTextPosition );
 
 			Console.WriteLine( "test {0} - LineHeadIndexFromCharIndex()", testNum++ );
 			TestUtl.Do( Test_LineHeadIndexFromCharIndex );
@@ -253,29 +253,29 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals( 6, TextUtil.GetLineIndexFromCharIndex(lhi, 54) );
 		}
 
-		static void Test_GetLineColumnIndexFromCharIndex()
+		static void Test_GetTextPosition()
 		{
 			TextBuffer text;
 			SplitArray<int> lhi;
-			int l, c;
+			TextPoint pos;
 
 			MakeTestData( out text, out lhi );
 
-			TextUtil.GetLineColumnIndexFromCharIndex( text, lhi, 0, out l, out c );
-			TestUtl.AssertEquals( 0, l );
-			TestUtl.AssertEquals( 0, c );
-			TextUtil.GetLineColumnIndexFromCharIndex( text, lhi, 2, out l, out c );
-			TestUtl.AssertEquals( 0, l );
-			TestUtl.AssertEquals( 2, c );
-			TextUtil.GetLineColumnIndexFromCharIndex( text, lhi, 40, out l, out c );
-			TestUtl.AssertEquals( 4, l );
-			TestUtl.AssertEquals( 2, c );
-			TextUtil.GetLineColumnIndexFromCharIndex( text, lhi, 71, out l, out c ); // 71 --> EOF
-			TestUtl.AssertEquals( 6, l );
-			TestUtl.AssertEquals( 18, c );
+			pos = TextUtil.GetTextPosition( text, lhi, 0 );
+			TestUtl.AssertEquals( 0, pos.Line );
+			TestUtl.AssertEquals( 0, pos.Column );
+			pos = TextUtil.GetTextPosition( text, lhi, 2 );
+			TestUtl.AssertEquals( 0, pos.Line );
+			TestUtl.AssertEquals( 2, pos.Column );
+			pos = TextUtil.GetTextPosition( text, lhi, 40 );
+			TestUtl.AssertEquals( 4, pos.Line );
+			TestUtl.AssertEquals( 2, pos.Column );
+			pos = TextUtil.GetTextPosition( text, lhi, 71 ); // 71 --> EOF
+			TestUtl.AssertEquals( 6, pos.Line );
+			TestUtl.AssertEquals( 18, pos.Column );
 			try
 			{
-				TextUtil.GetLineColumnIndexFromCharIndex(text, lhi, 72, out l, out c);
+				TextUtil.GetTextPosition(text, lhi, 72);
 				TestUtl.Fail("exception must be thrown here.");
 			}
 			catch( Exception ex )

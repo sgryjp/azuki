@@ -1,7 +1,5 @@
 ﻿// file: TextBuffer.cs
 // brief: Specialized SplitArray for char with text search feature without copying content.
-// author: YAMAMOTO Suguru
-// update: 2011-09-23
 //=========================================================
 using System;
 using System.Collections.Generic;

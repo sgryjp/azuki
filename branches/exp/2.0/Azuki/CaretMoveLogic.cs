@@ -310,16 +310,15 @@ namespace Sgry.Azuki
 		public static int Calc_LineEnd( IView view )
 		{
 			Document doc = view.Document;
-			int line, column;
 			int offset = -1;
 
-			view.GetLineColumnIndexFromCharIndex( doc.CaretIndex, out line, out column );
-			if( view.LineCount <= line+1 )
+			var pos = view.GetTextPosition( doc.CaretIndex );
+			if( view.LineCount <= pos.Line+1 )
 			{
 				return doc.Length;
 			}
 
-			int nextIndex = view.GetCharIndex( new TextPoint(line+1, 0) );
+			int nextIndex = view.GetCharIndex( new TextPoint(pos.Line+1, 0) );
 			if( 0 <= nextIndex-1 && doc.GetCharAt(nextIndex-1) == '\n'
 				&& 0 <= nextIndex-2 && doc.GetCharAt(nextIndex-2) == '\r' )
 			{

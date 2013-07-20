@@ -88,9 +88,8 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
 		public override Point GetVirPosFromIndex( IGraphics g, int index )
 		{
-			int line, column;
-			Document.GetLineColumnIndexFromCharIndex( index, out line, out column );
-			return GetVirPosFromIndex( g, line, column );
+			var pos = Document.GetTextPosition( index );
+			return GetVirPosFromIndex( g, pos.Line, pos.Column );
 		}
 
 		/// <summary>
@@ -209,9 +208,9 @@ namespace Sgry.Azuki
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public override void GetLineColumnIndexFromCharIndex( int charIndex, out int lineIndex, out int columnIndex )
+		public override TextPoint GetTextPosition( int charIndex )
 		{
-			Document.GetLineColumnIndexFromCharIndex( charIndex, out lineIndex, out columnIndex );
+			return Document.GetTextPosition( charIndex );
 		}
 
 		/// <summary>
@@ -230,14 +229,12 @@ namespace Sgry.Azuki
 			Document doc = Document;
 			int anchor = doc.AnchorIndex;
 			int caret = doc.CaretIndex;
-			int anchorLine, anchorColumn;
-			int caretLine, caretColumn;
 			int prevCaretLine = doc.ViewParam.PrevCaretLine;
 			IGraphics g = null;
 
 			// calculate line/column index of current anchor/caret
-			GetLineColumnIndexFromCharIndex( anchor, out anchorLine, out anchorColumn );
-			GetLineColumnIndexFromCharIndex( caret, out caretLine, out caretColumn );
+			var anchorPos = GetTextPosition( anchor );
+			var caretPos = GetTextPosition( caret );
 
 			try
 			{
@@ -271,9 +268,9 @@ namespace Sgry.Azuki
 				if( e.OldAnchor == e.OldCaret && anchor == caret )
 				{
 					if( HighlightsCurrentLine
-						&& prevCaretLine != caretLine )
+						&& prevCaretLine != caretPos.Line )
 					{
-						HandleSelectionChanged_UpdateCurrentLineHighlight( g, prevCaretLine, caretLine );
+						HandleSelectionChanged_UpdateCurrentLineHighlight( g, prevCaretLine, caretPos.Line );
 					}
 				}
 				// or, does the change release selection?
@@ -287,26 +284,23 @@ namespace Sgry.Azuki
 					// if this is the beginning of selection, remove current line highlight (underline)
 					if( HighlightsCurrentLine && e.OldCaret == e.OldAnchor )
 					{
-						int oldCaretLine, oldCaretColumn, oldCaretLineY;
-
-						GetLineColumnIndexFromCharIndex( e.OldCaret, out oldCaretLine, out oldCaretColumn );
-						oldCaretLineY = YofLine( oldCaretLine );
+						var oldCaretLineY = YofLine( GetTextPosition(e.OldCaret).Line );
 						DrawUnderLine( g, oldCaretLineY, ColorScheme.BackColor );
 					}
 
 					// if the change occured in a line?
-					if( prevCaretLine == caretLine )
+					if( prevCaretLine == caretPos.Line )
 					{
 						// in a line.
 						if( e.OldCaret < caret )
 							HandleSelectionChanged_OnExpandSelInLine( g, e, e.OldCaret, caret, prevCaretLine );
 						else
-							HandleSelectionChanged_OnExpandSelInLine( g, e, caret, e.OldCaret, caretLine );
+							HandleSelectionChanged_OnExpandSelInLine( g, e, caret, e.OldCaret, caretPos.Line );
 					}
 					else
 					{
 						// not in a line; in multiple lines.
-						HandleSelectionChanged_OnExpandSel( g, e, caretLine, caretColumn );
+						HandleSelectionChanged_OnExpandSel( g, e, caretPos.Line, caretPos.Column );
 					}
 				}
 			}
@@ -320,8 +314,8 @@ namespace Sgry.Azuki
 			finally
 			{
 				// remember last selection for next invalidation
-				doc.ViewParam.PrevCaretLine = caretLine;
-				doc.ViewParam.PrevAnchorLine = anchorLine;
+				doc.ViewParam.PrevCaretLine = caretPos.Line;
+				doc.ViewParam.PrevAnchorLine = anchorPos.Line;
 
 				// dispose graphics resource
 				if( g != null )
@@ -607,22 +601,21 @@ namespace Sgry.Azuki
 				return;
 			
 			int beginLineHead, endLineHead;
-			int beginL, endL, dummy;
 
 			// get needed coordinates
-			GetLineColumnIndexFromCharIndex( beginIndex, out beginL, out dummy );
-			GetLineColumnIndexFromCharIndex( endIndex, out endL, out dummy );
-			beginLineHead = GetLineHeadIndex( beginL );
+			var beginPos = GetTextPosition( beginIndex );
+			var endPos = GetTextPosition( endIndex );
+			beginLineHead = GetLineHeadIndex( beginPos.Line );
 
 			// switch invalidation logic by whether the invalidated area is multiline or not
-			if( beginL != endL )
+			if( beginPos.Line != endPos.Line )
 			{
-				endLineHead = GetLineHeadIndex( endL ); // this is needed for invalidating multiline selection
-				Invalidate_MultiLines( g, beginIndex, endIndex, beginL, endL, beginLineHead, endLineHead );
+				endLineHead = GetLineHeadIndex( endPos.Line ); // this is needed for invalidating multiline selection
+				Invalidate_MultiLines( g, beginIndex, endIndex, beginPos.Line, endPos.Line, beginLineHead, endLineHead );
 			}
 			else
 			{
-				Invalidate_InLine( g, beginIndex, endIndex, beginL, beginLineHead );
+				Invalidate_InLine( g, beginIndex, endIndex, beginPos.Line, beginLineHead );
 			}
 		}
 		
