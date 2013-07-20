@@ -100,6 +100,7 @@
     <Compile Include="Test\SplitArrayTest.cs" />
     <Compile Include="Test\TestDriver.cs" />
     <Compile Include="Test\UriMarkerTest.cs" />
+    <Compile Include="TextPoint.cs" />
     <Compile Include="TextUtil.cs" />
     <Compile Include="UiImpl.cs" />
     <Compile Include="UserPref.cs" />

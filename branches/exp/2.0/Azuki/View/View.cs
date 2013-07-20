@@ -873,7 +873,7 @@ namespace Sgry.Azuki
 		/// Calculates char-index from screen line/column index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public abstract int GetCharIndexFromLineColumnIndex( int lineIndex, int columnIndex );
+		public abstract int GetCharIndex( TextPoint position );
 
 		/// <summary>
 		/// Calculates and returns text ranges that will be selected by specified rectangle.

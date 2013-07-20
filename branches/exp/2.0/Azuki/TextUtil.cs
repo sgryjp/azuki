@@ -16,38 +16,37 @@ namespace Sgry.Azuki
 		public static readonly char[] EolChars = new char[]{ '\r', '\n' };
 
 		#region Line/Column
-		public static int GetCharIndexFromLineColumnIndex( IList<char> text,
-														   IList<int> lhi,
-														   int lineIndex,
-														   int columnIndex )
+		public static int GetCharIndex( IList<char> text,
+										IList<int> lhi,
+										TextPoint position )
 		{
-			DebugUtl.Assert( text != null && lhi != null && 0 <= lineIndex
-							 && 0<=columnIndex,"invalid arguments were given");
-			DebugUtl.Assert( lineIndex < lhi.Count, String.Format(
+			DebugUtl.Assert( text != null && lhi != null && 0 <= position.Line
+							 && 0 <= position.Column, "invalid arguments were given" );
+			DebugUtl.Assert( position.Line < lhi.Count, String.Format(
 							 "too large line index was given (given:{0} actual"
-							 + " line count:{1})", lineIndex, lhi.Count) );
+							 + " line count:{1})", position.Line, lhi.Count) );
 
-			int lineHeadIndex = lhi[lineIndex];
+			int lineHeadIndex = lhi[position.Line];
 
 #			if DEBUG
 			int lineLength = GetLineLengthByCharIndex( text, lineHeadIndex );
-			if( lineLength < columnIndex )
+			if( lineLength < position.Column )
 			{
-				if( lineIndex == lhi.Count-1
-					&& lineLength+1 == columnIndex )
+				if( position.Line == lhi.Count-1
+					&& lineLength+1 == position.Column )
 				{
 					// indicates EOF. this case is valid.
 				}
 				else
 				{
 					DebugUtl.Fail( "specified column index was too large"
-								   + " (given:"+columnIndex+" actual line"
+								   + " (given:"+position.Column+" actual line"
 								   + " length:"+lineLength+")" );
 				}
 			}
 #			endif
 
-			return lineHeadIndex + columnIndex;
+			return lineHeadIndex + position.Column;
 		}
 
 		public static int GetLineIndexFromCharIndex( IList<int> lhi,
