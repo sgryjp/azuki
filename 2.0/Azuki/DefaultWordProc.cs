@@ -1,7 +1,6 @@
 ﻿// file: DefaultWordProc.cs
 // brief: built-in word processor for well Japanese handling
 // author: YAMAMOTO Suguru
-// update: 2010-07-04
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -267,7 +266,7 @@ namespace Sgry.Azuki
 			{
 				if( value == null )
 					throw new ArgumentNullException( "value", "DefaultWordProc.CharsToBeHanged must not be null." );
-				if( 0 <= new String(value).IndexOfAny(LineLogic.EolChars) )
+				if( 0 <= new String(value).IndexOfAny(TextUtil.EolChars) )
 					throw new ArgumentException( "DefaultWordProc.CharsToBeHanged must not contain EOL codes.", "value" );
 
 				// keep a sorted copy of the value

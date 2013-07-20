@@ -157,7 +157,7 @@ namespace Sgry.Azuki
 				// calc maximum length of chars in line
 				int rightLimitX = pt.X;
 				int leftPartWidth = MeasureTokenEndX( g, line, 0, rightLimitX, out drawableTextLen );
-				Debug.Assert( Document.IsNotDividableIndex(line, drawableTextLen) == false );
+				Debug.Assert( TextUtil.IsNotDividableIndex(line, drawableTextLen) == false );
 				columnIndex = drawableTextLen;
 
 				// if the location is nearer to the NEXT of that char,
@@ -167,7 +167,7 @@ namespace Sgry.Azuki
 					// get next grapheme cluster
 					string nextChar = line[drawableTextLen].ToString();
 					int nextCharEnd = drawableTextLen + 1;
-					while( Document.IsNotDividableIndex(line, nextCharEnd) )
+					while( TextUtil.IsNotDividableIndex(line, nextCharEnd) )
 					{
 						nextChar += line[ nextCharEnd ];
 						nextCharEnd++;
@@ -178,7 +178,7 @@ namespace Sgry.Azuki
 					if( leftPartWidth + nextCharWidth/2 < pt.X ) // == "x of middle of next char" < "x of click in virtual text area"
 					{
 						columnIndex = drawableTextLen + 1;
-						while( Document.IsNotDividableIndex(line, columnIndex) )
+						while( TextUtil.IsNotDividableIndex(line, columnIndex) )
 						{
 							columnIndex++;
 						}
@@ -535,8 +535,8 @@ namespace Sgry.Azuki
 			{
 				// calculate where to start invalidation
 				invalidStartIndex = e.Index;
-				if( Document.IsCombiningCharacter(e.OldText, 0)
-					|| Document.IsCombiningCharacter(e.NewText, 0) )
+				if( TextUtil.IsCombiningCharacter(e.OldText, 0)
+					|| TextUtil.IsCombiningCharacter(e.NewText, 0) )
 				{
 					// [*1]
 					invalidStartIndex = GetLineHeadIndexFromCharIndex(
@@ -559,7 +559,7 @@ namespace Sgry.Azuki
 
 				// invalidate all lines below caret
 				// if old text or new text contains multiple lines
-				if( LineLogic.IsMultiLine(e.OldText) || LineLogic.IsMultiLine(e.NewText) )
+				if( TextUtil.IsMultiLine(e.OldText) || TextUtil.IsMultiLine(e.NewText) )
 				{
 					//NO_NEED//invalidRect2.X = 0;
 					invalidRect2.Y = invalidRect1.Bottom;
@@ -895,7 +895,7 @@ namespace Sgry.Azuki
 					// set the position to cut extra trailings of this token
 					if( visibleCharCount+1 <= token.Length )
 					{
-						if( Document.IsNotDividableIndex(token, visibleCharCount+1) )
+						if( TextUtil.IsNotDividableIndex(token, visibleCharCount+1) )
 						{
 							token = token.Substring( 0, visibleCharCount + 2 );
 						}
@@ -926,7 +926,7 @@ namespace Sgry.Azuki
 			{
 				DebugUtl.Assert( lineHead <= lineEnd );
 				if( lineHead == lineEnd
-					|| (0 < lineEnd && LineLogic.IsEolChar(Document[lineEnd-1]) == false) )
+					|| (0 < lineEnd && TextUtil.IsEolChar(Document[lineEnd-1]) == false) )
 				{
 					DrawEofMark( g, ref pos );
 				}

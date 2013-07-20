@@ -137,7 +137,7 @@ namespace Sgry.Azuki
 				}
 			}
 			// EOL-Code
-			else if( LineLogic.IsEolChar(token, 0) )
+			else if( TextUtil.IsEolChar(token, 0) )
 			{
 				int width;
 
@@ -897,7 +897,7 @@ namespace Sgry.Azuki
 					drawableLength++;
 					x = subTokenWidth;
 				}
-				else if( LineLogic.IsEolChar(token, i) )
+				else if( TextUtil.IsEolChar(token, i) )
 				{
 					//--- detected an EOL char ---
 					// calculate drawn length of cached characters
@@ -940,7 +940,7 @@ namespace Sgry.Azuki
 
 					// append one grapheme cluster
 					subToken.Append( token[i] );
-					while( Document.IsNotDividableIndex(token, i+1) )
+					while( TextUtil.IsNotDividableIndex(token, i+1) )
 					{
 						subToken.Append( token[i+1] );
 						i++;
@@ -955,12 +955,12 @@ namespace Sgry.Azuki
 				if( relDLen < subToken.Length )
 				{
 					drawableLength = token.Length - (subToken.Length - relDLen);
-					Debug.Assert( Document.IsNotDividableIndex(token, drawableLength) == false );
+					Debug.Assert( TextUtil.IsNotDividableIndex(token, drawableLength) == false );
 					return x; // hit the right limit.
 				}
 				drawableLength += subToken.Length;
 			}
-			Debug.Assert( Document.IsNotDividableIndex(token, drawableLength) == false );
+			Debug.Assert( TextUtil.IsNotDividableIndex(token, drawableLength) == false );
 
 			// whole part of the given token can be drawn at given width.
 			return x;
@@ -989,7 +989,7 @@ namespace Sgry.Azuki
 				subToken.Length = 0;
 				return true;
 			}
-			Debug.Assert( Document.IsNotDividableIndex(subToken.ToString(), relDLen) == false );
+			Debug.Assert( TextUtil.IsNotDividableIndex(subToken.ToString(), relDLen) == false );
 
 			x += subTokenWidth;
 			drawableLength += subToken.Length;
