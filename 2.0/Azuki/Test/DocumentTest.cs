@@ -1,5 +1,4 @@
-// 2009-02-22
-#if TEST
+﻿#if TEST
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -28,12 +27,12 @@ namespace Sgry.Azuki.Test
 			Console.WriteLine("test {0} - GetLineIndexFromCharIndex", testNum++);
 			TestUtl.Do( Test_GetLineIndexFromCharIndex );
 
-			// GetTextInRange
-			Console.WriteLine("test {0} - GetTextInRange", testNum++);
+			// GetText
+			Console.WriteLine("test {0} - GetText", testNum++);
 			TestUtl.Do( Test_GetTextInRange );
 
-			// GetTextInRange (for surrogate pair)
-			Console.WriteLine("test {0} - GetTextInRange (surrogate pair)", testNum++);
+			// GetText (for surrogate pair)
+			Console.WriteLine("test {0} - GetText (surrogate pair)", testNum++);
 			TestUtl.Do( Test_GetTextInRange_SurrogatePair );
 
 			// Replace
@@ -169,24 +168,24 @@ namespace Sgry.Azuki.Test
 			// char-index type
 			{
 				// invalid range (before begin to middle)
-				try{ doc.GetTextInRange(-1, 4); TestUtl.Fail("Exception wasn't thrown as expected."); }
+				try{ doc.GetText(-1, 4); TestUtl.Fail("Exception wasn't thrown as expected."); }
 				catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
 
 				// valid range (begin to middle)
-				TestUtl.AssertEquals( "ke", doc.GetTextInRange(0, 2) );
+				TestUtl.AssertEquals( "ke", doc.GetText(0, 2) );
 
 				// valid range (middle to middle)
-				TestUtl.AssertEquals( "ep it", doc.GetTextInRange(2, 7) );
+				TestUtl.AssertEquals( "ep it", doc.GetText(2, 7) );
 
 				// valid range (middle to end)
-				TestUtl.AssertEquals( "simpler.", doc.GetTextInRange(39, 47) );
+				TestUtl.AssertEquals( "simpler.", doc.GetText(39, 47) );
 
 				// invalid range (middle to after end)
-				try{ doc.GetTextInRange(39, 48); TestUtl.Fail("Exception wasn't thrown as expected."); }
+				try{ doc.GetText(39, 48); TestUtl.Fail("Exception wasn't thrown as expected."); }
 				catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
 
 				// invalid range (minus range)
-				try{ doc.GetTextInRange(10, 9); TestUtl.Fail("Exception wasn't thrown as expected."); }
+				try{ doc.GetText(10, 9); TestUtl.Fail("Exception wasn't thrown as expected."); }
 				catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
 			}
 
@@ -235,7 +234,7 @@ namespace Sgry.Azuki.Test
 			doc.Text = "\xd85a\xdd51";
 
 			// hi-surrogate to hi-surrogate
-			str = doc.GetTextInRange( 0, 0 );
+			str = doc.GetText( 0, 0 );
 			TestUtl.AssertEquals( "", str );
 			doc.SetSelection( 0, 0 );
 			doc.GetSelection( out begin, out end );
@@ -243,7 +242,7 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals( 0, end );
 
 			// hi-surrogate to lo-surrogate (dividing pair)
-			str = doc.GetTextInRange( 0, 1 );
+			str = doc.GetText( 0, 1 );
 			TestUtl.AssertEquals( "\xd85a\xdd51", str );
 			doc.SetSelection( 0, 1 );
 			doc.GetSelection( out begin, out end );
@@ -255,7 +254,7 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals( 2, end );
 
 			// lo-surrogate to lo-surrogate
-			str = doc.GetTextInRange( 1, 1 );
+			str = doc.GetText( 1, 1 );
 			TestUtl.AssertEquals( "", str );
 			doc.SetSelection( 1, 1 );
 			doc.GetSelection( out begin, out end );
@@ -263,7 +262,7 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals( 0, end );
 
 			// lo-surrogate to after lo-surrogate (dividing pair)
-			str = doc.GetTextInRange( 1, 2 );
+			str = doc.GetText( 1, 2 );
 			TestUtl.AssertEquals( "\xd85a\xdd51", str );
 			doc.SetSelection( 1, 2 );
 			doc.GetSelection( out begin, out end );
@@ -275,12 +274,18 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals( 2, end );
 
 			// after lo-surrogate to after lo-surrogate
-			str = doc.GetTextInRange( 2, 2 );
+			str = doc.GetText( 2, 2 );
 			TestUtl.AssertEquals( "", str );
 			doc.SetSelection( 2, 2 );
 			doc.GetSelection( out begin, out end );
 			TestUtl.AssertEquals( 2, begin );
 			TestUtl.AssertEquals( 2, end );
+
+			// Index constraint
+			var range = new Range( 1, 1 );
+			TextUtil.ConstrainIndex( doc.InternalBuffer, range );
+			TestUtl.AssertEquals( 0, range.Begin );
+			TestUtl.AssertEquals( 0, range.End );
 		}
 
 		static void Test_Replace()

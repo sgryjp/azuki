@@ -280,7 +280,7 @@ namespace Sgry.Azuki.Highlighter
 			// Call the hook if installed
 			if( hook != null )
 			{
-				string token = doc.GetTextInRange( begin, end );
+				string token = doc.GetText( begin, end );
 				if( hook(doc, token, begin, klass) == true )
 				{
 					return; // hook did something to this token.

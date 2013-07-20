@@ -1476,7 +1476,7 @@ namespace Sgry.Azuki.WinForms
 		/// <exception cref="ArgumentOutOfRangeException">Specified range was invalid.</exception>
 		public string GetTextInRange( int begin, int end )
 		{
-			return Document.GetTextInRange( begin, end );
+			return Document.GetText( begin, end );
 		}
 
 		/// <summary>
@@ -2382,7 +2382,7 @@ namespace Sgry.Azuki.WinForms
 				}
 
 				// get selected text
-				stringBody = Document.GetTextInRangeRef( ref selBegin, ref end );
+				stringBody = Document.GetText( selBegin, end );
 				stringBodyIndex = selBegin;
 			}
 			else
@@ -2401,7 +2401,7 @@ namespace Sgry.Azuki.WinForms
 				end = Math.Min( selBegin + (MaxRangeLength / 2), lineEndIndex );
 
 				// get current line content
-				stringBody = Document.GetTextInRangeRef( ref begin, ref end );
+				stringBody = Document.GetText( begin, end );
 				stringBodyIndex = begin;
 			}
 
@@ -2854,7 +2854,7 @@ namespace Sgry.Azuki.WinForms
 					// this is a tab so calculate distance
 					// from current position to next tab-stop and return it
 					int lineHead = view.GetLineHeadIndexFromCharIndex( caretIndex );
-					string leftPart = doc.GetTextInRange( lineHead, caretIndex );
+					string leftPart = doc.GetText( lineHead, caretIndex );
 					int currentX = view.MeasureTokenEndX( g, leftPart, 0 );
 					int nextTabStopX = view.MeasureTokenEndX( g, leftPart+'\t', 0 );
 					return nextTabStopX - currentX;
