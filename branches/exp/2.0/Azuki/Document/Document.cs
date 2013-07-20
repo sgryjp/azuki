@@ -19,7 +19,6 @@ namespace Sgry.Azuki
 	{
 		#region Fields
 		TextBuffer _Buffer = new TextBuffer( 4096, 1024 );
-		SplitArray<int> _LHI = new SplitArray<int>( 64 ); // line head indexes
 		SplitArray<LineDirtyState> _LDS = new SplitArray<LineDirtyState>( 64 ); // line dirty states
 		EditHistory _History = new EditHistory();
 		SelectionManager _SelMan;
@@ -61,10 +60,6 @@ namespace Sgry.Azuki
 		{
 			_SelMan = new SelectionManager( this );
 			_WatchPatternMarker = new WatchPatternMarker( this );
-
-			// initialize LHI
-			_LHI.Clear();
-			_LHI.Add( 0 );
 
 			// initialize LDS
 			_LDS.Clear();
@@ -169,7 +164,6 @@ namespace Sgry.Azuki
 		public LineDirtyState GetLineDirtyState( int lineIndex )
 		{
 			Debug.Assert( lineIndex <= _LDS.Count );
-			Debug.Assert( _LDS.Count == _LHI.Count );
 			if( lineIndex < 0 || LineCount < lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "lineIndex param is "+lineIndex+" but must be positive and equal to or less than "+LineCount );
 
@@ -183,7 +177,6 @@ namespace Sgry.Azuki
 		internal void SetLineDirtyState( int lineIndex, LineDirtyState lds )
 		{
 			Debug.Assert( lineIndex <= _LDS.Count );
-			Debug.Assert( _LDS.Count == _LHI.Count );
 
 			_LDS[lineIndex] = lds;
 		}
@@ -368,10 +361,8 @@ namespace Sgry.Azuki
 		{
 			if( lineIndex < 0 || columnIndex < 0 )
 				throw new ArgumentOutOfRangeException( "lineIndex or columnIndex", "index must not be negative value. (lineIndex:"+lineIndex+", columnIndex:"+columnIndex+")" );
-			if( LineCount <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "too large line index was given (given:"+lineIndex+", actual line count:"+LineCount+")" );
 
-			int caretIndex = TextUtil.GetCharIndex( _Buffer, _LHI, new TextPoint(lineIndex, columnIndex) );
+			int caretIndex = _Buffer.GetCharIndex( new TextPoint(lineIndex, columnIndex) );
 			SetSelection( caretIndex, caretIndex );
 		}
 
@@ -632,7 +623,7 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public int LineCount
 		{
-			get{ return _LHI.Count; }
+			get{ return _Buffer.LineCount; }
 		}
 
 		/// <summary>
@@ -700,7 +691,7 @@ namespace Sgry.Azuki
 			if( lineIndex < 0 || LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
 
-			return TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, includesEolCode );
+			return _Buffer.GetLineRange( lineIndex, includesEolCode );
 		}
 
 		/// <summary>
@@ -721,18 +712,7 @@ namespace Sgry.Azuki
 			if( lineIndex < 0 || LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
 
-			// prepare buffer to store line content
-			var range = TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, withEolCode );
-			if( range.IsEmpty )
-			{
-				return String.Empty;
-			}
-			var lineContent = new char[ range.Length ];
-			
-			// copy line content
-			_Buffer.CopyTo( range.Begin, range.End, lineContent );
-
-			return new String( lineContent );
+			return _Buffer.GetText( _Buffer.GetLineRange(lineIndex, withEolCode) );
 		}
 
 		/// <summary>
@@ -794,28 +774,7 @@ namespace Sgry.Azuki
 			if( beginColumnIndex < 0 )
 				throw new ArgumentOutOfRangeException( "beginColumnIndex", "Invalid index was given (beginColumnIndex:"+beginColumnIndex+")." );
 
-			int begin, end;
-
-			// if the specified range is empty, return empty string
-			if( beginLineIndex == endLineIndex && beginColumnIndex == endColumnIndex )
-			{
-				return String.Empty;
-			}
-
-			// prepare buffer
-			begin = _LHI[beginLineIndex] + beginColumnIndex;
-			end = _LHI[endLineIndex] + endColumnIndex;
-			if( _Buffer.Count < end )
-			{
-				throw new ArgumentOutOfRangeException( "?", "Invalid index was given (calculated end:"+end+", this.Length:"+Length+")." );
-			}
-			if( end <= begin )
-			{
-				throw new ArgumentOutOfRangeException( "?", String.Format("Invalid index was given (calculated range:[{4}, {5}) / beginLineIndex:{0}, beginColumnIndex:{1}, endLineIndex:{2}, endColumnIndex:{3}", beginLineIndex, beginColumnIndex, endLineIndex, endColumnIndex, begin, end) );
-			}
-
-			// copy the portion of content
-			return GetText( begin, end );
+			return _Buffer.GetText( beginLineIndex, beginColumnIndex, endLineIndex, endColumnIndex );
 		}
 
 		/// <summary>
@@ -867,7 +826,6 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
 		public void Replace( string text, int begin, int end )
 		{
-			Debug.Assert( _LHI.Count == _LDS.Count, "LHI.Count("+_LHI.Count+") is not LDS.Count("+_LDS.Count+")" );
 			if( begin < 0 || _Buffer.Count < begin )
 				throw new ArgumentOutOfRangeException( "begin", "Invalid index was given (begin:"+begin+", this.Length:"+Length+")." );
 			if( end < begin || _Buffer.Count < end )
@@ -936,7 +894,7 @@ namespace Sgry.Azuki
 			if( begin < end )
 			{
 				// manage line head indexes and delete content
-				TextUtil.LHI_Delete( _LHI, _LDS, _Buffer, begin, end );
+				TextUtil.LHI_Delete( _Buffer._LHI, _LDS, _Buffer, begin, end );
 				_Buffer.RemoveRange( begin, end );
 
 				// manage caret/anchor index
@@ -958,7 +916,7 @@ namespace Sgry.Azuki
 			if( 0 < text.Length )
 			{
 				// manage line head indexes and insert content
-				TextUtil.LHI_Insert( _LHI, _LDS, _Buffer, text, begin );
+				TextUtil.LHI_Insert( _Buffer._LHI, _LDS, _Buffer, text, begin );
 				_Buffer.Insert( begin, text.ToCharArray() );
 
 				// manage caret/anchor index
@@ -999,7 +957,6 @@ namespace Sgry.Azuki
 			// examine post assertions
 			Debug.Assert( newAnchor <= Length );
 			Debug.Assert( newCaret <= Length );
-			Debug.Assert( _LHI.Count == _LDS.Count, "LHI.Count("+_LHI.Count+") is not LDS.Count("+_LDS.Count+")" );
 
 			// cast event
 			if( _IsSuppressingDirtyStateChangedEvent == false
@@ -1585,12 +1542,11 @@ namespace Sgry.Azuki
 					"Invalid index was given (lineIndex:" + lineIndex
 					+ ", document.LineCount:" + LineCount + ")." );
 
-			return _LHI[ lineIndex ];
+			return _Buffer.GetLineRange(lineIndex, true).Begin;
 		}
 
 		/// <summary>
-		/// Gets index of the first char in the logical line
-		/// which contains the specified char-index.
+		/// Gets index of where a logical line specified with char-index starts.
 		/// </summary>
 		/// <exception cref="System.ArgumentOutOfRangeException">
 		/// Specified index is out of valid range.
@@ -1602,25 +1558,7 @@ namespace Sgry.Azuki
 					"Invalid index was given (charIndex:" + charIndex
 					+ ", document.Length:" + Length + ")." );
 
-			return TextUtil.GetLineHeadIndexFromCharIndex( _Buffer, _LHI, charIndex );
-		}
-
-		/// <summary>
-		/// Gets index of the end position of the line
-		/// which contains a character at the specified index.
-		/// </summary>
-		/// <exception cref="System.ArgumentOutOfRangeException">
-		/// Specified index is out of valid range.
-		/// </exception>
-		public int GetLineEndIndexFromCharIndex( int charIndex )
-		{
-			//NO_NEED//check( charIndex < 0 || Length < charIndex )
-
-			int lineIndex = GetLineIndexFromCharIndex( charIndex );
-			if( lineIndex+1 < LineCount )
-				return GetLineHeadIndex( lineIndex+1 );
-			else
-				return Length;
+			return _Buffer.GetLineRangeFromCharIndex( charIndex, false ).Begin;
 		}
 
 		/// <summary>
@@ -1636,7 +1574,7 @@ namespace Sgry.Azuki
 					"Invalid index was given (charIndex:" + charIndex
 					+ ", document.Length:" + Length + ")." );
 
-			return TextUtil.GetLineIndexFromCharIndex( _LHI, charIndex );
+			return _Buffer.GetTextPosition( charIndex ).Line;
 		}
 
 		/// <summary>
@@ -1652,7 +1590,7 @@ namespace Sgry.Azuki
 					"Invalid index was given (charIndex:" + charIndex
 					+ ", document.Length:" + Length + ")." );
 
-			return TextUtil.GetTextPosition( _Buffer, _LHI, charIndex );
+			return _Buffer.GetTextPosition( charIndex );
 		}
 
 		/// <summary>
@@ -1668,15 +1606,7 @@ namespace Sgry.Azuki
 					"Invalid index was given (position:" + position
 					+ ", LineCount:" + LineCount + ")." );
 
-			int index;
-
-			index = TextUtil.GetCharIndex( _Buffer, _LHI, position );
-			if( _Buffer.Count < index )
-			{
-				index = _Buffer.Count;
-			}
-
-			return index;
+			return _Buffer.GetCharIndex( position );
 		}
 		#endregion
 
@@ -2608,22 +2538,6 @@ namespace Sgry.Azuki
 		public IEnumerator<char> GetEnumerator()
 		{
 			return _Buffer.GetEnumerator();
-		}
-
-		/// <summary>
-		/// Gets estimated memory size used by this document.
-		/// </summary>
-		public int MemoryUsage
-		{
-			get
-			{
-				int usage = 0;
-				usage += _Buffer.Capacity * ( sizeof(char) + sizeof(CharClass) );
-				usage += _LHI.Capacity * sizeof(int);
-				usage += _LDS.Capacity * sizeof(LineDirtyState);
-				usage += _History.MemoryUsage;
-				return usage;
-			}
 		}
 
 		/// <summary>

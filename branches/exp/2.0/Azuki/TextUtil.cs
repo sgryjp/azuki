@@ -26,27 +26,12 @@ namespace Sgry.Azuki
 							 "too large line index was given (given:{0} actual"
 							 + " line count:{1})", position.Line, lhi.Count) );
 
-			int lineHeadIndex = lhi[position.Line];
+			int lineHeadIndex = lhi[ position.Line ];
+			int limit = (position.Line + 1 < lhi.Count) ? lineHeadIndex + lhi[ position.Line + 1 ]
+														: text.Count;
 
-#			if DEBUG
-			int lineLength = GetLineLengthByCharIndex( text, lineHeadIndex );
-			if( lineLength < position.Column )
-			{
-				if( position.Line == lhi.Count-1
-					&& lineLength+1 == position.Column )
-				{
-					// indicates EOF. this case is valid.
-				}
-				else
-				{
-					DebugUtl.Fail( "specified column index was too large"
-								   + " (given:"+position.Column+" actual line"
-								   + " length:"+lineLength+")" );
-				}
-			}
-#			endif
-
-			return lineHeadIndex + position.Column;
+			return Math.Min( lineHeadIndex + position.Column,
+							 limit );
 		}
 
 		public static int GetLineIndexFromCharIndex( IList<int> lhi,
