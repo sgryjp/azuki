@@ -1,5 +1,4 @@
 ﻿// 2010-05-16
-#if !PocketPC
 using System;
 using System.Drawing;
 using System.Windows.Forms;
@@ -223,5 +222,3 @@ namespace Sgry.Ann
 		#endregion
 	}
 }
-
-#endif// !PocketPC

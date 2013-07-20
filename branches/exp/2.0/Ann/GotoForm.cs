@@ -10,9 +10,7 @@ namespace Sgry.Ann
 		public GotoForm()
 		{
 			InitializeComponent();
-#			if !PocketPC
 			Font = SystemInformation.MenuFont;
-#			endif
 		}
 
 		public int LineNumber
@@ -150,9 +148,7 @@ namespace Sgry.Ann
 			this._LineNumTextBox.MaxLength = 10;
 			this._LineNumTextBox.KeyDown += new KeyEventHandler(_LineNumTextBox_KeyDown);
 			this._LineNumTextBox.KeyPress += new KeyPressEventHandler(_LineNumTextBox_KeyPress);
-#			if !PocketPC
 			this._LineNumTextBox.Enter += new System.EventHandler( this._LineNumTextBox_Enter );
-#			endif
 			// 
 			// _OkButton
 			// 
@@ -172,14 +168,12 @@ namespace Sgry.Ann
 			// 
 			// GotoForm
 			// 
-#			if !PocketPC
 			this.AcceptButton = this._OkButton;
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.CancelButton = this._CancelButton;
 			this.ImeMode = System.Windows.Forms.ImeMode.Disable;
 			this.ShowIcon = false;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-#			endif
 			this.AutoScaleDimensions = new System.Drawing.SizeF( 6F, 12F );
 			this.ClientSize = new System.Drawing.Size( 200, 62 );
 			this.Controls.Add( this._LineNumLabel );
@@ -192,9 +186,7 @@ namespace Sgry.Ann
 			this.Name = "GotoForm";
 			this.Text = "Go to line";
 			this.ResumeLayout( false );
-#			if !PocketPC
 			this.PerformLayout();
-#			endif
 		}
 
 		private System.Windows.Forms.Label _LineNumLabel;

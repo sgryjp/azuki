@@ -550,23 +550,10 @@ namespace Sgry.Azuki
 		}
 
 		/// <exception cref="System.OutOfMemoryException">There is no enough memory to expand buffer.</exception>
+		[Obsolete]
 		void ResizeArray( ref T[] array, int newSize )
 		{
-#			if !PocketPC
 			Array.Resize<T>( ref array, newSize );
-#			else
-			// because there is no Array.Resize<T> method in Compact Framework, resize manually.
-			// note that this is not slower than Array.Resize<T>.
-			T[] value = new T[ newSize ];
-			int minSize = Math.Min( array.Length, newSize );
-			
-			if( 0 < minSize )
-			{
-				Array.Copy( array, value, minSize );
-			}
-
-			array = value;
-#			endif
 		}
 		#endregion
 

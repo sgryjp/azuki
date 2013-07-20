@@ -181,9 +181,7 @@ namespace Sgry.Ann
 
 		void _Num_FontSize_GotFocus( object sender, EventArgs e )
 		{
-#			if !PocketPC
 			_Num_FontSize.Select( 0, 100 );
-#			endif
 		}
 
 		void _Num_TabWidth_ValueChanged( object sender, EventArgs e )
@@ -194,9 +192,7 @@ namespace Sgry.Ann
 
 		void _Num_TabWidth_GotFocus( object sender, EventArgs e )
 		{
-#			if !PocketPC
 			_Num_TabWidth.Select( 0, 100 );
-#			endif
 		}
 
 		void _Button_OK_Click( object sender, EventArgs e )
@@ -218,15 +214,11 @@ namespace Sgry.Ann
 		/// </summary>
 		void InitializeComponent2()
 		{
-#			if !PocketPC
 			_Combo_Fonts.DropDownWidth = 300;
 			StartPosition = FormStartPosition.CenterParent;
 			AcceptButton = _Button_OK;
 			CancelButton = _Button_Cancel;
 			Font = SystemInformation.MenuFont;
-#			else
-			;
-#			endif
 
 			// install event handlers
 			_Combo_Fonts.TextChanged += _Combo_Fonts_TextChanged;
