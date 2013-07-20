@@ -937,7 +937,7 @@ namespace Sgry.Azuki
 					int neededCount = (nextTabStopX - x) / view.SpaceWidthInPx;
 					if( 2 <= neededCount && i+neededCount <= end )
 					{
-						string str = doc.GetTextInRange( i, i+neededCount );
+						string str = doc.GetText( i, i+neededCount );
 						if( str.TrimStart(' ') == "" )
 						{
 							text.Append( "\t" );

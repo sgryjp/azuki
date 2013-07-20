@@ -105,11 +105,8 @@ namespace Sgry.Azuki
 			if( columnIndex < 0 )
 				throw new ArgumentOutOfRangeException( "columnIndex", "Specified index is out of range. (value:"+columnIndex+")" );
 
-			Point pos = new Point();
-
 			// set value for when the columnIndex is 0
-			pos.X = 0;
-			pos.Y = (lineIndex * LineSpacing) + (LinePadding >> 1);
+			var pos = new Point( 0, (lineIndex * LineSpacing) + (LinePadding >> 1) );
 
 			// if the location is not the head of the line, calculate x-coord.
 			if( 0 < columnIndex )
@@ -410,13 +407,13 @@ namespace Sgry.Azuki
 			beginLineHead = GetLineHeadIndex( beginL );
 			if( beginLineHead < begin )
 			{
-				token = Document.GetTextInRangeRef( ref beginLineHead, ref begin );
+				token = Document.GetText( beginLineHead, begin );
 			}
 			
 			// calculate invalid rect
 			rect.X = MeasureTokenEndX( g, token, 0 );
 			rect.Y = YofLine( beginL );
-			token = Document.GetTextInRangeRef( ref beginLineHead, ref end );
+			token = Document.GetText( beginLineHead, end );
 			rect.Width = MeasureTokenEndX( g, token, 0 ) - rect.X;
 			rect.Height = LineSpacing;
 
@@ -497,8 +494,8 @@ namespace Sgry.Azuki
 			if( prevCaretLine == prevAnchorLine )
 			{
 				Rectangle rect = new Rectangle();
-				string textBeforeSel = doc.GetTextInRange( beginLineHead, begin );
-				string textSelected = doc.GetTextInRange( endLineHead, end );
+				string textBeforeSel = doc.GetText( beginLineHead, begin );
+				string textSelected = doc.GetText( endLineHead, end );
 				int left = MeasureTokenEndX( g, textBeforeSel, 0 ) - (ScrollPosX - XofTextArea);
 				int right = MeasureTokenEndX( g, textSelected, 0 ) - (ScrollPosX - XofTextArea);
 				rect.X = left;
@@ -646,12 +643,12 @@ namespace Sgry.Azuki
 			string textSelected;
 
 			// calculate position of the invalid rect
-			textBeforeSelBegin = Document.GetTextInRangeRef( ref beginLineHead, ref begin );
+			textBeforeSelBegin = Document.GetText( beginLineHead, begin );
 			rect.X = MeasureTokenEndX( g, textBeforeSelBegin, 0 );
 			rect.Y = YofLine( beginL );
 
 			// calculate width and height of the invalid rect
-			textSelected = Document.GetTextInRangeRef( ref begin, ref end );
+			textSelected = Document.GetText( begin, end );
 			rect.Width = MeasureTokenEndX( g, textSelected, rect.X ) - rect.X;
 			rect.Height = LineSpacing;
 			Debug.Assert( 0 <= rect.Width );
@@ -680,7 +677,7 @@ namespace Sgry.Azuki
 			Document doc = Document;
 
 			// calculate upper part of the invalid area
-			String firstLinePart = doc.GetTextInRange( beginLineHead, begin );
+			String firstLinePart = doc.GetText( beginLineHead, begin );
 			upper = new Rectangle();
 			if( FirstVisibleLine <= beginLine ) // if not visible, no need to invalidate
 			{
@@ -691,7 +688,7 @@ namespace Sgry.Azuki
 			}
 
 			// calculate lower part of the invalid area
-			String finalLinePart = doc.GetTextInRange( endLineHead, end );
+			String finalLinePart = doc.GetText( endLineHead, end );
 			lower = new Rectangle();
 			if( FirstVisibleLine <= endLine ) // if not visible, no need to invalidate
 			{
@@ -851,7 +848,9 @@ namespace Sgry.Azuki
 				&& end != -1 ) // or reaches the end of text
 			{
 				// get this token
-				token = Document.GetTextInRangeRef( ref begin, ref end );
+				Debug.Assert( TextUtil.IsNotDividableIndex(Document.InternalBuffer, begin) );
+				Debug.Assert( TextUtil.IsNotDividableIndex(Document.InternalBuffer, end) );
+				token = Document.GetText( begin, end );
 				DebugUtl.Assert( 0 < token.Length );
 
 				// calc next drawing pos before drawing text
@@ -953,7 +952,7 @@ namespace Sgry.Azuki
 				int lineWidth;
 
 				// calculate full length of this line, in pixel
-				lineContent = Document.GetTextInRange( lineHead, lineEnd );
+				lineContent = Document.GetText( lineHead, lineEnd );
 				lineWidth = MeasureTokenEndX( g, lineContent, 0 );
 
 				// remember length of this line if it is the longest ever

@@ -161,7 +161,7 @@ namespace Sgry.Azuki
 			{
 				// get partial content of the line which exists before the caret
 				Range r = TextUtil.GetLineRange( Document.InternalBuffer, PLHI, lineIndex, true );
-				string leftPart = Document.GetTextInRange( r.Begin, r.Begin + columnIndex );
+				string leftPart = Document.GetText( r.Begin, r.Begin + columnIndex );
 
 				// measure the characters
 				pos.X = MeasureTokenEndX( g, leftPart, pos.X );
@@ -202,7 +202,7 @@ namespace Sgry.Azuki
 
 				// get content of the line
 				Range range = TextUtil.GetLineRange( Document.InternalBuffer, PLHI, lineIndex, false );
-				line = Document.GetTextInRange( range.Begin, range.End );
+				line = Document.GetText( range.Begin, range.End );
 				if( range.End+1 < Document.Length
 					&& !TextUtil.IsEolChar(Document[range.End]) )
 				{
@@ -507,7 +507,7 @@ namespace Sgry.Azuki
 				end = doc.Length;
 
 			// get content of this line
-			lineContent = doc.GetTextInRange( begin, end );
+			lineContent = doc.GetText( begin, end );
 
 			// meaure this line and add line end index to PLHI
 			MeasureTokenEndX( lineContent, 0, TextAreaWidth, out drawableLength );
@@ -636,8 +636,8 @@ namespace Sgry.Azuki
 				PLHI.RemoveRange( delBeginL, delEndL );
 
 			// [phase 3] re-calculate screen line indexes
-			// (here we should divide the text in the range into small segments
-			// to avoid making unnecessary copy of the text so many times)
+			// (here we should divide the text into small segments to avoid making unnecessary
+			// copy of the text many times)
 			const int segmentLen = 32;
 			int x = 0;
 			int drawableLen;
@@ -656,9 +656,13 @@ namespace Sgry.Azuki
 				{
 					end = reCalcEnd;
 				}
+				while( TextUtil.IsNotDividableIndex(Document.InternalBuffer, end) )
+				{
+					end++;
+				}
 
 				// get next segment
-				string str = doc.GetTextInRangeRef( ref begin, ref end );
+				string str = doc.GetText( begin, end );
 				x = MeasureTokenEndX( g, str, x, TextAreaWidth, out drawableLen );
 
 				// can this segment be written in this screen line?
@@ -851,7 +855,9 @@ namespace Sgry.Azuki
 			while( end <= lineEnd && end != -1 )
 			{
 				// get this token
-				token = Document.GetTextInRangeRef( ref begin, ref end );
+				Debug.Assert( TextUtil.IsNotDividableIndex(Document.InternalBuffer, begin) );
+				Debug.Assert( TextUtil.IsNotDividableIndex(Document.InternalBuffer, end) );
+				token = Document.GetText( begin, end );
 				Debug.Assert( 0 < token.Length, "@View.Paint. NextPaintToken returns empty range." );
 
 				// calc next drawing pos before drawing text

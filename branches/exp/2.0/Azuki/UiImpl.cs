@@ -702,7 +702,7 @@ namespace Sgry.Azuki
 				for( int i=0; i<Document.RectSelectRanges.Length; i+=2 )
 				{
 					// get this row content
-					string row = Document.GetTextInRange(
+					string row = Document.GetText(
 							Document.RectSelectRanges[i],
 							Document.RectSelectRanges[i+1]
 						);
@@ -715,7 +715,7 @@ namespace Sgry.Azuki
 			{
 				int begin, end;
 				Document.GetSelection( out begin, out end );
-				return Document.GetTextInRange( begin, end );
+				return Document.GetText( begin, end );
 			}
 		}
 		#endregion
@@ -826,7 +826,7 @@ namespace Sgry.Azuki
 
 				// remove current selection
 				Document.GetSelection( out begin, out end );
-				selText = Document.GetTextInRange( begin, end );
+				selText = Document.GetText( begin, end );
 				Document.Replace( "" );
 				if( end <= targetIndex )
 					targetIndex -= selText.Length;

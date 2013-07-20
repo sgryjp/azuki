@@ -760,45 +760,33 @@ namespace Sgry.Azuki
 		///   </para>
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.Document.GetTextInRangeRef"/>
-		public string GetTextInRange( int begin, int end )
+		public string GetText( int begin, int end )
 		{
-			return GetTextInRangeRef( ref begin, ref end );
+			return GetText( new Range(begin, end) );
 		}
 
 		/// <summary>
-		/// Gets text in the range [begin, end).
+		/// Gets a portion of text in a specified range.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		/// <remarks>
-		///   <para>
-		///   If given index is at middle of an undividable character sequence such as surrogate pair,
-		///   given range will be automatically expanded to avoid dividing the pair.
-		///   </para>
-		///   <para>
-		///   This method returns the expanded range by setting parameter
-		///   <paramref name="begin"/> and <paramref name="end"/>
-		///   to actually used values.
-		///   </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.GetTextInRange(int, int)">Document.GetTextInRange(int, int) method</seealso>.
-		public string GetTextInRangeRef( ref int begin, ref int end )
+		public string GetText( Range range )
 		{
-			if( end < 0 || _Buffer.Count < end )
-				throw new ArgumentOutOfRangeException( "end", "Invalid index was given (end:"+end+", this.Length:"+Length+")." );
-			if( begin < 0 || end < begin )
-				throw new ArgumentOutOfRangeException( "begin", "Invalid index was given (begin:"+begin+", end:"+end+", this.Length:"+Length+")." );
+			if( range.End < 0 || _Buffer.Count < range.End
+				|| range.Begin < 0 || range.End < range.Begin )
+				throw new ArgumentOutOfRangeException( "range", "Invalid index was given (range:"
+													   + range + ", Length:" + Length + ")." );
 
-			if( begin == end )
+			if( range.IsEmpty )
 			{
 				return String.Empty;
 			}
 
 			// constrain indexes to avoid dividing a grapheme cluster
-			TextUtil.ConstrainIndex( _Buffer, ref begin, ref end );
-			
+			TextUtil.ConstrainIndex( _Buffer, range );
+
 			// retrieve a part of the content
-			char[] buf = new char[end - begin];
-			_Buffer.CopyTo( begin, end, buf );
+			char[] buf = new char[range.Length];
+			_Buffer.CopyTo( range.Begin, range.End, buf );
 			return new String( buf );
 		}
 
@@ -838,7 +826,7 @@ namespace Sgry.Azuki
 			}
 
 			// copy the portion of content
-			return GetTextInRange( begin, end );
+			return GetText( begin, end );
 		}
 
 		/// <summary>
@@ -1257,7 +1245,7 @@ namespace Sgry.Azuki
 			}
 
 			// extract that range
-			return GetTextInRange( range.Begin, range.End );
+			return GetText( range.Begin, range.End );
 		}
 
 		/// <summary>

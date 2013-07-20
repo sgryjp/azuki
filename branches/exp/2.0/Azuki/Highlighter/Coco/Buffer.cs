@@ -48,7 +48,7 @@ namespace Sgry.Azuki.Highlighter.Coco
 
 		public string GetString( int begin, int end )
 		{
-			return _Document.GetTextInRange( begin, end );
+			return _Document.GetText( begin, end );
 		}
 	}
 }
