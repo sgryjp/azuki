@@ -2,7 +2,6 @@
 // brief: Platform API caller for Windows.
 // author: YAMAMOTO Suguru
 // encoding: UTF-8
-// update: 2011-02-20
 //=========================================================
 using System;
 using System.Drawing;
@@ -108,7 +107,7 @@ namespace Sgry.Azuki.WinForms
 				}
 
 				// get data pointer by locking the handle
-				dataPtr = Utl.MyGlobalLock( dataHandle );
+				dataPtr = WinApi.GlobalLock( dataHandle );
 				if( dataPtr == IntPtr.Zero )
 				{
 					return null;
@@ -125,7 +124,7 @@ namespace Sgry.Azuki.WinForms
 				// unlock handle
 				if( dataPtr != IntPtr.Zero )
 				{
-					Utl.MyGlobalUnlock( dataHandle );
+					WinApi.GlobalUnlock( dataHandle );
 				}
 				if( clipboardOpened )
 				{
@@ -170,20 +169,20 @@ namespace Sgry.Azuki.WinForms
 				WinApi.EmptyClipboard();
 
 				// set normal text data
-				dataHdl = Utl.MyStringToHGlobalUni( text );
+				dataHdl = Marshal.StringToHGlobalUni( text );
 				WinApi.SetClipboardData( WinApi.CF_UNICODETEXT, dataHdl );
 
 				// set addional text data
 				if( dataType == TextDataType.Line )
 				{
 					// allocate dummy text (this is needed for PocketPC)
-					dataHdl = Utl.MyStringToHGlobalUni( "" );
+					dataHdl = Marshal.StringToHGlobalUni( "" );
 					WinApi.SetClipboardData( _CF_LINEOBJECT, dataHdl );
 				}
 				else if( dataType == TextDataType.Rectangle )
 				{
 					// allocate dummy text (this is needed for PocketPC)
-					dataHdl = Utl.MyStringToHGlobalUni( "" );
+					dataHdl = Marshal.StringToHGlobalUni( "" );
 					WinApi.SetClipboardData( _CF_RECTSELECT, dataHdl );
 				}
 			}
@@ -236,20 +235,6 @@ namespace Sgry.Azuki.WinForms
 		#region Utilities
 		class Utl
 		{
-			#region Handle Allocation
-			[Obsolete]
-			public static IntPtr MyGlobalLock( IntPtr handle )
-			{
-				return WinApi.GlobalLock( handle );
-			}
-
-			[Obsolete]
-			public static void MyGlobalUnlock( IntPtr handle )
-			{
-				WinApi.GlobalUnlock( handle );
-			}
-			#endregion
-
 			#region String Conversion
 			public static string MyPtrToStringAnsi( IntPtr dataPtr )
 			{
@@ -272,14 +257,6 @@ namespace Sgry.Azuki.WinForms
 					
 					return new String( Encoding.Default.GetChars(data) );
 				}
-			}
-
-			/// <exception cref="ArgumentOutOfRangeException">Too long text was given.</exception>
-			/// <exception cref="OutOfMemoryException">No enough memory.</exception>
-			[Obsolete]
-			public static IntPtr MyStringToHGlobalUni( string text )
-			{
-				return Marshal.StringToHGlobalUni( text );
 			}
 			#endregion
 		}
