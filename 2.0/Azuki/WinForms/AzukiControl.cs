@@ -1544,7 +1544,7 @@ namespace Sgry.Azuki.WinForms
 		/// <exception cref="System.ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
 		public int GetLineLength( int lineIndex )
 		{
-			return Document.GetLineLength( lineIndex );
+			return Document.GetLineRange( lineIndex ).Length;
 		}
 
 		/// <summary>
@@ -2396,7 +2396,7 @@ namespace Sgry.Azuki.WinForms
 				// get current line range
 				lineIndex = Document.GetLineIndexFromCharIndex( selBegin );
 				lineHeadIndex = Document.GetLineHeadIndex( lineIndex );
-				lineEndIndex = lineHeadIndex + Document.GetLineLength( lineIndex );
+				lineEndIndex = lineHeadIndex + Document.GetLineRange( lineIndex ).Length;
 				begin = Math.Max( lineHeadIndex, selBegin - (MaxRangeLength / 2) );
 				end = Math.Min( selBegin + (MaxRangeLength / 2), lineEndIndex );
 

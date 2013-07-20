@@ -1,7 +1,6 @@
 ﻿// file: UriMarker.cs
 // brief: a singleton class which marks URIs up in document.
 // author: YAMAMOTO Suguru
-// update: 2011-06-26
 //=========================================================
 using System;
 using System.Text;
@@ -83,7 +82,7 @@ namespace Sgry.Azuki
 				// update entire graphic of the logical line
 				// if marking bits associated with any character was changed
 				lineHead = doc.GetLineHeadIndex( lineIndex );
-				lineEnd = lineHead + doc.GetLineLength( lineIndex );
+				lineEnd = lineHead + doc.GetLineRange( lineIndex ).Length;
 				ui.View.Invalidate( lineHead, lineEnd );
 			}
 		}
@@ -130,7 +129,7 @@ namespace Sgry.Azuki
 
 			// prepare scanning
 			lineBegin = doc.GetLineHeadIndex( logicalLineIndex );
-			lineEnd = lineBegin + doc.GetLineLength( logicalLineIndex );
+			lineEnd = lineBegin + doc.GetLineRange( logicalLineIndex ).Length;
 			if( lineBegin == lineEnd )
 			{
 				return false; // this is an empty line.
@@ -207,7 +206,7 @@ namespace Sgry.Azuki
 			// prepare parsing
 			isMailAddress = false;
 			lineEnd = doc.GetLineHeadIndexFromCharIndex( startIndex );
-			lineEnd += doc.GetLineLength( doc.GetLineIndexFromCharIndex(startIndex) );
+			lineEnd += doc.GetLineRange( doc.GetLineIndexFromCharIndex(startIndex) ).Length;
 			DebugUtl.Assert( lineEnd <= doc.Length );
 
 		//scheme:

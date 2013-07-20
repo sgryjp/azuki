@@ -44,7 +44,7 @@ namespace Sgry.Azuki
 				// update entire graphic of the logical line
 				// if marking bits associated with any character was changed
 				lineHead = doc.GetLineHeadIndex( lineIndex );
-				lineEnd = lineHead + doc.GetLineLength( lineIndex );
+				lineEnd = lineHead + doc.GetLineRange( lineIndex ).Length;
 				ui.View.Invalidate( lineHead, lineEnd );
 			}
 		}

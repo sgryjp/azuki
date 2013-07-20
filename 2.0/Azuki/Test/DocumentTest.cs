@@ -572,14 +572,14 @@ namespace Sgry.Azuki.Test
 			Document doc = new Document();
 			doc.Text = "keep it\r\ras simple as possible\r\n\nbut\n\r\nnot simpler.";
 
-			TestUtl.AssertEquals( 7, doc.GetLineLength(0) );
-			TestUtl.AssertEquals( 0, doc.GetLineLength(1) );
-			TestUtl.AssertEquals( 21, doc.GetLineLength(2) );
-			TestUtl.AssertEquals( 0, doc.GetLineLength(3) );
-			TestUtl.AssertEquals( 3, doc.GetLineLength(4) );
-			TestUtl.AssertEquals( 0, doc.GetLineLength(5) );
-			TestUtl.AssertEquals( 12, doc.GetLineLength(6) );
-			try{ doc.GetLineLength(7); TestUtl.Fail("Exception wasn't thrown as expected."); }
+			TestUtl.AssertEquals( 7, doc.GetLineRange(0).Length );
+			TestUtl.AssertEquals( 0, doc.GetLineRange(1).Length );
+			TestUtl.AssertEquals( 21, doc.GetLineRange(2).Length );
+			TestUtl.AssertEquals( 0, doc.GetLineRange(3).Length );
+			TestUtl.AssertEquals( 3, doc.GetLineRange(4).Length );
+			TestUtl.AssertEquals( 0, doc.GetLineRange(5).Length );
+			TestUtl.AssertEquals( 12, doc.GetLineRange(6).Length );
+			try{ doc.GetLineRange(7); TestUtl.Fail("Exception wasn't thrown as expected."); }
 			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
 		}
 

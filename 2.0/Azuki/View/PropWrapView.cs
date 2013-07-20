@@ -382,7 +382,7 @@ namespace Sgry.Azuki
 
 					// get position of the char at the end of the logical line
 					logLine = doc.GetLineIndexFromCharIndex( e.Index );
-					logLineEnd = doc.GetLineHeadIndex( logLine ) + doc.GetLineLength( logLine );
+					logLineEnd = doc.GetLineHeadIndex( logLine ) + doc.GetLineRange( logLine ).Length;
 					logLineEndPos = GetVirPosFromIndex( g, logLineEnd );
 					VirtualToScreen( ref logLineEndPos );
 					logLineBottom = logLineEndPos.Y - (LinePadding >> 1);
@@ -423,7 +423,7 @@ namespace Sgry.Azuki
 
 			// calculate beginning and ending index of the modified logical line
 			logLineHeadIndex = doc.GetLineHeadIndex( logLineIndex );
-			logLineEndIndex = logLineHeadIndex + doc.GetLineLength( logLineIndex );
+			logLineEndIndex = logLineHeadIndex + doc.GetLineRange( logLineIndex ).Length;
 
 			// get the screen position of both beginning and ending character
 			top = this.GetVirPosFromIndex( g, logLineHeadIndex );

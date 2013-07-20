@@ -672,46 +672,33 @@ namespace Sgry.Azuki
 				throw new ArgumentOutOfRangeException( "charIndex" );
 
 			int lineIndex = GetLineIndexFromCharIndex( charIndex );
-			return GetLineLength( lineIndex, includesEolCode );
+			return GetLineRange( lineIndex, includesEolCode ).Length;
 		}
 
 		/// <summary>
-		/// Gets length of the logical line.
+		/// Gets range of a specified logical line, excluding EOL code.
 		/// </summary>
 		/// <param name="lineIndex">Index of the line of which to get the length.</param>
 		/// <returns>Length of the specified line in character count.</returns>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		/// <remarks>
-		///   <para>
-		///   This method retrieves length of logical line.
-		///   Note that this method does not count EOL codes.
-		///   </para>
-		/// </remarks>
-		public int GetLineLength( int lineIndex )
+		public Range GetLineRange( int lineIndex )
 		{
-			return GetLineLength( lineIndex, false );
+			return GetLineRange( lineIndex, false );
 		}
 
 		/// <summary>
-		/// Gets length of the logical line.
+		/// Gets range of a specified logical line.
 		/// </summary>
-		/// <param name="lineIndex">Index of the line of which to get the length.</param>
-		/// <param name="includesEolCode">Whether EOL codes should be count or not.</param>
-		/// <returns>Length of the specified line in character count.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		/// <remarks>
-		///   <para>
-		///   This method retrieves length of logical line.
-		///   If <paramref name="includesEolCode"/> was true,
-		///   this method count EOL code as line content.
-		///   </para>
-		/// </remarks>
-		public int GetLineLength( int lineIndex, bool includesEolCode )
+		/// <param name="lineIndex">Index of the line of which to get its range.</param>
+		/// <param name="includesEolCode">Whether EOL codes should be included or not.</param>
+		/// <returns>Range of a specified line.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Specified line index is out of valid range.</exception>
+		public Range GetLineRange( int lineIndex, bool includesEolCode )
 		{
 			if( lineIndex < 0 || LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
 
-			return TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, includesEolCode ).Length;
+			return TextUtil.GetLineRange( _Buffer, _LHI, lineIndex, includesEolCode );
 		}
 
 		/// <summary>
