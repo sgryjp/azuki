@@ -38,8 +38,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Actions.cs" />
@@ -86,6 +88,7 @@
     <Compile Include="IUserInterface.cs" />
     <Compile Include="IWordProc.cs" />
     <Compile Include="Platform.cs" />
+    <Compile Include="Range.cs" />
     <Compile Include="Test\CaretMoveLogicTest.cs" />
     <Compile Include="Test\DefaultWordProcTest.cs" />
     <Compile Include="Test\DocumentTest.cs" />

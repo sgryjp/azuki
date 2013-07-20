@@ -174,56 +174,56 @@ namespace Sgry.Azuki.Test
 
 		static void Test_GetLineRange()
 		{
-			int head, end;
+			Range range;
 			TextBuffer text;
 			SplitArray<int> lhi;
 			SplitArray<LineDirtyState> lds;
 
 			MakeTestData( out text, out lhi, out lds );
 
-			TextUtil.GetLineRange( text, lhi, 0, true, out head, out end );
-			TestUtl.AssertEquals( 0, head );
-			TestUtl.AssertEquals( 32, end );
-			TextUtil.GetLineRange( text, lhi, 1, true, out head, out end );
-			TestUtl.AssertEquals( 32, head );
-			TestUtl.AssertEquals( 33, end );
-			TextUtil.GetLineRange( text, lhi, 2, true, out head, out end );
-			TestUtl.AssertEquals( 33, head );
-			TestUtl.AssertEquals( 37, end );
-			TextUtil.GetLineRange( text, lhi, 3, true, out head, out end );
-			TestUtl.AssertEquals( 37, head );
-			TestUtl.AssertEquals( 38, end );
-			TextUtil.GetLineRange( text, lhi, 4, true, out head, out end );
-			TestUtl.AssertEquals( 38, head );
-			TestUtl.AssertEquals( 52, end );
-			TextUtil.GetLineRange( text, lhi, 5, true, out head, out end );
-			TestUtl.AssertEquals( 52, head );
-			TestUtl.AssertEquals( 53, end );
-			TextUtil.GetLineRange( text, lhi, 6, true, out head, out end );
-			TestUtl.AssertEquals( 53, head );
-			TestUtl.AssertEquals( 71, end );
+			range = TextUtil.GetLineRange( text, lhi, 0, true );
+			TestUtl.AssertEquals( 0, range.Begin );
+			TestUtl.AssertEquals( 32, range.End );
+			range = TextUtil.GetLineRange( text, lhi, 1, true );
+			TestUtl.AssertEquals( 32, range.Begin );
+			TestUtl.AssertEquals( 33, range.End );
+			range = TextUtil.GetLineRange( text, lhi, 2, true );
+			TestUtl.AssertEquals( 33, range.Begin );
+			TestUtl.AssertEquals( 37, range.End );
+			range = TextUtil.GetLineRange( text, lhi, 3, true );
+			TestUtl.AssertEquals( 37, range.Begin );
+			TestUtl.AssertEquals( 38, range.End );
+			range = TextUtil.GetLineRange( text, lhi, 4, true );
+			TestUtl.AssertEquals( 38, range.Begin );
+			TestUtl.AssertEquals( 52, range.End );
+			range = TextUtil.GetLineRange( text, lhi, 5, true );
+			TestUtl.AssertEquals( 52, range.Begin );
+			TestUtl.AssertEquals( 53, range.End );
+			range = TextUtil.GetLineRange( text, lhi, 6, true );
+			TestUtl.AssertEquals( 53, range.Begin );
+			TestUtl.AssertEquals( 71, range.End );
 
-			TextUtil.GetLineRange( text, lhi, 0, false, out head, out end );
-			TestUtl.AssertEquals( 0, head );
-			TestUtl.AssertEquals( 30, end );
-			TextUtil.GetLineRange( text, lhi, 1, false, out head, out end );
-			TestUtl.AssertEquals( 32, head );
-			TestUtl.AssertEquals( 32, end );
-			TextUtil.GetLineRange( text, lhi, 2, false, out head, out end );
-			TestUtl.AssertEquals( 33, head );
-			TestUtl.AssertEquals( 36, end );
-			TextUtil.GetLineRange( text, lhi, 3, false, out head, out end );
-			TestUtl.AssertEquals( 37, head );
-			TestUtl.AssertEquals( 37, end );
-			TextUtil.GetLineRange( text, lhi, 4, false, out head, out end );
-			TestUtl.AssertEquals( 38, head );
-			TestUtl.AssertEquals( 51, end );
-			TextUtil.GetLineRange( text, lhi, 5, false, out head, out end );
-			TestUtl.AssertEquals( 52, head );
-			TestUtl.AssertEquals( 52, end );
-			TextUtil.GetLineRange( text, lhi, 6, false, out head, out end );
-			TestUtl.AssertEquals( 53, head );
-			TestUtl.AssertEquals( 71, end );
+			range = TextUtil.GetLineRange( text, lhi, 0, false );
+			TestUtl.AssertEquals( 0, range.Begin );
+			TestUtl.AssertEquals( 30, range.End );
+			range = TextUtil.GetLineRange( text, lhi, 1, false );
+			TestUtl.AssertEquals( 32, range.Begin );
+			TestUtl.AssertEquals( 32, range.End );
+			range = TextUtil.GetLineRange( text, lhi, 2, false );
+			TestUtl.AssertEquals( 33, range.Begin );
+			TestUtl.AssertEquals( 36, range.End );
+			range = TextUtil.GetLineRange( text, lhi, 3, false );
+			TestUtl.AssertEquals( 37, range.Begin );
+			TestUtl.AssertEquals( 37, range.End );
+			range = TextUtil.GetLineRange( text, lhi, 4, false );
+			TestUtl.AssertEquals( 38, range.Begin );
+			TestUtl.AssertEquals( 51, range.End );
+			range = TextUtil.GetLineRange( text, lhi, 5, false );
+			TestUtl.AssertEquals( 52, range.Begin );
+			TestUtl.AssertEquals( 52, range.End );
+			range = TextUtil.GetLineRange( text, lhi, 6, false );
+			TestUtl.AssertEquals( 53, range.Begin );
+			TestUtl.AssertEquals( 71, range.End );
 		}
 
 		static void Test_GetLineIndexFromCharIndex()
