@@ -368,8 +368,8 @@ namespace Sgry.Azuki
 				throw new ArgumentOutOfRangeException( "lineIndex or columnIndex", "index must not be negative value. (lineIndex:"+lineIndex+", columnIndex:"+columnIndex+")" );
 			if( LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "too large line index was given (given:"+lineIndex+", actual line count:"+LineCount+")" );
-			
-			int caretIndex = TextUtil.GetCharIndexFromLineColumnIndex( _Buffer, _LHI, lineIndex, columnIndex );
+
+			int caretIndex = TextUtil.GetCharIndex( _Buffer, _LHI, new TextPoint(lineIndex, columnIndex) );
 			SetSelection( caretIndex, caretIndex );
 		}
 
@@ -1665,24 +1665,16 @@ namespace Sgry.Azuki
 		/// <exception cref="System.ArgumentOutOfRangeException">
 		/// Specified index is out of valid range.
 		/// </exception>
-		public int GetCharIndexFromLineColumnIndex( int lineIndex,
-													int columnIndex )
+		public int GetCharIndex( TextPoint position )
 		{
-			if( lineIndex < 0 || LineCount <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex",
-					"Invalid index was given (lineIndex:" + lineIndex
-					+ ", this.LineCount:" + LineCount + ")." );
-			if( columnIndex < 0 )
-				throw new ArgumentOutOfRangeException( "columnIndex",
-					"Invalid index was given (columnIndex:"
-					+ columnIndex + ")." );
+			if( position.Line < 0 || LineCount <= position.Line || position.Column < 0 )
+				throw new ArgumentOutOfRangeException( "position",
+					"Invalid index was given (position:" + position
+					+ ", LineCount:" + LineCount + ")." );
 
 			int index;
 
-			index = TextUtil.GetCharIndexFromLineColumnIndex( _Buffer,
-															   _LHI,
-															   lineIndex,
-															   columnIndex );
+			index = TextUtil.GetCharIndex( _Buffer, _LHI, position );
 			if( _Buffer.Count < index )
 			{
 				index = _Buffer.Count;

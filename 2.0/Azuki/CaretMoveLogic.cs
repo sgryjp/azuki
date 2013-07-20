@@ -319,7 +319,7 @@ namespace Sgry.Azuki
 				return doc.Length;
 			}
 
-			int nextIndex = view.GetCharIndexFromLineColumnIndex( line+1, 0 );
+			int nextIndex = view.GetCharIndex( new TextPoint(line+1, 0) );
 			if( 0 <= nextIndex-1 && doc.GetCharAt(nextIndex-1) == '\n'
 				&& 0 <= nextIndex-2 && doc.GetCharAt(nextIndex-2) == '\r' )
 			{

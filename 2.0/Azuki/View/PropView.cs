@@ -183,7 +183,7 @@ namespace Sgry.Azuki
 				}
 			}
 
-			return Document.GetCharIndexFromLineColumnIndex( lineIndex, columnIndex );
+			return Document.GetCharIndex( new TextPoint(lineIndex, columnIndex) );
 		}
 
 		/// <summary>
@@ -218,9 +218,9 @@ namespace Sgry.Azuki
 		/// Calculates char-index from screen line/column index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
-		public override int GetCharIndexFromLineColumnIndex( int lineIndex, int columnIndex )
+		public override int GetCharIndex( TextPoint position )
 		{
-			return Document.GetCharIndexFromLineColumnIndex( lineIndex, columnIndex );
+			return Document.GetCharIndex( position );
 		}
 		#endregion
 

@@ -42,8 +42,8 @@ namespace Sgry.Azuki.Test
 			Console.WriteLine( "test {0} - GetLineRange()", testNum++ );
 			TestUtl.Do( Test_GetLineRange );
 
-			Console.WriteLine( "test {0} - GetCharIndexFromLineColumnIndex()", testNum++ );
-			TestUtl.Do( Test_GetCharIndexFromLineColumnIndex );
+			Console.WriteLine( "test {0} - GetCharIndex()", testNum++ );
+			TestUtl.Do( Test_GetCharIndex );
 
 			Console.WriteLine( "test {0} - GetLineIndexFromCharIndex()", testNum++ );
 			TestUtl.Do( Test_GetLineIndexFromCharIndex );
@@ -58,7 +58,7 @@ namespace Sgry.Azuki.Test
 			Console.WriteLine();
 		}
 
-		static void Test_GetCharIndexFromLineColumnIndex()
+		static void Test_GetCharIndex()
 		{
 			TextBuffer text;
 			SplitArray<int> lhi;
@@ -66,13 +66,13 @@ namespace Sgry.Azuki.Test
 
 			MakeTestData( out text, out lhi, out lds );
 
-			TestUtl.AssertEquals(  0, TextUtil.GetCharIndexFromLineColumnIndex(text, lhi, 0,  0) );
-			TestUtl.AssertEquals( 34, TextUtil.GetCharIndexFromLineColumnIndex(text, lhi, 2,  1) );
-			TestUtl.AssertEquals( 71, TextUtil.GetCharIndexFromLineColumnIndex(text, lhi, 6, 18) );
+			TestUtl.AssertEquals(  0, TextUtil.GetCharIndex(text, lhi, new TextPoint(0,  0)) );
+			TestUtl.AssertEquals( 34, TextUtil.GetCharIndex(text, lhi, new TextPoint(2,  1)) );
+			TestUtl.AssertEquals( 71, TextUtil.GetCharIndex(text, lhi, new TextPoint(6, 18)) );
 
 			try
 			{
-				TextUtil.GetCharIndexFromLineColumnIndex( text, lhi, 6, 19 );
+				TextUtil.GetCharIndex( text, lhi, new TextPoint(6, 19) );
 				TestUtl.Fail( "exception must be thrown here." );
 			}
 			catch( Exception ex )
@@ -82,7 +82,7 @@ namespace Sgry.Azuki.Test
 
 			try
 			{
-				TextUtil.GetCharIndexFromLineColumnIndex( text, lhi, 0, 100 );
+				TextUtil.GetCharIndex( text, lhi, new TextPoint(0, 100) );
 				TestUtl.Fail( "exception must be thrown here." );
 			}
 			catch( Exception ex )

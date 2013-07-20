@@ -233,7 +233,8 @@ namespace Sgry.Azuki
 				}
 			}
 
-			return TextUtil.GetCharIndexFromLineColumnIndex( Document.InternalBuffer, PLHI, lineIndex, columnIndex );
+			return TextUtil.GetCharIndex( Document.InternalBuffer, PLHI,
+										  new TextPoint(lineIndex, columnIndex) );
 		}
 
 		/// <summary>
@@ -281,16 +282,14 @@ namespace Sgry.Azuki
 		/// Calculates char-index from screen line/column index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public override int GetCharIndexFromLineColumnIndex( int lineIndex, int columnIndex )
+		public override int GetCharIndex( TextPoint position )
 		{
-			if( lineIndex < 0 || LineCount < lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid index was given (lineIndex:"+lineIndex+", LineCount:"+LineCount+")." );
-			if( columnIndex < 0 )
-				throw new ArgumentOutOfRangeException( "columnIndex", "Invalid index was given (columnIndex:"+columnIndex+")." );
+			if( position.Line < 0 || LineCount < position.Line || position.Column < 0 )
+				throw new ArgumentOutOfRangeException( "position", "Invalid index was given"
+													   + " (position:" + position + ", LineCount:"
+													   + LineCount + ")." );
 
-			return TextUtil.GetCharIndexFromLineColumnIndex(
-					Document.InternalBuffer, PLHI, lineIndex, columnIndex
-				);
+			return TextUtil.GetCharIndex( Document.InternalBuffer, PLHI, position );
 		}
 		#endregion
 
