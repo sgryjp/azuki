@@ -15,6 +15,8 @@ namespace Sgry.Azuki
 	class TextBuffer : SplitArray<Char>
 	{
 		#region Fields
+		internal //TODO: Make TextBuffer.LHI private.
+		SplitArray<int> _LHI = new SplitArray<int>( 64 ); // line head indexes
 		SplitArray<CharClass> _Classes;
 		RleArray<uint> _MarkingBitMasks;
 		#endregion
@@ -26,6 +28,7 @@ namespace Sgry.Azuki
 		public TextBuffer( int initGapSize, int growSize )
 			: base( initGapSize, growSize )
 		{
+			_LHI.Add( 0 );
 			_Classes = new SplitArray<CharClass>( initGapSize, growSize );
 			_MarkingBitMasks = new RleArray<uint>();
 		}
@@ -67,7 +70,98 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
+		#region Line / Column
+		public TextPoint GetTextPosition( int charIndex )
+		{
+			Debug.Assert( 0 <= charIndex );
+			Debug.Assert( charIndex <= Count );
+
+			return TextUtil.GetTextPosition( this, _LHI, charIndex );
+		}
+
+		public int GetCharIndex( TextPoint position )
+		{
+			Debug.Assert( 0 <= position.Line );
+			Debug.Assert( position.Line < LineCount );
+			Debug.Assert( 0 <= position.Column );
+
+			return TextUtil.GetCharIndex( this, _LHI, position );
+		}
+		#endregion
+
 		#region Content Access
+		public int LineCount
+		{
+			get{ return _LHI.Count; }
+		}
+
+		public Range GetLineRange( int lineIndex, bool includesEolCode )
+		{
+			Debug.Assert( 0 <= lineIndex );
+			Debug.Assert( lineIndex < LineCount );
+
+			return TextUtil.GetLineRange( this, _LHI, lineIndex, includesEolCode );
+		}
+
+		public Range GetLineRangeFromCharIndex( int charIndex, bool includesEolCode )
+		{
+			Debug.Assert( 0 <= charIndex );
+			Debug.Assert( charIndex <= Count );
+
+			var lineIndex = TextUtil.GetLineIndexFromCharIndex( _LHI, charIndex );
+			return TextUtil.GetLineRange( this, _LHI, lineIndex, includesEolCode );
+		}
+
+		public string GetText( Range range )
+		{
+			Debug.Assert( range != null );
+			Debug.Assert( 0 <= range.Begin );
+			Debug.Assert( range.Begin <= range.End );
+			Debug.Assert( range.End <= Count );
+
+			if( range.IsEmpty )
+				return String.Empty;
+
+			// constrain indexes to avoid dividing a grapheme cluster
+			TextUtil.ConstrainIndex( this, range );
+
+			// retrieve a part of the content
+			var buf = new char[range.Length];
+			CopyTo( range.Begin, range.End, buf );
+			return new String( buf );
+		}
+
+		public string GetText( int beginLineIndex, int beginColumnIndex, int endLineIndex, int endColumnIndex )
+		{
+			Debug.Assert( 0 <= endLineIndex );
+			Debug.Assert( endLineIndex < LineCount );
+			Debug.Assert( 0 <= beginLineIndex );
+			Debug.Assert( beginLineIndex <= endLineIndex );
+			Debug.Assert( 0 <= endColumnIndex );
+			Debug.Assert( 0 <= beginColumnIndex );
+
+			// Return an empty string for an empty range
+			if( beginLineIndex == endLineIndex && beginColumnIndex == endColumnIndex )
+			{
+				return String.Empty;
+			}
+
+			// Prepare buffer
+			int begin = _LHI[beginLineIndex] + beginColumnIndex;
+			int end = _LHI[endLineIndex] + endColumnIndex;
+			if( Count < end )
+			{
+				throw new ArgumentOutOfRangeException( "?", "Invalid index was given (calculated end:"+end+", this.Count:"+Count+")." );
+			}
+			if( end <= begin )
+			{
+				throw new ArgumentOutOfRangeException( "?", String.Format("Invalid index was given (calculated range:[{4}, {5}) / beginLineIndex:{0}, beginColumnIndex:{1}, endLineIndex:{2}, endColumnIndex:{3}", beginLineIndex, beginColumnIndex, endLineIndex, endColumnIndex, begin, end) );
+			}
+
+			// Copy the substring
+			return GetText( new Range(begin, end) );
+		}
+
 		/// <summary>
 		/// Gets or sets the size of the internal buffer.
 		/// </summary>
@@ -82,7 +176,9 @@ namespace Sgry.Azuki
 				//NO_NEED//_MarkingBitMasks.Xxx = value;
 			}
 		}
+		#endregion
 
+		#region Edit
 		/// <summary>
 		/// Inserts an element at specified index.
 		/// </summary>
