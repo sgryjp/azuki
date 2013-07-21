@@ -195,7 +195,7 @@ namespace Sgry.Azuki.Highlighter
 #		if DEBUG
 		internal
 #		endif
-		SplitArray<int> _ReparsePoints = new SplitArray<int>( 64 );
+		GapBuffer<int> _ReparsePoints = new GapBuffer<int>( 64 );
 		#endregion
 
 		#region Highlight Settings

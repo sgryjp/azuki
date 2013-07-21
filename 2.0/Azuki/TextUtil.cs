@@ -339,8 +339,8 @@ namespace Sgry.Azuki
 		/// THIS MUST BE CALLED BEFORE ACTUAL INSERTION.
 		/// </summary>
 		public static void LHI_Insert(
-				SplitArray<int> lhi,
-				SplitArray<LineDirtyState> lds,
+				GapBuffer<int> lhi,
+				GapBuffer<LineDirtyState> lds,
 				IList<char> text,
 				string insertText, int insertIndex
 			)
@@ -452,8 +452,8 @@ namespace Sgry.Azuki
 		/// THIS MUST BE CALLED BEFORE ACTUAL DELETION.
 		/// </summary>
 		public static void LHI_Delete(
-				SplitArray<int> lhi,
-				SplitArray<LineDirtyState> lds,
+				GapBuffer<int> lhi,
+				GapBuffer<LineDirtyState> lds,
 				IList<char> text,
 				int delBegin, int delEnd
 			)

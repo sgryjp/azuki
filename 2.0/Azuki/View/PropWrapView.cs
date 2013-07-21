@@ -988,7 +988,7 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Utilities
-		SplitArray<int> PLHI
+		GapBuffer<int> PLHI
 		{
 			get
 			{
@@ -1010,7 +1010,7 @@ namespace Sgry.Azuki
 			);
 		}
 
-		static bool IsWrappedLineHead( Document doc, SplitArray<int> plhi, int index )
+		static bool IsWrappedLineHead( Document doc, GapBuffer<int> plhi, int index )
 		{
 			int lineHeadIndex = TextUtil.GetLineHeadIndexFromCharIndex( doc.InternalBuffer, plhi, index );
 			if( lineHeadIndex <= 0 )

@@ -1,4 +1,4 @@
-// file: SplitArray.cs
+// file: GapBuffer.cs
 // brief: Data structure holding a 'gap' in it for efficient insert/delete operation.
 //=========================================================
 //#define SPLIT_ARRAY_ENABLE_SANITY_CHECK
@@ -14,7 +14,7 @@ namespace Sgry.Azuki
 	/// <summary>
 	/// The array structure with 'gap' for efficient insertion/deletion.
 	/// </summary>
-	class SplitArray<T> : IEnumerable<T>, IList<T>
+	class GapBuffer<T> : IList<T>
 	{
 		#region Fields
 		protected T[] _Data = null;
@@ -28,14 +28,14 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
-		public SplitArray( int initBufferSize )
+		public GapBuffer( int initBufferSize )
 			: this( initBufferSize, 0 )
 		{}
 
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
-		public SplitArray( int initBufferSize, int growSize )
+		public GapBuffer( int initBufferSize, int growSize )
 		{
 			_Data = new T[ initBufferSize ];
 			_GrowSize = growSize;
@@ -524,7 +524,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public IEnumerator<T> GetEnumerator()
 		{
-			return new SplitArrayEnumerator<T>( this );
+			return new GapBufferEnumerator<T>( this );
 		}
 
 		/// <summary>
@@ -532,7 +532,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		IEnumerator IEnumerable.GetEnumerator()
 		{
-			return new SplitArrayEnumerator<T>( this );
+			return new GapBufferEnumerator<T>( this );
 		}
 
 		/// <summary>
@@ -566,7 +566,7 @@ namespace Sgry.Azuki
 					if( ch != INSANITY )
 					{
 						__dump__( "##SANITY CHECK##" );
-						DebugUtl.Fail( "SplitArray lost sanity!! (_Data["+i+"] is "+(int)(char)_Data.GetValue(i)+")" );
+						DebugUtl.Fail( "GapBuffer lost sanity!! (_Data["+i+"] is "+(int)(char)_Data.GetValue(i)+")" );
 					}
 				}
 			}
@@ -623,18 +623,18 @@ namespace Sgry.Azuki
 
 	#region Enumerator
 	/// <summary>
-	/// The enumerator class for the SplitArray.
+	/// The enumerator class for the GapBuffer.
 	/// </summary>
-	class SplitArrayEnumerator<T> : IEnumerator<T>
+	class GapBufferEnumerator<T> : IEnumerator<T>
 	{
-		SplitArray<T> _Array;
+		GapBuffer<T> _Array;
 		int _Index = -1;
 
 		#region Init / Dispose
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
-		public SplitArrayEnumerator( SplitArray<T> array )
+		public GapBufferEnumerator( GapBuffer<T> array )
 		{
 			_Array = array;
 		}

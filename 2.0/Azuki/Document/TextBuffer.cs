@@ -1,5 +1,5 @@
 ﻿// file: TextBuffer.cs
-// brief: Specialized SplitArray for char with text search feature without copying content.
+// brief: Specialized GapBuffer for char with text search feature without copying content.
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -9,15 +9,16 @@ using Debug = System.Diagnostics.Debug;
 namespace Sgry.Azuki
 {
 	/// <summary>
-	/// Specialized SplitArray for char with text search feature without copying content.
+	/// Specialized GapBuffer for char with text search feature without copying content.
 	/// This is the core data structure of Azuki.
 	/// </summary>
-	class TextBuffer : SplitArray<Char>
+	class TextBuffer : IList<char>
 	{
 		#region Fields
+		GapCharBuffer _Chars;
 		internal //TODO: Make TextBuffer.LHI private.
-		SplitArray<int> _LHI = new SplitArray<int>( 64 ); // line head indexes
-		SplitArray<CharClass> _Classes;
+		GapBuffer<int> _LHI = new GapBuffer<int>( 64 ); // line head indexes
+		GapBuffer<CharClass> _Classes;
 		RleArray<uint> _MarkingBitMasks;
 		#endregion
 
@@ -26,10 +27,10 @@ namespace Sgry.Azuki
 		/// Creates a new instance.
 		/// </summary>
 		public TextBuffer( int initGapSize, int growSize )
-			: base( initGapSize, growSize )
 		{
+			_Chars = new GapCharBuffer( initGapSize, growSize );
 			_LHI.Add( 0 );
-			_Classes = new SplitArray<CharClass>( initGapSize, growSize );
+			_Classes = new GapBuffer<CharClass>( initGapSize, growSize );
 			_MarkingBitMasks = new RleArray<uint>();
 		}
 		#endregion
@@ -76,7 +77,7 @@ namespace Sgry.Azuki
 			Debug.Assert( 0 <= charIndex );
 			Debug.Assert( charIndex <= Count );
 
-			return TextUtil.GetTextPosition( this, _LHI, charIndex );
+			return TextUtil.GetTextPosition( _Chars, _LHI, charIndex );
 		}
 
 		public int GetCharIndex( TextPoint position )
@@ -85,7 +86,7 @@ namespace Sgry.Azuki
 			Debug.Assert( position.Line < LineCount );
 			Debug.Assert( 0 <= position.Column );
 
-			return TextUtil.GetCharIndex( this, _LHI, position );
+			return TextUtil.GetCharIndex( _Chars, _LHI, position );
 		}
 		#endregion
 
@@ -100,16 +101,16 @@ namespace Sgry.Azuki
 			Debug.Assert( 0 <= lineIndex );
 			Debug.Assert( lineIndex < LineCount );
 
-			return TextUtil.GetLineRange( this, _LHI, lineIndex, includesEolCode );
+			return TextUtil.GetLineRange( _Chars, _LHI, lineIndex, includesEolCode );
 		}
 
 		public Range GetLineRangeFromCharIndex( int charIndex, bool includesEolCode )
 		{
 			Debug.Assert( 0 <= charIndex );
-			Debug.Assert( charIndex <= Count );
+			Debug.Assert( charIndex <= _Chars.Count );
 
 			var lineIndex = TextUtil.GetLineIndexFromCharIndex( _LHI, charIndex );
-			return TextUtil.GetLineRange( this, _LHI, lineIndex, includesEolCode );
+			return TextUtil.GetLineRange( _Chars, _LHI, lineIndex, includesEolCode );
 		}
 
 		public string GetText( Range range )
@@ -117,17 +118,17 @@ namespace Sgry.Azuki
 			Debug.Assert( range != null );
 			Debug.Assert( 0 <= range.Begin );
 			Debug.Assert( range.Begin <= range.End );
-			Debug.Assert( range.End <= Count );
+			Debug.Assert( range.End <= _Chars.Count );
 
 			if( range.IsEmpty )
 				return String.Empty;
 
 			// constrain indexes to avoid dividing a grapheme cluster
-			TextUtil.ConstrainIndex( this, range );
+			TextUtil.ConstrainIndex( _Chars, range );
 
 			// retrieve a part of the content
 			var buf = new char[range.Length];
-			CopyTo( range.Begin, range.End, buf );
+			_Chars.CopyTo( range.Begin, range.End, buf );
 			return new String( buf );
 		}
 
@@ -151,7 +152,7 @@ namespace Sgry.Azuki
 			int end = _LHI[endLineIndex] + endColumnIndex;
 			if( Count < end )
 			{
-				throw new ArgumentOutOfRangeException( "?", "Invalid index was given (calculated end:"+end+", this.Count:"+Count+")." );
+				throw new ArgumentOutOfRangeException( "?", "Invalid index was given (calculated end:"+end+", Count:"+Count+")." );
 			}
 			if( end <= begin )
 			{
@@ -166,12 +167,12 @@ namespace Sgry.Azuki
 		/// Gets or sets the size of the internal buffer.
 		/// </summary>
 		/// <exception cref="System.OutOfMemoryException">There is no enough memory to expand buffer.</exception>
-		public override int Capacity
+		public int Capacity
 		{
-			get{ return base.Capacity; }
+			get{ return _Chars.Capacity; }
 			set
 			{
-				base.Capacity = value;
+				_Chars.Capacity = value;
 				_Classes.Capacity = value;
 				//NO_NEED//_MarkingBitMasks.Xxx = value;
 			}
@@ -179,70 +180,78 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Edit
-		/// <summary>
-		/// Inserts an element at specified index.
-		/// </summary>
-		/// <exception cref="ArgumentException">invalid index was given</exception>
-		public override void Insert( int index, char value )
+		public void Add( char ch )
 		{
-			base.Insert( index, value );
-			_Classes.Insert( index, CharClass.Normal );
-			_MarkingBitMasks.Insert( index, 0 );
+			Add( new[]{ch} );
+		}
+
+		public void Add( char[] chars )
+		{
+			Insert( Count, chars );
+		}
+
+		public void Add( string str )
+		{
+			Add( str.ToCharArray() );
+		}
+
+		public void Insert( int index, char ch )
+		{
+			Insert( index, new[]{ch} );
+		}
+
+		public void Insert( int index, char[] chars )
+		{
+			_Chars.Insert( index, chars );
+			_Classes.Insert( index, new CharClass[chars.Length] );
+			_MarkingBitMasks.Insert( index, 0, chars.Length );
+		}
+
+		public void Insert( int index, string str )
+		{
+			Insert( index, str.ToCharArray() );
+		}
+
+		public void RemoveAt( int index )
+		{
+			Remove( index, index+1 );
+		}
+
+		public bool Remove( char item )
+		{
+			int index = IndexOf( item );
+			if( 0 <= index )
+			{
+				RemoveAt( index );
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 
 		/// <summary>
-		/// Inserts elements at specified index.
+		/// Removes elements at specified range [begin, end).
 		/// </summary>
-		/// <param name="insertIndex">target location of insertion</param>
-		/// <param name="values">elements which contains the elements to be inserted</param>
-		/// <param name="valueBegin">index of the first elements to be inserted</param>
-		/// <param name="valueEnd">index of the end position (one after last elements)</param>
-		/// <exception cref="ArgumentOutOfRangeException">invalid index was given</exception>
-		public override void Insert( int insertIndex, char[] values, int valueBegin, int valueEnd )
+		public void Remove( int begin, int end )
 		{
-			base.Insert( insertIndex, values, valueBegin, valueEnd );
-			_Classes.Insert( insertIndex, new CharClass[valueEnd - valueBegin] );
-			_MarkingBitMasks.Insert( insertIndex, 0, valueEnd - valueBegin );
-		}
-
-		/// <summary>
-		/// Overwrites elements from "replaceIndex" with specified range [valueBegin, valueEnd) of values.
-		/// </summary>
-		public override void Replace( int replaceIndex, char[] values, int valueBegin, int valueEnd )
-		{
-			int replaceLen = valueEnd - valueBegin;
-
-			base.Replace( replaceIndex, values, valueBegin, valueEnd );
-
-			_Classes.Replace( replaceIndex, new CharClass[replaceLen], valueBegin, valueEnd );
-
-			for( int i=0; i<replaceLen; i++ )
-				_MarkingBitMasks.RemoveAt( replaceIndex + i );
-			for( int i=0; i<replaceLen; i++ )
-				_MarkingBitMasks.Insert( replaceIndex + i, values[valueBegin+i] );
-		}
-
-		/// <summary>
-		/// Deletes elements at specified range [begin, end).
-		/// </summary>
-		public override void RemoveRange( int begin, int end )
-		{
-			base.RemoveRange( begin, end );
+			_Chars.RemoveRange( begin, end );
 			_Classes.RemoveRange( begin, end );
 			for( int i=begin; i<end; i++ )
 			{
 				_MarkingBitMasks.RemoveAt( begin );
 			}
-			Debug.Assert( this.Count == _Classes.Count );
-			Debug.Assert( this.Count == _MarkingBitMasks.Count );
+			Debug.Assert( _Chars.Count == _Classes.Count );
+			Debug.Assert( _Chars.Count == _MarkingBitMasks.Count );
 		}
 
 		/// <summary>
 		/// Deletes all elements.
 		/// </summary>
-		public override void Clear()
+		public void Clear()
 		{
-			base.Clear();
+			_Chars.Clear();
 			_Classes.Clear();
 			_MarkingBitMasks.Clear();
 		}
@@ -259,56 +268,7 @@ namespace Sgry.Azuki
 		/// <returns>Search result object if found, otherwise null if not found.</returns>
 		public SearchResult FindNext( string value, int begin, int end, bool matchCase )
 		{
-			// If the gap exists after the search starting position,
-			// it must be moved to before the starting position.
-			int start, length;
-			int foundIndex;
-			StringComparison compType;
-			
-			DebugUtl.Assert( value != null );
-			DebugUtl.Assert( 0 <= begin );
-			DebugUtl.Assert( begin <= end );
-			DebugUtl.Assert( end <= _Count );
-
-			// convert begin/end indexes to start/length indexes
-			start = begin;
-			length = end - begin;
-			if( length <= 0 )
-			{
-				return null;
-			}
-
-			// move the gap if necessary
-			if( _GapPos <= begin )
-			{
-				// the gap exists before search range so the gap is not needed to be moved
-				//DO_NOT//MoveGapTo( somewhere );
-				start += _GapLen;
-			}
-			else if( _GapPos < end )
-			{
-				// the gap exists IN the search range so the gap must be moved
-				MoveGapTo( begin );
-				start += _GapLen;
-			}
-			//NO_NEED//else if( end <= _GapPos ) {} // nothing to do in this case
-
-			// find
-			compType = (matchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
-			foundIndex = new String(_Data).IndexOf( value, start, length, compType );
-			if( foundIndex == -1 )
-			{
-				return null;
-			}
-
-			// calculate found index not in gapped buffer but in content
-			if( _GapPos < end )
-			{
-				foundIndex -= _GapLen;
-			}
-
-			// return found index
-			return new SearchResult( foundIndex, foundIndex + value.Length );
+			return _Chars.FindNext( value, begin, end, matchCase );
 		}
 
 		/// <summary>
@@ -321,59 +281,7 @@ namespace Sgry.Azuki
 		/// <returns>Search result object if found, otherwise null if not found.</returns>
 		public SearchResult FindPrev( string value, int begin, int end, bool matchCase )
 		{
-			// If the gap exists before the search starting position,
-			// it must be moved to after the starting position.
-			int start, length;
-			int foundIndex;
-			StringComparison compType;
-			
-			DebugUtl.Assert( value != null );
-			DebugUtl.Assert( begin <= end );
-			DebugUtl.Assert( end <= _Count );
-
-			// if empty string is the value to search, just return search start index
-			if( value.Length == 0 )
-			{
-				return new SearchResult( end, end );
-			}
-
-			// convert begin/end indexes to start/length indexes
-			start = end - 1;
-			length = end - begin;
-			if( start < 0 || length <= 0 )
-			{
-				return null;
-			}
-
-			// calculate start index in the gapped buffer
-			if( _GapPos < begin )
-			{
-				// the gap exists before search range so the gap is not needed to be moved
-				start += _GapLen;
-			}
-			else if( _GapPos < end )
-			{
-				// the gap exists in the search range so the gap must be moved
-				MoveGapTo( end );
-			}
-			//NO_NEED//else if( end <= _GapPos ) {} // nothing to do in this case
-
-			// find
-			compType = (matchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase);
-			foundIndex = new String(_Data).LastIndexOf( value, start, length, compType );
-			if( foundIndex == -1 )
-			{
-				return null;
-			}
-
-			// calculate found index not in gapped buffer but in content
-			if( _GapPos < end )
-			{
-				foundIndex -= _GapLen;
-			}
-
-			// return found index
-			return new SearchResult( foundIndex, foundIndex + value.Length );
+			return _Chars.FindPrev( value, begin, end, matchCase );
 		}
 
 		/// <summary>
@@ -392,81 +300,12 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public SearchResult FindNext( Regex regex, int begin, int end )
 		{
-			int start, length;
-			Match match;
-
-			DebugUtl.Assert( regex != null );
-			DebugUtl.Assert( begin <= end );
-			DebugUtl.Assert( end <= _Count );
-
-			// in any cases, search length is "end - begin".
-			length = end - begin;
-
-			// determine where the gap should be moved to
-			if( end <= _GapPos )
-			{
-				// search must stop before reaching the gap so there is no need to move gap
-				start = begin;
-			}
-			else
-			{
-				// search may not stop before reaching to the gap
-				// so move gap to ensure there is no gap in the search range
-				start = begin + _GapLen;
-				MoveGapTo( begin );
-			}
-
-			// find
-			match = regex.Match( new String(_Data), start, length );
-			if( match.Success == false )
-			{
-				return null;
-			}
-
-			// return found index
-			if( start == begin )
-				return new SearchResult( match.Index, match.Index + match.Length );
-			else
-				return new SearchResult( match.Index - _GapLen, match.Index - _GapLen + match.Length );
+			return _Chars.FindNext( regex, begin, end );
 		}
 
 		public SearchResult FindPrev( Regex regex, int begin, int end )
 		{
-			int start, length;
-			Match match;
-
-			DebugUtl.Assert( regex != null );
-			DebugUtl.Assert( begin <= end );
-			DebugUtl.Assert( end <= _Count );
-			DebugUtl.Assert( (regex.Options & RegexOptions.RightToLeft) != 0 );
-
-			// convert begin/end indexes to start/length
-			length = end - begin;
-			if( end <= _GapPos )
-			{
-				// search must stop before reaching the gap so there is no need to move gap
-				start = begin;
-			}
-			else
-			{
-				// search may not stop before reaching to the gap
-				// so move gap to ensure there is no gap in the search range
-				start = begin + _GapLen;
-				MoveGapTo( begin );
-			}
-
-			// find
-			match = regex.Match( new String(_Data), start, length );
-			if( match.Success == false )
-			{
-				return null;
-			}
-
-			// return found index
-			if( start == begin )
-				return new SearchResult( match.Index, match.Index + match.Length );
-			else
-				return new SearchResult( match.Index - _GapLen, match.Index - _GapLen + match.Length );
+			return _Chars.FindPrev( regex, begin, end );
 		}
 		#endregion
 
@@ -485,6 +324,52 @@ namespace Sgry.Azuki
 			return buf.ToString();
 		}
 #		endif
+		#endregion
+
+		#region IList<char> Members
+		public int IndexOf( char item )
+		{
+			for( int i=0; i<Count; i++ )
+				if( this[i] == item )
+					return i;
+			return -1;
+		}
+
+		public char this[int index]
+		{
+			get{ return _Chars[index]; }
+			set{ _Chars[index] = value; }
+		}
+
+		public bool Contains( char item )
+		{
+			return (0 <= IndexOf(item));
+		}
+
+		public void CopyTo( char[] array, int arrayIndex )
+		{
+			_Chars.CopyTo( array, arrayIndex );
+		}
+
+		public int Count
+		{
+			get{ return _Chars.Count; }
+		}
+
+		public bool IsReadOnly
+		{
+			get{ return false; }
+		}
+
+		public IEnumerator<char> GetEnumerator()
+		{
+			return _Chars.GetEnumerator();
+		}
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		{
+			return _Chars.GetEnumerator();
+		}
 		#endregion
 	}
 }

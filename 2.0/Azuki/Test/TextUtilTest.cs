@@ -61,8 +61,8 @@ namespace Sgry.Azuki.Test
 		static void Test_GetCharIndex()
 		{
 			TextBuffer text;
-			SplitArray<int> lhi;
-			SplitArray<LineDirtyState> lds;
+			GapBuffer<int> lhi;
+			GapBuffer<LineDirtyState> lds;
 
 			MakeTestData( out text, out lhi, out lds );
 
@@ -176,8 +176,8 @@ namespace Sgry.Azuki.Test
 		{
 			Range range;
 			TextBuffer text;
-			SplitArray<int> lhi;
-			SplitArray<LineDirtyState> lds;
+			GapBuffer<int> lhi;
+			GapBuffer<LineDirtyState> lds;
 
 			MakeTestData( out text, out lhi, out lds );
 
@@ -228,7 +228,7 @@ namespace Sgry.Azuki.Test
 
 		static void Test_GetLineIndexFromCharIndex()
 		{
-			SplitArray<int> lhi = new SplitArray<int>( 32, 32 );
+			GapBuffer<int> lhi = new GapBuffer<int>( 32, 32 );
 			lhi.Add( 0 );
 			lhi.Add( 32 );
 			lhi.Add( 33 );
@@ -256,7 +256,7 @@ namespace Sgry.Azuki.Test
 		static void Test_GetTextPosition()
 		{
 			TextBuffer text;
-			SplitArray<int> lhi;
+			GapBuffer<int> lhi;
 			TextPoint pos;
 
 			MakeTestData( out text, out lhi );
@@ -287,7 +287,7 @@ namespace Sgry.Azuki.Test
 		static void Test_LineHeadIndexFromCharIndex()
 		{
 			TextBuffer text;
-			SplitArray<int> lhi;
+			GapBuffer<int> lhi;
 
 			MakeTestData( out text, out lhi );
 
@@ -324,9 +324,9 @@ namespace Sgry.Azuki.Test
 			// --------------------
 			const string TestData1 = "\"keep ot simpler.\"\r\r - Albert Einstein";
 			const string TestData2 = "it as simple as possible\r\n\nbt\n\rn";
-			TextBuffer text = new TextBuffer( 1, 1 );
-			SplitArray<int> lhi = new SplitArray<int>( 1, 1 );
-			SplitArray<LineDirtyState> lds = new SplitArray<LineDirtyState>( 1, 1 );
+			var text = new TextBuffer( 1, 1 );
+			var lhi = new GapBuffer<int>( 1, 1 );
+			var lds = new GapBuffer<LineDirtyState>( 1, 1 );
 			lhi.Add( 0 ); lds.Add( LineDirtyState.Clean );
 
 			TextUtil.LHI_Insert( lhi, lds, text, TestData1, 0 );
@@ -438,8 +438,8 @@ namespace Sgry.Azuki.Test
 			// --------------------
 			const string TestData = "\"keep it as simple as possible\r\n\nbut\n\rnot simpler.\"\r\r - Albert Einstein";
 			TextBuffer text = new TextBuffer( 1, 32 );
-			SplitArray<int> lhi = new SplitArray<int>( 1, 8 );
-			SplitArray<LineDirtyState> lds = new SplitArray<LineDirtyState>( 1, 8 );
+			GapBuffer<int> lhi = new GapBuffer<int>( 1, 8 );
+			GapBuffer<LineDirtyState> lds = new GapBuffer<LineDirtyState>( 1, 8 );
 			lds.Add( LineDirtyState.Clean );
 
 			// prepare
@@ -454,7 +454,7 @@ namespace Sgry.Azuki.Test
 			//--- delete range in line ---
 			// valid range
 			TextUtil.LHI_Delete( lhi, lds, text, 2, 5 );
-			text.RemoveRange( 2, 5 );
+			text.Remove( 2, 5 );
 			TestUtl.AssertEquals( "0 29 30 34 35 49 50", lhi.ToString() );
 			TestUtl.AssertEquals( "DCCCCCC", MakeLdsText(lds) );
 
@@ -499,7 +499,7 @@ namespace Sgry.Azuki.Test
 			for( int i=0; i<lds.Count; i++ )
 				lds[i] = LineDirtyState.Clean;
 			TextUtil.LHI_Delete( lhi, lds, text, 22, 37 );
-			text.RemoveRange( 22, 37 );
+			text.Remove( 22, 37 );
 			TestUtl.AssertEquals( "0 36 37", lhi.ToString() );
 			TestUtl.AssertEquals( "DCC", MakeLdsText(lds) );
 
@@ -510,7 +510,7 @@ namespace Sgry.Azuki.Test
 			for( int i=0; i<lds.Count; i++ )
 				lds[i] = LineDirtyState.Clean;
 			TextUtil.LHI_Delete( lhi, lds, text, 0, 55 );
-			text.RemoveRange( 0, 55 );
+			text.Remove( 0, 55 );
 			TestUtl.AssertEquals( "0", lhi.ToString() );
 			TestUtl.AssertEquals( "D", MakeLdsText(lds) );
 
@@ -528,7 +528,7 @@ namespace Sgry.Azuki.Test
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
 				TextUtil.LHI_Delete( lhi, lds, text, 4, 5 );
-				text.RemoveRange( 4, 5 );
+				text.Remove( 4, 5 );
 				TestUtl.AssertEquals( "0 5", lhi.ToString() );
 				TestUtl.AssertEquals( "DC", MakeLdsText(lds) );
 			}
@@ -542,7 +542,7 @@ namespace Sgry.Azuki.Test
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
 				TextUtil.LHI_Delete( lhi, lds, text, 4, 6 );
-				text.RemoveRange( 4, 6 );
+				text.Remove( 4, 6 );
 				TestUtl.AssertEquals( "0 4", lhi.ToString() );
 				TestUtl.AssertEquals( "DD", MakeLdsText(lds) );
 			}
@@ -556,7 +556,7 @@ namespace Sgry.Azuki.Test
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
 				TextUtil.LHI_Delete( lhi, lds, text, 2, 4 );
-				text.RemoveRange( 2, 4 );
+				text.Remove( 2, 4 );
 				TestUtl.AssertEquals( "0 3", lhi.ToString() );
 				TestUtl.AssertEquals( "DC", MakeLdsText(lds) );
 			}
@@ -570,7 +570,7 @@ namespace Sgry.Azuki.Test
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
 				TextUtil.LHI_Delete( lhi, lds, text, 1, 6 );
-				text.RemoveRange( 1, 6 );
+				text.Remove( 1, 6 );
 				TestUtl.AssertEquals( "0 2", lhi.ToString() );
 				TestUtl.AssertEquals( "DC", MakeLdsText(lds) );
 			}
@@ -599,24 +599,24 @@ namespace Sgry.Azuki.Test
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
 				TextUtil.LHI_Delete( lhi, lds, text, 1, 2 );
-				text.RemoveRange( 1, 2 );
+				text.Remove( 1, 2 );
 				TestUtl.AssertEquals( "0 1", lhi.ToString() );
 				TestUtl.AssertEquals( "DD", MakeLdsText(lds) );
 			}
 		}
 
-		static void MakeTestData( out TextBuffer text, out SplitArray<int> lhi )
+		static void MakeTestData( out TextBuffer text, out GapBuffer<int> lhi )
 		{
-			SplitArray<LineDirtyState> lds = new SplitArray<LineDirtyState>( 8 );
+			GapBuffer<LineDirtyState> lds = new GapBuffer<LineDirtyState>( 8 );
 
 			MakeTestData( out text, out lhi, out lds );
 		}
 
-		static void MakeTestData( out TextBuffer text, out SplitArray<int> lhi, out SplitArray<LineDirtyState> lds )
+		static void MakeTestData( out TextBuffer text, out GapBuffer<int> lhi, out GapBuffer<LineDirtyState> lds )
 		{
 			text = new TextBuffer( 1, 1 );
-			lhi = new SplitArray<int>( 1, 8 );
-			lds = new SplitArray<LineDirtyState>( 1 );
+			lhi = new GapBuffer<int>( 1, 8 );
+			lds = new GapBuffer<LineDirtyState>( 1 );
 
 			lhi.Add( 0 );
 			lds.Add( LineDirtyState.Clean );
@@ -625,7 +625,7 @@ namespace Sgry.Azuki.Test
 			text.Insert( 0, TestData.ToCharArray() );
 		}
 
-		static string MakeLdsText( SplitArray<LineDirtyState> lds )
+		static string MakeLdsText( GapBuffer<LineDirtyState> lds )
 		{
 			StringBuilder buf = new StringBuilder( 32 );
 
