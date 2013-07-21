@@ -322,29 +322,29 @@ namespace Sgry.Azuki.Test
 			// \r                                 (head:52, len: 1)
 			//  - Albert Einstein                 (head:53, len:18)
 			// --------------------
-			const string TestData1 = "\"keep ot simpler.\"\r\r - Albert Einstein";
-			const string TestData2 = "it as simple as possible\r\n\nbt\n\rn";
+			char[] TestData1 = "\"keep ot simpler.\"\r\r - Albert Einstein".ToCharArray();
+			char[] TestData2 = "it as simple as possible\r\n\nbt\n\rn".ToCharArray();
 			var text = new TextBuffer( 1, 1 );
 			var lhi = new GapBuffer<int>( 1, 1 );
 			var lds = new GapBuffer<LineDirtyState>( 1, 1 );
 			lhi.Add( 0 ); lds.Add( LineDirtyState.Clean );
 
 			TextUtil.LHI_Insert( lhi, lds, text, TestData1, 0 );
-			text.Add( TestData1.ToCharArray() );
+			text.Add( TestData1 );
 			TestUtl.AssertEquals( "0 19 20", lhi.ToString() );
 			TestUtl.AssertEquals( "DDD", MakeLdsText(lds) );
 
 			for( int i=0; i<lds.Count; i++ )
 				lds[i] = LineDirtyState.Clean;
 			TextUtil.LHI_Insert( lhi, lds, text, TestData2, 6 );
-			text.Insert( 6, TestData2.ToCharArray() );
+			text.Insert( 6, TestData2 );
 			TestUtl.AssertEquals( "0 32 33 36 37 51 52", lhi.ToString() );
 			TestUtl.AssertEquals( "DDDDDCC", MakeLdsText(lds) );
 
 			for( int i=0; i<lds.Count; i++ )
 				lds[i] = LineDirtyState.Clean;
-			TextUtil.LHI_Insert( lhi, lds, text, "u", 34 );
-			text.Insert( 34, "u".ToCharArray() );
+			TextUtil.LHI_Insert( lhi, lds, text, "u".ToCharArray(), 34 );
+			text.Insert( 34, "u" );
 			TestUtl.AssertEquals( "0 32 33 37 38 52 53", lhi.ToString() );
 			TestUtl.AssertEquals( "CCDCCCC", MakeLdsText(lds) );
 
@@ -356,13 +356,13 @@ namespace Sgry.Azuki.Test
 			// (1)+(2)
 			{
 				text.Clear(); lhi.Clear(); lhi.Add( 0 ); lds.Clear(); lds.Add( LineDirtyState.Clean );
-				TextUtil.LHI_Insert( lhi, lds, text, "foo\r\nbar", 0 );
-				text.Add( "foo\r\nbar".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "foo\r\nbar".ToCharArray(), 0 );
+				text.Add( "foo\r\nbar" );
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
 
-				TextUtil.LHI_Insert( lhi, lds, text, "\nx", 4 );
-				text.Insert( 4, "\nx".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "\nx".ToCharArray(), 4 );
+				text.Insert( 4, "\nx" );
 				TestUtl.AssertEquals( "0 5 7", lhi.ToString() );
 				TestUtl.AssertEquals( "DDC", MakeLdsText(lds) );
 			}
@@ -370,13 +370,13 @@ namespace Sgry.Azuki.Test
 			// (1)+(3)
 			{
 				text.Clear(); lhi.Clear(); lhi.Add( 0 ); lds.Clear(); lds.Add( LineDirtyState.Clean );
-				TextUtil.LHI_Insert( lhi, lds, text, "foo\r\nbar", 0 );
-				text.Add( "foo\r\nbar".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "foo\r\nbar".ToCharArray(), 0 );
+				text.Add( "foo\r\nbar" );
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
 
-				TextUtil.LHI_Insert( lhi, lds, text, "x\r", 4 );
-				text.Insert( 4, "x\r".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "x\r".ToCharArray(), 4 );
+				text.Insert( 4, "x\r" );
 				TestUtl.AssertEquals( "0 4 7", lhi.ToString() );
 				TestUtl.AssertEquals( "DDC", MakeLdsText(lds) );
 			}
@@ -384,13 +384,13 @@ namespace Sgry.Azuki.Test
 			// (1)+(2)+(3)
 			{
 				text.Clear(); lhi.Clear(); lhi.Add( 0 ); lds.Clear(); lds.Add( LineDirtyState.Clean );
-				TextUtil.LHI_Insert( lhi, lds, text, "foo\r\nbar", 0 );
-				text.Add( "foo\r\nbar".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "foo\r\nbar".ToCharArray(), 0 );
+				text.Add( "foo\r\nbar" );
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
 
-				TextUtil.LHI_Insert( lhi, lds, text, "\n\r", 4 );
-				text.Insert( 4, "\n\r".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "\n\r".ToCharArray(), 4 );
+				text.Insert( 4, "\n\r" );
 				TestUtl.AssertEquals( "0 5 7", lhi.ToString() );
 				TestUtl.AssertEquals( "DDC", MakeLdsText(lds) );
 			}
@@ -398,13 +398,13 @@ namespace Sgry.Azuki.Test
 			// (2)
 			{
 				text.Clear(); lhi.Clear(); lhi.Add( 0 ); lds.Clear(); lds.Add( LineDirtyState.Clean );
-				TextUtil.LHI_Insert( lhi, lds, text, "foo\rbar", 0 );
-				text.Add( "foo\rbar".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "foo\rbar".ToCharArray(), 0 );
+				text.Add( "foo\rbar" );
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
 
-				TextUtil.LHI_Insert( lhi, lds, text, "\nx", 4 );
-				text.Insert( 4, "\nx".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "\nx".ToCharArray(), 4 );
+				text.Insert( 4, "\nx" );
 				TestUtl.AssertEquals( "0 5", lhi.ToString() );
 				TestUtl.AssertEquals( "DD", MakeLdsText(lds) );
 			}
@@ -412,13 +412,13 @@ namespace Sgry.Azuki.Test
 			// (3)
 			{
 				text.Clear(); lhi.Clear(); lhi.Add( 0 ); lds.Clear(); lds.Add( LineDirtyState.Clean );
-				TextUtil.LHI_Insert( lhi, lds, text, "foo\nbar", 0 );
-				text.Add( "foo\nbar".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "foo\nbar".ToCharArray(), 0 );
+				text.Add( "foo\nbar" );
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
 
-				TextUtil.LHI_Insert( lhi, lds, text, "x\r", 3 );
-				text.Insert( 3, "x\r".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "x\r".ToCharArray(), 3 );
+				text.Insert( 3, "x\r" );
 				TestUtl.AssertEquals( "0 6", lhi.ToString() );
 				TestUtl.AssertEquals( "DC", MakeLdsText(lds) );
 			}
@@ -436,7 +436,7 @@ namespace Sgry.Azuki.Test
 			// \r                                 (head:52, len: 1)
 			//  - Albert Einstein                 (head:53, len:18)
 			// --------------------
-			const string TestData = "\"keep it as simple as possible\r\n\nbut\n\rnot simpler.\"\r\r - Albert Einstein";
+			char[] TestData = "\"keep it as simple as possible\r\n\nbut\n\rnot simpler.\"\r\r - Albert Einstein".ToCharArray();
 			TextBuffer text = new TextBuffer( 1, 32 );
 			GapBuffer<int> lhi = new GapBuffer<int>( 1, 8 );
 			GapBuffer<LineDirtyState> lds = new GapBuffer<LineDirtyState>( 1, 8 );
@@ -445,7 +445,7 @@ namespace Sgry.Azuki.Test
 			// prepare
 			lhi.Add( 0 );
 			TextUtil.LHI_Insert( lhi, lds, text, TestData, 0 );
-			text.Add( TestData.ToCharArray() );
+			text.Add( TestData );
 			TestUtl.AssertEquals( "0 32 33 37 38 52 53", lhi.ToString() );
 			TestUtl.AssertEquals( "DDDDDDD", MakeLdsText(lds) );
 			for( int i=0; i<lds.Count; i++ )
@@ -465,7 +465,7 @@ namespace Sgry.Azuki.Test
 			//--- delete range between different lines ---
 			text.Clear(); lhi.Clear(); lhi.Add( 0 ); lds.Clear(); lds.Add( LineDirtyState.Clean );
 			TextUtil.LHI_Insert( lhi, lds, text, TestData, 0 );
-			text.Add( TestData.ToCharArray() );
+			text.Add( TestData );
 			// "keep it as simple as possible\r\n (head: 0, len:31)
 			// \n                                 (head:32, len: 1)
 			// but\n                              (head:33, len: 4)
@@ -522,8 +522,8 @@ namespace Sgry.Azuki.Test
 			// (1)
 			{
 				text.Clear(); lhi.Clear(); lhi.Add( 0 ); lds.Clear(); lds.Add( LineDirtyState.Clean );
-				TextUtil.LHI_Insert( lhi, lds, text, "foo\rx\nbar", 0 );
-				text.Add( "foo\rx\nbar".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "foo\rx\nbar".ToCharArray(), 0 );
+				text.Add( "foo\rx\nbar" );
 
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
@@ -536,8 +536,8 @@ namespace Sgry.Azuki.Test
 			// (2)
 			{
 				text.Clear(); lhi.Clear(); lhi.Add( 0 ); lds.Clear(); lds.Add( LineDirtyState.Clean );
-				TextUtil.LHI_Insert( lhi, lds, text, "foo\r\nbar", 0 );
-				text.Add( "foo\r\nbar".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "foo\r\nbar".ToCharArray(), 0 );
+				text.Add( "foo\r\nbar" );
 
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
@@ -550,8 +550,8 @@ namespace Sgry.Azuki.Test
 			// (3)
 			{
 				text.Clear(); lhi.Clear(); lhi.Add( 0 ); lds.Clear(); lds.Add( LineDirtyState.Clean );
-				TextUtil.LHI_Insert( lhi, lds, text, "foo\r\nbar", 0 );
-				text.Add( "foo\r\nbar".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "foo\r\nbar".ToCharArray(), 0 );
+				text.Add( "foo\r\nbar" );
 
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
@@ -564,8 +564,8 @@ namespace Sgry.Azuki.Test
 			// (1)+(2)+(3)
 			{
 				text.Clear(); lhi.Clear(); lhi.Add( 0 ); lds.Clear(); lds.Add( LineDirtyState.Clean );
-				TextUtil.LHI_Insert( lhi, lds, text, "\r\nfoo\r\n", 0 );
-				text.Add( "\r\nfoo\r\n".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "\r\nfoo\r\n".ToCharArray(), 0 );
+				text.Add( "\r\nfoo\r\n" );
 
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
@@ -579,13 +579,13 @@ namespace Sgry.Azuki.Test
 			// insert "\n" after '\r' at end of document (boundary check for LHI_Insert)
 			{
 				text.Clear(); lhi.Clear(); lhi.Add( 0 ); lds.Clear(); lds.Add( LineDirtyState.Clean );
-				TextUtil.LHI_Insert( lhi, lds, text, "\r", 0 );
-				text.Add( "\r".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "\r".ToCharArray(), 0 );
+				text.Add( "\r" );
 
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
-				TextUtil.LHI_Insert( lhi, lds, text, "\n", 1 );
-				text.Add( "\n".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "\n".ToCharArray(), 1 );
+				text.Add( "\n" );
 				TestUtl.AssertEquals( "0 2", lhi.ToString() );
 				TestUtl.AssertEquals( "CD", MakeLdsText(lds) );
 			}
@@ -593,8 +593,8 @@ namespace Sgry.Azuki.Test
 			// insert "\n" after '\r' at end of document (boundary check for LHI_Delete)
 			{
 				text.Clear(); lhi.Clear(); lhi.Add( 0 ); lds.Clear(); lds.Add( LineDirtyState.Clean );
-				TextUtil.LHI_Insert( lhi, lds, text, "\r\n", 0 );
-				text.Add( "\r\n".ToCharArray() );
+				TextUtil.LHI_Insert( lhi, lds, text, "\r\n".ToCharArray(), 0 );
+				text.Add( "\r\n" );
 
 				for( int i=0; i<lds.Count; i++ )
 					lds[i] = LineDirtyState.Clean;
@@ -621,7 +621,7 @@ namespace Sgry.Azuki.Test
 			lhi.Add( 0 );
 			lds.Add( LineDirtyState.Clean );
 
-			TextUtil.LHI_Insert( lhi, lds, text, TestData, 0 );
+			TextUtil.LHI_Insert( lhi, lds, text, TestData.ToCharArray(), 0 );
 			text.Insert( 0, TestData.ToCharArray() );
 		}
 

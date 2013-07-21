@@ -884,8 +884,7 @@ namespace Sgry.Azuki
 			if( begin < end )
 			{
 				// manage line head indexes and delete content
-				TextUtil.LHI_Delete( _Buffer._LHI, _LDS, _Buffer, begin, end );
-				_Buffer.Remove( begin, end );
+				_Buffer.Remove( begin, end, _LDS );
 
 				// manage caret/anchor index
 				if( begin < newCaret )
@@ -906,8 +905,7 @@ namespace Sgry.Azuki
 			if( 0 < text.Length )
 			{
 				// manage line head indexes and insert content
-				TextUtil.LHI_Insert( _Buffer._LHI, _LDS, _Buffer, text, begin );
-				_Buffer.Insert( begin, text.ToCharArray() );
+				_Buffer.Insert( begin, text.ToCharArray(), _LDS );
 
 				// manage caret/anchor index
 				if( begin <= newCaret )

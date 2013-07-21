@@ -342,7 +342,7 @@ namespace Sgry.Azuki
 				GapBuffer<int> lhi,
 				GapBuffer<LineDirtyState> lds,
 				IList<char> text,
-				string insertText, int insertIndex
+				char[] insertText, int insertIndex
 			)
 		{
 			DebugUtl.Assert( lhi != null && 0 < lhi.Count && lhi[0] == 0,
@@ -351,7 +351,7 @@ namespace Sgry.Azuki
 							 "lds must have at one or more items." );
 			DebugUtl.Assert( lhi.Count == lds.Count, "lhi.Count(" + lhi.Count
 							 + ") is not lds.Count(" + lds.Count + ")" );
-			DebugUtl.Assert( String.IsNullOrEmpty(insertText) == false,
+			DebugUtl.Assert( insertText != null && 0 < insertText.Length,
 							 "insertText must not be null nor empty." );
 			DebugUtl.Assert( 0 <= insertIndex && insertIndex <= text.Count,
 							 "insertIndex is out of range (" + insertIndex
