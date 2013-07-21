@@ -96,6 +96,7 @@
     <Compile Include="Test\EditHistoryTest.cs" />
     <Compile Include="Test\FixedBugsTest.cs" />
     <Compile Include="Test\KeywordHighlighterTest.cs" />
+    <Compile Include="Test\TextBufferTest.cs" />
     <Compile Include="Test\TextUtilTest.cs" />
     <Compile Include="Test\RleArrayTest.cs" />
     <Compile Include="Test\SplitArrayTest.cs" />

@@ -462,6 +462,24 @@ namespace Sgry
 			}
 		}
 
+		public static void AssertThrows<T>( EventHandler proc )
+		{
+			try
+			{
+				proc( null, EventArgs.Empty );
+				throw new AssertException( "No exception was thrown." );
+			}
+			catch( Exception ex )
+			{
+				if( ex is AssertException )
+					throw;
+				if( ex.GetType() != typeof(T) )
+					throw new AssertException( "An invalid type of exception was thrown.\n"
+											   + "Expected: " + typeof(T).Name + "\n"
+											   + "Actual:   " + ex.GetType() );
+			}
+		}
+
 		public static void AssertType<T>( object obj )
 		{
 			if( obj.GetType() != typeof(T) )

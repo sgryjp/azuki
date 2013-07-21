@@ -86,6 +86,183 @@ namespace Sgry.Azuki
 
 			return TextUtil.GetCharIndex( _Chars, _LHI, position );
 		}
+
+		/// <summary>
+		/// Maintain line head indexes for text insertion.
+		/// THIS MUST BE CALLED BEFORE ACTUAL INSERTION.
+		/// </summary>
+		void LHI_Insert( GapBuffer<LineDirtyState> lds,
+						 char[] insertText, int insertIndex )
+		{
+			DebugUtl.Assert( lds != null && 0 < lds.Count,
+							 "lds must have at one or more items." );
+			DebugUtl.Assert( insertText != null && 0 < insertText.Length,
+							 "insertText must not be null nor empty." );
+			DebugUtl.Assert( 0 <= insertIndex && insertIndex <= _Chars.Count,
+							 "insertIndex is out of range (" + insertIndex
+							 + ")." );
+			TextPoint insPos;
+			int lineIndex; // work variable
+			int lineHeadIndex;
+			int lineEndIndex;
+			int insLineCount;
+
+			// at first, find the line which contains the insertion point
+			insPos = GetTextPosition( insertIndex );
+			lineIndex = insPos.Line;
+
+			// if the inserting divides a CR+LF, insert an entry for the CR
+			// separated
+			if( 0 < insertIndex && _Chars[insertIndex-1] == '\r'
+				&& insertIndex < _Chars.Count && _Chars[insertIndex] == '\n' )
+			{
+				_LHI.Insert( lineIndex+1, insertIndex );
+				lds.Insert( lineIndex+1, LineDirtyState.Dirty );
+				lineIndex++;
+			}
+
+			// if inserted text begins with LF and is inserted just after a CR,
+			// remove this CR's entry
+			if( 0 < insertIndex && _Chars[insertIndex-1] == '\r'
+				&& 0 < insertText.Length && insertText[0] == '\n' )
+			{
+				_LHI.RemoveAt( lineIndex );
+				lds.RemoveAt( lineIndex );
+				lineIndex--;
+			}
+
+			// insert line index entries
+			insLineCount = 1;
+			lineHeadIndex = 0;
+			do
+			{
+				// get end index of this line
+				lineEndIndex = TextUtil.NextLineHead( insertText, lineHeadIndex ) - 1;
+				if( lineEndIndex == -2 ) // == "if NextLineHead returns -1"
+				{
+					// no more lines following to this line.
+					// this is the final line. no need to insert new entry
+					break;
+				}
+				_LHI.Insert( lineIndex+insLineCount,insertIndex+lineEndIndex+1);
+				lds.Insert( lineIndex+insLineCount, LineDirtyState.Dirty );
+				insLineCount++;
+
+				// find next line head
+				lineHeadIndex = TextUtil.NextLineHead( insertText, lineHeadIndex );
+			}
+			while( lineHeadIndex != -1 );
+
+			// If finaly character of the inserted string is CR and if it is
+			// inserted just before an LF, remove this CR's entry since it will
+			// be a part of a CR+LF
+			if( 0 < insertText.Length
+				&& insertText[insertText.Length - 1] == '\r'
+				&& insertIndex < _Chars.Count
+				&& _Chars[insertIndex] == '\n' )
+			{
+				int lastInsertedLine = lineIndex + insLineCount - 1;
+				_LHI.RemoveAt( lastInsertedLine );
+				lds.RemoveAt( lastInsertedLine );
+				lineIndex--;
+			}
+
+			// shift all the followings
+			for( int i=lineIndex+insLineCount; i<_LHI.Count; i++ )
+			{
+				_LHI[i] += insertText.Length;
+			}
+
+			// mark the insertion target line as 'dirty'
+			if( insertText[0] == '\n'
+				&& 0 < insertIndex && _Chars[insertIndex-1] == '\r'
+				&& insertIndex < _Chars.Count && _Chars[insertIndex] != '\n' )
+			{
+				// Inserted text has an LF at beginning and there is a CR (not
+				// part of a CR+LF) at insertion point so a new CR+LF is made.
+				// Since newly made CR+LF is regarded as part of the line
+				// which originally ended with a CR, the line should be marked
+				// as modified.
+				DebugUtl.Assert( 0 < insPos.Line );
+				lds[insPos.Line-1] = LineDirtyState.Dirty;
+			}
+			else
+			{
+				lds[insPos.Line] = LineDirtyState.Dirty;
+			}
+		}
+		
+		/// <summary>
+		/// Maintain line head indexes for text deletion.
+		/// THIS MUST BE CALLED BEFORE ACTUAL DELETION.
+		/// </summary>
+		void LHI_Delete( GapBuffer<LineDirtyState> lds,
+						 int delBegin, int delEnd )
+		{
+			DebugUtl.Assert( lds != null && 0 < lds.Count, "lds must have one"
+							 + " or more items." );
+			DebugUtl.Assert( 0 <= delBegin && delBegin < _Chars.Count,
+							 "delBegin is out of range." );
+			DebugUtl.Assert( delBegin <= delEnd && delEnd <= _Chars.Count,
+							 "delEnd is out of range." );
+			int delFirstLine;
+			int delLen = delEnd - delBegin;
+
+			// calculate line indexes of both ends of the range
+			var delFromPos = GetTextPosition( delBegin );
+			var delToPos = GetTextPosition( delEnd );
+			delFirstLine = delFromPos.Line;
+
+			if( 0 < delBegin && _Chars[delBegin-1] == '\r' )
+			{
+				if( delEnd < _Chars.Count && _Chars[delEnd] == '\n' )
+				{
+					// Delete an entry of a line terminated with a CR in case
+					// of that the CR will be merged into an CR+LF.
+					_LHI.RemoveAt( delToPos.Line );
+					lds.RemoveAt( delToPos.Line );
+					delToPos.Line--;
+				}
+				else if( _Chars[delBegin] == '\n' )
+				{
+					// Insert an entry of a line terminated with a CR in case
+					// of that an LF was removed from an CR+LF.
+					_LHI.Insert( delToPos.Line, delBegin );
+					lds.Insert( delToPos.Line, LineDirtyState.Dirty );
+					delFromPos.Line++;
+					delToPos.Line++;
+				}
+			}
+
+			// subtract line head indexes for lines after deletion point
+			for( int i=delToPos.Line+1; i<_LHI.Count; i++ )
+			{
+				_LHI[i] -= delLen;
+			}
+
+			// if deletion decreases line count, delete entries
+			if( delFromPos.Line < delToPos.Line )
+			{
+				_LHI.RemoveRange( delFromPos.Line+1, delToPos.Line+1 );
+				lds.RemoveRange( delFromPos.Line+1, delToPos.Line+1 );
+			}
+
+			// mark the deletion target line as 'dirty'
+			if( 0 < delBegin && _Chars[delBegin-1] == '\r'
+				&& delEnd < _Chars.Count && _Chars[delEnd] == '\n'
+				&& 0 < delFirstLine )
+			{
+				// This deletion combines a CR and an LF.
+				// Since newly made CR+LF is regarded as part of the line
+				// which originally ended with a CR, the line should be marked
+				// as modified.
+				lds[delFirstLine-1] = LineDirtyState.Dirty;
+			}
+			else
+			{
+				lds[delFirstLine] = LineDirtyState.Dirty;
+			}
+		}
 		#endregion
 
 		#region Content Access
@@ -206,7 +383,7 @@ namespace Sgry.Azuki
 		public void Insert( int index, char[] chars, GapBuffer<LineDirtyState> lds )
 		{
 			if( lds != null )
-				TextUtil.LHI_Insert( _LHI, lds, _Chars, chars, index );
+				LHI_Insert( lds, chars, index );
 
 			_Chars.Insert( index, chars );
 			_Classes.Insert( index, new CharClass[chars.Length] );
@@ -251,7 +428,7 @@ namespace Sgry.Azuki
 		public void Remove( int begin, int end, GapBuffer<LineDirtyState> lds )
 		{
 			if( lds != null )
-				TextUtil.LHI_Delete( _LHI, lds, _Chars, begin, end );
+				LHI_Delete( lds, begin, end );
 
 			_Chars.RemoveRange( begin, end );
 			_Classes.RemoveRange( begin, end );
@@ -285,6 +462,15 @@ namespace Sgry.Azuki
 		/// <returns>Search result object if found, otherwise null if not found.</returns>
 		public SearchResult FindNext( string value, int begin, int end, bool matchCase )
 		{
+			if( begin < 0 )
+				throw new ArgumentOutOfRangeException( "begin", "parameter begin must be a positive integer. (begin:"+begin+")" );
+			if( end < begin )
+				throw new ArgumentOutOfRangeException( "end", "parameter end must be greater than parameter begin. (begin:"+begin+", end:"+end+")" );
+			if( Count < end )
+				throw new ArgumentOutOfRangeException( "end", "end must not be greater than character count. (end:"+end+", Count:"+Count+")" );
+			if( value == null )
+				throw new ArgumentNullException( "value" );
+
 			return _Chars.FindNext( value, begin, end, matchCase );
 		}
 
@@ -298,6 +484,15 @@ namespace Sgry.Azuki
 		/// <returns>Search result object if found, otherwise null if not found.</returns>
 		public SearchResult FindPrev( string value, int begin, int end, bool matchCase )
 		{
+			if( begin < 0 )
+				throw new ArgumentOutOfRangeException( "begin", "parameter begin must be a positive integer. (begin:"+begin+")" );
+			if( end < begin )
+				throw new ArgumentOutOfRangeException( "end", "parameter end must be greater than parameter begin. (begin:"+begin+", end:"+end+")" );
+			if( Count < end )
+				throw new ArgumentOutOfRangeException( "end", "end must not be greater than character count. (end:"+end+", Count:"+Count+")" );
+			if( value == null )
+				throw new ArgumentNullException( "value" );
+
 			return _Chars.FindPrev( value, begin, end, matchCase );
 		}
 
@@ -317,11 +512,33 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public SearchResult FindNext( Regex regex, int begin, int end )
 		{
+			if( begin < 0 )
+				throw new ArgumentOutOfRangeException( "begin", "parameter begin must be a positive integer. (begin:"+begin+")" );
+			if( end < begin )
+				throw new ArgumentOutOfRangeException( "end", "parameter end must be greater than parameter begin. (begin:"+begin+", end:"+end+")" );
+			if( Count < end )
+				throw new ArgumentOutOfRangeException( "end", "end must not be greater than character count. (end:"+end+", Count:"+Count+")" );
+			if( regex == null )
+				throw new ArgumentNullException( "regex" );
+			if( (regex.Options & RegexOptions.RightToLeft) != 0 )
+				throw new ArgumentException( "RegexOptions.RightToLeft option must not be set to the object 'regex'.", "regex" );
+
 			return _Chars.FindNext( regex, begin, end );
 		}
 
 		public SearchResult FindPrev( Regex regex, int begin, int end )
 		{
+			if( begin < 0 )
+				throw new ArgumentOutOfRangeException( "begin", "parameter begin must be a positive integer. (begin:"+begin+")" );
+			if( end < begin )
+				throw new ArgumentOutOfRangeException( "end", "parameter end must be greater than parameter begin. (begin:"+begin+", end:"+end+")" );
+			if( Count < end )
+				throw new ArgumentOutOfRangeException( "end", "end must not be greater than character count. (end:"+end+", Count:"+Count+")" );
+			if( regex == null )
+				throw new ArgumentNullException( "regex" );
+			if( (regex.Options & RegexOptions.RightToLeft) == 0 )
+				throw new ArgumentException( "RegexOptions.RightToLeft option must be set to the object 'regex'.", "regex" );
+
 			return _Chars.FindPrev( regex, begin, end );
 		}
 		#endregion
