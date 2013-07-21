@@ -41,7 +41,7 @@ class Parser {
 int sectionLevel = 0;
 	int curlyBracketDepth = 0;
 	internal Sgry.Azuki.Highlighter.HighlightHook _Hook = null;
-	internal SplitArray<int> _ReparsePoints = null;
+	internal GapBuffer<int> _ReparsePoints = null;
 
 	void Highlight( Token t, CharClass klass )
 	{

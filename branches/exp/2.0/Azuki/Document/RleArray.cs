@@ -19,7 +19,7 @@ namespace Sgry.Azuki
 #		if TEST
 		internal
 #		endif
-		SplitArray<Node> _Nodes;
+		GapBuffer<Node> _Nodes;
 		int _TotalCount = 0;
 
 		#region Init / Dispose
@@ -35,7 +35,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public RleArray( int initCapacity )
 		{
-			_Nodes = new SplitArray<Node>( Math.Max(32, initCapacity) );
+			_Nodes = new GapBuffer<Node>( Math.Max(32, initCapacity) );
 			__check_sanity__();
 		}
 		#endregion

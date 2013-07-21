@@ -46,7 +46,7 @@ namespace Sgry.Azuki.Highlighter
 
 
 		#region Reparse Point
-		public static void EntryReparsePoint( SplitArray<int> reparsePoints,
+		public static void EntryReparsePoint( GapBuffer<int> reparsePoints,
 											  int index )
 		{
 			int count;
@@ -77,7 +77,7 @@ namespace Sgry.Azuki.Highlighter
 			reparsePoints.Add( index );
 		}
 
-		public static int FindReparsePoint( SplitArray<int> reparsePoints,
+		public static int FindReparsePoint( GapBuffer<int> reparsePoints,
 											int parseStartIndex )
 		{
 			int index = Utl.FindLeastMaximum( reparsePoints, parseStartIndex );

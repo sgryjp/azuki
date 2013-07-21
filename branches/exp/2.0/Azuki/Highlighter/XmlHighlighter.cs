@@ -16,7 +16,7 @@ namespace Sgry.Azuki.Highlighter
 		#region Fields
 		static readonly string DefaultWordCharSet = null;
 		List<Enclosure> _Enclosures = new List<Enclosure>();
-		SplitArray<int> _ReparsePoints = new SplitArray<int>( 64 );
+		GapBuffer<int> _ReparsePoints = new GapBuffer<int>( 64 );
 		#endregion
 
 		#region Properties

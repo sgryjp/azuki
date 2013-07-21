@@ -12,7 +12,7 @@ namespace Sgry.Azuki.Test
 		public static void Test()
 		{
 			int test_num = 0;
-			Console.WriteLine( "[Test for Azuki.SplitArray]" );
+			Console.WriteLine( "[Test for Azuki.GapBuffer]" );
 
 			// init
 			Console.WriteLine( "test {0} - initial state", ++test_num );
@@ -53,7 +53,7 @@ namespace Sgry.Azuki.Test
 
 		static void Test_Init()
 		{
-			SplitArray<char> chars = new SplitArray<char>( 5, 8 );
+			GapBuffer<char> chars = new GapBuffer<char>( 5, 8 );
 
 			TestUtl.AssertEquals( 0, chars.Count );
 			for( int x=0; x<10; x++ )
@@ -67,7 +67,7 @@ namespace Sgry.Azuki.Test
 
 		static void Test_Add()
 		{
-			SplitArray<char> chars = new SplitArray<char>( 5, 8 );
+			GapBuffer<char> chars = new GapBuffer<char>( 5, 8 );
 
 			chars.Add( 'a' );
 			TestUtl.AssertEquals( 1, chars.Count );
@@ -80,7 +80,7 @@ namespace Sgry.Azuki.Test
 
 		static void Test_Clear()
 		{
-			SplitArray<char> chars = new SplitArray<char>( 5, 8 );
+			GapBuffer<char> chars = new GapBuffer<char>( 5, 8 );
 
 			chars.Clear();
 			TestUtl.AssertEquals( 0, chars.Count );
@@ -107,7 +107,7 @@ namespace Sgry.Azuki.Test
 		static void Test_Insert_One()
 		{
 			const string InitData = "hogepiyo";
-			SplitArray<char> sary = new SplitArray<char>( 5, 8 );
+			GapBuffer<char> sary = new GapBuffer<char>( 5, 8 );
 
 			// control-char
 			sary.Clear();
@@ -152,7 +152,7 @@ namespace Sgry.Azuki.Test
 		static void Test_Insert_Array()
 		{
 			const string InitData = "hogepiyo";
-			SplitArray<char> sary = new SplitArray<char>( 5, 8 );
+			GapBuffer<char> sary = new GapBuffer<char>( 5, 8 );
 
 			// null array
 			sary.Clear();
@@ -203,7 +203,7 @@ namespace Sgry.Azuki.Test
 		static void Test_Replace()
 		{
 			const string InitData = "hogepiyo";
-			SplitArray<char> sary = new SplitArray<char>( 5, 8 );
+			GapBuffer<char> sary = new GapBuffer<char>( 5, 8 );
 
 			// replace position
 			{
@@ -271,7 +271,7 @@ namespace Sgry.Azuki.Test
 		static void Test_RemoveRange()
 		{
 			const string InitData = "hogepiyo";
-			SplitArray<char> chars = new SplitArray<char>( 5, 8 );
+			GapBuffer<char> chars = new GapBuffer<char>( 5, 8 );
 
 			// case 2 (moving gap to buffer head)
 			chars.Add( InitData.ToCharArray() );
@@ -324,7 +324,7 @@ namespace Sgry.Azuki.Test
 		static void Test_CopyTo()
 		{
 			const string initBufContent = "123456";
-			SplitArray<char> sary = new SplitArray<char>( 5, 8 );
+			GapBuffer<char> sary = new GapBuffer<char>( 5, 8 );
 			char[] buf;
 			sary.Insert( 0, "hogepiyo".ToCharArray() );
 
@@ -356,7 +356,7 @@ namespace Sgry.Azuki.Test
 
 		static void Test_BinarySearch()
 		{
-			SplitArray<int> ary = new SplitArray<int>( 4 );
+			GapBuffer<int> ary = new GapBuffer<int>( 4 );
 
 			ary.Clear();
 			TestUtl.AssertEquals( -1, ary.BinarySearch(1234) );
@@ -375,7 +375,7 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals(  (1), ary.BinarySearch(3) );
 			TestUtl.AssertEquals( ~(2), ary.BinarySearch(4) );
 
-			SplitArray<System.Drawing.Point> points = new SplitArray<System.Drawing.Point>( 4 );
+			GapBuffer<System.Drawing.Point> points = new GapBuffer<System.Drawing.Point>( 4 );
 			points.Add( new System.Drawing.Point() );
 			try
 			{
@@ -388,7 +388,7 @@ namespace Sgry.Azuki.Test
 			}
 		}
 
-		static string ToString( SplitArray<char> sary )
+		static string ToString( GapBuffer<char> sary )
 		{
 			return new string( sary.ToArray() );
 		}

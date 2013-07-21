@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using Debug = System.Diagnostics.Debug;
 using Regex = System.Text.RegularExpressions.Regex;
 using RegexOptions = System.Text.RegularExpressions.RegexOptions;
@@ -19,7 +20,7 @@ namespace Sgry.Azuki
 	{
 		#region Fields
 		TextBuffer _Buffer = new TextBuffer( 4096, 1024 );
-		SplitArray<LineDirtyState> _LDS = new SplitArray<LineDirtyState>( 64 ); // line dirty states
+		GapBuffer<LineDirtyState> _LDS = new GapBuffer<LineDirtyState>( 64 ); // line dirty states
 		EditHistory _History = new EditHistory();
 		SelectionManager _SelMan;
 		bool _IsRecordingHistory = true;
@@ -520,7 +521,7 @@ namespace Sgry.Azuki
 				if( _Buffer.Count == 0 )
 					return String.Empty;
 
-				return new String( _Buffer.ToArray() );
+				return _Buffer.GetText( new Range(0, _Buffer.Count) );
 			}
 			set
 			{
@@ -541,7 +542,7 @@ namespace Sgry.Azuki
 			if( index < 0 || _Buffer.Count <= index )
 				throw new ArgumentOutOfRangeException( "index", "Invalid index was given (index:"+index+", this.Length:"+Length+")." );
 
-			return _Buffer.GetAt( index );
+			return _Buffer[ index ];
 		}
 
 		/// <summary>
@@ -744,19 +745,7 @@ namespace Sgry.Azuki
 				|| range.Begin < 0 || range.End < range.Begin )
 				throw new ArgumentOutOfRangeException( "range", "Invalid index was given (range:"
 													   + range + ", Length:" + Length + ")." );
-
-			if( range.IsEmpty )
-			{
-				return String.Empty;
-			}
-
-			// constrain indexes to avoid dividing a grapheme cluster
-			TextUtil.ConstrainIndex( _Buffer, range );
-
-			// retrieve a part of the content
-			char[] buf = new char[range.Length];
-			_Buffer.CopyTo( range.Begin, range.End, buf );
-			return new String( buf );
+			return _Buffer.GetText( range );
 		}
 
 		/// <summary>
@@ -881,9 +870,10 @@ namespace Sgry.Azuki
 			// keep copy of the part which will be deleted by this replacement
 			if( begin < end )
 			{
-				char[] oldChars = new char[ end-begin ];
-				_Buffer.CopyTo( begin, end, oldChars );
-				oldText = new String( oldChars );
+				var buf = new StringBuilder( end - begin );
+				for( int i=begin; i<end; i++ )
+					buf.Append( _Buffer[i] );
+				oldText = buf.ToString();
 			}
 
 			// keep copy of old caret/anchor index
@@ -895,7 +885,7 @@ namespace Sgry.Azuki
 			{
 				// manage line head indexes and delete content
 				TextUtil.LHI_Delete( _Buffer._LHI, _LDS, _Buffer, begin, end );
-				_Buffer.RemoveRange( begin, end );
+				_Buffer.Remove( begin, end );
 
 				// manage caret/anchor index
 				if( begin < newCaret )
