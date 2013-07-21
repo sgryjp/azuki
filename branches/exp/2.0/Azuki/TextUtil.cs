@@ -619,6 +619,11 @@ namespace Sgry.Azuki
 			return IsNotDividableIndex( text[index-1], text[index] );
 		}
 
+		public static bool IsDividableIndex( IList<char> text, int index )
+		{
+			return !IsNotDividableIndex( text, index );
+		}
+
 		public static void ConstrainIndex( IList<char> text, Range range )
 		{
 			if( range.IsEmpty == false )

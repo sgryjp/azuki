@@ -843,8 +843,8 @@ namespace Sgry.Azuki
 			while( end <= lineEnd && end != -1 )
 			{
 				// get this token
-				Debug.Assert( TextUtil.IsNotDividableIndex(Document.InternalBuffer, begin) );
-				Debug.Assert( TextUtil.IsNotDividableIndex(Document.InternalBuffer, end) );
+				Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, begin) );
+				Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, end) );
 				token = Document.GetText( begin, end );
 				Debug.Assert( 0 < token.Length, "@View.Paint. NextPaintToken returns empty range." );
 
