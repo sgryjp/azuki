@@ -1,5 +1,5 @@
 ﻿// file: TextBuffer.cs
-// brief: Specialized GapBuffer for char with text search feature without copying content.
+// brief: A buffer object maintaining characters, lines, and other meta data.
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -9,17 +9,15 @@ using Debug = System.Diagnostics.Debug;
 namespace Sgry.Azuki
 {
 	/// <summary>
-	/// Specialized GapBuffer for char with text search feature without copying content.
-	/// This is the core data structure of Azuki.
+	/// A buffer object maintaining characters, lines, and other meta data.
 	/// </summary>
 	class TextBuffer : IList<char>
 	{
 		#region Fields
-		GapCharBuffer _Chars;
-		internal //TODO: Make TextBuffer.LHI private.
-		GapBuffer<int> _LHI = new GapBuffer<int>( 64 ); // line head indexes
-		GapBuffer<CharClass> _Classes;
-		RleArray<uint> _MarkingBitMasks;
+		readonly GapCharBuffer _Chars;
+		readonly GapBuffer<CharClass> _Classes;
+		readonly GapBuffer<int> _LHI = new GapBuffer<int>( 64 ); // line head indexes
+		readonly RleArray<uint> _MarkingBitMasks;
 		#endregion
 
 		#region Init / Dispose
@@ -29,8 +27,8 @@ namespace Sgry.Azuki
 		public TextBuffer( int initGapSize, int growSize )
 		{
 			_Chars = new GapCharBuffer( initGapSize, growSize );
-			_LHI.Add( 0 );
 			_Classes = new GapBuffer<CharClass>( initGapSize, growSize );
+			_LHI.Add( 0 );
 			_MarkingBitMasks = new RleArray<uint>();
 		}
 		#endregion
@@ -150,7 +148,7 @@ namespace Sgry.Azuki
 			// Prepare buffer
 			int begin = _LHI[beginLineIndex] + beginColumnIndex;
 			int end = _LHI[endLineIndex] + endColumnIndex;
-			if( Count < end )
+			if( _Chars.Count < end )
 			{
 				throw new ArgumentOutOfRangeException( "?", "Invalid index was given (calculated end:"+end+", Count:"+Count+")." );
 			}
@@ -202,6 +200,14 @@ namespace Sgry.Azuki
 
 		public void Insert( int index, char[] chars )
 		{
+			Insert( index, chars, null );
+		}
+
+		public void Insert( int index, char[] chars, GapBuffer<LineDirtyState> lds )
+		{
+			if( lds != null )
+				TextUtil.LHI_Insert( _LHI, lds, _Chars, chars, index );
+
 			_Chars.Insert( index, chars );
 			_Classes.Insert( index, new CharClass[chars.Length] );
 			_MarkingBitMasks.Insert( index, 0, chars.Length );
@@ -236,6 +242,17 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void Remove( int begin, int end )
 		{
+			Remove( begin, end, null );
+		}
+
+		/// <summary>
+		/// Removes elements at specified range [begin, end).
+		/// </summary>
+		public void Remove( int begin, int end, GapBuffer<LineDirtyState> lds )
+		{
+			if( lds != null )
+				TextUtil.LHI_Delete( _LHI, lds, _Chars, begin, end );
+
 			_Chars.RemoveRange( begin, end );
 			_Classes.RemoveRange( begin, end );
 			for( int i=begin; i<end; i++ )
