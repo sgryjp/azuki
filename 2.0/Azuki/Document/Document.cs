@@ -1668,7 +1668,7 @@ namespace Sgry.Azuki
 		///   <para>
 		///   If parameter <paramref name="value"/> is an empty string,
 		///   search result will be the range of
-		///   [<paramref name="startIndex"/>, <paramref name="startIndex"/>).
+		///   [<paramref name="begin"/>, <paramref name="end"/>).
 		///   </para>
 		/// </remarks>
 		public SearchResult FindNext( string value, int begin, int end )
@@ -1749,15 +1749,6 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public SearchResult FindNext( string value, int begin, int end, bool matchCase )
 		{
-			if( begin < 0 )
-				throw new ArgumentOutOfRangeException( "begin", "parameter begin must be a positive integer. (begin:"+begin+")" );
-			if( end < begin )
-				throw new ArgumentOutOfRangeException( "end", "parameter end must be greater than parameter begin. (begin:"+begin+", end:"+end+")" );
-			if( _Buffer.Count < end )
-				throw new ArgumentOutOfRangeException( "end", "end must not be greater than character count. (end:"+end+", this.Length:"+_Buffer.Count+")" );
-			if( value == null )
-				throw new ArgumentNullException( "value" );
-
 			return _Buffer.FindNext( value, begin, end, matchCase );
 		}
 
@@ -1841,17 +1832,6 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public SearchResult FindNext( Regex regex, int begin, int end )
 		{
-			if( begin < 0 )
-				throw new ArgumentOutOfRangeException( "begin", "parameter begin must be a positive integer. (begin:"+begin+")" );
-			if( end < begin )
-				throw new ArgumentOutOfRangeException( "end", "parameter end must be greater than parameter begin. (begin:"+begin+", end:"+end+")" );
-			if( _Buffer.Count < end )
-				throw new ArgumentOutOfRangeException( "end", "end must not be greater than character count. (end:"+end+", this.Length:"+_Buffer.Count+")" );
-			if( regex == null )
-				throw new ArgumentNullException( "regex" );
-			if( (regex.Options & RegexOptions.RightToLeft) != 0 )
-				throw new ArgumentException( "RegexOptions.RightToLeft option must not be set to the object 'regex'.", "regex" );
-
 			return _Buffer.FindNext( regex, begin, end );
 		}
 
@@ -1962,7 +1942,7 @@ namespace Sgry.Azuki
 		///   </para>
 		///   <para>
 		///   If parameter <paramref name="value"/> is an empty string,
-		///   search result will be the range of [<paramref name="startIndex"/>, <paramref name="startIndex"/>).
+		///   search result will be the range of [<paramref name="begin"/>, <paramref name="end"/>).
 		///   </para>
 		/// </remarks>
 		public SearchResult FindPrev( string value, int begin, int end )
@@ -2003,15 +1983,6 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public SearchResult FindPrev( string value, int begin, int end, bool matchCase )
 		{
-			if( begin < 0 )
-				throw new ArgumentOutOfRangeException( "begin", "parameter begin must be a positive integer. (begin:"+begin+")" );
-			if( end < begin )
-				throw new ArgumentOutOfRangeException( "end", "parameter end must be greater than parameter begin. (begin:"+begin+", end:"+end+")" );
-			if( _Buffer.Count < end )
-				throw new ArgumentOutOfRangeException( "end", "end must not be greater than character count. (end:"+end+", this.Length:"+_Buffer.Count+")" );
-			if( value == null )
-				throw new ArgumentNullException( "value" );
-
 			return _Buffer.FindPrev( value, begin, end, matchCase );
 		}
 
@@ -2095,17 +2066,6 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public SearchResult FindPrev( Regex regex, int begin, int end )
 		{
-			if( begin < 0 )
-				throw new ArgumentOutOfRangeException( "begin", "parameter begin must be a positive integer. (begin:"+begin+")" );
-			if( end < begin )
-				throw new ArgumentOutOfRangeException( "end", "parameter end must be greater than parameter begin. (begin:"+begin+", end:"+end+")" );
-			if( _Buffer.Count < end )
-				throw new ArgumentOutOfRangeException( "end", "end must not be greater than character count. (end:"+end+", this.Length:"+_Buffer.Count+")" );
-			if( regex == null )
-				throw new ArgumentNullException( "regex" );
-			if( (regex.Options & RegexOptions.RightToLeft) == 0 )
-				throw new ArgumentException( "RegexOptions.RightToLeft option must be set to the object 'regex'.", "regex" );
-
 			return _Buffer.FindPrev( regex, begin, end );
 		}
 

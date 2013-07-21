@@ -10,6 +10,7 @@ namespace Sgry.Azuki.Test
 			SplitArrayTest.Test();
 			RleArrayTest.Test();
 			TextUtilTest.Test();
+			new TextBufferTest().Test();
 			DocumentTest.Test();
 			DefaultWordProcTest.Test();
 			CaretMoveLogicTest.Test();

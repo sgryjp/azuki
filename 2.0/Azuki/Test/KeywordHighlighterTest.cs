@@ -13,19 +13,19 @@ namespace Sgry.Azuki.Test
 			int testNum = 0;
 			Console.WriteLine( "[Test for Azuki.KeywordHighlighter]" );
 
-			Console.WriteLine("test {0} - Keywords", testNum++);
+			Console.WriteLine("test {0} - Keywords", ++testNum);
 			TestUtl.Do( Test_Keywords );
 
-			Console.WriteLine("test {0} - Line highlight", testNum++);
+			Console.WriteLine("test {0} - Line highlight", ++testNum);
 			TestUtl.Do( Test_LineComment );
 
-			Console.WriteLine("test {0} - Enclosure", testNum++);
+			Console.WriteLine("test {0} - Enclosure", ++testNum);
 			TestUtl.Do( Test_Enclosure );
 
-			Console.WriteLine("test {0} - Word character", testNum++);
+			Console.WriteLine("test {0} - Word character", ++testNum);
 			TestUtl.Do( Test_WordChar );
 
-			Console.WriteLine("test {0} - Hook", testNum++);
+			Console.WriteLine("test {0} - Hook", ++testNum);
 			TestUtl.Do( Test_Hook );
 
 			Console.WriteLine( "done." );

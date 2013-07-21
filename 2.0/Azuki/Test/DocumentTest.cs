@@ -16,52 +16,52 @@ namespace Sgry.Azuki.Test
 			Console.WriteLine( "[Test for Azuki.Document]" );
 
 			// Text / GetLineContent
-			Console.WriteLine("test {0} - Text / GetLineContent", testNum++);
+			Console.WriteLine("test {0} - Text / GetLineContent", ++testNum);
 			TestUtl.Do( Test_GetText );
 
 			// GetTextPosition
-			Console.WriteLine("test {0} - GetTextPosition", testNum++);
+			Console.WriteLine("test {0} - GetTextPosition", ++testNum);
 			TestUtl.Do( Test_GetTextPosition );
 
 			// GetLineIndexFromCharIndex
-			Console.WriteLine("test {0} - GetLineIndexFromCharIndex", testNum++);
+			Console.WriteLine("test {0} - GetLineIndexFromCharIndex", ++testNum);
 			TestUtl.Do( Test_GetLineIndexFromCharIndex );
 
 			// GetText
-			Console.WriteLine("test {0} - GetText", testNum++);
+			Console.WriteLine("test {0} - GetText", ++testNum);
 			TestUtl.Do( Test_GetTextInRange );
 
 			// GetText (for surrogate pair)
-			Console.WriteLine("test {0} - GetText (surrogate pair)", testNum++);
+			Console.WriteLine("test {0} - GetText (surrogate pair)", ++testNum);
 			TestUtl.Do( Test_GetTextInRange_SurrogatePair );
 
 			// Replace
-			Console.WriteLine("test {0} - Replace", testNum++);
+			Console.WriteLine("test {0} - Replace", ++testNum);
 			TestUtl.Do( Test_Replace );
 			TestUtl.Do( Test_Replace_SelectionRange );
 			
 			// GetLineLength
-			Console.WriteLine("test {0} - GetLineLength", testNum++);
+			Console.WriteLine("test {0} - GetLineLength", ++testNum);
 			TestUtl.Do( Test_GetLineLength );
 
 			// SetSelection
-			Console.WriteLine("test {0} - SetSelection", testNum++);
+			Console.WriteLine("test {0} - SetSelection", ++testNum);
 			TestUtl.Do( Test_Selection );
 
 			// FindNext
-			Console.WriteLine("test {0} - FindNext", testNum++);
+			Console.WriteLine("test {0} - FindNext", ++testNum);
 			TestUtl.Do( Test_FindNext );
 
 			// FindPrev
-			Console.WriteLine("test {0} - FindPrev", testNum++);
+			Console.WriteLine("test {0} - FindPrev", ++testNum);
 			TestUtl.Do( Test_FindPrev );
 
 			// FindNext (Regex)
-			Console.WriteLine("test {0} - FindNext (regex)", testNum++);
+			Console.WriteLine("test {0} - FindNext (regex)", ++testNum);
 			TestUtl.Do( Test_FindNextR );
 
 			// FindPrev (Regex)
-			Console.WriteLine("test {0} - FindPrev (regex)", testNum++);
+			Console.WriteLine("test {0} - FindPrev (regex)", ++testNum);
 			TestUtl.Do( Test_FindPrevR );
 
 			Console.WriteLine("done.");

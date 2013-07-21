@@ -12,23 +12,23 @@ namespace Sgry.Azuki.Test
 			Console.WriteLine( "[Test for Azuki.EditHistory]" );
 
 			// case 1 (add actions and pop actions)
-			Console.WriteLine("test {0} - case 1", testNum++);
+			Console.WriteLine("test {0} - case 1", ++testNum);
 			TestUtl.Do( Test_Add );
 
 			// case 2 (add actions and pop some actions and get some actions)
-			Console.WriteLine("test {0} - case 2", testNum++);
+			Console.WriteLine("test {0} - case 2", ++testNum);
 			TestUtl.Do( Test_Case2 );
 
 			// case 3 (group undo/redo)
-			Console.WriteLine("test {0} - group UNDO/REDO", testNum++);
+			Console.WriteLine("test {0} - group UNDO/REDO", ++testNum);
 			TestUtl.Do( Test_GroupUndoRedo );
 
 			// case 3 (group undo/redo)
-			Console.WriteLine("test {0} - dirty state of document", testNum++);
+			Console.WriteLine("test {0} - dirty state of document", ++testNum);
 			TestUtl.Do( Test_DocumentDirtyState );
 
 			// line dirty state
-			Console.WriteLine("test {0} - dirty state of lines", testNum++);
+			Console.WriteLine("test {0} - dirty state of lines", ++testNum);
 			TestUtl.Do( Test_LineDirtyState );
 
 			Console.WriteLine("done.");
