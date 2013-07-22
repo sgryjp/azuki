@@ -32,7 +32,6 @@ namespace Sgry.Azuki
 		IHighlighter _Highlighter = null;
 		IWordProc _WordProc = new DefaultWordProc();
 		ViewParam _ViewParam = new ViewParam();
-		DateTime _LastModifiedTime = DateTime.Now;
 		object _Tag = null;
 		static readonly char[] _PairBracketTable = new char[]{
 			'(', ')', '{', '}', '[', ']', '<', '>',
@@ -240,7 +239,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public DateTime LastModifiedTime
 		{
-			get{ return _LastModifiedTime; }
+			get{ return _Buffer.LastModifiedTime; }
 		}
 
 		/// <summary>
@@ -932,7 +931,6 @@ namespace Sgry.Azuki
 				undo = new EditAction( this, begin, oldText, text, oldAnchor, oldCaret, ldsUndoInfo );
 				_History.Add( undo );
 			}
-			_LastModifiedTime = DateTime.Now;
 
 			// convert anchor/caret index in current text
 			oldAnchor += anchorDelta;
