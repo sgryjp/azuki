@@ -388,6 +388,7 @@ namespace Sgry.Azuki
 			_Chars.Insert( index, chars );
 			_Classes.Insert( index, new CharClass[chars.Length] );
 			_MarkingBitMasks.Insert( index, 0, chars.Length );
+			LastModifiedTime = DateTime.Now;
 		}
 
 		public void Insert( int index, string str )
@@ -436,6 +437,8 @@ namespace Sgry.Azuki
 			{
 				_MarkingBitMasks.RemoveAt( begin );
 			}
+			LastModifiedTime = DateTime.Now;
+
 			Debug.Assert( _Chars.Count == _Classes.Count );
 			Debug.Assert( _Chars.Count == _MarkingBitMasks.Count );
 		}
@@ -448,6 +451,7 @@ namespace Sgry.Azuki
 			_Chars.Clear();
 			_Classes.Clear();
 			_MarkingBitMasks.Clear();
+			LastModifiedTime = DateTime.Now;
 		}
 		#endregion
 
@@ -544,6 +548,15 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Utilities
+		/// <summary>
+		/// Gets when this buffer was edited lastly.
+		/// </summary>
+		public DateTime LastModifiedTime
+		{
+			get;
+			internal set;
+		}
+
 #		if DEBUG
 		/// <summary>
 		/// ToString for Debug.
