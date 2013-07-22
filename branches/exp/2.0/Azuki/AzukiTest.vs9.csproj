@@ -49,7 +49,6 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="AutoIndentHooks.cs" />
     <Compile Include="CaretMoveLogic.cs" />
-    <Compile Include="CrlfLineManager.cs" />
     <Compile Include="DebugUtl.cs" />
     <Compile Include="DefaultWordProc.cs" />
     <Compile Include="Document\CharClass.cs" />
@@ -87,7 +86,6 @@
     <Compile Include="Highlighter\RubyHighlighter.cs" />
     <Compile Include="Highlighter\Utl.cs" />
     <Compile Include="Highlighter\XmlHighlighter.cs" />
-    <Compile Include="LineManagerBase.cs" />
     <Compile Include="IUserInterface.cs" />
     <Compile Include="IWordProc.cs" />
     <Compile Include="Platform.cs" />
