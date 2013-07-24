@@ -30,6 +30,9 @@ namespace Sgry.Azuki.Test
 			Console.WriteLine("test {0} - Test_FindPrev (regex version)", ++testNum);
 			TestUtl.Do( Test_FindPrevR );
 
+			Console.WriteLine("test {0} - TrackingRange", ++testNum);
+			TestUtl.Do( Test_TrackingRange );
+
 			Console.WriteLine("done.");
 			Console.WriteLine();
 		}
@@ -593,6 +596,135 @@ namespace Sgry.Azuki.Test
 				// end <= gap
 				MoveGap( doc, 5 );
 				TestUtl.AssertEquals( 0, doc.FindPrev(new Regex("ab", RegexOptions.RightToLeft), 0, 4).Begin );
+			}
+		}
+
+		static void Test_TrackingRange()
+		{
+			// Insertion before the range
+			{
+				var buf = new TextBuffer( 256, 256 ){ "abcd" };
+				var rangeB = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Backward );
+				var rangeF = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Forward );
+				var rangeI = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Inward );
+				var rangeO = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Outward );
+				buf.Insert( 0, "x" );
+				TestUtl.AssertEquals( "[2, 3)", rangeB.ToString() );
+				TestUtl.AssertEquals( "[2, 3)", rangeF.ToString() );
+				TestUtl.AssertEquals( "[2, 3)", rangeI.ToString() );
+				TestUtl.AssertEquals( "[2, 3)", rangeO.ToString() );
+			}
+
+			// Insertion at beginning index
+			{
+				var buf = new TextBuffer( 256, 256 ){ "abcd" };
+				var rangeB = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Backward );
+				var rangeF = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Forward );
+				var rangeI = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Inward );
+				var rangeO = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Outward );
+				buf.Insert( 1, "x" );
+				TestUtl.AssertEquals( "[1, 4)", rangeB.ToString() );
+				TestUtl.AssertEquals( "[2, 4)", rangeF.ToString() );
+				TestUtl.AssertEquals( "[2, 4)", rangeI.ToString() );
+				TestUtl.AssertEquals( "[1, 4)", rangeO.ToString() );
+			}
+
+			// Insertion at ending index
+			{
+				var buf = new TextBuffer( 256, 256 ){ "abcd" };
+				var rangeB = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Backward );
+				var rangeF = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Forward );
+				var rangeI = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Inward );
+				var rangeO = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Outward );
+				buf.Insert( 3, "x" );
+				TestUtl.AssertEquals( "[1, 3)", rangeB.ToString() );
+				TestUtl.AssertEquals( "[1, 4)", rangeF.ToString() );
+				TestUtl.AssertEquals( "[1, 3)", rangeI.ToString() );
+				TestUtl.AssertEquals( "[1, 4)", rangeO.ToString() );
+			}
+
+			// Insertion after the range
+			{
+				var buf = new TextBuffer( 256, 256 ){ "abcd" };
+				var rangeB = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Backward );
+				var rangeF = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Forward );
+				var rangeI = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Inward );
+				var rangeO = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Outward );
+				buf.Insert( 3, "x" );
+				TestUtl.AssertEquals( "[1, 2)", rangeB.ToString() );
+				TestUtl.AssertEquals( "[1, 2)", rangeF.ToString() );
+				TestUtl.AssertEquals( "[1, 2)", rangeI.ToString() );
+				TestUtl.AssertEquals( "[1, 2)", rangeO.ToString() );
+			}
+
+			// Removal before the range
+			{
+				var buf = new TextBuffer( 256, 256 ){ "abcde" };
+				var rangeB = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Backward );
+				var rangeF = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Forward );
+				var rangeI = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Inward );
+				var rangeO = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Outward );
+				buf.Remove( 0, 1 );
+				TestUtl.AssertEquals( "[0, 3)", rangeB.ToString() );
+				TestUtl.AssertEquals( "[0, 3)", rangeF.ToString() );
+				TestUtl.AssertEquals( "[0, 3)", rangeI.ToString() );
+				TestUtl.AssertEquals( "[0, 3)", rangeO.ToString() );
+			}
+
+			// Removal - a range to be removed covers a tracking range's beginning
+			{
+				var buf = new TextBuffer( 256, 256 ){ "abcde" };
+				var rangeB = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Backward );
+				var rangeF = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Forward );
+				var rangeI = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Inward );
+				var rangeO = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Outward );
+				buf.Remove( 0, 2 );
+				TestUtl.AssertEquals( "[0, 2)", rangeB.ToString() );
+				TestUtl.AssertEquals( "[0, 2)", rangeF.ToString() );
+				TestUtl.AssertEquals( "[0, 2)", rangeI.ToString() );
+				TestUtl.AssertEquals( "[0, 2)", rangeO.ToString() );
+			}
+
+			// Removal at beginning index
+			{
+				var buf = new TextBuffer( 256, 256 ){ "abcde" };
+				var rangeB = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Backward );
+				var rangeF = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Forward );
+				var rangeI = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Inward );
+				var rangeO = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Outward );
+				buf.Remove( 1, 2 );
+				TestUtl.AssertEquals( "[0, 3)", rangeB.ToString() );
+				TestUtl.AssertEquals( "[0, 3)", rangeF.ToString() );
+				TestUtl.AssertEquals( "[0, 3)", rangeI.ToString() );
+				TestUtl.AssertEquals( "[0, 3)", rangeO.ToString() );
+			}
+
+			// Removal - a range to be removed ends at the same position
+			{
+				var buf = new TextBuffer( 256, 256 ){ "abcde" };
+				var rangeB = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Backward );
+				var rangeF = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Forward );
+				var rangeI = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Inward );
+				var rangeO = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Outward );
+				buf.Remove( 3, 4 );
+				TestUtl.AssertEquals( "[1, 3)", rangeB.ToString() );
+				TestUtl.AssertEquals( "[1, 3)", rangeF.ToString() );
+				TestUtl.AssertEquals( "[1, 3)", rangeI.ToString() );
+				TestUtl.AssertEquals( "[1, 3)", rangeO.ToString() );
+			}
+
+			// Removal after the range
+			{
+				var buf = new TextBuffer( 256, 256 ){ "abcde" };
+				var rangeB = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Backward );
+				var rangeF = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Forward );
+				var rangeI = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Inward );
+				var rangeO = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Outward );
+				buf.Remove( 4, 5 );
+				TestUtl.AssertEquals( "[1, 4)", rangeB.ToString() );
+				TestUtl.AssertEquals( "[1, 4)", rangeF.ToString() );
+				TestUtl.AssertEquals( "[1, 4)", rangeI.ToString() );
+				TestUtl.AssertEquals( "[1, 4)", rangeO.ToString() );
 			}
 		}
 

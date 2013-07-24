@@ -18,6 +18,7 @@ namespace Sgry.Azuki
 		readonly GapBuffer<CharClass> _Classes;
 		readonly GapBuffer<int> _LHI = new GapBuffer<int>( 64 ); // line head indexes
 		readonly RleArray<uint> _MarkingBitMasks;
+		readonly IList<WeakReference> _TrackingRanges = new GapBuffer<WeakReference>( 32 );
 		#endregion
 
 		#region Init / Dispose
@@ -290,7 +291,6 @@ namespace Sgry.Azuki
 
 		public string GetText( Range range )
 		{
-			Debug.Assert( range != null );
 			Debug.Assert( 0 <= range.Begin );
 			Debug.Assert( range.Begin <= range.End );
 			Debug.Assert( range.End <= _Chars.Count );
@@ -299,7 +299,7 @@ namespace Sgry.Azuki
 				return String.Empty;
 
 			// constrain indexes to avoid dividing a grapheme cluster
-			TextUtil.ConstrainIndex( _Chars, range );
+			TextUtil.ConstrainIndex( _Chars, ref range );
 
 			// retrieve a part of the content
 			var buf = new char[range.Length];
@@ -394,6 +394,8 @@ namespace Sgry.Azuki
 			_Classes.Insert( index, new CharClass[str.Length] );
 			_MarkingBitMasks.Insert( index, 0, str.Length );
 			LastModifiedTime = DateTime.Now;
+
+			InvokeContentChanged( index, String.Empty, str );
 		}
 
 		public void RemoveAt( int index )
@@ -431,6 +433,8 @@ namespace Sgry.Azuki
 			if( lds != null )
 				LHI_Delete( lds, begin, end );
 
+			var oldText = GetText( new Range(begin, end) );
+
 			_Chars.RemoveRange( begin, end );
 			_Classes.RemoveRange( begin, end );
 			for( int i=begin; i<end; i++ )
@@ -441,6 +445,8 @@ namespace Sgry.Azuki
 
 			Debug.Assert( _Chars.Count == _Classes.Count );
 			Debug.Assert( _Chars.Count == _MarkingBitMasks.Count );
+
+			InvokeContentChanged( begin, oldText, String.Empty );
 		}
 
 		/// <summary>
@@ -547,6 +553,44 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
+		#region Event
+		public event ContentChangedEventHandler ContentChanged;
+		void InvokeContentChanged( int index, string oldText, string newText )
+		{
+			Debug.Assert( 0 <= index );
+			Debug.Assert( index <= Count );
+			Debug.Assert( oldText != null );
+			Debug.Assert( newText != null );
+
+			// Fire events for each living tracking ranges
+			var zombies =  new List<int>( _TrackingRanges.Count );
+			for( int i=0; i<_TrackingRanges.Count; i++ )
+			{
+				WeakReference ptr = _TrackingRanges[i];
+				if( ptr.IsAlive )
+				{
+					var range = (TrackingRange)ptr.Target;
+					range.OnContentChanged( this,
+											new ContentChangedEventArgs(index,
+																		oldText,
+																		newText) );
+				}
+				else
+				{
+					zombies.Add( i );
+				}
+			}
+
+			// Remove zombie references
+			for( int i=zombies.Count-1; 0<=i; i-- )
+				_TrackingRanges.RemoveAt( zombies[i] );
+
+			// Fire events for every normal listeners
+			if( ContentChanged != null )
+				ContentChanged( this, new ContentChangedEventArgs(index, oldText, newText) );
+		}
+		#endregion
+
 		#region Utilities
 		/// <summary>
 		/// Gets when this buffer was edited lastly.
@@ -555,6 +599,30 @@ namespace Sgry.Azuki
 		{
 			get;
 			internal set;
+		}
+
+		/// <summary>
+		/// Gets a character.
+		/// </summary>
+		public char this[int index]
+		{
+			get{ return _Chars[index]; }
+			set{ _Chars[index] = value; }
+		}
+
+		/// <summary>
+		/// Gets a substring from a specified range.
+		/// </summary>
+		public string this[Range range]
+		{
+			get{ return GetText(range); }
+		}
+
+		public TrackingRange CreateTrackingRange( int begin, int end, BoundaryTrackingMode mode )
+		{
+			var range = new TrackingRange( this, begin, end, mode );
+			_TrackingRanges.Add( new WeakReference(range) );
+			return range;
 		}
 
 #		if DEBUG
@@ -580,12 +648,6 @@ namespace Sgry.Azuki
 				if( this[i] == item )
 					return i;
 			return -1;
-		}
-
-		public char this[int index]
-		{
-			get{ return _Chars[index]; }
-			set{ _Chars[index] = value; }
 		}
 
 		public bool Contains( char item )
