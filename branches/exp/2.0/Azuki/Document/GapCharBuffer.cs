@@ -28,6 +28,37 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
+		#region Edit
+		public void Insert( int insertIndex, string str )
+		{
+			// [case 1: Insert(1, "foobar", 0, 4)]
+			// ABCDE___FGHI     (gappos:5, gaplen:3)
+			// ABCDEFGHI___     (gappos:9, gaplen:3)
+			// ABCDEFGHI_______ (gappos:9, gaplen:7)
+			// A_______BCDEFGHI (gappos:1, gaplen:7)
+			// Afoob___BCDEFGHI (gappos:5, gaplen:3)
+			DebugUtl.Assert( 0 <= insertIndex, "Invalid index was given (insertIndex:"+insertIndex+")." );
+			DebugUtl.Assert( str != null, "Null was given to 'str'." );
+
+			var insertLen = str.Length;
+
+			// Ensure there'll be sufficient size of gap at insertion point
+			EnsureSpaceForInsertion( insertLen );
+			MoveGapTo( insertIndex );
+
+			// Insert data
+			for( int i=0; i<str.Length; i++ )
+			{
+				_Data[ insertIndex + i ] = str[i];
+			}
+
+			// Update states
+			_Count += insertLen;
+			_GapPos += insertLen;
+			_GapLen -= insertLen;
+		}
+		#endregion
+
 		#region Text Search
 		/// <summary>
 		/// Finds a text pattern.

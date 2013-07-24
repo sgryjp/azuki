@@ -725,10 +725,10 @@ namespace Sgry.Azuki
 		///   pair, the range will be automatically expanded to avoid dividing the pair.
 		///   </para>
 		///   <para>
-		///   If expanded range is needed, use <see cref="Sgry.Azuki.Document.GetTextInRangeRef"/>.
+		///   If expanded range is needed, use <see cref="Sgry.Azuki.Document.GetText"/>.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.GetTextInRangeRef"/>
+		/// <seealso cref="Sgry.Azuki.Document.GetText"/>
 		public string GetText( int begin, int end )
 		{
 			return GetText( new Range(begin, end) );
@@ -904,7 +904,7 @@ namespace Sgry.Azuki
 			if( 0 < text.Length )
 			{
 				// manage line head indexes and insert content
-				_Buffer.Insert( begin, text.ToCharArray(), _LDS );
+				_Buffer.Insert( begin, text, _LDS );
 
 				// manage caret/anchor index
 				if( begin <= newCaret )
