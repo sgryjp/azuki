@@ -92,7 +92,7 @@ namespace Sgry.Azuki
 		/// THIS MUST BE CALLED BEFORE ACTUAL INSERTION.
 		/// </summary>
 		void LHI_Insert( GapBuffer<LineDirtyState> lds,
-						 char[] insertText, int insertIndex )
+						 string insertText, int insertIndex )
 		{
 			DebugUtl.Assert( lds != null && 0 < lds.Count,
 							 "lds must have at one or more items." );
@@ -377,23 +377,23 @@ namespace Sgry.Azuki
 
 		public void Insert( int index, char[] chars )
 		{
-			Insert( index, chars, null );
-		}
-
-		public void Insert( int index, char[] chars, GapBuffer<LineDirtyState> lds )
-		{
-			if( lds != null )
-				LHI_Insert( lds, chars, index );
-
-			_Chars.Insert( index, chars );
-			_Classes.Insert( index, new CharClass[chars.Length] );
-			_MarkingBitMasks.Insert( index, 0, chars.Length );
-			LastModifiedTime = DateTime.Now;
+			Insert( index, new String(chars), null );
 		}
 
 		public void Insert( int index, string str )
 		{
-			Insert( index, str.ToCharArray() );
+			Insert( index, str, null );
+		}
+
+		public void Insert( int index, string str, GapBuffer<LineDirtyState> lds )
+		{
+			if( lds != null )
+				LHI_Insert( lds, str, index );
+
+			_Chars.Insert( index, str );
+			_Classes.Insert( index, new CharClass[str.Length] );
+			_MarkingBitMasks.Insert( index, 0, str.Length );
+			LastModifiedTime = DateTime.Now;
 		}
 
 		public void RemoveAt( int index )
@@ -563,7 +563,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public override string ToString()
 		{
-			System.Text.StringBuilder buf = new System.Text.StringBuilder( this.Count );
+			var buf = new System.Text.StringBuilder( this.Count );
 			for( int i=0; i<Count; i++ )
 			{
 				buf.Append( this[i] );

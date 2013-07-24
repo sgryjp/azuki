@@ -41,7 +41,7 @@ namespace Sgry.Azuki.Test
 				var buf = new TextBuffer( 256, 256 );
 				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_".ToCharArray(), lds );
+				buf.Insert( 0, "_", lds );
 				TestUtl.AssertEquals( 1, buf.Count );
 				TestUtl.AssertEquals( "_", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 1, lds.Count );
@@ -53,7 +53,7 @@ namespace Sgry.Azuki.Test
 				var buf = new TextBuffer( 256, 256 );
 				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\n_".ToCharArray(), lds );
+				buf.Insert( 0, "_\n_", lds );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\n_", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 2, lds.Count );
@@ -65,8 +65,8 @@ namespace Sgry.Azuki.Test
 				var buf = new TextBuffer( 256, 256 );
 				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "\n_".ToCharArray(), lds );
-				buf.Insert( 0, "\r".ToCharArray(), lds );
+				buf.Insert( 0, "\n_", lds );
+				buf.Insert( 0, "\r", lds );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "\r\n_", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 2, lds.Count );
@@ -78,8 +78,8 @@ namespace Sgry.Azuki.Test
 				var buf = new TextBuffer( 256, 256 );
 				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\r".ToCharArray(), lds );
-				buf.Insert( 2, "\n".ToCharArray(), lds );
+				buf.Insert( 0, "_\r", lds );
+				buf.Insert( 2, "\n", lds );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\r\n", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 2, lds.Count );
@@ -91,8 +91,8 @@ namespace Sgry.Azuki.Test
 				var buf = new TextBuffer( 256, 256 );
 				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\r\n_".ToCharArray(), lds );
-				buf.Insert( 2, "_".ToCharArray(), lds );
+				buf.Insert( 0, "_\r\n_", lds );
+				buf.Insert( 2, "_", lds );
 				TestUtl.AssertEquals( 5, buf.Count );
 				TestUtl.AssertEquals( "_\r_\n_", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 3, lds.Count );
@@ -107,7 +107,7 @@ namespace Sgry.Azuki.Test
 				var buf = new TextBuffer( 256, 256 );
 				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\r\n_".ToCharArray(), lds );
+				buf.Insert( 0, "_\r\n_", lds );
 				buf.Remove( 0, 1, lds );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "\r\n_", buf.GetText(new Range(0, buf.Count)) );
@@ -120,7 +120,7 @@ namespace Sgry.Azuki.Test
 				var buf = new TextBuffer( 256, 256 );
 				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\r\n_".ToCharArray(), lds );
+				buf.Insert( 0, "_\r\n_", lds );
 				buf.Remove( 1, 2, lds );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\n_", buf.GetText(new Range(0, buf.Count)) );
@@ -133,7 +133,7 @@ namespace Sgry.Azuki.Test
 				var buf = new TextBuffer( 256, 256 );
 				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\r\n_".ToCharArray(), lds );
+				buf.Insert( 0, "_\r\n_", lds );
 				buf.Remove( 2, 3, lds );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\r_", buf.GetText(new Range(0, buf.Count)) );
@@ -146,7 +146,7 @@ namespace Sgry.Azuki.Test
 				var buf = new TextBuffer( 256, 256 );
 				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\r\n_".ToCharArray(), lds );
+				buf.Insert( 0, "_\r\n_", lds );
 				buf.Remove( 1, 3, lds );
 				TestUtl.AssertEquals( 2, buf.Count );
 				TestUtl.AssertEquals( "__", buf.GetText(new Range(0, buf.Count)) );
@@ -159,7 +159,7 @@ namespace Sgry.Azuki.Test
 				var buf = new TextBuffer( 256, 256 );
 				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "\r_\n".ToCharArray(), lds );
+				buf.Insert( 0, "\r_\n", lds );
 				buf.Remove( 1, 2, lds );
 				TestUtl.AssertEquals( 2, buf.Count );
 				TestUtl.AssertEquals( "\r\n", buf.GetText(new Range(0, buf.Count)) );
@@ -172,7 +172,7 @@ namespace Sgry.Azuki.Test
 				var buf = new TextBuffer( 256, 256 );
 				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "\r_\n".ToCharArray(), lds );
+				buf.Insert( 0, "\r_\n", lds );
 				buf.Remove( 1, 2, lds );
 				TestUtl.AssertEquals( 2, buf.Count );
 				TestUtl.AssertEquals( "\r\n", buf.GetText(new Range(0, buf.Count)) );
@@ -185,7 +185,7 @@ namespace Sgry.Azuki.Test
 				var buf = new TextBuffer( 256, 256 );
 				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "\r__\n".ToCharArray(), lds );
+				buf.Insert( 0, "\r__\n", lds );
 				buf.Remove( 1, 2, lds );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "\r_\n", buf.GetText(new Range(0, buf.Count)) );
@@ -621,12 +621,12 @@ namespace Sgry.Azuki.Test
 
 		static void MoveGap( Document doc, int index )
 		{
-			doc.InternalBuffer.Insert( index, String.Empty.ToCharArray() );
+			doc.InternalBuffer.Insert( index, String.Empty );
 		}
 
 		static void MoveGap( TextBuffer buf, int index )
 		{
-			buf.Insert( index, String.Empty.ToCharArray() );
+			buf.Insert( index, String.Empty );
 		}
 		#endregion
 	}

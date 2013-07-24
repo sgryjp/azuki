@@ -486,7 +486,7 @@ namespace Sgry.Azuki
 		/// Ensures the buffer is capable to insert data.
 		/// </summary>
 		/// <exception cref="System.OutOfMemoryException">There is no enough memory to expand buffer.</exception>
-		void EnsureSpaceForInsertion( int insertLength )
+		protected void EnsureSpaceForInsertion( int insertLength )
 		{
 			DebugUtl.Assert( _Data != null );
 			DebugUtl.Assert( 0 <= insertLength );
