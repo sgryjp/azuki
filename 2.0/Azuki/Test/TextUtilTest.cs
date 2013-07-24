@@ -87,9 +87,9 @@ namespace Sgry.Azuki.Test
 
 		static void Test_NextLineHead()
 		{
-			TextBuffer text = new TextBuffer( 1, 32 );
+			var text = new TextBuffer( 1, 32 );
 
-			text.Insert( 0, TestData.ToCharArray() );
+			text.Insert( 0, TestData );
 
 			try
 			{
@@ -121,9 +121,9 @@ namespace Sgry.Azuki.Test
 
 		static void Test_PrevLineHead()
 		{
-			TextBuffer text = new TextBuffer( 1, 32 );
+			var text = new TextBuffer( 1, 32 );
 
-			text.Insert( 0, TestData.ToCharArray() );
+			text.Insert( 0, TestData );
 
 			int i=71;
 			for( ; 53<=i; i-- )
@@ -144,10 +144,10 @@ namespace Sgry.Azuki.Test
 
 		static void Test_GetLineLengthByCharIndex()
 		{
-			TextBuffer text = new TextBuffer( 1, 32 );
+			var text = new TextBuffer( 1, 32 );
 			int i = 0;
 
-			text.Insert( 0, TestData.ToCharArray() );
+			text.Insert( 0, TestData );
 
 			for( ; i<32; i++ )
 				TestUtl.AssertEquals( 32, TextUtil.GetLineLengthByCharIndex(text, i) );
@@ -222,7 +222,7 @@ namespace Sgry.Azuki.Test
 
 		static void Test_GetLineIndexFromCharIndex()
 		{
-			GapBuffer<int> lhi = new GapBuffer<int>( 32, 32 );
+			var lhi = new GapBuffer<int>( 32, 32 );
 			lhi.Add( 0 );
 			lhi.Add( 32 );
 			lhi.Add( 33 );
@@ -306,8 +306,7 @@ namespace Sgry.Azuki.Test
 
 		static void MakeTestData( out TextBuffer text, out GapBuffer<int> lhi )
 		{
-			GapBuffer<LineDirtyState> lds = new GapBuffer<LineDirtyState>( 8 );
-
+			var lds = new GapBuffer<LineDirtyState>( 8 );
 			MakeTestData( out text, out lhi, out lds );
 		}
 
@@ -321,27 +320,7 @@ namespace Sgry.Azuki.Test
 			lds.Add( LineDirtyState.Clean );
 
 			TextUtil.LHI_Insert( lhi, lds, text, TestData.ToCharArray(), 0 );
-			text.Insert( 0, TestData.ToCharArray() );
-		}
-
-		static string MakeLdsText( GapBuffer<LineDirtyState> lds )
-		{
-			StringBuilder buf = new StringBuilder( 32 );
-
-			for( int i=0; i<lds.Count; i++ )
-			{
-				char ch = '#';
-
-				switch ( lds[i] )
-				{
-					case LineDirtyState.Clean:	ch = 'C';	break;
-					case LineDirtyState.Dirty:	ch = 'D';	break;
-					case LineDirtyState.Cleaned:ch = 'S';	break;
-					default:	Debug.Fail("invalid LineDirtyState enum value");	break;
-				}
-				buf.Append( ch );
-			}
-			return buf.ToString();
+			text.Insert( 0, TestData );
 		}
 	}
 }

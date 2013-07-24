@@ -283,7 +283,7 @@ namespace Sgry.Azuki.Test
 
 			// Index constraint
 			var range = new Range( 1, 1 );
-			TextUtil.ConstrainIndex( doc.InternalBuffer, range );
+			TextUtil.ConstrainIndex( doc.InternalBuffer, ref range );
 			TestUtl.AssertEquals( 0, range.Begin );
 			TestUtl.AssertEquals( 0, range.End );
 		}
@@ -1033,7 +1033,7 @@ namespace Sgry.Azuki.Test
 
 		static void MoveGap( Document doc, int index )
 		{
-			doc.InternalBuffer.Insert( index, String.Empty.ToCharArray() );
+			doc.InternalBuffer.Insert( index, String.Empty );
 		}
 	}
 }

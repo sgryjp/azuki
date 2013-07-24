@@ -53,6 +53,7 @@
     <Compile Include="Actions.Selection.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="AutoIndentHooks.cs" />
+    <Compile Include="BoundaryTrackingMode.cs" />
     <Compile Include="CaretMoveLogic.cs" />
     <Compile Include="DebugUtl.cs" />
     <Compile Include="DefaultWordProc.cs" />
@@ -91,12 +92,14 @@
     <Compile Include="Highlighter\Utl.cs" />
     <Compile Include="Highlighter\XmlHighlighter.cs" />
     <Compile Include="Highlighter\JavaScriptHighlighter.cs" />
+    <Compile Include="IRange.cs" />
     <Compile Include="IUserInterface.cs" />
     <Compile Include="IWordProc.cs" />
     <Compile Include="Range.cs" />
     <Compile Include="TextPoint.cs" />
     <Compile Include="TextUtil.cs" />
     <Compile Include="Platform.cs" />
+    <Compile Include="TrackingRange.cs" />
     <Compile Include="UiImpl.cs" />
     <Compile Include="UserPref.cs" />
     <Compile Include="View\ColorScheme.cs" />
