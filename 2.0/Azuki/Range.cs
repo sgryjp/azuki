@@ -7,9 +7,16 @@ namespace Sgry.Azuki
 	/// </summary>
 	public struct Range : IRange
 	{
+		readonly TextBuffer _Buffer;
+
 		public Range( int begin, int end )
+			: this(null, begin, end)
+		{}
+
+		internal Range( TextBuffer buf, int begin, int end )
 			: this()
 		{
+			_Buffer = buf;
 			Begin = begin;
 			End = end;
 		}
@@ -27,6 +34,18 @@ namespace Sgry.Azuki
 		public int Length
 		{
 			get{ return Math.Abs(End - Begin); }
+		}
+
+		public string Text
+		{
+			get
+			{
+				if( _Buffer == null )
+					throw new InvalidOperationException( "A range associated with no text buffer"
+														 + " cannot extract a substring." );
+
+				return _Buffer.GetText(this);
+			}
 		}
 
 		public bool IsEmpty

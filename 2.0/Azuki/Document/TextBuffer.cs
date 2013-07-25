@@ -289,7 +289,7 @@ namespace Sgry.Azuki
 			return TextUtil.GetLineRange( _Chars, _LHI, lineIndex, includesEolCode );
 		}
 
-		public string GetText( Range range )
+		public string GetText( IRange range )
 		{
 			Debug.Assert( 0 <= range.Begin );
 			Debug.Assert( range.Begin <= range.End );
@@ -423,6 +423,14 @@ namespace Sgry.Azuki
 		public void Remove( int begin, int end )
 		{
 			Remove( begin, end, null );
+		}
+
+		/// <summary>
+		/// Removes elements at specified range.
+		/// </summary>
+		public void Remove( IRange range )
+		{
+			Remove( range.Begin, range.End, null );
 		}
 
 		/// <summary>

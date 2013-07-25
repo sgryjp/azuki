@@ -14,8 +14,13 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// (Use TextBuffer.CreateTrackingRange to create an instance of TrackingRange.)
 		/// </summary>
+		/// <exception cref="ArgumentNullException">Parameter <paramref name="buf"/> was null.
+		/// </exception>
 		internal TrackingRange( TextBuffer buf, int begin, int end, BoundaryTrackingMode mode )
 		{
+			if( buf == null )
+				throw new ArgumentNullException( "buf" );
+
 			_Buffer = buf;
 			Begin = begin;
 			End = end;
@@ -37,6 +42,11 @@ namespace Sgry.Azuki
 		public int Length
 		{
 			get{ return Math.Abs(End - Begin); }
+		}
+
+		public string Text
+		{
+			get{ return _Buffer.GetText(this); }
 		}
 
 		public bool IsEmpty
