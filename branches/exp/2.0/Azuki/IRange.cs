@@ -8,6 +8,8 @@
 
 		int Length { get; }
 
+		string Text{ get; }
+
 		bool IsEmpty { get; }
 
 		Range Intersect( IRange another );
