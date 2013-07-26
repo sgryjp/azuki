@@ -16,7 +16,8 @@ namespace Sgry.Azuki
 		#region Fields
 		readonly GapCharBuffer _Chars;
 		readonly GapBuffer<CharClass> _Classes;
-		readonly GapBuffer<int> _LHI = new GapBuffer<int>( 64 ); // line head indexes
+		readonly GapBuffer<int> _LHI; // line head indexes
+		readonly GapBuffer<LineDirtyState> _LDS; // line dirty states
 		readonly RleArray<uint> _MarkingBitMasks;
 		readonly IList<WeakReference> _TrackingRanges = new GapBuffer<WeakReference>( 32 );
 		#endregion
@@ -29,8 +30,45 @@ namespace Sgry.Azuki
 		{
 			_Chars = new GapCharBuffer( initGapSize, growSize );
 			_Classes = new GapBuffer<CharClass>( initGapSize, growSize );
-			_LHI.Add( 0 );
+			_LHI = new GapBuffer<int>( 64 ) {
+				0
+			};
+			_LDS = new GapBuffer<LineDirtyState>( 64 ) {
+				LineDirtyState.Clean
+			};
 			_MarkingBitMasks = new RleArray<uint>();
+		}
+		#endregion
+
+		#region そのうち削除
+		public LineDirtyState GetLineDirtyState( int lineIndex )
+		{
+			if( lineIndex < 0 )
+				throw new ArgumentOutOfRangeException( "lineIndex", "Specified line index is out"
+													   + " of valid range. (lineIndex:" + lineIndex
+													   + ", LineCount:" + LineCount + ")" );
+
+			return (lineIndex < _LDS.Count) ? _LDS[ lineIndex ]
+											: LineDirtyState.Clean;
+		}
+		internal void SetLineDirtyState( int lineIndex, LineDirtyState lds )
+		{
+			Debug.Assert( 0 <= lineIndex );
+			Debug.Assert( lineIndex <= _LDS.Count );
+
+			if( lineIndex < _LDS.Count )
+				_LDS[lineIndex] = lds;
+		}
+		internal void SetLineDirtyStatesToSavedState()
+		{
+			for( int i=0; i<_LDS.Count; i++ )
+				if( _LDS[i] == LineDirtyState.Modified )
+					_LDS[i] = LineDirtyState.Saved;
+		}
+		internal void ClearLineDirtyStates()
+		{
+			for( int i=0; i<_LDS.Count; i++ )
+				_LDS[i] = LineDirtyState.Clean;
 		}
 		#endregion
 
@@ -89,74 +127,65 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Maintain line head indexes for text insertion.
-		/// THIS MUST BE CALLED BEFORE ACTUAL INSERTION.
+		/// Maintain line head indexes for text insertion. MUST BE CALLED BEFORE ACTUAL INSERTION.
 		/// </summary>
-		void LHI_Insert( GapBuffer<LineDirtyState> lds,
-						 string insertText, int insertIndex )
+		void LHI_Insert( string insertText, int insertIndex )
 		{
-			DebugUtl.Assert( lds != null && 0 < lds.Count,
-							 "lds must have at one or more items." );
-			DebugUtl.Assert( insertText != null && 0 < insertText.Length,
-							 "insertText must not be null nor empty." );
+			DebugUtl.Assert( insertText != null, "insertText must not be null." );
 			DebugUtl.Assert( 0 <= insertIndex && insertIndex <= _Chars.Count,
-							 "insertIndex is out of range (" + insertIndex
-							 + ")." );
+							 "insertIndex is out of range (" + insertIndex + ")." );
 			TextPoint insPos;
 			int lineIndex; // work variable
 			int lineHeadIndex;
 			int lineEndIndex;
 			int insLineCount;
 
-			// at first, find the line which contains the insertion point
+			// At first, find the line which contains the insertion point
 			insPos = GetTextPosition( insertIndex );
 			lineIndex = insPos.Line;
 
-			// if the inserting divides a CR+LF, insert an entry for the CR
-			// separated
+			// If the inserting divides a CR+LF, insert an entry for the CR separated
 			if( 0 < insertIndex && _Chars[insertIndex-1] == '\r'
 				&& insertIndex < _Chars.Count && _Chars[insertIndex] == '\n' )
 			{
 				_LHI.Insert( lineIndex+1, insertIndex );
-				lds.Insert( lineIndex+1, LineDirtyState.Modified );
+				_LDS.Insert( lineIndex+1, LineDirtyState.Modified );
 				lineIndex++;
 			}
 
-			// if inserted text begins with LF and is inserted just after a CR,
-			// remove this CR's entry
+			// If inserted text begins with LF and is inserted just after a CR, remove this CR's
+			// entry
 			if( 0 < insertIndex && _Chars[insertIndex-1] == '\r'
 				&& 0 < insertText.Length && insertText[0] == '\n' )
 			{
 				_LHI.RemoveAt( lineIndex );
-				lds.RemoveAt( lineIndex );
+				_LDS.RemoveAt( lineIndex );
 				lineIndex--;
 			}
 
-			// insert line index entries
+			// Insert line index entries
 			insLineCount = 1;
 			lineHeadIndex = 0;
 			do
 			{
-				// get end index of this line
+				// Get end index of this line
 				lineEndIndex = TextUtil.NextLineHead( insertText, lineHeadIndex ) - 1;
 				if( lineEndIndex == -2 ) // == "if NextLineHead returns -1"
 				{
-					// no more lines following to this line.
-					// this is the final line. no need to insert new entry
+					// No more lines follows so no more entries are needed
 					break;
 				}
 				_LHI.Insert( lineIndex+insLineCount,insertIndex+lineEndIndex+1);
-				lds.Insert( lineIndex+insLineCount, LineDirtyState.Modified );
+				_LDS.Insert( lineIndex+insLineCount, LineDirtyState.Modified );
 				insLineCount++;
 
-				// find next line head
+				// Find next line head
 				lineHeadIndex = TextUtil.NextLineHead( insertText, lineHeadIndex );
 			}
 			while( lineHeadIndex != -1 );
 
-			// If finaly character of the inserted string is CR and if it is
-			// inserted just before an LF, remove this CR's entry since it will
-			// be a part of a CR+LF
+			// If finaly character of the inserted string is CR and if it is inserted just before
+			// an LF, remove this CR's entry since it will be a part of a CR+LF
 			if( 0 < insertText.Length
 				&& insertText[insertText.Length - 1] == '\r'
 				&& insertIndex < _Chars.Count
@@ -164,7 +193,7 @@ namespace Sgry.Azuki
 			{
 				int lastInsertedLine = lineIndex + insLineCount - 1;
 				_LHI.RemoveAt( lastInsertedLine );
-				lds.RemoveAt( lastInsertedLine );
+				_LDS.RemoveAt( lastInsertedLine );
 				lineIndex--;
 			}
 
@@ -175,33 +204,28 @@ namespace Sgry.Azuki
 			}
 
 			// mark the insertion target line as 'dirty'
-			if( insertText[0] == '\n'
+			if( 0 < insertText.Length && insertText[0] == '\n'
 				&& 0 < insertIndex && _Chars[insertIndex-1] == '\r'
 				&& insertIndex < _Chars.Count && _Chars[insertIndex] != '\n' )
 			{
-				// Inserted text has an LF at beginning and there is a CR (not
-				// part of a CR+LF) at insertion point so a new CR+LF is made.
-				// Since newly made CR+LF is regarded as part of the line
-				// which originally ended with a CR, the line should be marked
-				// as modified.
+				// Inserted text has an LF at beginning and there is a CR (not part of a CR+LF) at
+				// insertion point so a new CR+LF is made. Since newly made CR+LF is regarded as
+				// part of the line which originally ended with a CR, the line should be marked as
+				// modified.
 				DebugUtl.Assert( 0 < insPos.Line );
-				lds[insPos.Line-1] = LineDirtyState.Modified;
+				_LDS[insPos.Line-1] = LineDirtyState.Modified;
 			}
 			else
 			{
-				lds[insPos.Line] = LineDirtyState.Modified;
+				_LDS[insPos.Line] = LineDirtyState.Modified;
 			}
 		}
 		
 		/// <summary>
-		/// Maintain line head indexes for text deletion.
-		/// THIS MUST BE CALLED BEFORE ACTUAL DELETION.
+		/// Maintain line head indexes for text deletion. MUST BE CALLED BEFORE ACTUAL DELETION.
 		/// </summary>
-		void LHI_Delete( GapBuffer<LineDirtyState> lds,
-						 int delBegin, int delEnd )
+		void LHI_Delete( int delBegin, int delEnd )
 		{
-			DebugUtl.Assert( lds != null && 0 < lds.Count, "lds must have one"
-							 + " or more items." );
 			DebugUtl.Assert( 0 <= delBegin && delBegin < _Chars.Count,
 							 "delBegin is out of range." );
 			DebugUtl.Assert( delBegin <= delEnd && delEnd <= _Chars.Count,
@@ -218,18 +242,18 @@ namespace Sgry.Azuki
 			{
 				if( delEnd < _Chars.Count && _Chars[delEnd] == '\n' )
 				{
-					// Delete an entry of a line terminated with a CR in case
-					// of that the CR will be merged into an CR+LF.
+					// Delete an entry of a line terminated with a CR in case of that the CR will
+					// be merged into an CR+LF.
 					_LHI.RemoveAt( delToPos.Line );
-					lds.RemoveAt( delToPos.Line );
+					_LDS.RemoveAt( delToPos.Line );
 					delToPos.Line--;
 				}
 				else if( _Chars[delBegin] == '\n' )
 				{
-					// Insert an entry of a line terminated with a CR in case
-					// of that an LF was removed from an CR+LF.
+					// Insert an entry of a line terminated with a CR in case of that an LF was
+					// removed from an CR+LF.
 					_LHI.Insert( delToPos.Line, delBegin );
-					lds.Insert( delToPos.Line, LineDirtyState.Modified );
+					_LDS.Insert( delToPos.Line, LineDirtyState.Modified );
 					delFromPos.Line++;
 					delToPos.Line++;
 				}
@@ -245,7 +269,7 @@ namespace Sgry.Azuki
 			if( delFromPos.Line < delToPos.Line )
 			{
 				_LHI.RemoveRange( delFromPos.Line+1, delToPos.Line+1 );
-				lds.RemoveRange( delFromPos.Line+1, delToPos.Line+1 );
+				_LDS.RemoveRange( delFromPos.Line+1, delToPos.Line+1 );
 			}
 
 			// mark the deletion target line as 'dirty'
@@ -253,15 +277,14 @@ namespace Sgry.Azuki
 				&& delEnd < _Chars.Count && _Chars[delEnd] == '\n'
 				&& 0 < delFirstLine )
 			{
-				// This deletion combines a CR and an LF.
-				// Since newly made CR+LF is regarded as part of the line
-				// which originally ended with a CR, the line should be marked
-				// as modified.
-				lds[delFirstLine-1] = LineDirtyState.Modified;
+				// This deletion combines a CR and an LF. Since newly made CR+LF is regarded as
+				// part of the line which originally ended with a CR, the line should be marked as
+				// modified.
+				_LDS[delFirstLine-1] = LineDirtyState.Modified;
 			}
 			else
 			{
-				lds[delFirstLine] = LineDirtyState.Modified;
+				_LDS[delFirstLine] = LineDirtyState.Modified;
 			}
 		}
 		#endregion
@@ -357,7 +380,7 @@ namespace Sgry.Azuki
 		#region Edit
 		public void Add( char ch )
 		{
-			Add( new[]{ch} );
+			Add( new String(ch, 1) );
 		}
 
 		public void Add( char[] chars )
@@ -372,28 +395,25 @@ namespace Sgry.Azuki
 
 		public void Insert( int index, char ch )
 		{
-			Insert( index, new[]{ch} );
+			Insert( index, new String(ch, 1) );
 		}
 
 		public void Insert( int index, char[] chars )
 		{
-			Insert( index, new String(chars), null );
+			Insert( index, new String(chars) );
 		}
 
 		public void Insert( int index, string str )
 		{
-			Insert( index, str, null );
-		}
-
-		public void Insert( int index, string str, GapBuffer<LineDirtyState> lds )
-		{
-			if( lds != null )
-				LHI_Insert( lds, str, index );
-
+			LHI_Insert( str, index );
 			_Chars.Insert( index, str );
 			_Classes.Insert( index, new CharClass[str.Length] );
 			_MarkingBitMasks.Insert( index, 0, str.Length );
 			LastModifiedTime = DateTime.Now;
+
+			Debug.Assert( _Chars.Count == _Classes.Count );
+			Debug.Assert( _Chars.Count == _MarkingBitMasks.Count );
+			Debug.Assert( _LHI.Count == _LDS.Count );
 
 			InvokeContentChanged( index, String.Empty, str );
 		}
@@ -418,31 +438,21 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Removes elements at specified range [begin, end).
-		/// </summary>
-		public void Remove( int begin, int end )
-		{
-			Remove( begin, end, null );
-		}
-
-		/// <summary>
 		/// Removes elements at specified range.
 		/// </summary>
 		public void Remove( IRange range )
 		{
-			Remove( range.Begin, range.End, null );
+			Remove( range.Begin, range.End );
 		}
 
 		/// <summary>
 		/// Removes elements at specified range [begin, end).
 		/// </summary>
-		public void Remove( int begin, int end, GapBuffer<LineDirtyState> lds )
+		public void Remove( int begin, int end )
 		{
-			if( lds != null )
-				LHI_Delete( lds, begin, end );
-
 			var oldText = GetText( new Range(begin, end) );
 
+			LHI_Delete( begin, end );
 			_Chars.RemoveRange( begin, end );
 			_Classes.RemoveRange( begin, end );
 			for( int i=begin; i<end; i++ )
@@ -453,6 +463,7 @@ namespace Sgry.Azuki
 
 			Debug.Assert( _Chars.Count == _Classes.Count );
 			Debug.Assert( _Chars.Count == _MarkingBitMasks.Count );
+			Debug.Assert( _LHI.Count == _LDS.Count );
 
 			InvokeContentChanged( begin, oldText, String.Empty );
 		}
