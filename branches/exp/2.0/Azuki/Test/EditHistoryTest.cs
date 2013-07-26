@@ -340,7 +340,7 @@ namespace Sgry.Azuki.Test
 			doc.Undo();
 			TestUtl.AssertEquals( "CCC", MakeLdsStr(doc) );
 			doc.Redo();
-			TestUtl.AssertEquals( "CDC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( "CMC", MakeLdsStr(doc) );
 
 			// deletion - multiple lines
 			doc.Text = "keep it\nas simple as\npossible";
@@ -349,7 +349,7 @@ namespace Sgry.Azuki.Test
 			doc.Undo();
 			TestUtl.AssertEquals( "CCC", MakeLdsStr(doc) );
 			doc.Redo();
-			TestUtl.AssertEquals( "CD", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( "CM", MakeLdsStr(doc) );
 
 			// deletion - creating CR+LF
 			doc.Text = "a\rb\nc";
@@ -358,7 +358,7 @@ namespace Sgry.Azuki.Test
 			doc.Undo();
 			TestUtl.AssertEquals( "CCC", MakeLdsStr(doc) );
 			doc.Redo();
-			TestUtl.AssertEquals( "DC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( "MC", MakeLdsStr(doc) );
 
 			// deletion - destroying CR+LF (1)
 			doc.Text = "ab\r\nc";
@@ -367,7 +367,7 @@ namespace Sgry.Azuki.Test
 			doc.Undo();
 			TestUtl.AssertEquals( "CC", MakeLdsStr(doc) );
 			doc.Redo();
-			TestUtl.AssertEquals( "DC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( "MC", MakeLdsStr(doc) );
 
 			// deletion - destroying CR+LF (2)
 			doc.Text = "a\r\nbc";
@@ -376,7 +376,7 @@ namespace Sgry.Azuki.Test
 			doc.Undo();
 			TestUtl.AssertEquals( "CC", MakeLdsStr(doc) );
 			doc.Redo();
-			TestUtl.AssertEquals( "DD", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( "MM", MakeLdsStr(doc) );
 
 			// insertion - creating CR+LF (1)
 			doc.Text = "a\nb";
@@ -385,7 +385,7 @@ namespace Sgry.Azuki.Test
 			doc.Undo();
 			TestUtl.AssertEquals( "CC", MakeLdsStr(doc) );
 			doc.Redo();
-			TestUtl.AssertEquals( "DC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( "MC", MakeLdsStr(doc) );
 
 			// insertion - creating CR+LF (2)
 			doc.Text = "a\rb";
@@ -394,7 +394,7 @@ namespace Sgry.Azuki.Test
 			doc.Undo();
 			TestUtl.AssertEquals( "CC", MakeLdsStr(doc) );
 			doc.Redo();
-			TestUtl.AssertEquals( "DD", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( "MM", MakeLdsStr(doc) );
 
 			// insertion - destroying CR+LF
 			doc.Text = "a\r\nb";
@@ -403,7 +403,7 @@ namespace Sgry.Azuki.Test
 			doc.Undo();
 			TestUtl.AssertEquals( "CC", MakeLdsStr(doc) );
 			doc.Redo();
-			TestUtl.AssertEquals( "DDC", MakeLdsStr(doc) );
+			TestUtl.AssertEquals( "MMC", MakeLdsStr(doc) );
 		}
 
 		#region Utilities
@@ -415,9 +415,9 @@ namespace Sgry.Azuki.Test
 			{
 				switch( doc.GetLineDirtyState(i) )
 				{
-					case LineDirtyState.Clean:		buf.Append( 'C' ); break;
-					case LineDirtyState.Cleaned:	buf.Append( 'S' ); break;
-					default:						buf.Append( 'D' ); break;
+					case LineDirtyState.Clean:	buf.Append( 'C' ); break;
+					case LineDirtyState.Saved:	buf.Append( 'S' ); break;
+					default:					buf.Append( 'M' ); break;
 				}
 			}
 
