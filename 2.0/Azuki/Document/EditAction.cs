@@ -280,9 +280,9 @@ namespace Sgry.Azuki
 		{
 			switch( lds )
 			{
-				case LineDirtyState.Clean:	return 'C';
-				case LineDirtyState.Dirty:	return 'D';
-				default:					return 'c';
+				case LineDirtyState.Clean:		return 'C';
+				case LineDirtyState.Modified:	return 'M';
+				default:						return 'S';
 			}
 		}
 #		endif

@@ -118,7 +118,7 @@ namespace Sgry.Azuki
 				&& insertIndex < _Chars.Count && _Chars[insertIndex] == '\n' )
 			{
 				_LHI.Insert( lineIndex+1, insertIndex );
-				lds.Insert( lineIndex+1, LineDirtyState.Dirty );
+				lds.Insert( lineIndex+1, LineDirtyState.Modified );
 				lineIndex++;
 			}
 
@@ -146,7 +146,7 @@ namespace Sgry.Azuki
 					break;
 				}
 				_LHI.Insert( lineIndex+insLineCount,insertIndex+lineEndIndex+1);
-				lds.Insert( lineIndex+insLineCount, LineDirtyState.Dirty );
+				lds.Insert( lineIndex+insLineCount, LineDirtyState.Modified );
 				insLineCount++;
 
 				// find next line head
@@ -185,11 +185,11 @@ namespace Sgry.Azuki
 				// which originally ended with a CR, the line should be marked
 				// as modified.
 				DebugUtl.Assert( 0 < insPos.Line );
-				lds[insPos.Line-1] = LineDirtyState.Dirty;
+				lds[insPos.Line-1] = LineDirtyState.Modified;
 			}
 			else
 			{
-				lds[insPos.Line] = LineDirtyState.Dirty;
+				lds[insPos.Line] = LineDirtyState.Modified;
 			}
 		}
 		
@@ -229,7 +229,7 @@ namespace Sgry.Azuki
 					// Insert an entry of a line terminated with a CR in case
 					// of that an LF was removed from an CR+LF.
 					_LHI.Insert( delToPos.Line, delBegin );
-					lds.Insert( delToPos.Line, LineDirtyState.Dirty );
+					lds.Insert( delToPos.Line, LineDirtyState.Modified );
 					delFromPos.Line++;
 					delToPos.Line++;
 				}
@@ -257,11 +257,11 @@ namespace Sgry.Azuki
 				// Since newly made CR+LF is regarded as part of the line
 				// which originally ended with a CR, the line should be marked
 				// as modified.
-				lds[delFirstLine-1] = LineDirtyState.Dirty;
+				lds[delFirstLine-1] = LineDirtyState.Modified;
 			}
 			else
 			{
-				lds[delFirstLine] = LineDirtyState.Dirty;
+				lds[delFirstLine] = LineDirtyState.Modified;
 			}
 		}
 		#endregion

@@ -721,8 +721,8 @@ namespace Sgry.Azuki.WinForms
 		/// </para>
 		/// <list type="bullet">
 		///		<item>LineDirtyState.Clean: the line is not modified yet.</item>
-		///		<item>LineDirtyState.Dirty: the line is modified and not saved.</item>
-		///		<item>LineDirtyState.Cleaned: the line is modified but saved.</item>
+		///		<item>LineDirtyState.Modified: the line is modified and not saved.</item>
+		///		<item>LineDirtyState.Saved: the line is modified but saved.</item>
 		/// </list>
 		/// <para>
 		/// Color of each line dirty state can be customized by setting

@@ -48,7 +48,7 @@ namespace Sgry.Azuki.Test
 				TestUtl.AssertEquals( 1, buf.Count );
 				TestUtl.AssertEquals( "_", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 1, lds.Count );
-				TestUtl.AssertEquals( "D", MakeLdsText(lds) );
+				TestUtl.AssertEquals( "M", MakeLdsText(lds) );
 			}
 
 			// Multiple lines
@@ -60,7 +60,7 @@ namespace Sgry.Azuki.Test
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\n_", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "DD", MakeLdsText(lds) );
+				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
 			}
 
 			// \n_ --> \r\n_
@@ -73,7 +73,7 @@ namespace Sgry.Azuki.Test
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "\r\n_", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "DD", MakeLdsText(lds) );
+				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
 			}
 
 			// _\r --> _\r\n
@@ -86,7 +86,7 @@ namespace Sgry.Azuki.Test
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\r\n", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "DD", MakeLdsText(lds) );
+				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
 			}
 
 			// _\r\n_ --> _\r_\n_
@@ -99,7 +99,7 @@ namespace Sgry.Azuki.Test
 				TestUtl.AssertEquals( 5, buf.Count );
 				TestUtl.AssertEquals( "_\r_\n_", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 3, lds.Count );
-				TestUtl.AssertEquals( "DDD", MakeLdsText(lds) );
+				TestUtl.AssertEquals( "MMM", MakeLdsText(lds) );
 			}
 		}
 
@@ -115,7 +115,7 @@ namespace Sgry.Azuki.Test
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "\r\n_", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "DD", MakeLdsText(lds) );
+				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
 			}
 
 			// _\r\n_ --> _\n_
@@ -128,7 +128,7 @@ namespace Sgry.Azuki.Test
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\n_", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "DD", MakeLdsText(lds) );
+				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
 			}
 
 			// _\r\n_ --> _\r_
@@ -141,7 +141,7 @@ namespace Sgry.Azuki.Test
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\r_", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "DD", MakeLdsText(lds) );
+				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
 			}
 
 			// _\r\n_ --> __
@@ -154,7 +154,7 @@ namespace Sgry.Azuki.Test
 				TestUtl.AssertEquals( 2, buf.Count );
 				TestUtl.AssertEquals( "__", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 1, lds.Count );
-				TestUtl.AssertEquals( "D", MakeLdsText(lds) );
+				TestUtl.AssertEquals( "M", MakeLdsText(lds) );
 			}
 
 			// \r_\n --> \r\n
@@ -167,7 +167,7 @@ namespace Sgry.Azuki.Test
 				TestUtl.AssertEquals( 2, buf.Count );
 				TestUtl.AssertEquals( "\r\n", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "DD", MakeLdsText(lds) );
+				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
 			}
 
 			// \r_\n --> \r\n
@@ -180,7 +180,7 @@ namespace Sgry.Azuki.Test
 				TestUtl.AssertEquals( 2, buf.Count );
 				TestUtl.AssertEquals( "\r\n", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "DD", MakeLdsText(lds) );
+				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
 			}
 
 			// \r__\n --> \r_\n
@@ -193,7 +193,7 @@ namespace Sgry.Azuki.Test
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "\r_\n", buf.GetText(new Range(0, buf.Count)) );
 				TestUtl.AssertEquals( 3, lds.Count );
-				TestUtl.AssertEquals( "DDD", MakeLdsText(lds) );
+				TestUtl.AssertEquals( "MMM", MakeLdsText(lds) );
 			}
 		}
 
@@ -739,9 +739,9 @@ namespace Sgry.Azuki.Test
 
 				switch( lds[i] )
 				{
-					case LineDirtyState.Clean:	ch = 'C';	break;
-					case LineDirtyState.Dirty:	ch = 'D';	break;
-					case LineDirtyState.Cleaned:ch = 'S';	break;
+					case LineDirtyState.Clean:		ch = 'C';	break;
+					case LineDirtyState.Modified:	ch = 'M';	break;
+					case LineDirtyState.Saved:		ch = 'S';	break;
 					default:
 						TestUtl.Fail("invalid LineDirtyState enum value");
 						break;

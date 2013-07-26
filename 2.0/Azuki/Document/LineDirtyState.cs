@@ -1,29 +1,27 @@
 ﻿// file: LineDirtyState.cs
 // brief: Indicator of dirty state of each lines.
-// author: YAMAMOTO Suguru
-// update: 2009-10-31
 //=========================================================
 
 namespace Sgry.Azuki
 {
 	/// <summary>
-	/// State of 'dirtiness' of each logical line in document.
+	/// Indicates modification state of a text line.
 	/// </summary>
 	public enum LineDirtyState : byte
 	{
 		/// <summary>
-		/// The line is not modified yet.
+		/// Not modified yet.
 		/// </summary>
 		Clean = 0,
 
 		/// <summary>
-		/// The line was modified.
+		/// Modified and not saved yet.
 		/// </summary>
-		Dirty = 1,
+		Modified = 1,
 
 		/// <summary>
-		/// The line was modified but it is now marked as 'not modified.'
+		/// Not modified since it was saved last time.
 		/// </summary>
-		Cleaned = 2
+		Saved = 2
 	}
 }

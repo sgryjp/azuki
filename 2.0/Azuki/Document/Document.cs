@@ -111,9 +111,9 @@ namespace Sgry.Azuki
 				// clean up dirty state of all modified lines
 				for( int i=0; i<_LDS.Count; i++ )
 				{
-					if( _LDS[i] == LineDirtyState.Dirty )
+					if( _LDS[i] == LineDirtyState.Modified )
 					{
-						_LDS[i] = LineDirtyState.Cleaned;
+						_LDS[i] = LineDirtyState.Saved;
 					}
 				}
 
@@ -129,11 +129,11 @@ namespace Sgry.Azuki
 		/// Gets dirty state of specified line.
 		/// </summary>
 		/// <param name="lineIndex">Index of the line that to get dirty state of.</param>
-		/// <returns>Dirty state of the specified line.</returns>
+		/// <returns>Modified state of the specified line.</returns>
 		/// <remarks>
 		///   <para>
 		///   This method gets dirty state of specified line.
-		///   Dirty state of lines will changed as below.
+		///   Modified state of lines will changed as below.
 		///   </para>
 		///   <list type="bullet">
 		///	    <item>
@@ -142,13 +142,13 @@ namespace Sgry.Azuki
 		///	    </item>
 		///	    <item>
 		///	      If a line was modified, its dirty state will be changed to
-		///	      <see cref="Sgry.Azuki.LineDirtyState">LineDirtyState</see>.Dirty
+		///	      <see cref="Sgry.Azuki.LineDirtyState">LineDirtyState</see>.Modified
 		///	    </item>
 		///	    <item>
 		///	      Setting false to
 		///	      <see cref="Sgry.Azuki.Document.IsDirty">Document.IsDirty</see>
 		///	      property will set all states of modified lines to
-		///	      <see cref="Sgry.Azuki.LineDirtyState">LineDirtyState</see>.Cleaned.
+		///	      <see cref="Sgry.Azuki.LineDirtyState">LineDirtyState</see>.Saved.
 		///	    </item>
 		///	    <item>
 		///	      Calling

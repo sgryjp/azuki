@@ -415,7 +415,7 @@ namespace Sgry.Azuki
 				dirtyState = LineDirtyState.Clean;
 
 			// choose background color
-			if( dirtyState == LineDirtyState.Cleaned )
+			if( dirtyState == LineDirtyState.Saved )
 			{
 				backColor = ColorScheme.CleanedLineBar;
 				if( backColor == Color.Transparent )
@@ -423,7 +423,7 @@ namespace Sgry.Azuki
 					backColor = Utl.BackColorOfLineNumber( ColorScheme );
 				}
 			}
-			else if( dirtyState == LineDirtyState.Dirty )
+			else if( dirtyState == LineDirtyState.Modified )
 			{
 				backColor = ColorScheme.DirtyLineBar;
 				if( backColor == Color.Transparent )
