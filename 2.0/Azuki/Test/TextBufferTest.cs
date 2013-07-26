@@ -42,64 +42,59 @@ namespace Sgry.Azuki.Test
 			// Single line
 			{
 				var buf = new TextBuffer( 256, 256 );
-				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_", lds );
+				buf.Insert( 0, "_" );
 				TestUtl.AssertEquals( 1, buf.Count );
 				TestUtl.AssertEquals( "_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 1, lds.Count );
-				TestUtl.AssertEquals( "M", MakeLdsText(lds) );
+				TestUtl.AssertEquals( 1, buf.LineCount );
+				TestUtl.AssertEquals( "M", MakeLdsText(buf) );
 			}
 
 			// Multiple lines
 			{
 				var buf = new TextBuffer( 256, 256 );
-				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\n_", lds );
+				buf.Insert( 0, "_\n_" );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\n_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
+				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
 			// \n_ --> \r\n_
 			{
 				var buf = new TextBuffer( 256, 256 );
-				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "\n_", lds );
-				buf.Insert( 0, "\r", lds );
+				buf.Insert( 0, "\n_" );
+				buf.Insert( 0, "\r" );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "\r\n_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
+				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
 			// _\r --> _\r\n
 			{
 				var buf = new TextBuffer( 256, 256 );
-				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\r", lds );
-				buf.Insert( 2, "\n", lds );
+				buf.Insert( 0, "_\r" );
+				buf.Insert( 2, "\n" );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\r\n", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
+				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
 			// _\r\n_ --> _\r_\n_
 			{
 				var buf = new TextBuffer( 256, 256 );
-				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\r\n_", lds );
-				buf.Insert( 2, "_", lds );
+				buf.Insert( 0, "_\r\n_" );
+				buf.Insert( 2, "_" );
 				TestUtl.AssertEquals( 5, buf.Count );
 				TestUtl.AssertEquals( "_\r_\n_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 3, lds.Count );
-				TestUtl.AssertEquals( "MMM", MakeLdsText(lds) );
+				TestUtl.AssertEquals( 3, buf.LineCount );
+				TestUtl.AssertEquals( "MMM", MakeLdsText(buf) );
 			}
 		}
 
@@ -108,92 +103,85 @@ namespace Sgry.Azuki.Test
 			// _\r\n_ --> \r\n_
 			{
 				var buf = new TextBuffer( 256, 256 );
-				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\r\n_", lds );
-				buf.Remove( 0, 1, lds );
+				buf.Insert( 0, "_\r\n_" );
+				buf.Remove( 0, 1 );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "\r\n_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
+				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
 			// _\r\n_ --> _\n_
 			{
 				var buf = new TextBuffer( 256, 256 );
-				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\r\n_", lds );
-				buf.Remove( 1, 2, lds );
+				buf.Insert( 0, "_\r\n_" );
+				buf.Remove( 1, 2 );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\n_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
+				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
 			// _\r\n_ --> _\r_
 			{
 				var buf = new TextBuffer( 256, 256 );
-				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\r\n_", lds );
-				buf.Remove( 2, 3, lds );
+				buf.Insert( 0, "_\r\n_" );
+				buf.Remove( 2, 3 );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\r_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
+				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
 			// _\r\n_ --> __
 			{
 				var buf = new TextBuffer( 256, 256 );
-				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "_\r\n_", lds );
-				buf.Remove( 1, 3, lds );
+				buf.Insert( 0, "_\r\n_" );
+				buf.Remove( 1, 3 );
 				TestUtl.AssertEquals( 2, buf.Count );
 				TestUtl.AssertEquals( "__", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 1, lds.Count );
-				TestUtl.AssertEquals( "M", MakeLdsText(lds) );
+				TestUtl.AssertEquals( 1, buf.LineCount );
+				TestUtl.AssertEquals( "M", MakeLdsText(buf) );
 			}
 
 			// \r_\n --> \r\n
 			{
 				var buf = new TextBuffer( 256, 256 );
-				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "\r_\n", lds );
-				buf.Remove( 1, 2, lds );
+				buf.Insert( 0, "\r_\n" );
+				buf.Remove( 1, 2 );
 				TestUtl.AssertEquals( 2, buf.Count );
 				TestUtl.AssertEquals( "\r\n", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
+				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
 			// \r_\n --> \r\n
 			{
 				var buf = new TextBuffer( 256, 256 );
-				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "\r_\n", lds );
-				buf.Remove( 1, 2, lds );
+				buf.Insert( 0, "\r_\n" );
+				buf.Remove( 1, 2 );
 				TestUtl.AssertEquals( 2, buf.Count );
 				TestUtl.AssertEquals( "\r\n", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, lds.Count );
-				TestUtl.AssertEquals( "MM", MakeLdsText(lds) );
+				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
 			// \r__\n --> \r_\n
 			{
 				var buf = new TextBuffer( 256, 256 );
-				var lds = new GapBuffer<LineDirtyState>( 256 ){ 0 };
 
-				buf.Insert( 0, "\r__\n", lds );
-				buf.Remove( 1, 2, lds );
+				buf.Insert( 0, "\r__\n" );
+				buf.Remove( 1, 2 );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "\r_\n", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 3, lds.Count );
-				TestUtl.AssertEquals( "MMM", MakeLdsText(lds) );
+				TestUtl.AssertEquals( 3, buf.LineCount );
+				TestUtl.AssertEquals( "MMM", MakeLdsText(buf) );
 			}
 		}
 
@@ -729,15 +717,15 @@ namespace Sgry.Azuki.Test
 		}
 
 		#region Utilities
-		static string MakeLdsText( GapBuffer<LineDirtyState> lds )
+		static string MakeLdsText( TextBuffer text )
 		{
 			var buf = new StringBuilder( 32 );
 
-			for( int i=0; i<lds.Count; i++ )
+			for( int i=0; i<text.LineCount; i++ )
 			{
 				char ch = '#';
 
-				switch( lds[i] )
+				switch( text.GetLineDirtyState(i) )
 				{
 					case LineDirtyState.Clean:		ch = 'C';	break;
 					case LineDirtyState.Modified:	ch = 'M';	break;

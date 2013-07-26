@@ -20,7 +20,6 @@ namespace Sgry.Azuki
 	{
 		#region Fields
 		TextBuffer _Buffer = new TextBuffer( 4096, 1024 );
-		GapBuffer<LineDirtyState> _LDS = new GapBuffer<LineDirtyState>( 64 ); // line dirty states
 		EditHistory _History = new EditHistory();
 		SelectionManager _SelMan;
 		bool _IsRecordingHistory = true;
@@ -60,10 +59,6 @@ namespace Sgry.Azuki
 		{
 			_SelMan = new SelectionManager( this );
 			_WatchPatternMarker = new WatchPatternMarker( this );
-
-			// initialize LDS
-			_LDS.Clear();
-			_LDS.Add( 0 );
 		}
 		#endregion
 
@@ -109,13 +104,7 @@ namespace Sgry.Azuki
 					return;
 
 				// clean up dirty state of all modified lines
-				for( int i=0; i<_LDS.Count; i++ )
-				{
-					if( _LDS[i] == LineDirtyState.Modified )
-					{
-						_LDS[i] = LineDirtyState.Saved;
-					}
-				}
+				_Buffer.SetLineDirtyStatesToSavedState();
 
 				// remember current state as lastly saved state
 				_History.SetSavedState();
@@ -163,22 +152,12 @@ namespace Sgry.Azuki
 		/// <seealso cref="Sgry.Azuki.Document.ClearHistory">Document.ClearHistory method</seealso>
 		public LineDirtyState GetLineDirtyState( int lineIndex )
 		{
-			Debug.Assert( lineIndex <= _LDS.Count );
-			if( lineIndex < 0 || LineCount < lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "lineIndex param is "+lineIndex+" but must be positive and equal to or less than "+LineCount );
-
-			if( _LDS.Count <= lineIndex )
-			{
-				return LineDirtyState.Clean;
-			}
-			return _LDS[lineIndex];
+			return _Buffer.GetLineDirtyState( lineIndex );
 		}
 
 		internal void SetLineDirtyState( int lineIndex, LineDirtyState lds )
 		{
-			Debug.Assert( lineIndex <= _LDS.Count );
-
-			_LDS[lineIndex] = lds;
+			_Buffer.SetLineDirtyState( lineIndex, lds );
 		}
 
 		/// <summary>
@@ -862,7 +841,7 @@ namespace Sgry.Azuki
 				ldsUndoInfo.DeletedStates = new LineDirtyState[ affectedLineCount ];
 				for( int i=0; i<affectedLineCount; i++ )
 				{
-					ldsUndoInfo.DeletedStates[i] = _LDS[ affectedBeginLI + i ];
+					ldsUndoInfo.DeletedStates[i] = _Buffer.GetLineDirtyState( affectedBeginLI + i );
 				}
 			}
 
@@ -883,7 +862,7 @@ namespace Sgry.Azuki
 			if( begin < end )
 			{
 				// manage line head indexes and delete content
-				_Buffer.Remove( begin, end, _LDS );
+				_Buffer.Remove( begin, end );
 
 				// manage caret/anchor index
 				if( begin < newCaret )
@@ -904,7 +883,7 @@ namespace Sgry.Azuki
 			if( 0 < text.Length )
 			{
 				// manage line head indexes and insert content
-				_Buffer.Insert( begin, text, _LDS );
+				_Buffer.Insert( begin, text );
 
 				// manage caret/anchor index
 				if( begin <= newCaret )
@@ -1431,10 +1410,7 @@ namespace Sgry.Azuki
 		{
 			_History.Clear();
 			_History.SetSavedState();
-			for( int i=0; i<_LDS.Count; i++ )
-			{
-				_LDS[i] = LineDirtyState.Clean;
-			}
+			_Buffer.ClearLineDirtyStates();
 		}
 
 		/// <summary>
