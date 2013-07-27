@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Sgry.Azuki
 {
-	internal class CrlfRangeList : IRangeList
+	internal class CrlfRangeList : ILineRangeList
 	{
 		readonly TextBuffer _Buffer;
 		readonly IList<int> _Lhi;
@@ -17,14 +16,15 @@ namespace Sgry.Azuki
 			_Lds = lds;
 		}
 
-		public Range this[ int lineIndex ]
+		public ILineRange this[ int lineIndex ]
 		{
 			get
 			{
-				if( lineIndex <= 0 )
+				if( lineIndex < 0 || _Buffer.Lines.Count < lineIndex )
 					throw new ArgumentOutOfRangeException();
 
-				return _Buffer.GetLineRange( lineIndex, true );
+				var range = _Buffer.GetLineRange( lineIndex, true );
+				return new LineRange( _Buffer, range.Begin, range.End, lineIndex );
 			}
 		}
 

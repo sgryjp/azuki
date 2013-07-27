@@ -93,10 +93,13 @@
     <Compile Include="Highlighter\Utl.cs" />
     <Compile Include="Highlighter\XmlHighlighter.cs" />
     <Compile Include="Highlighter\JavaScriptHighlighter.cs" />
+    <Compile Include="ILineRange.cs" />
+    <Compile Include="ILineRangeList.cs" />
     <Compile Include="IRange.cs" />
     <Compile Include="IRangeList.cs" />
     <Compile Include="IUserInterface.cs" />
     <Compile Include="IWordProc.cs" />
+    <Compile Include="LineRange.cs" />
     <Compile Include="Range.cs" />
     <Compile Include="TextPoint.cs" />
     <Compile Include="TextUtil.cs" />

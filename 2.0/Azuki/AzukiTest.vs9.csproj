@@ -88,10 +88,13 @@
     <Compile Include="Highlighter\RubyHighlighter.cs" />
     <Compile Include="Highlighter\Utl.cs" />
     <Compile Include="Highlighter\XmlHighlighter.cs" />
+    <Compile Include="ILineRange.cs" />
+    <Compile Include="ILineRangeList.cs" />
     <Compile Include="IRangeList.cs" />
     <Compile Include="IRange.cs" />
     <Compile Include="IUserInterface.cs" />
     <Compile Include="IWordProc.cs" />
+    <Compile Include="LineRange.cs" />
     <Compile Include="Platform.cs" />
     <Compile Include="Range.cs" />
     <Compile Include="Test\CaretMoveLogicTest.cs" />

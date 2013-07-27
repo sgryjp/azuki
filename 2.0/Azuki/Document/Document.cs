@@ -482,7 +482,7 @@ namespace Sgry.Azuki
 			get{ return _Buffer; }
 		}
 
-		public IRangeList Lines
+		public ILineRangeList Lines
 		{
 			get{ return _Buffer.Lines; }
 		}
