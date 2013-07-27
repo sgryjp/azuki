@@ -51,39 +51,6 @@ namespace Sgry.Azuki
 			get{ return _LDS; }
 		}
 
-		#region そのうち削除
-		public LineDirtyState GetLineDirtyState( int lineIndex )
-		{
-			if( lineIndex < 0 )
-				throw new ArgumentOutOfRangeException( "lineIndex", "Specified line index is out"
-													   + " of valid range. (lineIndex:" + lineIndex
-													   + ", Lines.Count:" + Lines.Count + ")" );
-
-			return (lineIndex < _LDS.Count) ? _LDS[ lineIndex ]
-											: LineDirtyState.Clean;
-		}
-[Obsolete]
-		internal void SetLineDirtyState( int lineIndex, LineDirtyState lds )
-		{
-			Debug.Assert( 0 <= lineIndex );
-			Debug.Assert( lineIndex <= _LDS.Count );
-
-			if( lineIndex < _LDS.Count )
-				_LDS[lineIndex] = lds;
-		}
-		internal void SetLineDirtyStatesToSavedState()
-		{
-			for( int i=0; i<_LDS.Count; i++ )
-				if( _LDS[i] == LineDirtyState.Modified )
-					_LDS[i] = LineDirtyState.Saved;
-		}
-		internal void ClearLineDirtyStates()
-		{
-			for( int i=0; i<_LDS.Count; i++ )
-				_LDS[i] = LineDirtyState.Clean;
-		}
-		#endregion
-
 		#region Character Classes
 		/// <summary>
 		/// Clears class information from all characters.

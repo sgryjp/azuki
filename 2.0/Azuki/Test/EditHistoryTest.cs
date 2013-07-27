@@ -413,7 +413,7 @@ namespace Sgry.Azuki.Test
 
 			for( int i=0; i<doc.Lines.Count; i++ )
 			{
-				switch( doc.GetLineDirtyState(i) )
+				switch( doc.Lines[i].LineDirtyState )
 				{
 					case LineDirtyState.Clean:	buf.Append( 'C' ); break;
 					case LineDirtyState.Saved:	buf.Append( 'S' ); break;
