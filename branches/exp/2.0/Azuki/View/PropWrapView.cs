@@ -177,7 +177,7 @@ namespace Sgry.Azuki
 				lineIndex = 0;
 			}
 			else if( PLHI.Count <= lineIndex
-				&& Document.LineCount != 0 )
+				&& Document.Lines.Count != 0 )
 			{
 				// the point indicates beyond the final line.
 				// treat as if the final line was specified
@@ -562,7 +562,7 @@ namespace Sgry.Azuki
 			// [phase 3] calculate range of indexes to be deleted
 			delBeginL = firstDirtyLineIndex + 1;
 			int lastDirtyLogLineIndex = doc.GetLineIndexFromCharIndex( index + newText.Length );
-			if( lastDirtyLogLineIndex+1 < doc.LineCount )
+			if( lastDirtyLogLineIndex+1 < doc.Lines.Count )
 			{
 				int delEnd = doc.GetLineHeadIndex( lastDirtyLogLineIndex + 1 ) - diff;
 				delEndL = TextUtil.GetLineIndexFromCharIndex( PLHI, delEnd );
@@ -579,7 +579,7 @@ namespace Sgry.Azuki
 			reCalcBegin = PLHI[ firstDirtyLineIndex ];
 			replaceEnd = index + newText.Length;
 			preTargetEndL = doc.GetLineIndexFromCharIndex( replaceEnd );
-			if( preTargetEndL+1 < doc.LineCount )
+			if( preTargetEndL+1 < doc.Lines.Count )
 			{
 				reCalcEnd = doc.GetLineHeadIndex( preTargetEndL+1 );
 			}

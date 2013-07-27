@@ -110,7 +110,7 @@ namespace Sgry.Azuki
 
 			// calculate line head and line end
 			lineHead = doc.GetLineHeadIndex( selBeginL );
-			if( selBeginL+1 < doc.LineCount )
+			if( selBeginL+1 < doc.Lines.Count )
 			{
 				lineEnd = doc.GetLineHeadIndex( selBeginL+1 );
 			}

@@ -79,8 +79,8 @@ namespace Sgry.Azuki
 		bool MarkOneLine( Document doc, int logicalLineIndex, bool marks )
 		{
 			Debug.Assert( doc != null );
-			Debug.Assert( 0 <= logicalLineIndex && logicalLineIndex <= doc.LineCount,
-				"logicalLineIndex is out of valid range. (value:"+logicalLineIndex+", doc.LineCount:"+doc.LineCount+")" );
+			Debug.Assert( 0 <= logicalLineIndex && logicalLineIndex <= doc.Lines.Count,
+				"logicalLineIndex is out of valid range. (value:"+logicalLineIndex+", doc.Lines.Count:"+doc.Lines.Count+")" );
 
 			int lineHead;
 			string line;
@@ -88,7 +88,7 @@ namespace Sgry.Azuki
 			int count = 0;
 			int lastMarkedIndex;
 
-			if( logicalLineIndex == doc.LineCount )
+			if( logicalLineIndex == doc.Lines.Count )
 				return false;
 
 			lineHead = doc.GetLineHeadIndex( logicalLineIndex );

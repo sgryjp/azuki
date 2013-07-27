@@ -1554,7 +1554,7 @@ namespace Sgry.Azuki.WinForms
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public int LineCount
 		{
-			get{ return Document.LineCount; }
+			get{ return Document.Lines.Count; }
 		}
 		#endregion
 

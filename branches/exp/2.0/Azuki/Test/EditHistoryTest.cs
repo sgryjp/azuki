@@ -411,7 +411,7 @@ namespace Sgry.Azuki.Test
 		{
 			StringBuilder buf = new StringBuilder( 32 );
 
-			for( int i=0; i<doc.LineCount; i++ )
+			for( int i=0; i<doc.Lines.Count; i++ )
 			{
 				switch( doc.GetLineDirtyState(i) )
 				{

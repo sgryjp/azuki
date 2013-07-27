@@ -483,7 +483,7 @@ namespace Sgry.Azuki.Highlighter
 		public static int GetLineEndIndexFromCharIndex( Document doc, int index )
 		{
 			int lineIndex = doc.GetLineIndexFromCharIndex( index );
-			if( lineIndex+1 < doc.LineCount )
+			if( lineIndex+1 < doc.Lines.Count )
 				return doc.GetLineHeadIndex( lineIndex+1 );
 			else
 				return doc.Length;

@@ -482,6 +482,11 @@ namespace Sgry.Azuki
 			get{ return _Buffer; }
 		}
 
+		public IRangeList Lines
+		{
+			get{ return _Buffer.Lines; }
+		}
+
 		/// <summary>
 		/// Gets or sets currently inputted text.
 		/// </summary>
@@ -586,26 +591,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets number of the logical lines.
-		/// </summary>
-		/// <remarks>
-		///   <para>
-		///   Through this property,
-		///   number of the logical lines in this document can be retrieved.
-		///   "Logical line" here means a string simply separated by EOL codes.
-		///   and differs from "screen line" (a text line drawn as a graphc).
-		///   To retrieve count of the logical lines,
-		///   use <see cref="Sgry.Azuki.IView.LineCount">IView.LineCount</see> or
-		///   <see cref="Sgry.Azuki.IUserInterface.LineCount">
-		///   IUserInterface.LineCount</see> instead.
-		///   </para>
-		/// </remarks>
-		public int LineCount
-		{
-			get{ return _Buffer.LineCount; }
-		}
-
-		/// <summary>
 		/// Gets length of the logical line
 		/// which contains the specified char-index.
 		/// </summary>
@@ -667,8 +652,8 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">Specified line index is out of valid range.</exception>
 		public Range GetLineRange( int lineIndex, bool includesEolCode )
 		{
-			if( lineIndex < 0 || LineCount <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
+			if( lineIndex < 0 || Lines.Count <= lineIndex )
+				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.Lines.Count:"+Lines.Count+")." );
 
 			return _Buffer.GetLineRange( lineIndex, includesEolCode );
 		}
@@ -688,8 +673,8 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
 		public string GetLineContent( int lineIndex, bool withEolCode )
 		{
-			if( lineIndex < 0 || LineCount <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
+			if( lineIndex < 0 || Lines.Count <= lineIndex )
+				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.Lines.Count:"+Lines.Count+")." );
 
 			return _Buffer.GetText( _Buffer.GetLineRange(lineIndex, withEolCode) );
 		}
@@ -732,8 +717,8 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
 		public string GetTextInRange( int beginLineIndex, int beginColumnIndex, int endLineIndex, int endColumnIndex )
 		{
-			if( endLineIndex < 0 || LineCount <= endLineIndex )
-				throw new ArgumentOutOfRangeException( "endLineIndex", "Invalid index was given (endLineIndex:"+endLineIndex+", this.Length:"+Length+")." );
+			if( endLineIndex < 0 || Lines.Count <= endLineIndex )
+				throw new ArgumentOutOfRangeException( "endLineIndex", "Invalid index was given (endLineIndex:"+endLineIndex+", Lines.Count:"+Lines.Count+")." );
 			if( beginLineIndex < 0 || endLineIndex < beginLineIndex )
 				throw new ArgumentOutOfRangeException( "beginLineIndex", "Invalid index was given (beginLineIndex:"+beginLineIndex+", endLineIndex:"+endLineIndex+")." );
 			if( endColumnIndex < 0 )
@@ -1499,10 +1484,10 @@ namespace Sgry.Azuki
 		/// </exception>
 		public int GetLineHeadIndex( int lineIndex )
 		{
-			if( lineIndex < 0 || LineCount <= lineIndex )
+			if( lineIndex < 0 || Lines.Count <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex",
 					"Invalid index was given (lineIndex:" + lineIndex
-					+ ", document.LineCount:" + LineCount + ")." );
+					+ ", document.Lines.Count:" + Lines.Count + ")." );
 
 			return _Buffer.GetLineRange(lineIndex, true).Begin;
 		}
@@ -1563,10 +1548,10 @@ namespace Sgry.Azuki
 		/// </exception>
 		public int GetCharIndex( TextPoint position )
 		{
-			if( position.Line < 0 || LineCount <= position.Line || position.Column < 0 )
+			if( position.Line < 0 || Lines.Count <= position.Line || position.Column < 0 )
 				throw new ArgumentOutOfRangeException( "position",
 					"Invalid index was given (position:" + position
-					+ ", LineCount:" + LineCount + ")." );
+					+ ", Lines.Count:" + Lines.Count + ")." );
 
 			return _Buffer.GetCharIndex( position );
 		}

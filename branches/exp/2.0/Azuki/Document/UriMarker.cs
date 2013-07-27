@@ -114,7 +114,7 @@ namespace Sgry.Azuki
 		{
 			DebugUtl.Assert( doc != null );
 			DebugUtl.Assert( 0 <= logicalLineIndex );
-			DebugUtl.Assert( logicalLineIndex < doc.LineCount );
+			DebugUtl.Assert( logicalLineIndex < doc.Lines.Count );
 
 			int lineBegin, lineEnd;
 			int lastMarkedIndex;

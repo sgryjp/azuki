@@ -46,7 +46,7 @@ namespace Sgry.Azuki.Test
 				buf.Insert( 0, "_" );
 				TestUtl.AssertEquals( 1, buf.Count );
 				TestUtl.AssertEquals( "_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 1, buf.LineCount );
+				TestUtl.AssertEquals( 1, buf.Lines.Count );
 				TestUtl.AssertEquals( "M", MakeLdsText(buf) );
 			}
 
@@ -57,7 +57,7 @@ namespace Sgry.Azuki.Test
 				buf.Insert( 0, "_\n_" );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\n_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( 2, buf.Lines.Count );
 				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
@@ -69,7 +69,7 @@ namespace Sgry.Azuki.Test
 				buf.Insert( 0, "\r" );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "\r\n_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( 2, buf.Lines.Count );
 				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
@@ -81,7 +81,7 @@ namespace Sgry.Azuki.Test
 				buf.Insert( 2, "\n" );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\r\n", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( 2, buf.Lines.Count );
 				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
@@ -93,7 +93,7 @@ namespace Sgry.Azuki.Test
 				buf.Insert( 2, "_" );
 				TestUtl.AssertEquals( 5, buf.Count );
 				TestUtl.AssertEquals( "_\r_\n_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 3, buf.LineCount );
+				TestUtl.AssertEquals( 3, buf.Lines.Count );
 				TestUtl.AssertEquals( "MMM", MakeLdsText(buf) );
 			}
 		}
@@ -108,7 +108,7 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 0, 1 );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "\r\n_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( 2, buf.Lines.Count );
 				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
@@ -120,7 +120,7 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 1, 2 );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\n_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( 2, buf.Lines.Count );
 				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
@@ -132,7 +132,7 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 2, 3 );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "_\r_", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( 2, buf.Lines.Count );
 				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
@@ -144,7 +144,7 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 1, 3 );
 				TestUtl.AssertEquals( 2, buf.Count );
 				TestUtl.AssertEquals( "__", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 1, buf.LineCount );
+				TestUtl.AssertEquals( 1, buf.Lines.Count );
 				TestUtl.AssertEquals( "M", MakeLdsText(buf) );
 			}
 
@@ -156,7 +156,7 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 1, 2 );
 				TestUtl.AssertEquals( 2, buf.Count );
 				TestUtl.AssertEquals( "\r\n", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( 2, buf.Lines.Count );
 				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
@@ -168,7 +168,7 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 1, 2 );
 				TestUtl.AssertEquals( 2, buf.Count );
 				TestUtl.AssertEquals( "\r\n", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 2, buf.LineCount );
+				TestUtl.AssertEquals( 2, buf.Lines.Count );
 				TestUtl.AssertEquals( "MM", MakeLdsText(buf) );
 			}
 
@@ -180,7 +180,7 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 1, 2 );
 				TestUtl.AssertEquals( 3, buf.Count );
 				TestUtl.AssertEquals( "\r_\n", buf.GetText(new Range(0, buf.Count)) );
-				TestUtl.AssertEquals( 3, buf.LineCount );
+				TestUtl.AssertEquals( 3, buf.Lines.Count );
 				TestUtl.AssertEquals( "MMM", MakeLdsText(buf) );
 			}
 		}
@@ -721,7 +721,7 @@ namespace Sgry.Azuki.Test
 		{
 			var buf = new StringBuilder( 32 );
 
-			for( int i=0; i<text.LineCount; i++ )
+			for( int i=0; i<text.Lines.Count; i++ )
 			{
 				char ch = '#';
 

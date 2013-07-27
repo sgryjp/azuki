@@ -1372,7 +1372,7 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( this.Document != null );
 
 			// if current width of line number area is appropriate, do nothing
-			if( Document.LineCount <= Document.ViewParam.MaxLineNumber )
+			if( Document.Lines.Count <= Document.ViewParam.MaxLineNumber )
 			{
 				return;
 			}
@@ -1380,7 +1380,7 @@ namespace Sgry.Azuki
 			// find minimum value from samples for calculating width of line number area
 			for( int i=0; i<_LineNumberSamples.Length; i++ )
 			{
-				if( Document.LineCount <= _LineNumberSamples[i] )
+				if( Document.Lines.Count <= _LineNumberSamples[i] )
 				{
 					Document.ViewParam.MaxLineNumber = _LineNumberSamples[i];
 					if( _LastUsedLineNumberSample != _LineNumberSamples[i] )

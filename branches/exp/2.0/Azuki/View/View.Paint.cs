@@ -409,7 +409,7 @@ namespace Sgry.Azuki
 			Color backColor;
 
 			// get dirty state of the line
-			if( 0 <= logicalLineIndex && logicalLineIndex < Document.LineCount )
+			if( 0 <= logicalLineIndex && logicalLineIndex < Document.Lines.Count )
 				dirtyState = Document.GetLineDirtyState( logicalLineIndex );
 			else
 				dirtyState = LineDirtyState.Clean;
