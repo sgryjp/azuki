@@ -19,6 +19,7 @@ namespace Sgry.Azuki
 		readonly GapBuffer<int> _LHI; // line head indexes
 		readonly GapBuffer<LineDirtyState> _LDS; // line dirty states
 		readonly RleArray<uint> _MarkingBitMasks;
+		readonly CrlfRangeList _CrlfRangeList;
 		readonly IList<WeakReference> _TrackingRanges = new GapBuffer<WeakReference>( 32 );
 		#endregion
 
@@ -37,6 +38,7 @@ namespace Sgry.Azuki
 				LineDirtyState.Clean
 			};
 			_MarkingBitMasks = new RleArray<uint>();
+			_CrlfRangeList = new CrlfRangeList( this, _LHI, _LDS );
 		}
 		#endregion
 
@@ -46,7 +48,7 @@ namespace Sgry.Azuki
 			if( lineIndex < 0 )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Specified line index is out"
 													   + " of valid range. (lineIndex:" + lineIndex
-													   + ", LineCount:" + LineCount + ")" );
+													   + ", Lines.Count:" + Lines.Count + ")" );
 
 			return (lineIndex < _LDS.Count) ? _LDS[ lineIndex ]
 											: LineDirtyState.Clean;
@@ -120,7 +122,7 @@ namespace Sgry.Azuki
 		public int GetCharIndex( TextPoint position )
 		{
 			Debug.Assert( 0 <= position.Line );
-			Debug.Assert( position.Line < LineCount );
+			Debug.Assert( position.Line < Lines.Count );
 			Debug.Assert( 0 <= position.Column );
 
 			return TextUtil.GetCharIndex( _Chars, _LHI, position );
@@ -290,15 +292,15 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Content Access
-		public int LineCount
+		public IRangeList Lines
 		{
-			get{ return _LHI.Count; }
+			get{ return _CrlfRangeList; }
 		}
 
 		public Range GetLineRange( int lineIndex, bool includesEolCode )
 		{
 			Debug.Assert( 0 <= lineIndex );
-			Debug.Assert( lineIndex < LineCount );
+			Debug.Assert( lineIndex < Lines.Count );
 
 			return TextUtil.GetLineRange( _Chars, _LHI, lineIndex, includesEolCode );
 		}
@@ -333,7 +335,7 @@ namespace Sgry.Azuki
 		public string GetText( int beginLineIndex, int beginColumnIndex, int endLineIndex, int endColumnIndex )
 		{
 			Debug.Assert( 0 <= endLineIndex );
-			Debug.Assert( endLineIndex < LineCount );
+			Debug.Assert( endLineIndex < Lines.Count );
 			Debug.Assert( 0 <= beginLineIndex );
 			Debug.Assert( beginLineIndex <= endLineIndex );
 			Debug.Assert( 0 <= endColumnIndex );

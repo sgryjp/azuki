@@ -97,7 +97,7 @@ namespace Sgry.Ann
 				form.LineNumber = doc.GetLineIndexFromCharIndex( doc.CaretIndex ) + 1;
 				DialogResult result = form.ShowDialog();
 				if( result == DialogResult.OK
-					&& form.LineNumber < doc.LineCount)
+					&& form.LineNumber < doc.Lines.Count)
 				{
 					int index = doc.GetLineHeadIndex(
 								form.LineNumber - 1

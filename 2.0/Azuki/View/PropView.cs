@@ -61,7 +61,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public override int LineCount
 		{
-			get{ return base.Document.LineCount; }
+			get{ return base.Document.Lines.Count; }
 		}
 
 		/// <summary>
@@ -135,12 +135,12 @@ namespace Sgry.Azuki
 			{
 				lineIndex = 0;
 			}
-			else if( Document.LineCount <= lineIndex
-				&& Document.LineCount != 0 )
+			else if( Document.Lines.Count <= lineIndex
+				&& Document.Lines.Count != 0 )
 			{
 				// the point indicates beyond the final line.
 				// treat as if the final line was specified
-				lineIndex = Document.LineCount - 1;
+				lineIndex = Document.Lines.Count - 1;
 			}
 
 			// calc column index
@@ -828,7 +828,7 @@ namespace Sgry.Azuki
 
 			// calc position of head/end of this line
 			lineHead = Document.GetLineHeadIndex( lineIndex );
-			if( lineIndex+1 < Document.LineCount )
+			if( lineIndex+1 < Document.Lines.Count )
 				lineEnd = Document.GetLineHeadIndex( lineIndex + 1 );
 			else
 				lineEnd = Document.Length;

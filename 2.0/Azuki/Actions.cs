@@ -315,7 +315,7 @@ namespace Sgry.Azuki
 				
 				int nextLineHeadIndex;
 				int lineHeadIndex = doc.GetLineHeadIndexFromCharIndex( doc.CaretIndex );
-				if( lineIndex+1 < doc.LineCount )
+				if( lineIndex+1 < doc.Lines.Count )
 					nextLineHeadIndex = doc.GetLineHeadIndex( lineIndex + 1 );
 				else
 					nextLineHeadIndex = doc.Length;
@@ -728,7 +728,7 @@ namespace Sgry.Azuki
 
 			// select whole range
 			beginLineHead = doc.GetLineHeadIndex( beginL );
-			if( endL < doc.LineCount )
+			if( endL < doc.Lines.Count )
 			{
 				endLineHead = doc.GetLineHeadIndex( endL );
 			}
@@ -789,7 +789,7 @@ namespace Sgry.Azuki
 
 			// select whole range
 			beginLineHead = doc.GetLineHeadIndex( beginL );
-			if( endL < doc.LineCount )
+			if( endL < doc.Lines.Count )
 			{
 				endLineHead = doc.GetLineHeadIndex( endL );
 			}

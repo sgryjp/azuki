@@ -55,6 +55,7 @@
     <Compile Include="AutoIndentHooks.cs" />
     <Compile Include="BoundaryTrackingMode.cs" />
     <Compile Include="CaretMoveLogic.cs" />
+    <Compile Include="CrlfRangeList.cs" />
     <Compile Include="DebugUtl.cs" />
     <Compile Include="DefaultWordProc.cs" />
     <Compile Include="Document\CharClass.cs" />
@@ -93,6 +94,7 @@
     <Compile Include="Highlighter\XmlHighlighter.cs" />
     <Compile Include="Highlighter\JavaScriptHighlighter.cs" />
     <Compile Include="IRange.cs" />
+    <Compile Include="IRangeList.cs" />
     <Compile Include="IUserInterface.cs" />
     <Compile Include="IWordProc.cs" />
     <Compile Include="Range.cs" />

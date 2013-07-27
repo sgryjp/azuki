@@ -386,14 +386,14 @@ namespace Sgry.Ann
 				StringBuilder newContent = new StringBuilder( doc.Length*2 );
 
 				// make copy of lines and set EOL to specified one
-				for( int i=0; i<doc.LineCount-1; i++ )
+				for( int i=0; i<doc.Lines.Count-1; i++ )
 				{
 					newContent.Append( doc.GetLineContent(i) );
 					newContent.Append( eolCode );
 				}
-				if( 0 < doc.LineCount )
+				if( 0 < doc.Lines.Count )
 				{
-					newContent.Append( doc.GetLineContent(doc.LineCount - 1) );
+					newContent.Append( doc.GetLineContent(doc.Lines.Count - 1) );
 				}
 
 				// then replace whole content
@@ -540,7 +540,7 @@ namespace Sgry.Ann
 			// If this file was recently opened, use restore editing state
 			if( AppConfig.MruFiles.TryGet(filePath, out mru) )
 			{
-				initialLine = Math.Min( mru.LineIndex, doc.LineCount-1 );
+				initialLine = Math.Min( mru.LineIndex, doc.Lines.Count-1 );
 				initialColumn = Math.Min( mru.ColumnIndex, doc.GetLineRange(initialLine).Length );
 			}
 			AppConfig.MruFiles.Put( filePath );
@@ -729,7 +729,7 @@ namespace Sgry.Ann
 				doc.Highlighter = highlighter;
 
 				// restore caret position and scroll to it
-				line = Math.Min( line, doc.LineCount-1 );
+				line = Math.Min( line, doc.Lines.Count-1 );
 				column = Math.Min( column, doc.GetLineRange(line).Length );
 				doc.SetCaretIndex( line, column );
 
