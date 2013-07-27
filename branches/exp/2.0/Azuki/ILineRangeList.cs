@@ -1,8 +1,8 @@
 ﻿namespace Sgry.Azuki
 {
-	public interface IRangeList
+	public interface ILineRangeList
 	{
-		IRange this[ int lineIndex ]
+		ILineRange this[ int lineIndex ]
 		{
 			get;
 		}

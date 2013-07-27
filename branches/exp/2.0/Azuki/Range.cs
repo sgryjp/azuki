@@ -5,20 +5,28 @@ namespace Sgry.Azuki
 	/// <summary>
 	/// Represents a range to describe where a portion of text begins from and where it ends
 	/// </summary>
-	public struct Range : IRange
+	public class Range : IRange
 	{
-		readonly TextBuffer _Buffer;
+		readonly protected TextBuffer _Buffer;
+
+		public Range()
+			: this(null, 0, 0)
+		{}
 
 		public Range( int begin, int end )
 			: this(null, begin, end)
 		{}
 
 		internal Range( TextBuffer buf, int begin, int end )
-			: this()
 		{
 			_Buffer = buf;
 			Begin = begin;
 			End = end;
+		}
+
+		internal TextBuffer TextBuffer
+		{
+			get{ return _Buffer; }
 		}
 
 		public int Begin
@@ -74,12 +82,18 @@ namespace Sgry.Azuki
 		public override bool Equals( object obj )
 		{
 			var another = obj as IRange;
+
+			if( another is Range
+				&& TextBuffer != (another as Range).TextBuffer )
+				return false;
+
 			return (another != null) && (another.Begin == Begin && another.End == End);
 		}
 
 		public override int GetHashCode()
 		{
-			return Begin + (End << 5);
+			var codeOfBuf = (_Buffer != null) ? _Buffer.GetHashCode() : 0;
+			return codeOfBuf + Begin + (End << 5);
 		}
 
 		public static Range Empty

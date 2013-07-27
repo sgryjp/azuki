@@ -6,10 +6,8 @@ namespace Sgry.Azuki
 	/// Represents a range of substring in a text buffer which tracks every modifications on the
 	/// buffer and update the range automatically.
 	/// </summary>
-	public class TrackingRange : IRange
+	public class TrackingRange : Range
 	{
-		readonly TextBuffer _Buffer;
-
 		#region Init / Dispose
 		/// <summary>
 		/// (Use TextBuffer.CreateTrackingRange to create an instance of TrackingRange.)
@@ -17,46 +15,12 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentNullException">Parameter <paramref name="buf"/> was null.
 		/// </exception>
 		internal TrackingRange( TextBuffer buf, int begin, int end, BoundaryTrackingMode mode )
+			: base( buf, begin, end )
 		{
 			if( buf == null )
 				throw new ArgumentNullException( "buf" );
 
-			_Buffer = buf;
-			Begin = begin;
-			End = end;
 			BoundaryTrackingMode = mode;
-		}
-		#endregion
-
-		#region IRange
-		public int Begin
-		{
-			get; set;
-		}
-
-		public int End
-		{
-			get; set;
-		}
-
-		public int Length
-		{
-			get{ return Math.Abs(End - Begin); }
-		}
-
-		public string Text
-		{
-			get{ return _Buffer.GetText(this); }
-		}
-
-		public bool IsEmpty
-		{
-			get{ return (Begin == End); }
-		}
-
-		public Range Intersect( IRange another )
-		{
-			return Range.Intersect( this, another );
 		}
 		#endregion
 
@@ -95,29 +59,6 @@ namespace Sgry.Azuki
 												 e.Index + e.OldText.Length) );
 			Begin -= shift;
 			End -= shift + intersect.Length;
-		}
-		#endregion
-
-		#region Utilities
-		public override string ToString()
-		{
-			return String.Format( "[{0}, {1})", Begin, End );
-		}
-
-		public static explicit operator Range( TrackingRange r )
-		{
-			return new Range( r.Begin, r.End );
-		}
-
-		public override bool Equals(object obj)
-		{
-			var another = obj as IRange;
-			return (another != null) && (another.Begin == Begin && another.End == End);
-		}
-
-		public override int GetHashCode()
-		{
-			return _Buffer.GetHashCode() + Begin + (End << 5);
 		}
 		#endregion
 	}

@@ -11,7 +11,7 @@ namespace Sgry.Azuki
 	/// <summary>
 	/// A buffer object maintaining characters, lines, and other meta data.
 	/// </summary>
-	class TextBuffer : IList<char>
+	public class TextBuffer : IList<char>
 	{
 		#region Fields
 		readonly GapCharBuffer _Chars;
@@ -42,6 +42,15 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
+		internal GapBuffer<int> LHI
+		{
+			get{ return _LHI; }
+		}
+		internal GapBuffer<LineDirtyState> LDS
+		{
+			get{ return _LDS; }
+		}
+
 		#region そのうち削除
 		public LineDirtyState GetLineDirtyState( int lineIndex )
 		{
@@ -53,6 +62,7 @@ namespace Sgry.Azuki
 			return (lineIndex < _LDS.Count) ? _LDS[ lineIndex ]
 											: LineDirtyState.Clean;
 		}
+[Obsolete]
 		internal void SetLineDirtyState( int lineIndex, LineDirtyState lds )
 		{
 			Debug.Assert( 0 <= lineIndex );
@@ -104,7 +114,7 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Marking
-		public RleArray<uint> Marks
+		public IList<uint> Marks
 		{
 			get{ return _MarkingBitMasks; }
 		}
@@ -292,7 +302,7 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Content Access
-		public IRangeList Lines
+		public ILineRangeList Lines
 		{
 			get{ return _CrlfRangeList; }
 		}
