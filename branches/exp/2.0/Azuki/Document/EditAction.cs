@@ -102,10 +102,8 @@ namespace Sgry.Azuki
 					Debug.Assert( 0 < _LdsUndoInfo.DeletedStates.Length );
 					for( int i=0; i<_LdsUndoInfo.DeletedStates.Length; i++ )
 					{
-						_Document.SetLineDirtyState(
-								_LdsUndoInfo.LineIndex + i,
-								_LdsUndoInfo.DeletedStates[i]
-							);
+						_Document.Lines[ _LdsUndoInfo.LineIndex + i ]
+								 .LineDirtyState = _LdsUndoInfo.DeletedStates[i];
 					}
 				}
 			}

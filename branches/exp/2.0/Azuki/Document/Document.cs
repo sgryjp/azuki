@@ -104,7 +104,9 @@ namespace Sgry.Azuki
 					return;
 
 				// clean up dirty state of all modified lines
-				_Buffer.SetLineDirtyStatesToSavedState();
+				for( int i=0; i<Lines.Count; i++ )
+					if( _Buffer.Lines[i].LineDirtyState == LineDirtyState.Modified )
+						_Buffer.Lines[i].LineDirtyState = LineDirtyState.Saved;
 
 				// remember current state as lastly saved state
 				_History.SetSavedState();
@@ -112,52 +114,6 @@ namespace Sgry.Azuki
 				// invoke event
 				InvokeDirtyStateChanged();
 			}
-		}
-
-		/// <summary>
-		/// Gets dirty state of specified line.
-		/// </summary>
-		/// <param name="lineIndex">Index of the line that to get dirty state of.</param>
-		/// <returns>Modified state of the specified line.</returns>
-		/// <remarks>
-		///   <para>
-		///   This method gets dirty state of specified line.
-		///   Modified state of lines will changed as below.
-		///   </para>
-		///   <list type="bullet">
-		///	    <item>
-		///	      If a line was not modified yet, the dirty state of the line is
-		///	      <see cref="Sgry.Azuki.LineDirtyState">LineDirtyState</see>.Clean.
-		///	    </item>
-		///	    <item>
-		///	      If a line was modified, its dirty state will be changed to
-		///	      <see cref="Sgry.Azuki.LineDirtyState">LineDirtyState</see>.Modified
-		///	    </item>
-		///	    <item>
-		///	      Setting false to
-		///	      <see cref="Sgry.Azuki.Document.IsDirty">Document.IsDirty</see>
-		///	      property will set all states of modified lines to
-		///	      <see cref="Sgry.Azuki.LineDirtyState">LineDirtyState</see>.Saved.
-		///	    </item>
-		///	    <item>
-		///	      Calling
-		///	      <see cref="Sgry.Azuki.Document.ClearHistory">Document.ClearHistory</see>
-		///	      to reset all states of lines to
-		///	      <see cref="Sgry.Azuki.LineDirtyState">LineDirtyState</see>.Clean.
-		///	    </item>
-		///   </list>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.LineDirtyState">LineDirtyState enum</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.IsDirty">Document.IsDirty property</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.ClearHistory">Document.ClearHistory method</seealso>
-		public LineDirtyState GetLineDirtyState( int lineIndex )
-		{
-			return _Buffer.GetLineDirtyState( lineIndex );
-		}
-
-		internal void SetLineDirtyState( int lineIndex, LineDirtyState lds )
-		{
-			_Buffer.SetLineDirtyState( lineIndex, lds );
 		}
 
 		/// <summary>
@@ -826,7 +782,8 @@ namespace Sgry.Azuki
 				ldsUndoInfo.DeletedStates = new LineDirtyState[ affectedLineCount ];
 				for( int i=0; i<affectedLineCount; i++ )
 				{
-					ldsUndoInfo.DeletedStates[i] = _Buffer.GetLineDirtyState( affectedBeginLI + i );
+					ldsUndoInfo.DeletedStates[i] = _Buffer.Lines[ affectedBeginLI + i ]
+														  .LineDirtyState;
 				}
 			}
 
@@ -1395,7 +1352,8 @@ namespace Sgry.Azuki
 		{
 			_History.Clear();
 			_History.SetSavedState();
-			_Buffer.ClearLineDirtyStates();
+			for( int i=0; i<Lines.Count; i++ )
+				_Buffer.Lines[i].LineDirtyState = LineDirtyState.Clean;
 		}
 
 		/// <summary>

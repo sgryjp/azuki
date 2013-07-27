@@ -725,7 +725,7 @@ namespace Sgry.Azuki.Test
 			{
 				char ch = '#';
 
-				switch( text.GetLineDirtyState(i) )
+				switch( text.Lines[i].LineDirtyState )
 				{
 					case LineDirtyState.Clean:		ch = 'C';	break;
 					case LineDirtyState.Modified:	ch = 'M';	break;

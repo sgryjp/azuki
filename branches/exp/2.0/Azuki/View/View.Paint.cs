@@ -410,7 +410,7 @@ namespace Sgry.Azuki
 
 			// get dirty state of the line
 			if( 0 <= logicalLineIndex && logicalLineIndex < Document.Lines.Count )
-				dirtyState = Document.GetLineDirtyState( logicalLineIndex );
+				dirtyState = Document.Lines[logicalLineIndex].LineDirtyState;
 			else
 				dirtyState = LineDirtyState.Clean;
 
