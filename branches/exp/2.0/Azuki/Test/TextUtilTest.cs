@@ -56,7 +56,7 @@ namespace Sgry.Azuki.Test
 		{
 			TextBuffer text;
 			GapBuffer<int> lhi;
-			GapBuffer<LineDirtyState> lds;
+			GapBuffer<DirtyState> lds;
 
 			MakeTestData( out text, out lhi, out lds );
 
@@ -171,7 +171,7 @@ namespace Sgry.Azuki.Test
 			Range range;
 			TextBuffer text;
 			GapBuffer<int> lhi;
-			GapBuffer<LineDirtyState> lds;
+			GapBuffer<DirtyState> lds;
 
 			MakeTestData( out text, out lhi, out lds );
 
@@ -306,18 +306,18 @@ namespace Sgry.Azuki.Test
 
 		static void MakeTestData( out TextBuffer text, out GapBuffer<int> lhi )
 		{
-			var lds = new GapBuffer<LineDirtyState>( 8 );
+			var lds = new GapBuffer<DirtyState>( 8 );
 			MakeTestData( out text, out lhi, out lds );
 		}
 
-		static void MakeTestData( out TextBuffer text, out GapBuffer<int> lhi, out GapBuffer<LineDirtyState> lds )
+		static void MakeTestData( out TextBuffer text, out GapBuffer<int> lhi, out GapBuffer<DirtyState> lds )
 		{
 			text = new TextBuffer( 1, 1 );
 			lhi = new GapBuffer<int>( 1, 8 );
-			lds = new GapBuffer<LineDirtyState>( 1 );
+			lds = new GapBuffer<DirtyState>( 1 );
 
 			lhi.Add( 0 );
-			lds.Add( LineDirtyState.Clean );
+			lds.Add( DirtyState.Clean );
 
 			TextUtil.LHI_Insert( lhi, lds, text, TestData.ToCharArray(), 0 );
 			text.Insert( 0, TestData );

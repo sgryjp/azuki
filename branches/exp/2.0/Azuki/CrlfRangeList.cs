@@ -6,14 +6,10 @@ namespace Sgry.Azuki
 	internal class CrlfRangeList : ILineRangeList
 	{
 		readonly TextBuffer _Buffer;
-		readonly IList<int> _Lhi;
-		readonly GapBuffer<LineDirtyState> _Lds;
 
-		internal CrlfRangeList( TextBuffer buf, IList<int> lhi, GapBuffer<LineDirtyState> lds )
+		internal CrlfRangeList( TextBuffer buf )
 		{
 			_Buffer = buf;
-			_Lhi = lhi;
-			_Lds = lds;
 		}
 
 		public ILineRange this[ int lineIndex ]
@@ -30,7 +26,7 @@ namespace Sgry.Azuki
 
 		public int Count
 		{
-			get{ return _Lhi.Count; }
+			get{ return _Buffer.LHI.Count; }
 		}
 	}
 }

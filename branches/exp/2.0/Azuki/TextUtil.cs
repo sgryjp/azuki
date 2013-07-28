@@ -340,7 +340,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void LHI_Insert(
 				GapBuffer<int> lhi,
-				GapBuffer<LineDirtyState> lds,
+				GapBuffer<DirtyState> lds,
 				IList<char> text,
 				char[] insertText, int insertIndex
 			)
@@ -372,7 +372,7 @@ namespace Sgry.Azuki
 				&& insertIndex < text.Count && text[insertIndex] == '\n' )
 			{
 				lhi.Insert( lineIndex+1, insertIndex );
-				lds.Insert( lineIndex+1, LineDirtyState.Modified );
+				lds.Insert( lineIndex+1, DirtyState.Dirty );
 				lineIndex++;
 			}
 
@@ -400,7 +400,7 @@ namespace Sgry.Azuki
 					break;
 				}
 				lhi.Insert( lineIndex+insLineCount,insertIndex+lineEndIndex+1);
-				lds.Insert( lineIndex+insLineCount, LineDirtyState.Modified );
+				lds.Insert( lineIndex+insLineCount, DirtyState.Dirty );
 				insLineCount++;
 
 				// find next line head
@@ -439,11 +439,11 @@ namespace Sgry.Azuki
 				// which originally ended with a CR, the line should be marked
 				// as modified.
 				DebugUtl.Assert( 0 < insPos.Line );
-				lds[insPos.Line-1] = LineDirtyState.Modified;
+				lds[insPos.Line-1] = DirtyState.Dirty;
 			}
 			else
 			{
-				lds[insPos.Line] = LineDirtyState.Modified;
+				lds[insPos.Line] = DirtyState.Dirty;
 			}
 		}
 		
@@ -453,7 +453,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void LHI_Delete(
 				GapBuffer<int> lhi,
-				GapBuffer<LineDirtyState> lds,
+				GapBuffer<DirtyState> lds,
 				IList<char> text,
 				int delBegin, int delEnd
 			)
@@ -491,7 +491,7 @@ namespace Sgry.Azuki
 					// Insert an entry of a line terminated with a CR in case
 					// of that an LF was removed from an CR+LF.
 					lhi.Insert( delToPos.Line, delBegin );
-					lds.Insert( delToPos.Line, LineDirtyState.Modified );
+					lds.Insert( delToPos.Line, DirtyState.Dirty );
 					delFromPos.Line++;
 					delToPos.Line++;
 				}
@@ -519,11 +519,11 @@ namespace Sgry.Azuki
 				// Since newly made CR+LF is regarded as part of the line
 				// which originally ended with a CR, the line should be marked
 				// as modified.
-				lds[delFirstLine-1] = LineDirtyState.Modified;
+				lds[delFirstLine-1] = DirtyState.Dirty;
 			}
 			else
 			{
-				lds[delFirstLine] = LineDirtyState.Modified;
+				lds[delFirstLine] = DirtyState.Dirty;
 			}
 		}
 		#endregion

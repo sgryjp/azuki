@@ -105,8 +105,8 @@ namespace Sgry.Azuki
 
 				// clean up dirty state of all modified lines
 				for( int i=0; i<Lines.Count; i++ )
-					if( _Buffer.Lines[i].LineDirtyState == LineDirtyState.Modified )
-						_Buffer.Lines[i].LineDirtyState = LineDirtyState.Saved;
+					if( _Buffer.Lines[i].DirtyState == DirtyState.Dirty )
+						_Buffer.Lines[i].DirtyState = DirtyState.Saved;
 
 				// remember current state as lastly saved state
 				_History.SetSavedState();
@@ -779,11 +779,11 @@ namespace Sgry.Azuki
 
 				// store current state of the lines as 'deleted' history
 				ldsUndoInfo.LineIndex = affectedBeginLI;
-				ldsUndoInfo.DeletedStates = new LineDirtyState[ affectedLineCount ];
+				ldsUndoInfo.DeletedStates = new DirtyState[ affectedLineCount ];
 				for( int i=0; i<affectedLineCount; i++ )
 				{
 					ldsUndoInfo.DeletedStates[i] = _Buffer.Lines[ affectedBeginLI + i ]
-														  .LineDirtyState;
+														  .DirtyState;
 				}
 			}
 
@@ -1353,7 +1353,7 @@ namespace Sgry.Azuki
 			_History.Clear();
 			_History.SetSavedState();
 			for( int i=0; i<Lines.Count; i++ )
-				_Buffer.Lines[i].LineDirtyState = LineDirtyState.Clean;
+				_Buffer.Lines[i].DirtyState = DirtyState.Clean;
 		}
 
 		/// <summary>

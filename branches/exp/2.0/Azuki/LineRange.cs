@@ -13,7 +13,7 @@ namespace Sgry.Azuki
 			_LineIndex = lineIndex;
 		}
 
-		public LineDirtyState LineDirtyState
+		public DirtyState DirtyState
 		{
 			get
 			{
@@ -23,7 +23,7 @@ namespace Sgry.Azuki
 														 + " count:" + _Buffer.Lines.Count + ")" );
 
 				return (_LineIndex < _Buffer.LDS.Count) ? _Buffer.LDS[ _LineIndex ]
-														: LineDirtyState.Clean;
+														: DirtyState.Clean;
 			}
 			set
 			{
