@@ -59,7 +59,7 @@
     <Compile Include="Document\EditHistory.cs" />
     <Compile Include="Document\GapBuffer.cs" />
     <Compile Include="Document\GapCharBuffer.cs" />
-    <Compile Include="Document\LineDirtyState.cs" />
+    <Compile Include="Document\DirtyState.cs" />
     <Compile Include="Document\Marking.cs" />
     <Compile Include="Document\RleArray.cs" />
     <Compile Include="Document\SearchResult.cs" />

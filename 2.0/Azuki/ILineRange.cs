@@ -2,7 +2,7 @@
 {
 	public interface ILineRange : IRange
 	{
-		LineDirtyState LineDirtyState
+		DirtyState DirtyState
 		{
 			get; set;
 		}

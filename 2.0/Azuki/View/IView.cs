@@ -123,16 +123,16 @@ namespace Sgry.Azuki
 		/// The state of line is one of the following states.
 		/// </para>
 		/// <list type="bullet">
-		///		<item>LineDirtyState.Clean: the line is not modified yet.</item>
-		///		<item>LineDirtyState.Modified: the line is modified and not saved.</item>
-		///		<item>LineDirtyState.Saved: the line is modified but saved.</item>
+		///		<item>DirtyState.Clean: the line is not modified yet.</item>
+		///		<item>DirtyState.Dirty: the line is modified and not saved.</item>
+		///		<item>DirtyState.Saved: the line is modified but saved.</item>
 		/// </list>
 		/// <para>
 		/// Color of each line dirty state can be customized by setting
 		/// ColorScheme.DirtyLineBar, ColorScheme.CleanedLineBar.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.LineDirtyState">LineDirtyState enum</seealso>
+		/// <seealso cref="DirtyState">DirtyState enum</seealso>
 		/// <seealso cref="Sgry.Azuki.Document.GetLineDirtyState">Document.GetLineDirtyState method</seealso>
 		bool ShowsDirtBar
 		{

@@ -103,7 +103,7 @@ namespace Sgry.Azuki
 					for( int i=0; i<_LdsUndoInfo.DeletedStates.Length; i++ )
 					{
 						_Document.Lines[ _LdsUndoInfo.LineIndex + i ]
-								 .LineDirtyState = _LdsUndoInfo.DeletedStates[i];
+								 .DirtyState = _LdsUndoInfo.DeletedStates[i];
 					}
 				}
 			}
@@ -252,7 +252,7 @@ namespace Sgry.Azuki
 	class LineDirtyStateUndoInfo
 	{
 		public int LineIndex;
-		public LineDirtyState[] DeletedStates = null;
+		public DirtyState[] DeletedStates = null;
 
 		#region Debug code
 #		if DEBUG
@@ -274,13 +274,13 @@ namespace Sgry.Azuki
 
 			return text.ToString();
 		}
-		char ToChar( LineDirtyState lds )
+		char ToChar( DirtyState lds )
 		{
 			switch( lds )
 			{
-				case LineDirtyState.Clean:		return 'C';
-				case LineDirtyState.Modified:	return 'M';
-				default:						return 'S';
+				case DirtyState.Clean:	return 'C';
+				case DirtyState.Dirty:	return 'M';
+				default:					return 'S';
 			}
 		}
 #		endif

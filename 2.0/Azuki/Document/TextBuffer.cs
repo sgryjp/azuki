@@ -17,7 +17,7 @@ namespace Sgry.Azuki
 		readonly GapCharBuffer _Chars;
 		readonly GapBuffer<CharClass> _Classes;
 		readonly GapBuffer<int> _LHI; // line head indexes
-		readonly GapBuffer<LineDirtyState> _LDS; // line dirty states
+		readonly GapBuffer<DirtyState> _LDS; // line dirty states
 		readonly RleArray<uint> _MarkingBitMasks;
 		readonly CrlfRangeList _CrlfRangeList;
 		readonly IList<WeakReference> _TrackingRanges = new GapBuffer<WeakReference>( 32 );
@@ -34,11 +34,11 @@ namespace Sgry.Azuki
 			_LHI = new GapBuffer<int>( 64 ) {
 				0
 			};
-			_LDS = new GapBuffer<LineDirtyState>( 64 ) {
-				LineDirtyState.Clean
+			_LDS = new GapBuffer<DirtyState>( 64 ) {
+				DirtyState.Clean
 			};
 			_MarkingBitMasks = new RleArray<uint>();
-			_CrlfRangeList = new CrlfRangeList( this, _LHI, _LDS );
+			_CrlfRangeList = new CrlfRangeList( this );
 		}
 		#endregion
 
@@ -46,7 +46,7 @@ namespace Sgry.Azuki
 		{
 			get{ return _LHI; }
 		}
-		internal GapBuffer<LineDirtyState> LDS
+		internal GapBuffer<DirtyState> LDS
 		{
 			get{ return _LDS; }
 		}
@@ -128,7 +128,7 @@ namespace Sgry.Azuki
 				&& insertIndex < _Chars.Count && _Chars[insertIndex] == '\n' )
 			{
 				_LHI.Insert( lineIndex+1, insertIndex );
-				_LDS.Insert( lineIndex+1, LineDirtyState.Modified );
+				_LDS.Insert( lineIndex+1, DirtyState.Dirty );
 				lineIndex++;
 			}
 
@@ -155,7 +155,7 @@ namespace Sgry.Azuki
 					break;
 				}
 				_LHI.Insert( lineIndex+insLineCount,insertIndex+lineEndIndex+1);
-				_LDS.Insert( lineIndex+insLineCount, LineDirtyState.Modified );
+				_LDS.Insert( lineIndex+insLineCount, DirtyState.Dirty );
 				insLineCount++;
 
 				// Find next line head
@@ -192,11 +192,11 @@ namespace Sgry.Azuki
 				// part of the line which originally ended with a CR, the line should be marked as
 				// modified.
 				DebugUtl.Assert( 0 < insPos.Line );
-				_LDS[insPos.Line-1] = LineDirtyState.Modified;
+				_LDS[insPos.Line-1] = DirtyState.Dirty;
 			}
 			else
 			{
-				_LDS[insPos.Line] = LineDirtyState.Modified;
+				_LDS[insPos.Line] = DirtyState.Dirty;
 			}
 		}
 		
@@ -232,7 +232,7 @@ namespace Sgry.Azuki
 					// Insert an entry of a line terminated with a CR in case of that an LF was
 					// removed from an CR+LF.
 					_LHI.Insert( delToPos.Line, delBegin );
-					_LDS.Insert( delToPos.Line, LineDirtyState.Modified );
+					_LDS.Insert( delToPos.Line, DirtyState.Dirty );
 					delFromPos.Line++;
 					delToPos.Line++;
 				}
@@ -259,11 +259,11 @@ namespace Sgry.Azuki
 				// This deletion combines a CR and an LF. Since newly made CR+LF is regarded as
 				// part of the line which originally ended with a CR, the line should be marked as
 				// modified.
-				_LDS[delFirstLine-1] = LineDirtyState.Modified;
+				_LDS[delFirstLine-1] = DirtyState.Dirty;
 			}
 			else
 			{
-				_LDS[delFirstLine] = LineDirtyState.Modified;
+				_LDS[delFirstLine] = DirtyState.Dirty;
 			}
 		}
 		#endregion

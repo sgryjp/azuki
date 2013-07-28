@@ -405,17 +405,17 @@ namespace Sgry.Azuki
 		protected void DrawDirtBar( IGraphics g, int lineTopY, int logicalLineIndex )
 		{
 			Debug.Assert( ((lineTopY-YofTextArea) % LineSpacing) == 0, "((lineTopY-YofTextArea) % LineSpacing) is not 0 but " + (lineTopY-YofTextArea) % LineSpacing );
-			LineDirtyState dirtyState;
+			DirtyState dirtyState;
 			Color backColor;
 
 			// get dirty state of the line
 			if( 0 <= logicalLineIndex && logicalLineIndex < Document.Lines.Count )
-				dirtyState = Document.Lines[logicalLineIndex].LineDirtyState;
+				dirtyState = Document.Lines[logicalLineIndex].DirtyState;
 			else
-				dirtyState = LineDirtyState.Clean;
+				dirtyState = DirtyState.Clean;
 
 			// choose background color
-			if( dirtyState == LineDirtyState.Saved )
+			if( dirtyState == DirtyState.Saved )
 			{
 				backColor = ColorScheme.CleanedLineBar;
 				if( backColor == Color.Transparent )
@@ -423,7 +423,7 @@ namespace Sgry.Azuki
 					backColor = Utl.BackColorOfLineNumber( ColorScheme );
 				}
 			}
-			else if( dirtyState == LineDirtyState.Modified )
+			else if( dirtyState == DirtyState.Dirty )
 			{
 				backColor = ColorScheme.DirtyLineBar;
 				if( backColor == Color.Transparent )
