@@ -11,6 +11,7 @@
     <ApplicationIcon>Resources\Ann.ico</ApplicationIcon>
     <StartupObject>
     </StartupObject>
+    <ApplicationManifest>Ann.exe.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -96,6 +97,9 @@
     <Compile Include="Ini.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="DrawingOptionForm.resx">
+      <DependentUpon>DrawingOptionForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resource.resx">
       <SubType>Designer</SubType>
       <Generator>ResXFileCodeGenerator</Generator>
@@ -103,6 +107,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Ann.exe.manifest" />
     <None Include="Resources\Ann.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

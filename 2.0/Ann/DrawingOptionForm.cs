@@ -1,5 +1,4 @@
-﻿// 2010-05-16
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 using Sgry.Azuki;
@@ -214,10 +213,6 @@ namespace Sgry.Ann
 		/// </summary>
 		void InitializeComponent2()
 		{
-			_Combo_Fonts.DropDownWidth = 300;
-			StartPosition = FormStartPosition.CenterParent;
-			AcceptButton = _Button_OK;
-			CancelButton = _Button_Cancel;
 			Font = SystemInformation.MenuFont;
 
 			// install event handlers
