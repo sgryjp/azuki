@@ -7,16 +7,16 @@ namespace Sgry.Azuki.Test
 	{
 		public static void Test()
 		{
-			int test_num = 0;
+			int testNum = 0;
 			Console.WriteLine( "[Test for DefaultWordProc]" );
 
-			Console.WriteLine( "test {0} - WordDetection", ++test_num );
+			Console.WriteLine( "test {0} - WordDetection", ++testNum );
 			TestUtl.Do( Test_WordDetection );
 
-			Console.WriteLine( "test {0} - Kinsoku shori", ++test_num );
+			Console.WriteLine( "test {0} - Kinsoku shori", ++testNum );
 			TestUtl.Do( Test_Kinsoku );
 
-			Console.WriteLine( "test {0} - Kinsoku shori (special cases)", ++test_num );
+			Console.WriteLine( "test {0} - Kinsoku shori (special cases)", ++testNum );
 			TestUtl.Do( Test_KinsokuSpecial );
 
 			Console.WriteLine( "done." );
@@ -62,15 +62,15 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals( 4, wordProc.NextWordStart(doc, 1) );
 			TestUtl.AssertEquals( 4, wordProc.NextWordStart(doc, 2) );
 			TestUtl.AssertEquals( 4, wordProc.NextWordStart(doc, 3) );
-
-			try{ wordProc.NextWordStart(null, 0); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentNullException>(ex); }
-
-			try{ wordProc.NextWordStart(doc, -1); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
-
-			try{ wordProc.NextWordStart(doc, doc.Length+1); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
+			TestUtl.AssertThrows<ArgumentNullException>( delegate{
+				wordProc.NextWordStart( null, 0 );
+			} );
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				wordProc.NextWordStart( doc, -1 );
+			} );
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				wordProc.NextWordStart( doc, doc.Length+1 );
+			} );
 
 			// NextWordEnd
 			expected = new int[]{ 2, 2, 2, 4, 4 };
@@ -103,15 +103,15 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals( 4, wordProc.NextWordEnd(doc, 1) );
 			TestUtl.AssertEquals( 4, wordProc.NextWordEnd(doc, 2) );
 			TestUtl.AssertEquals( 4, wordProc.NextWordEnd(doc, 3) );
-
-			try{ wordProc.NextWordEnd(null, 0); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentNullException>(ex); }
-
-			try{ wordProc.NextWordEnd(doc, -1); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
-
-			try{ wordProc.NextWordEnd(doc, doc.Length+1); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
+			TestUtl.AssertThrows<ArgumentNullException>( delegate{
+				wordProc.NextWordEnd( null, 0 );
+			} );
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				wordProc.NextWordEnd( doc, -1 );
+			} );
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				wordProc.NextWordEnd( doc, doc.Length+1 );
+			} );
 
 			// PrevWordStart
 			expected = new int[]{ 0, 0, 2, 2, 4 };
@@ -144,15 +144,15 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals( 0, wordProc.PrevWordStart(doc, 1) );
 			TestUtl.AssertEquals( 0, wordProc.PrevWordStart(doc, 2) );
 			TestUtl.AssertEquals( 0, wordProc.PrevWordStart(doc, 3) );
-
-			try{ wordProc.PrevWordStart(null, 0); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentNullException>(ex); }
-
-			try{ wordProc.PrevWordStart(doc, -1); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
-
-			try{ wordProc.PrevWordStart(doc, doc.Length+1); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
+			TestUtl.AssertThrows<ArgumentNullException>( delegate{
+				wordProc.PrevWordStart( null, 0 );
+			} );
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				wordProc.PrevWordStart( doc, -1 );
+			} );
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				wordProc.PrevWordStart( doc, doc.Length+1 );
+			} );
 
 			// PrevWordEnd
 			expected = new int[]{ 0, 0, 2, 2, 4 };
@@ -185,15 +185,15 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals( 0, wordProc.PrevWordEnd(doc, 1) );
 			TestUtl.AssertEquals( 0, wordProc.PrevWordEnd(doc, 2) );
 			TestUtl.AssertEquals( 0, wordProc.PrevWordEnd(doc, 3) );
-
-			try{ wordProc.PrevWordEnd(null, 0); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentNullException>(ex); }
-
-			try{ wordProc.PrevWordEnd(doc, -1); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
-
-			try{ wordProc.PrevWordEnd(doc, doc.Length+1); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
+			TestUtl.AssertThrows<ArgumentNullException>( delegate{
+				wordProc.PrevWordEnd( null, 0 );
+			} );
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				wordProc.PrevWordEnd( doc, -1 );
+			} );
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				wordProc.PrevWordEnd( doc, doc.Length+1 );
+			} );
 		}
 
 		static void Test_Kinsoku()

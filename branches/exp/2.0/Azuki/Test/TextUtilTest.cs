@@ -63,26 +63,8 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals(  0, TextUtil.GetCharIndex(text, lhi, new TextPoint(0,  0)) );
 			TestUtl.AssertEquals( 34, TextUtil.GetCharIndex(text, lhi, new TextPoint(2,  1)) );
 			TestUtl.AssertEquals( 71, TextUtil.GetCharIndex(text, lhi, new TextPoint(6, 18)) );
-
-			try
-			{
-				TextUtil.GetCharIndex( text, lhi, new TextPoint(6, 19) );
-				TestUtl.Fail( "exception must be thrown here." );
-			}
-			catch( Exception ex )
-			{
-				TestUtl.AssertType<AssertException>( ex );
-			}
-
-			try
-			{
-				TextUtil.GetCharIndex( text, lhi, new TextPoint(0, 100) );
-				TestUtl.Fail( "exception must be thrown here." );
-			}
-			catch( Exception ex )
-			{
-				TestUtl.AssertType<AssertException>( ex );
-			}
+			TestUtl.AssertEquals( 71, TextUtil.GetCharIndex(text, lhi, new TextPoint(6, 19)) );
+			TestUtl.AssertEquals( 32, TextUtil.GetCharIndex(text, lhi, new TextPoint(0,100)) );
 		}
 
 		static void Test_NextLineHead()
@@ -91,15 +73,9 @@ namespace Sgry.Azuki.Test
 
 			text.Insert( 0, TestData );
 
-			try
-			{
+			TestUtl.AssertThrows<AssertException>( delegate{
 				TextUtil.NextLineHead( text, -1 );
-				TestUtl.Fail( "exception must be thrown here." );
-			}
-			catch( Exception ex )
-			{
-				TestUtl.AssertType<AssertException>( ex );
-			}
+			} );
 
 			int i = 0;
 			for( ; i<32; i++ )
@@ -267,15 +243,9 @@ namespace Sgry.Azuki.Test
 			pos = TextUtil.GetTextPosition( text, lhi, 71 ); // 71 --> EOF
 			TestUtl.AssertEquals( 6, pos.Line );
 			TestUtl.AssertEquals( 18, pos.Column );
-			try
-			{
-				TextUtil.GetTextPosition(text, lhi, 72);
-				TestUtl.Fail("exception must be thrown here.");
-			}
-			catch( Exception ex )
-			{
-				TestUtl.AssertType<AssertException>(ex);
-			}
+			TestUtl.AssertThrows<AssertException>( delegate{
+				TextUtil.GetTextPosition( text, lhi, 72 );
+			} );
 		}
 
 		static void Test_LineHeadIndexFromCharIndex()
@@ -300,8 +270,9 @@ namespace Sgry.Azuki.Test
 				TestUtl.AssertEquals( 52, TextUtil.GetLineHeadIndexFromCharIndex(text, lhi, i) );
 			for( ; i<=71; i++ )
 				TestUtl.AssertEquals( 53, TextUtil.GetLineHeadIndexFromCharIndex(text, lhi, i) );
-			try{ TextUtil.GetLineHeadIndexFromCharIndex(text, lhi, i); TestUtl.Fail("exception must be thrown here."); }
-			catch( Exception ex ){ TestUtl.AssertType<AssertException>(ex); }
+			TestUtl.AssertThrows<AssertException>( delegate{
+				TextUtil.GetLineHeadIndexFromCharIndex( text, lhi, i );
+			} );
 		}
 
 		static void MakeTestData( out TextBuffer text, out GapBuffer<int> lhi )

@@ -7,7 +7,7 @@ namespace Sgry.Azuki.Test
 	{
 		static int Main()
 		{
-			SplitArrayTest.Test();
+			GapBufferTest.Test();
 			RleArrayTest.Test();
 			TextUtilTest.Test();
 			new TextBufferTest().Test();

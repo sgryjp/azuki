@@ -7,16 +7,16 @@ namespace Sgry.Azuki.Test
 	{
 		public static void Test()
 		{
-			int test_num = 0;
+			int testNum = 0;
 			Console.WriteLine( "[Test for UriMarker]" );
 
-			Console.WriteLine( "test {0} - URI (coverage)", ++test_num );
+			Console.WriteLine( "test {0} - URI (coverage)", ++testNum );
 			TestUtl.Do( Test_Uri_Coverage );
 
-			Console.WriteLine( "test {0} - URI (character validation)", ++test_num );
+			Console.WriteLine( "test {0} - URI (character validation)", ++testNum );
 			TestUtl.Do( Test_Uri_Char );
 
-			Console.WriteLine( "test {0} - MailTo (coverage)", ++test_num );
+			Console.WriteLine( "test {0} - MailTo (coverage)", ++testNum );
 			TestUtl.Do( Test_MailTo_Coverage );
 
 			Console.WriteLine( "done." );

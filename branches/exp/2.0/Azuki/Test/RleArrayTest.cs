@@ -1,9 +1,6 @@
 #if TEST
 using System;
-using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki.Test
 {
@@ -11,31 +8,31 @@ namespace Sgry.Azuki.Test
 	{
 		public static void Test()
 		{
-			int test_num = 0;
+			int testNum = 0;
 			Console.WriteLine( "[Test for Azuki.RleArray]" );
 
 			// init / dispose
-			Console.WriteLine( "test {0} - init / dispose()", ++test_num );
+			Console.WriteLine( "test {0} - init / dispose()", ++testNum );
 			TestUtl.Do( Test_InitDispose );
 
 			// get/set
-			Console.WriteLine( "test {0} - GetSet()", ++test_num );
+			Console.WriteLine( "test {0} - GetSet()", ++testNum );
 			TestUtl.Do( Test_GetSet );
 
 			// insert
-			Console.WriteLine( "test {0} - Insert()", ++test_num );
+			Console.WriteLine( "test {0} - Insert()", ++testNum );
 			TestUtl.Do( Test_Insert );
 
 			// remove
-			Console.WriteLine( "test {0} - Remove()", ++test_num );
+			Console.WriteLine( "test {0} - Remove()", ++testNum );
 			TestUtl.Do( Test_Remove );
 
 			// IndexOf
-			Console.WriteLine( "test {0} - IndexOf()", ++test_num );
+			Console.WriteLine( "test {0} - IndexOf()", ++testNum );
 			TestUtl.Do( Test_IndexOf );
 
 			// Contains
-			Console.WriteLine( "test {0} - Contains()", ++test_num );
+			Console.WriteLine( "test {0} - Contains()", ++testNum );
 			TestUtl.Do( Test_Contains );
 
 			Console.WriteLine( "done." );
@@ -68,18 +65,22 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals( 'a', chars[0] );
 			TestUtl.AssertEquals( 'b', chars[1] );
 			TestUtl.AssertEquals( 'c', chars[2] );
-			try{ chars[-1].ToString(); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertExceptionType<ArgumentOutOfRangeException>(ex); }
-			try{ chars[5].ToString(); throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertExceptionType<ArgumentOutOfRangeException>(ex); }
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				chars[-1].ToString();
+			} );
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				chars[5].ToString();
+			} );
 
 			// set - out of bounds
 			chars = new RleArray<char>();
 			Set( chars, "abc" );
-			try{ chars[-1] = 'z'; throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertExceptionType<ArgumentOutOfRangeException>(ex); }
-			try{ chars[4] = 'd'; throw new Exception(); }
-			catch( Exception ex ){ TestUtl.AssertExceptionType<ArgumentOutOfRangeException>(ex); }
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				chars[-1] = 'z';
+			} );
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				chars[4] = 'd';
+			} );
 
 			{
 				// set - same value

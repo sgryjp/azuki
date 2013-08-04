@@ -435,6 +435,7 @@ namespace Sgry
 	class TestUtl
 	{
 		public static int ErrorCount = 0;
+		const string DummyMessage = "$%&{4C7A32E4-F3CD-4e45-B8D8-321469D32DC1}";
 
 		public static bool ErrorOccured
 		{
@@ -467,13 +468,11 @@ namespace Sgry
 			try
 			{
 				proc( null, EventArgs.Empty );
-				throw new AssertException( "No exception was thrown." );
+				throw new Exception( DummyMessage );
 			}
 			catch( Exception ex )
 			{
-				if( ex is AssertException )
-					throw;
-				if( ex.GetType() != typeof(T) )
+				if( ex.GetType() != typeof(T) || ex.Message == DummyMessage )
 					throw new AssertException( "An invalid type of exception was thrown.\n"
 											   + "Expected: " + typeof(T).Name + "\n"
 											   + "Actual:   " + ex.GetType() );
