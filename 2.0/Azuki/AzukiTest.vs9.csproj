@@ -106,7 +106,7 @@
     <Compile Include="Test\TextBufferTest.cs" />
     <Compile Include="Test\TextUtilTest.cs" />
     <Compile Include="Test\RleArrayTest.cs" />
-    <Compile Include="Test\SplitArrayTest.cs" />
+    <Compile Include="Test\GapBufferTest.cs" />
     <Compile Include="Test\TestDriver.cs" />
     <Compile Include="Test\UriMarkerTest.cs" />
     <Compile Include="TextPoint.cs" />

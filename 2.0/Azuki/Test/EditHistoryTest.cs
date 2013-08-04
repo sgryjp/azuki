@@ -311,8 +311,9 @@ namespace Sgry.Azuki.Test
 			{
 				Document doc = new Document();
 				doc.BeginUndo();
-				try{ doc.IsDirty = true; throw new Exception(); }
-				catch( Exception ex ){ TestUtl.AssertExceptionType<InvalidOperationException>(ex); }
+				TestUtl.AssertThrows<InvalidOperationException>( delegate{
+					doc.IsDirty = true;
+				} );
 			}
 
 			// special case; BeginUndo at initial state
@@ -417,7 +418,7 @@ namespace Sgry.Azuki.Test
 				{
 					case DirtyState.Clean:	buf.Append( 'C' ); break;
 					case DirtyState.Saved:	buf.Append( 'S' ); break;
-					default:					buf.Append( 'D' ); break;
+					default:				buf.Append( 'D' ); break;
 				}
 			}
 

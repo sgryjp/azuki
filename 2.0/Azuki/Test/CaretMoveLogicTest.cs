@@ -12,19 +12,19 @@ namespace Sgry.Azuki.Test
 		{
 			using( _Azuki = new AzukiControl() )
 			{
-				int test_num = 0;
+				int testNum = 0;
 				Console.WriteLine( "[Test for CaretMoveLogic]" );
 
-				Console.WriteLine( "test {0} - Right", ++test_num );
+				Console.WriteLine( "test {0} - Right", ++testNum );
 				TestUtl.Do( Test_Right );
 
-				Console.WriteLine( "test {0} - Left", ++test_num );
+				Console.WriteLine( "test {0} - Left", ++testNum );
 				TestUtl.Do( Test_Left );
 
-				Console.WriteLine( "test {0} - NextWord", ++test_num );
+				Console.WriteLine( "test {0} - NextWord", ++testNum );
 				TestUtl.Do( Test_NextWord );
 
-				Console.WriteLine( "test {0} - PrevWord", ++test_num );
+				Console.WriteLine( "test {0} - PrevWord", ++testNum );
 				TestUtl.Do( Test_PrevWord );
 
 				Console.WriteLine( "done." );
