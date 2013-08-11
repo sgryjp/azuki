@@ -2475,8 +2475,8 @@ namespace Sgry.Azuki
 		{
 			Debug.Assert( 0 <= index && index < Length );
 
-			if( index == ViewParam.MatchedBracketIndex2
-				|| index == ViewParam.MatchedBracketIndex1 )
+			if( index == ViewParam.IndexOfMatchedBracketBeforeCaret
+				|| index == ViewParam.IndexOfBracketBeforeCaret )
 			{
 				return true;
 			}
