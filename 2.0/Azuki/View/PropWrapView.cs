@@ -370,7 +370,7 @@ namespace Sgry.Azuki
 
 					// get position of the char at the end of the logical line
 					logLine = doc.GetLineIndexFromCharIndex( e.Index );
-					logLineEnd = doc.GetLineHeadIndex( logLine ) + doc.GetLineRange( logLine ).Length;
+					logLineEnd = doc.Lines[ logLine ].End;
 					logLineEndPos = GetVirPosFromIndex( g, logLineEnd );
 					VirtualToScreen( ref logLineEndPos );
 					logLineBottom = logLineEndPos.Y - (LinePadding >> 1);
@@ -405,17 +405,16 @@ namespace Sgry.Azuki
 		/// <param name="logLineIndex">dirt bar area for the line indicated by this index will be updated.</param>
 		void UpdateDirtBar( IGraphics g, int logLineIndex )
 		{
-			int logLineHeadIndex, logLineEndIndex;
+			IRange logLine;
 			Point top, bottom;
-			Document doc = this.Document;
+			Document doc = Document;
 
 			// calculate beginning and ending index of the modified logical line
-			logLineHeadIndex = doc.GetLineHeadIndex( logLineIndex );
-			logLineEndIndex = logLineHeadIndex + doc.GetLineRange( logLineIndex ).Length;
+			logLine = doc.Lines[ logLineIndex ];
 
 			// get the screen position of both beginning and ending character
-			top = this.GetVirPosFromIndex( g, logLineHeadIndex );
-			bottom = this.GetVirPosFromIndex( g, logLineEndIndex );
+			top = GetVirPosFromIndex( g, logLine.Begin );
+			bottom = GetVirPosFromIndex( g, logLine.End );
 			VirtualToScreen( ref top );
 			VirtualToScreen( ref bottom );
 			if( bottom.Y < YofTextArea )
@@ -564,7 +563,7 @@ namespace Sgry.Azuki
 			int lastDirtyLogLineIndex = doc.GetLineIndexFromCharIndex( index + newText.Length );
 			if( lastDirtyLogLineIndex+1 < doc.Lines.Count )
 			{
-				int delEnd = doc.GetLineHeadIndex( lastDirtyLogLineIndex + 1 ) - diff;
+				int delEnd = doc.Lines[ lastDirtyLogLineIndex + 1 ].Begin - diff;
 				delEndL = TextUtil.GetLineIndexFromCharIndex( PLHI, delEnd );
 			}
 			else
@@ -581,7 +580,7 @@ namespace Sgry.Azuki
 			preTargetEndL = doc.GetLineIndexFromCharIndex( replaceEnd );
 			if( preTargetEndL+1 < doc.Lines.Count )
 			{
-				reCalcEnd = doc.GetLineHeadIndex( preTargetEndL+1 );
+				reCalcEnd = doc.Lines[ preTargetEndL+1 ].Begin;
 			}
 			else
 			{
@@ -818,7 +817,7 @@ namespace Sgry.Azuki
 
 				// get logical line index from given line head index
 				logicalLineIndex = Document.GetLineIndexFromCharIndex( lineHead );
-				if( Document.GetLineHeadIndex(logicalLineIndex) == lineHead )
+				if( Document.Lines[logicalLineIndex].Begin == lineHead )
 				{
 					drawsText = true;
 				}

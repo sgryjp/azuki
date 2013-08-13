@@ -1,7 +1,5 @@
 ﻿// file: WatchPatternMarker.cs
 // brief: a singleton class which marks up watching text patterns in document.
-// author: YAMAMOTO Suguru
-// update: 2011-08-20
 //=========================================================
 using System;
 using System.Text.RegularExpressions;
@@ -31,7 +29,6 @@ namespace Sgry.Azuki
 			UiImpl ui = (UiImpl)sender;
 			Document doc = _Document;
 			int lineIndex;
-			int lineHead, lineEnd;
 			bool shouldBeRedrawn;
 
 			Debug.Assert( ui.Document == _Document );
@@ -43,9 +40,7 @@ namespace Sgry.Azuki
 			{
 				// update entire graphic of the logical line
 				// if marking bits associated with any character was changed
-				lineHead = doc.GetLineHeadIndex( lineIndex );
-				lineEnd = lineHead + doc.GetLineRange( lineIndex ).Length;
-				ui.View.Invalidate( lineHead, lineEnd );
+				ui.View.Invalidate( doc.Lines[lineIndex] );
 			}
 		}
 
@@ -91,7 +86,7 @@ namespace Sgry.Azuki
 			if( logicalLineIndex == doc.Lines.Count )
 				return false;
 
-			lineHead = doc.GetLineHeadIndex( logicalLineIndex );
+			lineHead = doc.Lines[ logicalLineIndex ].Begin;
 			line = doc.Lines[ logicalLineIndex ].Text;
 			lastMarkedIndex = lineHead;
 			foreach( WatchPattern wp in doc.WatchPatterns )

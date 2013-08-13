@@ -453,26 +453,32 @@ namespace Sgry.Azuki
 		void HScroll( int columnDelta );
 
 		/// <summary>
-		/// Requests to invalidate whole area.
+		/// Requests to repaint whole area.
 		/// </summary>
 		void Invalidate();
 
 		/// <summary>
-		/// Requests to invalidate specified area.
+		/// Requests to repaint specified area.
 		/// </summary>
 		void Invalidate( int x, int y, int width, int height );
 
 		/// <summary>
-		/// Requests to invalidate specified area.
+		/// Requests to repaint specified area.
 		/// </summary>
-		/// <param name="rect">rectangle area to be invalidate (in client area coordinate)</param>
+		/// <param name="rect">rectangle area to be repainted (in client area coordinate)</param>
 		void Invalidate( Rectangle rect );
 
 		/// <summary>
-		/// Requests to invalidate area covered by given text range.
+		/// Requests to repaint area covered by given text range.
 		/// </summary>
-		/// <param name="beginIndex">Begin text index of the area to be invalidated.</param>
-		/// <param name="endIndex">End text index of the area to be invalidated.</param>
+		/// <param name="range">A range of text which is needed to be repainted.</param>
+		void Invalidate( IRange range );
+
+		/// <summary>
+		/// Requests to repaint area covered by given text range.
+		/// </summary>
+		/// <param name="beginIndex">Begin text index of the area to be repainted.</param>
+		/// <param name="endIndex">End text index of the area to be repainted.</param>
 		void Invalidate( int beginIndex, int endIndex );
 
 		/// <summary>

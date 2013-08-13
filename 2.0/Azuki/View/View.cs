@@ -1211,7 +1211,7 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Requests to invalidate whole area.
+		/// Requests to repaint whole area.
 		/// </summary>
 		public void Invalidate()
 		{
@@ -1219,7 +1219,7 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Requests to invalidate specified area.
+		/// Requests to repaint specified area.
 		/// </summary>
 		public void Invalidate( int x, int y, int width, int height )
 		{
@@ -1227,9 +1227,9 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Requests to invalidate specified area.
+		/// Requests to repaint specified area.
 		/// </summary>
-		/// <param name="rect">rectangle area to be invalidate (in client area coordinate)</param>
+		/// <param name="rect">rectangle area to be repainted (in client area coordinate)</param>
 		public void Invalidate( Rectangle rect )
 		{
 //DEBUG//using(IGraphics g = _UI.GetIGraphics() ){g.ForeColor=Color.Red; g.DrawLine(rect.Left,rect.Top,rect.Right-1,rect.Bottom-1);g.DrawLine(rect.Left,rect.Bottom-1,rect.Right-1,rect.Top);DebugUtl.Sleep(400);}
@@ -1237,18 +1237,24 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Requests to invalidate area covered by given text range.
+		/// Requests to repaint area covered by given text range.
 		/// </summary>
-		/// <param name="beginIndex">Begin text index of the area to be invalidated.</param>
-		/// <param name="endIndex">End text index of the area to be invalidated.</param>
+		/// <param name="range">A range of text which is needed to be repainted.</param>
+		public abstract void Invalidate( IRange range );
+
+		/// <summary>
+		/// Requests to repaint area covered by given text range.
+		/// </summary>
+		/// <param name="beginIndex">Begin text index of the area to be repainted.</param>
+		/// <param name="endIndex">End text index of the area to be repainted.</param>
 		public abstract void Invalidate( int beginIndex, int endIndex );
 
 		/// <summary>
-		/// Requests to invalidate area covered by given text range.
+		/// Requests to repaint area covered by given text range.
 		/// </summary>
 		/// <param name="g">graphic drawing interface to be used.</param>
-		/// <param name="beginIndex">Begin text index of the area to be invalidated.</param>
-		/// <param name="endIndex">End text index of the area to be invalidated.</param>
+		/// <param name="beginIndex">Begin text index of the area to be repainted.</param>
+		/// <param name="endIndex">End text index of the area to be repainted.</param>
 		public abstract void Invalidate( IGraphics g, int beginIndex, int endIndex );
 
 		/// <summary>

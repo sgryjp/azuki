@@ -580,7 +580,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <param name="lineIndex">Index of the line of which to get the length.</param>
 		/// <returns>Length of the specified line in character count.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public Range GetLineRange( int lineIndex )
 		{
 			return GetLineRange( lineIndex, false );
@@ -592,12 +592,9 @@ namespace Sgry.Azuki
 		/// <param name="lineIndex">Index of the line of which to get its range.</param>
 		/// <param name="includesEolCode">Whether EOL codes should be included or not.</param>
 		/// <returns>Range of a specified line.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified line index is out of valid range.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public Range GetLineRange( int lineIndex, bool includesEolCode )
 		{
-			if( lineIndex < 0 || Lines.Count <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.Lines.Count:"+Lines.Count+")." );
-
 			return _Buffer.GetLineRange( lineIndex, includesEolCode );
 		}
 
@@ -1415,27 +1412,9 @@ namespace Sgry.Azuki
 
 		#region Index Conversion
 		/// <summary>
-		/// Gets index of the first character in specified logical line.
-		/// </summary>
-		/// <exception cref="System.ArgumentOutOfRangeException">
-		/// Specified index is out of valid range.
-		/// </exception>
-		public int GetLineHeadIndex( int lineIndex )
-		{
-			if( lineIndex < 0 || Lines.Count <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex",
-					"Invalid index was given (lineIndex:" + lineIndex
-					+ ", document.Lines.Count:" + Lines.Count + ")." );
-
-			return _Buffer.GetLineRange(lineIndex, true).Begin;
-		}
-
-		/// <summary>
 		/// Gets index of where a logical line specified with char-index starts.
 		/// </summary>
-		/// <exception cref="System.ArgumentOutOfRangeException">
-		/// Specified index is out of valid range.
-		/// </exception>
+		/// <exception cref="System.ArgumentOutOfRangeException"/>
 		public int GetLineHeadIndexFromCharIndex( int charIndex )
 		{
 			if( charIndex < 0 || _Buffer.Count < charIndex )
@@ -2497,7 +2476,7 @@ namespace Sgry.Azuki
 			selBeginL = GetLineIndexFromCharIndex( selBegin );
 			selEndL = GetLineIndexFromCharIndex( selEnd );
 			if( selBeginL == selEndL
-				|| GetLineHeadIndex(selEndL) != selEnd )
+				|| Lines[selEndL].Begin != selEnd )
 			{
 				selEndL++; // Target the final line too unless multiple lines
 						   // are selected and at least one char is selected

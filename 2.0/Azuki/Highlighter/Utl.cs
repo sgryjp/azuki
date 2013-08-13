@@ -484,7 +484,7 @@ namespace Sgry.Azuki.Highlighter
 		{
 			int lineIndex = doc.GetLineIndexFromCharIndex( index );
 			if( lineIndex+1 < doc.Lines.Count )
-				return doc.GetLineHeadIndex( lineIndex+1 );
+				return doc.Lines[ lineIndex+1 ].Begin;
 			else
 				return doc.Length;
 		}

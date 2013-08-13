@@ -440,8 +440,9 @@ namespace Sgry.Azuki.Test
 			}
 			
 			// invalid range (middle to after end)
-			try{ doc.Replace("PIYO", 51, 53); TestUtl.Fail("Exception wasn't thrown as expected."); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				doc.Replace( "PIYO", 51, 53 );
+			} );
 		}
 
 		static void Test_Replace_SelectionRange()
@@ -583,8 +584,9 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals( 3, doc.GetLineRange(4).Length );
 			TestUtl.AssertEquals( 0, doc.GetLineRange(5).Length );
 			TestUtl.AssertEquals( 12, doc.GetLineRange(6).Length );
-			try{ doc.GetLineRange(7); TestUtl.Fail("Exception wasn't thrown as expected."); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				doc.GetLineRange( 7 );
+			} );
 		}
 
 		static void Test_Selection()
@@ -595,8 +597,9 @@ namespace Sgry.Azuki.Test
 			doc.Text = "臼と似た形をした文字「\xd85a\xdd51」は、UCS 文字空間の第２面に位置する";
 
 			// before head to head
-			try{ doc.SetSelection(-1, 0); TestUtl.Fail("Exception wasn't thrown as expected."); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				doc.SetSelection( -1, 0 );
+			} );
 			
 			// head to head
 			doc.SetSelection( 0, 0 );
@@ -648,8 +651,9 @@ namespace Sgry.Azuki.Test
 			TestUtl.AssertEquals( end, 33 );
 
 			// end to after end
-			try{ doc.SetSelection(33, 36); TestUtl.Fail("Exception wasn't thrown as expected."); }
-			catch( Exception ex ){ TestUtl.AssertType<ArgumentOutOfRangeException>(ex); }
+			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+				doc.SetSelection( 33, 36 );
+			} );
 		}
 
 		static void Test_FindNext()

@@ -68,7 +68,6 @@ namespace Sgry.Azuki
 			UiImpl ui = (UiImpl)sender;
 			Document doc = ui.Document;
 			int lineIndex;
-			int lineHead, lineEnd;
 			bool shouldBeRedrawn;
 
 			if( doc.MarksUri == false )
@@ -81,9 +80,7 @@ namespace Sgry.Azuki
 			{
 				// update entire graphic of the logical line
 				// if marking bits associated with any character was changed
-				lineHead = doc.GetLineHeadIndex( lineIndex );
-				lineEnd = lineHead + doc.GetLineRange( lineIndex ).Length;
-				ui.View.Invalidate( lineHead, lineEnd );
+				ui.View.Invalidate( doc.Lines[lineIndex] );
 			}
 		}
 
@@ -116,7 +113,7 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( 0 <= logicalLineIndex );
 			DebugUtl.Assert( logicalLineIndex < doc.Lines.Count );
 
-			int lineBegin, lineEnd;
+			IRange line;
 			int lastMarkedIndex;
 			int seekIndex;
 			int changeCount = 0;
@@ -128,17 +125,16 @@ namespace Sgry.Azuki
 			}
 
 			// prepare scanning
-			lineBegin = doc.GetLineHeadIndex( logicalLineIndex );
-			lineEnd = lineBegin + doc.GetLineRange( logicalLineIndex ).Length;
-			if( lineBegin == lineEnd )
+			line = doc.Lines[ logicalLineIndex ];
+			if( line.IsEmpty )
 			{
 				return false; // this is an empty line.
 			}
 
 			// scan and mark all URIs in the line
-			lastMarkedIndex = lineBegin;
-			seekIndex = lineBegin;
-			while( 0 <= seekIndex && seekIndex < lineEnd )
+			lastMarkedIndex = line.Begin;
+			seekIndex = line.Begin;
+			while( 0 <= seekIndex && seekIndex < line.End )
 			{
 				// mark URI if one starts from here
 				if( SchemeStartsFromHere(doc, seekIndex) )
@@ -182,10 +178,9 @@ namespace Sgry.Azuki
 			}
 
 			// clear marking of remaining characters
-			if( lastMarkedIndex < lineEnd )
+			if( lastMarkedIndex < line.End )
 			{
-				changeCount += doc.Unmark( lastMarkedIndex, lineEnd, Marking.Uri )
-							   ? 1 : 0;
+				changeCount += doc.Unmark( lastMarkedIndex, line.End, Marking.Uri ) ? 1 : 0;
 			}
 
 			return (0 < changeCount);
