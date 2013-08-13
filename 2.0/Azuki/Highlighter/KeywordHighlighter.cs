@@ -1076,7 +1076,7 @@ namespace Sgry.Azuki.Highlighter
 			{
 				cache.lineBegin = lineHeadIndex;
 				int lineIndex = doc.GetLineIndexFromCharIndex(cache.lineBegin);
-				cache.lineContent = doc.GetLineContent( lineIndex );
+				cache.lineContent = doc.Lines[ lineIndex ].Text;
 			}
 			int offset = begin - cache.lineBegin;
 
