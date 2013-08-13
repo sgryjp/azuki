@@ -251,7 +251,7 @@ namespace Sgry.Azuki
 			}
 			_LineNumAreaWidth
 				= g.MeasureText( _LastUsedLineNumberSample.ToString() ).Width + _SpaceWidth;
-			_DirtBarWidth = Math.Max( 3, _SpaceWidth >> 1 );
+			_DirtBarWidth = Math.Max( 2, _SpaceWidth >> 1 );
 
 			// update metrics related with horizontal ruler
 			_HRulerHeight = (int)( _LineHeight / GoldenRatio ) + 2;
