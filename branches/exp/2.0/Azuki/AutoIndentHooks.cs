@@ -100,7 +100,6 @@ namespace Sgry.Azuki
 		{
 			Document doc = ui.Document;
 			StringBuilder indentChars = new StringBuilder( 64 );
-			int lineHead, lineEnd;
 			int newCaretIndex;
 			int selBegin, selEnd;
 			int selBeginL;
@@ -109,15 +108,7 @@ namespace Sgry.Azuki
 			selBeginL = doc.GetLineIndexFromCharIndex( selBegin );
 
 			// calculate line head and line end
-			lineHead = doc.GetLineHeadIndex( selBeginL );
-			if( selBeginL+1 < doc.Lines.Count )
-			{
-				lineEnd = doc.GetLineHeadIndex( selBeginL+1 );
-			}
-			else
-			{
-				lineEnd = doc.Length;
-			}
+			IRange line = doc.Lines[ selBeginL ];
 
 			// user hit Enter key?
 			if( TextUtil.IsEolChar(ch) )
@@ -134,13 +125,13 @@ namespace Sgry.Azuki
 				indentChars.Append( doc.EolCode );
 
 				// if the line is empty, do nothing
-				if( lineHead == lineEnd )
+				if( line.IsEmpty )
 				{
 					return false;
 				}
 
 				// get indent chars
-				for( i=lineHead; i<selBegin; i++ )
+				for( i=line.Begin; i<selBegin; i++ )
 				{
 					if( doc[i] == ' ' || doc[i] == '\t' )
 						indentChars.Append( doc[i] );
@@ -149,7 +140,7 @@ namespace Sgry.Azuki
 				}
 
 				// if there are following white spaces, remove them
-				for( i=selEnd; i<lineEnd; i++ )
+				for( i=selEnd; i<line.End; i++ )
 				{
 					if( doc[i] == ' ' || doc[i] == '\t' || doc[i] == '\x3000' )
 						selEnd++;
@@ -160,8 +151,8 @@ namespace Sgry.Azuki
 				// determine whether extra padding is needed or not
 				// (because replacement changes line end index
 				// determination after replacement will be much harder)
-				if( Utl.FindPairedBracket_Backward(doc, selBegin, lineHead, '}', '{') != -1
-					&& Utl.IndexOf(doc, '}', selBegin, lineEnd) == -1 )
+				if( Utl.FindPairedBracket_Backward(doc, selBegin, line.Begin, '}', '{') != -1
+					&& Utl.IndexOf(doc, '}', selBegin, line.End) == -1 )
 				{
 					extraPaddingNeeded = true;
 				}
@@ -194,7 +185,7 @@ namespace Sgry.Azuki
 				int pairLineIndex;
 
 				// ensure this line contains only white spaces
-				for( int i=lineHead; i<lineEnd; i++ )
+				for( int i=line.Begin; i<line.End; i++ )
 				{
 					if( TextUtil.IsEolChar(doc[i]) )
 					{
@@ -227,7 +218,7 @@ namespace Sgry.Azuki
 				
 				// replace indent chars of current line
 				indentChars.Append( '}' );
-				doc.Replace( indentChars.ToString(), lineHead, selBegin );
+				doc.Replace( indentChars.ToString(), line.Begin, selBegin );
 				
 				return true;
 			}

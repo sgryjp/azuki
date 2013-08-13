@@ -99,9 +99,7 @@ namespace Sgry.Ann
 				if( result == DialogResult.OK
 					&& form.LineNumber < doc.Lines.Count)
 				{
-					int index = doc.GetLineHeadIndex(
-								form.LineNumber - 1
-							);
+					int index = doc.Lines[ form.LineNumber - 1 ].Begin;
 					doc.SetSelection( index, index );
 					app.MainForm.Azuki.ScrollToCaret();
 				}

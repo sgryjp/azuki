@@ -2372,15 +2372,14 @@ namespace Sgry.Azuki.WinForms
 				// nothing selected.
 				// set current line as string body
 				// and let IME to determine composition string and target string.
-				int lineIndex, lineHeadIndex, lineEndIndex;
+				int lineIndex;
 				int begin, end;
 
 				// get current line range
 				lineIndex = Document.GetLineIndexFromCharIndex( selBegin );
-				lineHeadIndex = Document.GetLineHeadIndex( lineIndex );
-				lineEndIndex = lineHeadIndex + Document.GetLineRange( lineIndex ).Length;
-				begin = Math.Max( lineHeadIndex, selBegin - (MaxRangeLength / 2) );
-				end = Math.Min( selBegin + (MaxRangeLength / 2), lineEndIndex );
+				IRange line = Document.Lines[ lineIndex ];
+				begin = Math.Max( line.Begin, selBegin - (MaxRangeLength / 2) );
+				end = Math.Min( selBegin + (MaxRangeLength / 2), line.End );
 
 				// get current line content
 				stringBody = Document.GetText( begin, end );

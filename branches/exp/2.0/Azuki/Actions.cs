@@ -316,7 +316,7 @@ namespace Sgry.Azuki
 				int nextLineHeadIndex;
 				int lineHeadIndex = doc.GetLineHeadIndexFromCharIndex( doc.CaretIndex );
 				if( lineIndex+1 < doc.Lines.Count )
-					nextLineHeadIndex = doc.GetLineHeadIndex( lineIndex + 1 );
+					nextLineHeadIndex = doc.Lines[ lineIndex + 1 ].Begin;
 				else
 					nextLineHeadIndex = doc.Length;
 				doc.Replace( String.Empty, lineHeadIndex, nextLineHeadIndex );
@@ -720,17 +720,17 @@ namespace Sgry.Azuki
 			doc.BeginUndo();
 			for( int i=beginL; i<endL; i++ )
 			{
-				int lineHead = doc.GetLineHeadIndex( i );
+				int lineHead = doc.Lines[i].Begin;
 				if( 0 < doc.GetLineRange(i).Length )
 					doc.Replace( indentChars, lineHead, lineHead );
 			}
 			doc.EndUndo();
 
 			// select whole range
-			beginLineHead = doc.GetLineHeadIndex( beginL );
+			beginLineHead = doc.Lines[ beginL ].Begin;
 			if( endL < doc.Lines.Count )
 			{
-				endLineHead = doc.GetLineHeadIndex( endL );
+				endLineHead = doc.Lines[ endL ].Begin;
 			}
 			else
 			{
@@ -761,7 +761,7 @@ namespace Sgry.Azuki
 			doc.BeginUndo();
 			for( int i=beginL; i<endL; i++ )
 			{
-				int lineHead = doc.GetLineHeadIndex( i );
+				int lineHead = doc.Lines[i].Begin;
 				if( doc.Length <= lineHead )
 				{
 					// no more chars available. exit.
@@ -788,10 +788,10 @@ namespace Sgry.Azuki
 			doc.EndUndo();
 
 			// select whole range
-			beginLineHead = doc.GetLineHeadIndex( beginL );
+			beginLineHead = doc.Lines[ beginL ].Begin;
 			if( endL < doc.Lines.Count )
 			{
-				endLineHead = doc.GetLineHeadIndex( endL );
+				endLineHead = doc.Lines[ endL ].Begin;
 			}
 			else
 			{
@@ -820,16 +820,15 @@ namespace Sgry.Azuki
 			doc.BeginUndo();
 			for( int i=beginL; i<endL; i++ )
 			{
-				int lineBegin = doc.GetLineHeadIndex( i );
-				int lineEnd = lineBegin + doc.GetLineRange( i ).Length;
-				int index = lineEnd;
-				while( lineBegin<=index-1 && Char.IsWhiteSpace(doc[index-1]) )
+				IRange line = doc.Lines[i];
+				int index = line.End;
+				while( line.Begin <= index-1 && Char.IsWhiteSpace(doc[index-1]) )
 				{
 					index--;
 				}
-				if( index < lineEnd )
+				if( index < line.End )
 				{
-					doc.Replace( "", index, lineEnd );
+					doc.Replace( "", index, line.End );
 				}
 			}
 			doc.EndUndo();
@@ -853,16 +852,15 @@ namespace Sgry.Azuki
 			doc.BeginUndo();
 			for( int i=beginL; i<endL; i++ )
 			{
-				int lineBegin = doc.GetLineHeadIndex( i );
-				int lineEnd = lineBegin + doc.GetLineRange( i ).Length;
-				int index = lineBegin;
-				while( index < lineEnd && Char.IsWhiteSpace(doc[index]) )
+				IRange line = doc.Lines[i];
+				int index = line.Begin;
+				while( index < line.End && Char.IsWhiteSpace(doc[index]) )
 				{
 					index++;
 				}
-				if( lineBegin < index )
+				if( line.Begin < index )
 				{
-					doc.Replace( "", lineBegin, index );
+					doc.Replace( "", line.Begin, index );
 				}
 			}
 			doc.EndUndo();

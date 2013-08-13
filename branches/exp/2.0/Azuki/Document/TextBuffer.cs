@@ -357,10 +357,13 @@ namespace Sgry.Azuki
 			get{ return _LineRangeList; }
 		}
 
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public Range GetLineRange( int lineIndex, bool includesEolCode )
 		{
-			Debug.Assert( 0 <= lineIndex );
-			Debug.Assert( lineIndex < Lines.Count );
+			if( lineIndex < 0 || Lines.Count <= lineIndex )
+				throw new ArgumentOutOfRangeException( "lineIndex", lineIndex, "Invalid line index"
+													   + " was given (lineIndex:" + lineIndex
+													   + ", Lines.Count:" + Lines.Count + ")." );
 
 			return TextUtil.GetLineRange( _Chars, _LHI, lineIndex, includesEolCode );
 		}

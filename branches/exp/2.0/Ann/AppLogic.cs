@@ -388,12 +388,12 @@ namespace Sgry.Ann
 				// make copy of lines and set EOL to specified one
 				for( int i=0; i<doc.Lines.Count-1; i++ )
 				{
-					newContent.Append( doc.GetLineContent(i) );
+					newContent.Append( doc.Lines[i].Text );
 					newContent.Append( eolCode );
 				}
 				if( 0 < doc.Lines.Count )
 				{
-					newContent.Append( doc.GetLineContent(doc.Lines.Count - 1) );
+					newContent.Append( doc.Lines[doc.Lines.Count - 1].Text );
 				}
 
 				// then replace whole content

@@ -191,7 +191,7 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
 		public override int GetLineHeadIndex( int lineIndex )
 		{
-			return Document.GetLineHeadIndex( lineIndex );
+			return Document.Lines[ lineIndex ].Begin;
 		}
 
 		/// <summary>
@@ -574,10 +574,19 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Requests to invalidate area covered by given text range.
+		/// Requests to repaint area covered by given text range.
 		/// </summary>
-		/// <param name="beginIndex">Begin text index of the area to be invalidated.</param>
-		/// <param name="endIndex">End text index of the area to be invalidated.</param>
+		/// <param name="range">A range of text which is needed to be repainted.</param>
+		public override void Invalidate( IRange range )
+		{
+			Invalidate( range.Begin, range.End );
+		}
+
+		/// <summary>
+		/// Requests to repaint area covered by given text range.
+		/// </summary>
+		/// <param name="beginIndex">Begin text index of the area to be repainted.</param>
+		/// <param name="endIndex">End text index of the area to be repainted.</param>
 		public override void Invalidate( int beginIndex, int endIndex )
 		{
 			using( IGraphics g = _UI.GetIGraphics() )
@@ -587,11 +596,11 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Requests to invalidate area covered by given text range.
+		/// Requests to repaint area covered by given text range.
 		/// </summary>
 		/// <param name="g">graphic drawing interface to be used.</param>
-		/// <param name="beginIndex">Begin text index of the area to be invalidated.</param>
-		/// <param name="endIndex">End text index of the area to be invalidated.</param>
+		/// <param name="beginIndex">Begin text index of the area to be repainted.</param>
+		/// <param name="endIndex">End text index of the area to be repainted.</param>
 		public override void Invalidate( IGraphics g, int beginIndex, int endIndex )
 		{
 			DebugUtl.Assert( 0 <= beginIndex, "cond: 0 <= beginIndex("+beginIndex+")" );
@@ -820,23 +829,19 @@ namespace Sgry.Azuki
 		{
 			// note that given pos is NOT virtual position BUT screen position.
 			string token;
-			int lineHead, lineEnd;
+			IRange line;
 			int begin, end; // range of the token in the text
 			CharClass klass;
 			Point tokenEndPos = pos;
 			bool inSelection;
 
 			// calc position of head/end of this line
-			lineHead = Document.GetLineHeadIndex( lineIndex );
-			if( lineIndex+1 < Document.Lines.Count )
-				lineEnd = Document.GetLineHeadIndex( lineIndex + 1 );
-			else
-				lineEnd = Document.Length;
+			line = Document.Lines[ lineIndex ];
 
 			// draw line text
-			begin = lineHead;
-			end = NextPaintToken( Document, begin, lineEnd, out klass, out inSelection );
-			while( end <= lineEnd // until end-pos reaches line-end
+			begin = line.Begin;
+			end = NextPaintToken( Document, begin, line.End, out klass, out inSelection );
+			while( end <= line.End // until end-pos reaches line-end
 				&& pos.X < clipRect.Right // or reaches right-end of the clip rect
 				&& end != -1 ) // or reaches the end of text
 			{
@@ -910,15 +915,15 @@ namespace Sgry.Azuki
 				// get next token
 				pos = tokenEndPos;
 				begin = end;
-				end = NextPaintToken( Document, begin, lineEnd, out klass, out inSelection );
+				end = NextPaintToken( Document, begin, line.End, out klass, out inSelection );
 			}
 
 			// draw EOF mark
-			if( DrawsEofMark && lineEnd == Document.Length )
+			if( DrawsEofMark && line.End == Document.Length )
 			{
-				DebugUtl.Assert( lineHead <= lineEnd );
-				if( lineHead == lineEnd
-					|| (0 < lineEnd && TextUtil.IsEolChar(Document[lineEnd-1]) == false) )
+				DebugUtl.Assert( line.Begin <= line.End );
+				if( line.Begin == line.End
+					|| (0 < line.End && TextUtil.IsEolChar(Document[line.End-1]) == false) )
 				{
 					DrawEofMark( g, ref pos );
 				}
@@ -945,7 +950,7 @@ namespace Sgry.Azuki
 				int lineWidth;
 
 				// calculate full length of this line, in pixel
-				lineContent = Document.GetText( lineHead, lineEnd );
+				lineContent = Document.GetText( line.Begin, line.End );
 				lineWidth = MeasureTokenEndX( g, lineContent, 0 );
 
 				// remember length of this line if it is the longest ever
