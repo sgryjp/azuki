@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Sgry.Azuki
 {
@@ -24,7 +22,7 @@ namespace Sgry.Azuki
 
 		public override string ToString()
 		{
-			return String.Format( "{0}-{1}", Line, Column );
+			return String.Format( "{0}_{1}", Line, Column );
 		}
 	}
 }

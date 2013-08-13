@@ -1,6 +1,8 @@
-﻿namespace Sgry.Azuki
+﻿using System.Collections.Generic;
+
+namespace Sgry.Azuki
 {
-	public interface ILineRangeList
+	public interface ILineRangeList : IEnumerable<ILineRange>
 	{
 		ILineRange this[ int lineIndex ]
 		{

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Text;
 using Debug = System.Diagnostics.Debug;
 using Regex = System.Text.RegularExpressions.Regex;
-using RegexOptions = System.Text.RegularExpressions.RegexOptions;
 
 namespace Sgry.Azuki
 {
@@ -624,19 +623,23 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets text within a specified range [begin, end).
+		/// Gets content in this document.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
+		public string GetText()
+		{
+			return _Buffer.GetText();
+		}
+
+		/// <summary>
+		/// Gets a portion of text in a specified range.
+		/// </summary>
 		/// <remarks>
 		///   <para>
-		///   If given index is at middle of an undividable character sequence such as surrogate
-		///   pair, the range will be automatically expanded to avoid dividing the pair.
-		///   </para>
-		///   <para>
-		///   If expanded range is needed, use <see cref="Sgry.Azuki.Document.GetText"/>.
+		///   If given range covers a part of an undividable character sequence such as surrogate
+		///   pairs, the range will be automatically expanded so that they will not be divided.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.GetText"/>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public string GetText( int begin, int end )
 		{
 			return GetText( new Range(begin, end) );
@@ -645,32 +648,42 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets a portion of text in a specified range.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
+		/// <remarks>
+		///   <para>
+		///   If given range covers a part of an undividable character sequence such as surrogate
+		///   pairs, the range will be automatically expanded so that they will not be divided.
+		///   </para>
+		/// </remarks>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public string GetText( Range range )
 		{
-			if( range.End < 0 || _Buffer.Count < range.End
-				|| range.Begin < 0 || range.End < range.Begin )
-				throw new ArgumentOutOfRangeException( "range", "Invalid index was given (range:"
-													   + range + ", Length:" + Length + ")." );
 			return _Buffer.GetText( range );
 		}
 
 		/// <summary>
-		/// Gets text in the range [ (fromLineIndex, fromColumnIndex), (toLineIndex, toColumnIndex) ).
+		/// Gets a portion of text in a specified range.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		public string GetTextInRange( int beginLineIndex, int beginColumnIndex, int endLineIndex, int endColumnIndex )
+		/// <remarks>
+		///   <para>
+		///   If given range covers a part of an undividable character sequence such as surrogate
+		///   pairs, the range will be automatically expanded so that they will not be divided.
+		///   </para>
+		/// </remarks>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public string GetText( int beginLineIndex, int beginColumnIndex,
+							   int endLineIndex, int endColumnIndex )
 		{
-			if( endLineIndex < 0 || Lines.Count <= endLineIndex )
-				throw new ArgumentOutOfRangeException( "endLineIndex", "Invalid index was given (endLineIndex:"+endLineIndex+", Lines.Count:"+Lines.Count+")." );
-			if( beginLineIndex < 0 || endLineIndex < beginLineIndex )
-				throw new ArgumentOutOfRangeException( "beginLineIndex", "Invalid index was given (beginLineIndex:"+beginLineIndex+", endLineIndex:"+endLineIndex+")." );
-			if( endColumnIndex < 0 )
-				throw new ArgumentOutOfRangeException( "endColumnIndex", "Invalid index was given (endColumnIndex:"+endColumnIndex+")." );
-			if( beginColumnIndex < 0 )
-				throw new ArgumentOutOfRangeException( "beginColumnIndex", "Invalid index was given (beginColumnIndex:"+beginColumnIndex+")." );
+			return _Buffer.GetText( beginLineIndex, beginColumnIndex,
+									endLineIndex, endColumnIndex );
+		}
 
-			return _Buffer.GetText( beginLineIndex, beginColumnIndex, endLineIndex, endColumnIndex );
+		/// <summary>
+		/// Gets a portion of text in a specified range.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public string GetText( TextPoint beginPos, TextPoint endPos )
+		{
+			return _Buffer.GetText( beginPos.Line, beginPos.Column, endPos.Line, endPos.Column );
 		}
 
 		/// <summary>
@@ -1471,27 +1484,18 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Calculates logical line/column index from char-index.
+		/// Calculates line/column index from an offset.
 		/// </summary>
-		/// <exception cref="System.ArgumentOutOfRangeException">
-		/// Specified index is out of valid range.
-		/// </exception>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public TextPoint GetTextPosition( int charIndex )
 		{
-			if( charIndex < 0 || _Buffer.Count < charIndex )
-				throw new ArgumentOutOfRangeException( "charIndex",
-					"Invalid index was given (charIndex:" + charIndex
-					+ ", document.Length:" + Length + ")." );
-
 			return _Buffer.GetTextPosition( charIndex );
 		}
 
 		/// <summary>
-		/// Calculates char-index from logical line/column index.
+		/// Calculates char-index from line/column index.
 		/// </summary>
-		/// <exception cref="System.ArgumentOutOfRangeException">
-		/// Specified index is out of valid range.
-		/// </exception>
+		/// <exception cref="System.ArgumentOutOfRangeException"/>
 		public int GetCharIndex( TextPoint position )
 		{
 			if( position.Line < 0 || Lines.Count <= position.Line || position.Column < 0 )
@@ -1502,6 +1506,11 @@ namespace Sgry.Azuki
 			return _Buffer.GetCharIndex( position );
 		}
 		#endregion
+
+		public IRange GetTextRange( TextPoint beginPos, TextPoint endPos )
+		{
+			return _Buffer.GetTextRange( beginPos, endPos );
+		}
 
 		#region Text Search
 		/// <summary>

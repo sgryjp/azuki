@@ -19,7 +19,7 @@ namespace Sgry.Azuki
 		readonly GapBuffer<int> _LHI; // line head indexes
 		readonly GapBuffer<DirtyState> _LDS; // line dirty states
 		readonly RleArray<uint> _MarkingBitMasks;
-		readonly CrlfRangeList _CrlfRangeList;
+		readonly LineRangeList _LineRangeList;
 		readonly IList<WeakReference> _TrackingRanges = new GapBuffer<WeakReference>( 32 );
 		#endregion
 
@@ -38,7 +38,7 @@ namespace Sgry.Azuki
 				DirtyState.Clean
 			};
 			_MarkingBitMasks = new RleArray<uint>();
-			_CrlfRangeList = new CrlfRangeList( this );
+			_LineRangeList = new LineRangeList( this );
 		}
 		#endregion
 
@@ -88,10 +88,13 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Line / Column
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public TextPoint GetTextPosition( int charIndex )
 		{
-			Debug.Assert( 0 <= charIndex );
-			Debug.Assert( charIndex <= Count );
+			if( charIndex < 0 || Count < charIndex )
+				throw new ArgumentOutOfRangeException( "charIndex", charIndex, "Invalid index was"
+													   + " given. (charIndex:" + charIndex
+													   + ", Count:" + Count + ")." );
 
 			return TextUtil.GetTextPosition( _Chars, _LHI, charIndex );
 		}
@@ -103,6 +106,86 @@ namespace Sgry.Azuki
 			Debug.Assert( 0 <= position.Column );
 
 			return TextUtil.GetCharIndex( _Chars, _LHI, position );
+		}
+
+		/// <exception cref="ArgumentNullException"/>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public IRange GetTextRange( int beginLineIndex, int beginColumnIndex,
+									int endLineIndex, int endColumnIndex )
+		{
+			return GetTextRange( new TextPoint(beginLineIndex, beginColumnIndex),
+								 new TextPoint(endLineIndex, endColumnIndex) );
+		}
+
+		/// <exception cref="ArgumentNullException"/>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public IRange GetTextRange( TextPoint beginPos, TextPoint endPos )
+		{
+			if( beginPos == null )
+				throw new ArgumentNullException( "beginPos" );
+			if( endPos == null )
+				throw new ArgumentNullException( "endPos" );
+			if( endPos.Line < 0 || Lines.Count <= endPos.Line )
+				throw new ArgumentOutOfRangeException( "endPos", endPos, "Specified line index is"
+													   + " out of valid range. (endPos:" + endPos
+													   + ", Lines.Count:" + Lines.Count + ")" );
+			if( beginPos.Line < 0 || endPos.Line < beginPos.Line )
+				throw new ArgumentOutOfRangeException( "beginPos", beginPos, "Specified line index"
+													   + " is out of valid range. (beginPos:"
+													   + beginPos + ", endPos:" + endPos + ")" );
+			if( beginPos.Column < 0 )
+				throw new ArgumentOutOfRangeException( "beginPos", beginPos, "Specified column"
+													   + " index is out of valid range. (beginPos:"
+													   + beginPos + ")" );
+			if( endPos.Column < 0 )
+				throw new ArgumentOutOfRangeException( "endPos", endPos,"Specified column index is"
+													   + " out of valid range. (endPos:" + endPos
+													   + ")" );
+			if( beginPos.Line == endPos.Line && endPos.Column < beginPos.Column )
+				throw new ArgumentOutOfRangeException( "endPos", "No valid range can be made with"
+													   + " given 'beginPos' and 'endPos'."
+													   + " (beginPos:" + beginPos + ", endPos:"
+													   + endPos + ")" );
+
+			// Calculate beginning position
+			int begin = _LHI[beginPos.Line] + beginPos.Column;
+			if( beginPos.Line + 1 < _LHI.Count && _LHI[beginPos.Line+1] < begin )
+			{
+				throw new ArgumentOutOfRangeException( "beginPos", beginPos, "'beginPos' is out of"
+													   + " valid range. (beginPos:" + beginPos
+													   + ", Lines[" + beginPos.Line + "].Length:"
+													   + Lines[beginPos.Line].Length + ")." );
+			}
+			if( Count < begin )
+			{
+				throw new ArgumentOutOfRangeException( "beginPos", beginPos, "'beginPos' is out of"
+													   + " valid range. (calculated begin:" + begin
+													   + ", Count:" + Count
+													   + ", Lines[" + beginPos.Line + "].Length:"
+													   + Lines[beginPos.Line].Length + ")." );
+			}
+
+			// Calculate ending position
+			int end = _LHI[endPos.Line] + endPos.Column;
+			if( endPos.Line + 1 < _LHI.Count && _LHI[endPos.Line+1] < end )
+			{
+				throw new ArgumentOutOfRangeException( "endPos", endPos, "'endPos' is out of valid"
+													   + " range. (endPos:" + endPos + ", Lines["
+													   + endPos.Line + "].Length:"
+													   + Lines[endPos.Line].Length + ")." );
+			}
+			if( Count < end )
+			{
+				throw new ArgumentOutOfRangeException( "endPos", endPos, "'endPos' is out of valid"
+													   + " range. (calculated end:" + end
+													   + ", Count:" + Count
+													   + ", Lines[" + endPos.Line + "].Length:"
+													   + Lines[endPos.Line].Length + ")." );
+			}
+			Debug.Assert( begin <= end );
+
+			// Return the range
+			return new Range( begin, end );
 		}
 
 		/// <summary>
@@ -271,7 +354,7 @@ namespace Sgry.Azuki
 		#region Content Access
 		public ILineRangeList Lines
 		{
-			get{ return _CrlfRangeList; }
+			get{ return _LineRangeList; }
 		}
 
 		public Range GetLineRange( int lineIndex, bool includesEolCode )
@@ -291,11 +374,19 @@ namespace Sgry.Azuki
 			return TextUtil.GetLineRange( _Chars, _LHI, lineIndex, includesEolCode );
 		}
 
+		public string GetText()
+		{
+			return GetText( new Range(0, Count) );
+		}
+
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public string GetText( IRange range )
 		{
-			Debug.Assert( 0 <= range.Begin );
-			Debug.Assert( range.Begin <= range.End );
-			Debug.Assert( range.End <= _Chars.Count );
+			if( range.End < 0 || Count < range.End
+				|| range.Begin < 0 || range.End < range.Begin )
+				throw new ArgumentOutOfRangeException( "range", range, "Invalid index was given"
+													   + " (range:" + range + ", Count:"
+													   + Count + ")." );
 
 			if( range.IsEmpty )
 				return String.Empty;
@@ -309,35 +400,11 @@ namespace Sgry.Azuki
 			return new String( buf );
 		}
 
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public string GetText( int beginLineIndex, int beginColumnIndex, int endLineIndex, int endColumnIndex )
 		{
-			Debug.Assert( 0 <= endLineIndex );
-			Debug.Assert( endLineIndex < Lines.Count );
-			Debug.Assert( 0 <= beginLineIndex );
-			Debug.Assert( beginLineIndex <= endLineIndex );
-			Debug.Assert( 0 <= endColumnIndex );
-			Debug.Assert( 0 <= beginColumnIndex );
-
-			// Return an empty string for an empty range
-			if( beginLineIndex == endLineIndex && beginColumnIndex == endColumnIndex )
-			{
-				return String.Empty;
-			}
-
-			// Prepare buffer
-			int begin = _LHI[beginLineIndex] + beginColumnIndex;
-			int end = _LHI[endLineIndex] + endColumnIndex;
-			if( _Chars.Count < end )
-			{
-				throw new ArgumentOutOfRangeException( "?", "Invalid index was given (calculated end:"+end+", Count:"+Count+")." );
-			}
-			if( end <= begin )
-			{
-				throw new ArgumentOutOfRangeException( "?", String.Format("Invalid index was given (calculated range:[{4}, {5}) / beginLineIndex:{0}, beginColumnIndex:{1}, endLineIndex:{2}, endColumnIndex:{3}", beginLineIndex, beginColumnIndex, endLineIndex, endColumnIndex, begin, end) );
-			}
-
-			// Copy the substring
-			return GetText( new Range(begin, end) );
+			return GetText( GetTextRange(beginLineIndex, beginColumnIndex,
+										 endLineIndex, endColumnIndex) );
 		}
 
 		/// <summary>

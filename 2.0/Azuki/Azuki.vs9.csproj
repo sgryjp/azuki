@@ -55,7 +55,6 @@
     <Compile Include="AutoIndentHooks.cs" />
     <Compile Include="BoundaryTrackingMode.cs" />
     <Compile Include="CaretMoveLogic.cs" />
-    <Compile Include="CrlfRangeList.cs" />
     <Compile Include="DebugUtl.cs" />
     <Compile Include="DefaultWordProc.cs" />
     <Compile Include="Document\CharClass.cs" />
@@ -101,6 +100,7 @@
     <Compile Include="IUserInterfaceInternal.cs" />
     <Compile Include="IWordProc.cs" />
     <Compile Include="LineRange.cs" />
+    <Compile Include="LineRangeList.cs" />
     <Compile Include="Range.cs" />
     <Compile Include="TextPoint.cs" />
     <Compile Include="TextUtil.cs" />

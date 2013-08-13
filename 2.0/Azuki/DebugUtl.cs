@@ -472,10 +472,13 @@ namespace Sgry
 			}
 			catch( Exception ex )
 			{
-				if( ex.GetType() != typeof(T) || ex.Message == DummyMessage )
+				if( ex.GetType() != typeof(T) && ex.Message != DummyMessage )
 					throw new AssertException( "An invalid type of exception was thrown.\n"
 											   + "Expected: " + typeof(T).Name + "\n"
 											   + "Actual:   " + ex.GetType() );
+				if( ex.Message == DummyMessage )
+					throw new AssertException( "No exception was thrown.\n"
+											   + "Expected: " + typeof(T).Name );
 			}
 		}
 

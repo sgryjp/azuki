@@ -13,6 +13,28 @@ namespace Sgry.Azuki
 			_LineIndex = lineIndex;
 		}
 
+		/// <summary>
+		/// Gets content of this line, without EOL code.
+		/// </summary>
+		public override string Text
+		{
+			get{ return base.Text; } // Just to change documentation comment...
+		}
+
+		/// <summary>
+		/// Gets EOL code trailing this line.
+		/// </summary>
+		public string EolCode
+		{
+			get
+			{
+				int begin = End;
+				int end = (_LineIndex+1 < _Buffer.Lines.Count) ? _Buffer.Lines[_LineIndex+1].Begin
+															   : _Buffer.Count;
+				return _Buffer.GetText( new Range(begin, end) );
+			}
+		}
+
 		public DirtyState DirtyState
 		{
 			get
