@@ -98,6 +98,7 @@
     <Compile Include="IRange.cs" />
     <Compile Include="IRangeList.cs" />
     <Compile Include="IUserInterface.cs" />
+    <Compile Include="IUserInterfaceInternal.cs" />
     <Compile Include="IWordProc.cs" />
     <Compile Include="LineRange.cs" />
     <Compile Include="Range.cs" />

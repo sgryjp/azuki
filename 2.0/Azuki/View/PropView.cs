@@ -18,7 +18,7 @@ namespace Sgry.Azuki
 		/// Creates a new instance.
 		/// </summary>
 		/// <param name="ui">Implementation of the platform dependent UI module.</param>
-		internal PropView( IUserInterface ui )
+		internal PropView( IUserInterfaceInternal ui )
 			: base( ui )
 		{
 		}

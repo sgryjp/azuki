@@ -20,7 +20,7 @@ namespace Sgry.Azuki
 		/// Creates a new instance.
 		/// </summary>
 		/// <param name="ui">Implementation of the platform dependent UI module.</param>
-		internal PropWrapView( IUserInterface ui )
+		internal PropWrapView( IUserInterfaceInternal ui )
 			: base( ui )
 		{
 			Document.ViewParam.ScrollPosX = 0;

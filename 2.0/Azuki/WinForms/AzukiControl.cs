@@ -41,7 +41,7 @@ namespace Sgry.Azuki.WinForms
 	/// using AzukiControl through IUserInterface will be much appropriate.
 	/// </para>
 	/// </remarks>
-	public class AzukiControl : Control, IUserInterface
+	public class AzukiControl : Control, IUserInterfaceInternal
 	{
 		#region Types, Constants and Fields
 		static int _ScrollBarWidth = 0;
@@ -1703,24 +1703,6 @@ namespace Sgry.Azuki.WinForms
 			if( CaretMoved != null )
 			{
 				CaretMoved( this, EventArgs.Empty );
-			}
-		}
-
-		/// <summary>
-		/// Occures soon after rectangular selection mode was changed.
-		/// </summary>
-		[Obsolete("Use SelectionModeChanged event instead.", false)]
-		public event EventHandler IsRectSelectModeChanged;
-
-		/// <summary>
-		/// For internal use only. Invokes IsRectSelectModeChanged event.
-		/// </summary>
-		[Obsolete("Use Document.InvokeSelectionModeChanged method instead.", false)]
-		public void InvokeIsRectSelectModeChanged()
-		{
-			if( IsRectSelectModeChanged != null )
-			{
-				IsRectSelectModeChanged( this, EventArgs.Empty );
 			}
 		}
 

@@ -28,7 +28,7 @@ namespace Sgry.Azuki
 			999999999,
 			2000000000
 		};
-		protected IUserInterface _UI;
+		protected IUserInterfaceInternal _UI;
 		int _TextAreaWidth = 4096;
 		int _MinimumTextAreaWidth = 300;
 		Size _VisibleSize = new Size( 300, 300 );
@@ -68,7 +68,7 @@ namespace Sgry.Azuki
 		/// Creates a new instance.
 		/// </summary>
 		/// <param name="ui">Implementation of the platform dependent UI module.</param>
-		internal View( IUserInterface ui )
+		internal View( IUserInterfaceInternal ui )
 		{
 			Debug.Assert( ui != null );
 			_UI = ui;
