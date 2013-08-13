@@ -198,43 +198,56 @@ namespace Sgry.Azuki.Test
 			{
 				// invalid range (before begin to middle)
 				TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
-					doc.GetTextInRange( -1, -1, 1, 1 );
+					doc.GetText( -1, -1, 1, 1 );
 				} );
 				TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
-					doc.GetTextInRange( -1, 0, 1, 1 );
+					doc.GetText( -1, 0, 1, 1 );
 				} );
 				TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
-					doc.GetTextInRange( 1, -1, 1, 1 );
+					doc.GetText( 1, -1, 1, 1 );
 				} );
 				
+				// valid range (empty range)
+				TestUtl.AssertEquals( "", doc.GetText(0, 0, 0, 0) );
+				TestUtl.AssertEquals( "", doc.GetText(1, 1, 1, 1) );
+
 				// valid range (begin to middle)
-				TestUtl.AssertEquals( "ke", doc.GetTextInRange(0, 0, 0, 2) );
-				TestUtl.AssertEquals( "ee", doc.GetTextInRange(0, 1, 0, 3) );
-				TestUtl.AssertEquals( "as", doc.GetTextInRange(1, 0, 1, 2) );
+				TestUtl.AssertEquals( "ke", doc.GetText(0, 0, 0, 2) );
+				TestUtl.AssertEquals( "ee", doc.GetText(0, 1, 0, 3) );
+				TestUtl.AssertEquals( "as", doc.GetText(1, 0, 1, 2) );
 				
 				// valid range (middle to middle)
-				TestUtl.AssertEquals( "s simple as possible\r\nbut\nn", doc.GetTextInRange(1, 1, 3, 1) );
+				TestUtl.AssertEquals( "s simple as possible\r\nbut\nn", doc.GetText(1, 1, 3, 1) );
 				
 				// valid range (middle to end)
-				TestUtl.AssertEquals( "t\nnot simpler.", doc.GetTextInRange(2, 2, 3, 12) );
+				TestUtl.AssertEquals( "t\nnot simpler.", doc.GetText(2, 2, 3, 12) );
 				
 				// invalid range (middle to after end)
 				TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
-					doc.GetTextInRange( 2, 2, 3, 13 );
+					doc.GetText( 2, 2, 3, 13 );
 				} );
 				TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
-					doc.GetTextInRange( 2, 2, 4, 0 );
+					doc.GetText( 2, 2, 4, 0 );
 				} );
 				TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
-					doc.GetTextInRange( 2, 2, 4, 13 );
+					doc.GetText( 2, 2, 4, 13 );
 				} );
 
-				// invalid range (minus range)
+				// invalid range (others)
 				TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
-					doc.GetTextInRange( 1, 1, 1, 0 );
+					doc.GetText( 1, 1, 1, 0 );
 				} );
 				TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
-					doc.GetTextInRange( 1, 1, 0, 0 );
+					doc.GetText( 1, 1, 0, 0 );
+				} );
+				TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+					doc.GetText( 1, 0, 1, 9999 );
+				} );
+				TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+					doc.GetText( 3, 9998, 3, 9999 );
+				} );
+				TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+					doc.GetText( 1, 9999, 2, 0 );
 				} );
 			}
 		}

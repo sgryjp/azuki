@@ -29,22 +29,22 @@ namespace Sgry.Azuki
 			get{ return _Buffer; }
 		}
 
-		public int Begin
+		public virtual int Begin
 		{
 			get; set;
 		}
 
-		public int End
+		public virtual int End
 		{
 			get; set;
 		}
 
-		public int Length
+		public virtual int Length
 		{
 			get{ return Math.Abs(End - Begin); }
 		}
 
-		public string Text
+		public virtual string Text
 		{
 			get
 			{
@@ -56,7 +56,7 @@ namespace Sgry.Azuki
 			}
 		}
 
-		public bool IsEmpty
+		public virtual bool IsEmpty
 		{
 			get{ return (Begin == End); }
 		}

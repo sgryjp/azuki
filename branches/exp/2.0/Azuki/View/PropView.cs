@@ -111,7 +111,7 @@ namespace Sgry.Azuki
 			if( 0 < columnIndex )
 			{
 				// get partial content of the line which exists before the caret
-				string leftPart = Document.GetTextInRange( lineIndex, 0, lineIndex, columnIndex );
+				string leftPart = Document.GetText( lineIndex, 0, lineIndex, columnIndex );
 
 				// measure the characters
 				pos.X = MeasureTokenEndX( g, leftPart, pos.X );
