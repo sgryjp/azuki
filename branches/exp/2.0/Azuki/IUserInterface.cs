@@ -90,21 +90,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Updates size and position of the caret graphic.
-		/// </summary>
-		void UpdateCaretGraphic();
-
-		/// <summary>
-		/// Updates size and position of the caret graphic.
-		/// </summary>
-		void UpdateCaretGraphic( Rectangle caretRect );
-
-		/// <summary>
-		/// Sets graphic of mouse cursor.
-		/// </summary>
-		void SetCursorGraphic( MouseCursor cursorType );
-
-		/// <summary>
 		/// Font to be used for displaying text.
 		/// </summary>
 		Font Font
@@ -688,11 +673,6 @@ namespace Sgry.Azuki
 
 		#region Others
 		/// <summary>
-		/// Gets a graphic interface.
-		/// </summary>
-		IGraphics GetIGraphics();
-
-		/// <summary>
 		/// Gets or sets highlighter object to highlight currently active document
 		/// or null to disable highlighting.
 		/// </summary>
@@ -700,11 +680,6 @@ namespace Sgry.Azuki
 		{
 			get; set;
 		}
-
-		/// <summary>
-		/// (Internal use only.) Make a highlighter run after a little moment.
-		/// </summary>
-		void RescheduleHighlighting();
 
 		/// <summary>
 		/// Gets this component is focused by user or not.
@@ -776,32 +751,10 @@ namespace Sgry.Azuki
 		event EventHandler CaretMoved;
 
 		/// <summary>
-		/// Invokes CaretMoved event.
-		/// </summary>
-		void InvokeCaretMoved();
-
-		/// <summary>
-		/// Occures soon after rectangular selection mode was changed.
-		/// </summary>
-		[Obsolete("Use Document.SelectionModeChanged event instead.", false)]
-		event EventHandler IsRectSelectModeChanged;
-
-		/// <summary>
-		/// Invokes IsRectSelectModeChanged event.
-		/// </summary>
-		[Obsolete("Use Document.InvokeSelectionModeChanged method instead.", false)]
-		void InvokeIsRectSelectModeChanged();
-
-		/// <summary>
 		/// Occurs soon after the overwrite mode was moved.
 		/// </summary>
 		/// <seealso cref="Sgry.Azuki.IUserInterface.IsOverwriteMode">IUserInterface.IsOverwriteMode property</seealso>
 		event EventHandler OverwriteModeChanged;
-
-		/// <summary>
-		/// Invokes OverwriteModeChanged event.
-		/// </summary>
-		void InvokeOverwriteModeChanged();
 
 		/// <summary>
 		/// Occurres before a screen line was drawn.
@@ -809,19 +762,9 @@ namespace Sgry.Azuki
 		event LineDrawEventHandler LineDrawing;
 
 		/// <summary>
-		/// Invokes LineDrawing event.
-		/// </summary>
-		bool InvokeLineDrawing( IGraphics g, int lineIndex, Point pos );
-
-		/// <summary>
 		/// Occurres after a screen line was drawn.
 		/// </summary>
 		event LineDrawEventHandler LineDrawn;
-
-		/// <summary>
-		/// Invokes LineDrawn event.
-		/// </summary>
-		bool InvokeLineDrawn( IGraphics g, int lineIndex, Point pos );
 
 		/// <summary>
 		/// Occurres after vertical scroll happened.
@@ -829,19 +772,9 @@ namespace Sgry.Azuki
 		event EventHandler VScroll;
 
 		/// <summary>
-		/// (Internal use only.) Invokes VScroll event.
-		/// </summary>
-		void InvokeVScroll();
-
-		/// <summary>
 		/// Occurres after vertical scroll happened.
 		/// </summary>
 		event EventHandler HScroll;
-
-		/// <summary>
-		/// (Internal use only.) Invokes HScroll event.
-		/// </summary>
-		void InvokeHScroll();
 		#endregion
 
 		#region Scroll
@@ -854,11 +787,6 @@ namespace Sgry.Azuki
 		/// Scrolls to where the caret is.
 		/// </summary>
 		void ScrollToCaret();
-
-		/// <summary>
-		/// Updates scrollbar's range.
-		/// </summary>
-		void UpdateScrollBarRange();
 		#endregion
 	}
 

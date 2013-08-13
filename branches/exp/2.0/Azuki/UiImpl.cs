@@ -24,7 +24,7 @@ namespace Sgry.Azuki
 		public const int DefaultCaretWidth = 2;
 		const int MaxMatchedBracketSearchLength = 2048;
 		internal const int HighlightDelay = 200; // 200[ms]
-		IUserInterface _UI;
+		IUserInterfaceInternal _UI;
 		View _View = null;
 		Document _Document = null;
 		ViewType _ViewType = ViewType.Proportional;
@@ -47,7 +47,7 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Init / Dispose
-		public UiImpl( IUserInterface ui )
+		public UiImpl( IUserInterfaceInternal ui )
 		{
 			_UI = ui;
 			_View = new PropView( ui );
