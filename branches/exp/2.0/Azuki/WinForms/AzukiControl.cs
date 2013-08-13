@@ -2825,7 +2825,7 @@ namespace Sgry.Azuki.WinForms
 				}
 
 				// calculate and return width
-				ch = doc.GetCharAt( begin );
+				ch = doc[ begin ];
 				if( ch != '\t' )
 				{
 					// this is not a tab so return width of this char

@@ -319,8 +319,8 @@ namespace Sgry.Azuki
 			}
 
 			int nextIndex = view.GetCharIndex( new TextPoint(pos.Line+1, 0) );
-			if( 0 <= nextIndex-1 && doc.GetCharAt(nextIndex-1) == '\n'
-				&& 0 <= nextIndex-2 && doc.GetCharAt(nextIndex-2) == '\r' )
+			if( 0 <= nextIndex-1 && doc[nextIndex-1] == '\n'
+				&& 0 <= nextIndex-2 && doc[nextIndex-2] == '\r' )
 			{
 				offset = -2;
 			}
