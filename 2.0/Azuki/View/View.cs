@@ -283,8 +283,8 @@ namespace Sgry.Azuki
 			if( lineIndex+1 < LineCount )
 			{
 				lineEndIndex = GetLineHeadIndex( lineIndex + 1 );
-				if( 0 <= lineEndIndex-1 && doc.GetCharAt(lineEndIndex-1) == '\n'
-					&& 0 <= lineEndIndex-2 && doc.GetCharAt(lineEndIndex-2) == '\r' )
+				if( 0 <= lineEndIndex-1 && doc[lineEndIndex-1] == '\n'
+					&& 0 <= lineEndIndex-2 && doc[lineEndIndex-2] == '\r' )
 				{
 					lineEndIndex -= 2; // CR+LF
 				}

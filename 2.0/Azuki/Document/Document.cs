@@ -473,18 +473,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets a character at specified index.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		public char GetCharAt( int index )
-		{
-			if( index < 0 || _Buffer.Count <= index )
-				throw new ArgumentOutOfRangeException( "index", "Invalid index was given (index:"+index+", this.Length:"+Length+")." );
-
-			return _Buffer[ index ];
-		}
-
-		/// <summary>
 		/// Gets a range of a word at specified index.
 		/// </summary>
 		/// <param name="index">The range of a word at this index will be retrieved.</param>
@@ -2407,11 +2395,16 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets one character at given index.
 		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public char this[ int index ]
 		{
 			get
 			{
-				Debug.Assert( 0 <= index && index < Length, "Document.this[int] needs a valid index (given index:"+index+", this.Length:"+Length+")" );
+				if( index < 0 || _Buffer.Count <= index )
+					throw new ArgumentOutOfRangeException( "index", "Invalid index was given"
+														   + " (index:" + index + ", Length:"
+														   + Length + ")." );
+
 				return _Buffer[index];
 			}
 		}
