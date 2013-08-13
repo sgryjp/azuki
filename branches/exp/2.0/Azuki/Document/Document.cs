@@ -602,27 +602,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets content of specified logical line without EOL code.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		public string GetLineContent( int lineIndex )
-		{
-			return GetLineContent( lineIndex, false );
-		}
-
-		/// <summary>
-		/// Gets content of specified logical line.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		public string GetLineContent( int lineIndex, bool withEolCode )
-		{
-			if( lineIndex < 0 || Lines.Count <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.Lines.Count:"+Lines.Count+")." );
-
-			return _Buffer.GetText( _Buffer.GetLineRange(lineIndex, withEolCode) );
-		}
-
-		/// <summary>
 		/// Gets content in this document.
 		/// </summary>
 		public string GetText()

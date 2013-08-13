@@ -92,7 +92,7 @@ namespace Sgry.Azuki
 				return false;
 
 			lineHead = doc.GetLineHeadIndex( logicalLineIndex );
-			line = doc.GetLineContent( logicalLineIndex );
+			line = doc.Lines[ logicalLineIndex ].Text;
 			lastMarkedIndex = lineHead;
 			foreach( WatchPattern wp in doc.WatchPatterns )
 			{

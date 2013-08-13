@@ -310,7 +310,7 @@ namespace Sgry.Azuki
 				// to cut/copy current line, change the begin/end position to line head/end
 				int lineIndex;
 				lineIndex = doc.GetLineIndexFromCharIndex( doc.CaretIndex );
-				text = doc.GetLineContent( lineIndex, true );
+				text = doc.Lines[lineIndex].TextWithEolCode;
 				Plat.Inst.SetClipboardText( text, TextDataType.Line );
 				
 				int nextLineHeadIndex;
@@ -377,7 +377,7 @@ namespace Sgry.Azuki
 				lineIndex = doc.GetLineIndexFromCharIndex( doc.CaretIndex );
 				
 				// get line content
-				text = doc.GetLineContent( lineIndex, true );
+				text = doc.Lines[lineIndex].TextWithEolCode;
 				Plat.Inst.SetClipboardText( text, TextDataType.Line );
 			}
 		}

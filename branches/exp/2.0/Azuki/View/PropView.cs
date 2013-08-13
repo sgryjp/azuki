@@ -148,7 +148,7 @@ namespace Sgry.Azuki
 			if( 0 < pt.X )
 			{
 				// get content of the line
-				string line = Document.GetLineContent( lineIndex );
+				string line = Document.Lines[ lineIndex ].Text;
 
 				// calc maximum length of chars in line
 				int rightLimitX = pt.X;

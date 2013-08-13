@@ -22,6 +22,14 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
+		/// Gets content of this line, with EOL code.
+		/// </summary>
+		public string TextWithEolCode
+		{
+			get{ return base.Text + EolCode; }
+		}
+
+		/// <summary>
 		/// Gets EOL code trailing this line.
 		/// </summary>
 		public string EolCode
