@@ -524,7 +524,7 @@ namespace Sgry.Azuki
 			}
 			Debug.Assert( 0 <= range.Begin );
 			Debug.Assert( 0 <= range.End );
-			Debug.Assert( range.End <= range.Begin );
+			Debug.Assert( range.Begin <= range.End );
 
 			return range;
 		}
