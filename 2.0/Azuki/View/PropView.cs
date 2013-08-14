@@ -829,7 +829,7 @@ namespace Sgry.Azuki
 		{
 			// note that given pos is NOT virtual position BUT screen position.
 			string token;
-			IRange line;
+			ILineRange line;
 			int begin, end; // range of the token in the text
 			CharClass klass;
 			Point tokenEndPos = pos;
@@ -837,6 +837,7 @@ namespace Sgry.Azuki
 
 			// calc position of head/end of this line
 			line = Document.Lines[ lineIndex ];
+			line.End += line.EolCode.Length;
 
 			// draw line text
 			begin = line.Begin;
