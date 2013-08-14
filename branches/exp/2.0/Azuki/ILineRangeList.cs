@@ -9,6 +9,8 @@ namespace Sgry.Azuki
 			get;
 		}
 
+		ILineRange AtOffset( int charIndex );
+
 		int Count
 		{
 			get;

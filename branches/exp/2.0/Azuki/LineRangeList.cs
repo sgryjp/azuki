@@ -12,6 +12,16 @@ namespace Sgry.Azuki
 			_Buffer = buf;
 		}
 
+		public ILineRange AtOffset( int charIndex )
+		{
+			if( charIndex < 0 || _Buffer.Count < charIndex )
+				throw new ArgumentOutOfRangeException( "charIndex", charIndex, "Invalid index was"
+													   + " given. (charIndex:" + charIndex
+													   + ", Count:" + Count + ")." );
+
+			return this[ _Buffer.GetTextPosition(charIndex).Line ];
+		}
+
 		public ILineRange this[ int lineIndex ]
 		{
 			get
