@@ -442,6 +442,11 @@ namespace Sgry.Azuki
 			get{ return _Buffer.Lines; }
 		}
 
+		public ILineRangeList RawLines
+		{
+			get{ return _Buffer.RawLines; }
+		}
+
 		/// <summary>
 		/// Gets or sets currently inputted text.
 		/// </summary>

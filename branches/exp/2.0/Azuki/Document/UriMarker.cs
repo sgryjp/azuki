@@ -428,15 +428,13 @@ namespace Sgry.Azuki
 				throw new ArgumentOutOfRangeException( "startIndex" );
 
 			int index = startIndex;
-			int lineEnd;
 			char ch;
 
 			if( doc.Length <= startIndex )
 				return -1;
 
 			// prepare parsing
-			int lineHeadIndex = doc.GetLineHeadIndexFromCharIndex( startIndex );
-			lineEnd = lineHeadIndex + doc.GetLineLengthFromCharIndex( lineHeadIndex );
+			int lineEnd = doc.Lines.AtOffset( startIndex ).End;
 			DebugUtl.Assert( lineEnd <= doc.Length );
 
 		//local-part:

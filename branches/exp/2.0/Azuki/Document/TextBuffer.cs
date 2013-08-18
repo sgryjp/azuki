@@ -20,6 +20,7 @@ namespace Sgry.Azuki
 		readonly GapBuffer<DirtyState> _LDS; // line dirty states
 		readonly RleArray<uint> _MarkingBitMasks;
 		readonly LineRangeList _LineRangeList;
+		readonly RawLineRangeList _RawLineRangeList;
 		readonly IList<WeakReference> _TrackingRanges = new GapBuffer<WeakReference>( 32 );
 		#endregion
 
@@ -39,6 +40,7 @@ namespace Sgry.Azuki
 			};
 			_MarkingBitMasks = new RleArray<uint>();
 			_LineRangeList = new LineRangeList( this );
+			_RawLineRangeList = new RawLineRangeList( this );
 		}
 		#endregion
 
@@ -355,6 +357,11 @@ namespace Sgry.Azuki
 		public ILineRangeList Lines
 		{
 			get{ return _LineRangeList; }
+		}
+
+		public ILineRangeList RawLines
+		{
+			get{ return _RawLineRangeList; }
 		}
 
 		/// <exception cref="ArgumentOutOfRangeException"/>

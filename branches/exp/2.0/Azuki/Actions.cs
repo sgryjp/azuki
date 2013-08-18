@@ -308,18 +308,9 @@ namespace Sgry.Azuki
 
 				// if the user prefers to use cuting/copying without selection
 				// to cut/copy current line, change the begin/end position to line head/end
-				int lineIndex;
-				lineIndex = doc.GetLineIndexFromCharIndex( doc.CaretIndex );
-				text = doc.Lines[lineIndex].TextWithEolCode;
-				Plat.Inst.SetClipboardText( text, TextDataType.Line );
-				
-				int nextLineHeadIndex;
-				int lineHeadIndex = doc.GetLineHeadIndexFromCharIndex( doc.CaretIndex );
-				if( lineIndex+1 < doc.Lines.Count )
-					nextLineHeadIndex = doc.Lines[ lineIndex + 1 ].Begin;
-				else
-					nextLineHeadIndex = doc.Length;
-				doc.Replace( String.Empty, lineHeadIndex, nextLineHeadIndex );
+				var line = doc.RawLines.AtOffset( doc.CaretIndex );
+				Plat.Inst.SetClipboardText( line.Text, TextDataType.Line );
+				doc.Replace( String.Empty, line.Begin, line.End );
 			}
 			
 			if( ui.UsesStickyCaret == false )
@@ -373,12 +364,8 @@ namespace Sgry.Azuki
 
 				// if the user prefers to use cuting/copying without selection
 				// to cut/copy current line, change the begin/end position to line head/end
-				int lineIndex;
-				lineIndex = doc.GetLineIndexFromCharIndex( doc.CaretIndex );
-				
-				// get line content
-				text = doc.Lines[lineIndex].TextWithEolCode;
-				Plat.Inst.SetClipboardText( text, TextDataType.Line );
+				var line = doc.RawLines.AtOffset( doc.CaretIndex );
+				Plat.Inst.SetClipboardText( line.Text, TextDataType.Line );
 			}
 		}
 

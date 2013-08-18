@@ -102,6 +102,8 @@
     <Compile Include="LineRange.cs" />
     <Compile Include="LineRangeList.cs" />
     <Compile Include="Range.cs" />
+    <Compile Include="RawLineRange.cs" />
+    <Compile Include="RawLineRangeList.cs" />
     <Compile Include="TextPoint.cs" />
     <Compile Include="TextUtil.cs" />
     <Compile Include="Platform.cs" />
