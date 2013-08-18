@@ -547,48 +547,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets length of the logical line
-		/// which contains the specified char-index.
-		/// </summary>
-		/// <param name="charIndex">Length of the line which contains this index will be retrieved.</param>
-		/// <returns>Length of the specified logical line in character count.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		/// <remarks>
-		///   <para>
-		///   This method retrieves length of logical line.
-		///   Note that this method does not count EOL codes.
-		///   </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.GetLineLengthFromCharIndex(int,bool)">Document.GetLineLengthFromCharIndex(int, bool) method</seealso>
-		public int GetLineLengthFromCharIndex( int charIndex )
-		{
-			return GetLineLengthFromCharIndex( charIndex, false );
-		}
-
-		/// <summary>
-		/// Gets length of the logical line
-		/// which contains the specified char-index.
-		/// </summary>
-		/// <param name="charIndex">Length of the line which contains this index will be retrieved.</param>
-		/// <param name="includesEolCode">Whether EOL codes should be count or not.</param>
-		/// <returns>Length of the specified logical line in character count.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		/// <remarks>
-		///   <para>
-		///   This method retrieves length of logical line.
-		///   Note that this method does not count EOL codes.
-		///   </para>
-		/// </remarks>
-		public int GetLineLengthFromCharIndex( int charIndex, bool includesEolCode )
-		{
-			if( _Buffer.Count < charIndex )
-				throw new ArgumentOutOfRangeException( "charIndex" );
-
-			int lineIndex = GetLineIndexFromCharIndex( charIndex );
-			return GetLineRange( lineIndex, includesEolCode ).Length;
-		}
-
-		/// <summary>
 		/// Gets range of a specified logical line, excluding EOL code.
 		/// </summary>
 		/// <param name="lineIndex">Index of the line of which to get the length.</param>

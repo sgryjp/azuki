@@ -694,12 +694,7 @@ namespace Sgry.Azuki
 			}
 			else
 			{
-				StringBuilder buf = new StringBuilder( 64 );
-				for( int i=0; i<ui.TabWidth; i++ )
-				{
-					buf.Append( ' ' );
-				}
-				indentChars = buf.ToString();
+				indentChars = new String( ' ', ui.TabWidth );
 			}
 
 			// indent each lines
