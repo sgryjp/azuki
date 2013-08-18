@@ -836,8 +836,7 @@ namespace Sgry.Azuki
 			bool inSelection;
 
 			// calc position of head/end of this line
-			line = Document.Lines[ lineIndex ];
-			line.End += line.EolCode.Length;
+			line = Document.RawLines[ lineIndex ];
 
 			// draw line text
 			begin = line.Begin;

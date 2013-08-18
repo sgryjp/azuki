@@ -3,9 +3,12 @@ using System.Diagnostics;
 
 namespace Sgry.Azuki
 {
+	/// <summary>
+	/// Range of a text line, excluding its EOL code.
+	/// </summary>
 	internal class LineRange : Range, ILineRange
 	{
-		int _LineIndex;
+		protected int _LineIndex;
 
 		internal LineRange( TextBuffer buf, int begin, int end, int lineIndex )
 			: base( buf, begin, end )
@@ -22,17 +25,9 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets content of this line, with EOL code.
+		/// Gets EOL code which terminates this line.
 		/// </summary>
-		public string TextWithEolCode
-		{
-			get{ return base.Text + EolCode; }
-		}
-
-		/// <summary>
-		/// Gets EOL code trailing this line.
-		/// </summary>
-		public string EolCode
+		public virtual string EolCode
 		{
 			get
 			{

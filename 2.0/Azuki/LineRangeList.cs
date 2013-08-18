@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Sgry.Azuki
 {
 	internal class LineRangeList : ILineRangeList
 	{
-		readonly TextBuffer _Buffer;
+		protected readonly TextBuffer _Buffer;
 
 		internal LineRangeList( TextBuffer buf )
 		{
@@ -22,7 +23,7 @@ namespace Sgry.Azuki
 			return this[ _Buffer.GetTextPosition(charIndex).Line ];
 		}
 
-		public ILineRange this[ int lineIndex ]
+		public virtual ILineRange this[ int lineIndex ]
 		{
 			get
 			{
@@ -30,6 +31,9 @@ namespace Sgry.Azuki
 					throw new ArgumentOutOfRangeException();
 
 				var range = _Buffer.GetLineRange( lineIndex, false );
+				Debug.Assert( range.End == _Buffer.Count
+							  || _Buffer[range.End] == '\r'
+							  || _Buffer[range.End] == '\n' );
 				return new LineRange( _Buffer, range.Begin, range.End, lineIndex );
 			}
 		}
