@@ -541,7 +541,7 @@ namespace Sgry.Ann
 			if( AppConfig.MruFiles.TryGet(filePath, out mru) )
 			{
 				initialLine = Math.Min( mru.LineIndex, doc.Lines.Count-1 );
-				initialColumn = Math.Min( mru.ColumnIndex, doc.GetLineRange(initialLine).Length );
+				initialColumn = Math.Min( mru.ColumnIndex, doc.Lines[initialLine].Length );
 			}
 			AppConfig.MruFiles.Put( filePath );
 

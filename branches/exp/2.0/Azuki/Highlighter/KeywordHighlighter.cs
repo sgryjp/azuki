@@ -3,7 +3,6 @@
 //=========================================================
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.RegularExpressions;
 using Debug = System.Diagnostics.Debug;
 
@@ -1075,8 +1074,7 @@ namespace Sgry.Azuki.Highlighter
 			if( cache.lineBegin != lineHeadIndex )
 			{
 				cache.lineBegin = lineHeadIndex;
-				int lineIndex = doc.GetLineIndexFromCharIndex(cache.lineBegin);
-				cache.lineContent = doc.Lines[ lineIndex ].Text;
+				cache.lineContent = doc.Lines.AtOffset( cache.lineBegin ).Text;
 			}
 			int offset = begin - cache.lineBegin;
 

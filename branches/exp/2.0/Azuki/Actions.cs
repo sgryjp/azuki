@@ -677,7 +677,6 @@ namespace Sgry.Azuki
 			Document doc = ui.Document;
 			string indentChars;
 			int beginL, endL;
-			int beginLineHead, endLineHead;
 
 			// if read-only document, do nothing
 			if( doc.IsReadOnly )
@@ -707,23 +706,15 @@ namespace Sgry.Azuki
 			doc.BeginUndo();
 			for( int i=beginL; i<endL; i++ )
 			{
-				int lineHead = doc.Lines[i].Begin;
-				if( 0 < doc.GetLineRange(i).Length )
-					doc.Replace( indentChars, lineHead, lineHead );
+				var line = doc.Lines[i];
+				if( 0 < line.Length )
+					doc.Replace( indentChars, line.Begin, line.Begin );
 			}
 			doc.EndUndo();
 
 			// select whole range
-			beginLineHead = doc.Lines[ beginL ].Begin;
-			if( endL < doc.Lines.Count )
-			{
-				endLineHead = doc.Lines[ endL ].Begin;
-			}
-			else
-			{
-				endLineHead = doc.Length;
-			}
-			doc.SetSelection( beginLineHead, endLineHead );
+			doc.SetSelection( doc.Lines[beginL].Begin,
+							  doc.RawLines[ Math.Max(0, endL-1) ].End );
 		}
 
 		/// <summary>
@@ -733,7 +724,6 @@ namespace Sgry.Azuki
 		{
 			Document doc = ui.Document;
 			int beginL, endL;
-			int beginLineHead, endLineHead;
 
 			// if read-only document, do nothing
 			if( doc.IsReadOnly )
@@ -775,16 +765,8 @@ namespace Sgry.Azuki
 			doc.EndUndo();
 
 			// select whole range
-			beginLineHead = doc.Lines[ beginL ].Begin;
-			if( endL < doc.Lines.Count )
-			{
-				endLineHead = doc.Lines[ endL ].Begin;
-			}
-			else
-			{
-				endLineHead = doc.Length;
-			}
-			doc.SetSelection( beginLineHead, endLineHead );
+			doc.SetSelection( doc.Lines[beginL].Begin,
+							  doc.RawLines[ Math.Max(0, endL-1) ].End );
 		}
 		#endregion
 

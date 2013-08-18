@@ -437,11 +437,19 @@ namespace Sgry.Azuki
 			get{ return _Buffer; }
 		}
 
+		/// <summary>
+		/// Gets collection of line ranges, which does not include EOL code.
+		/// </summary>
+		/// <seealso cref="Document.RawLines"/>
 		public ILineRangeList Lines
 		{
 			get{ return _Buffer.Lines; }
 		}
 
+		/// <summary>
+		/// Gets collection of line ranges, which includes EOL code.
+		/// </summary>
+		/// <seealso cref="Document.Lines"/>
 		public ILineRangeList RawLines
 		{
 			get{ return _Buffer.RawLines; }

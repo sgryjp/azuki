@@ -102,13 +102,9 @@ namespace Sgry.Azuki
 			StringBuilder indentChars = new StringBuilder( 64 );
 			int newCaretIndex;
 			int selBegin, selEnd;
-			int selBeginL;
 			
 			doc.GetSelection( out selBegin, out selEnd );
-			selBeginL = doc.GetLineIndexFromCharIndex( selBegin );
-
-			// calculate line head and line end
-			IRange line = doc.Lines[ selBeginL ];
+			var line = doc.Lines.AtOffset( selBegin );
 
 			// user hit Enter key?
 			if( TextUtil.IsEolChar(ch) )
@@ -181,9 +177,6 @@ namespace Sgry.Azuki
 			// user hit '}'?
 			else if( ch == '}' )
 			{
-				int pairIndex, pairLineHead, pairLineEnd;
-				int pairLineIndex;
-
 				// ensure this line contains only white spaces
 				for( int i=line.Begin; i<line.End; i++ )
 				{
@@ -198,28 +191,26 @@ namespace Sgry.Azuki
 				}
 
 				// find the paired open bracket
-				pairIndex = Utl.FindPairedBracket_Backward( doc, selBegin, 0, '}', '{' );
+				var pairIndex = Utl.FindPairedBracket_Backward( doc, selBegin, 0, '}', '{' );
 				if( pairIndex == -1 )
 				{
 					return false; // no pair exists. nothing to do
 				}
-				
-				// get indent char of the line where the pair exists
-				pairLineIndex = ui.GetLineIndexFromCharIndex( pairIndex );
-				pairLineHead = ui.GetLineHeadIndex( pairLineIndex );
-				pairLineEnd = pairLineHead + ui.GetLineLength( pairLineIndex );
-				for( int i=pairLineHead; i<pairLineEnd; i++ )
+
+				// Get indent chars from a line containing the pair
+				var pairedLine = doc.Lines.AtOffset( pairIndex );
+				for( int i=pairedLine.Begin; i<pairedLine.End; i++ )
 				{
 					if( doc[i] == ' ' || doc[i] == '\t' )
 						indentChars.Append( doc[i] );
 					else
 						break;
 				}
-				
+
 				// replace indent chars of current line
 				indentChars.Append( '}' );
 				doc.Replace( indentChars.ToString(), line.Begin, selBegin );
-				
+
 				return true;
 			}
 

@@ -426,7 +426,7 @@ namespace Sgry.Azuki.Highlighter
 			openerEndIndex = openerIndex + pair.opener.Length;
 			if( pair.closer == null )
 			{
-				int lineEndIndex = GetLineEndIndexFromCharIndex( doc, openerEndIndex );
+				int lineEndIndex = doc.RawLines.AtOffset( openerEndIndex ).End;
 				return Math.Min( lineEndIndex, endIndex );
 			}
 
@@ -475,18 +475,6 @@ namespace Sgry.Azuki.Highlighter
 			}
 
 			return -1;
-		}
-
-		/// <summary>
-		/// Gets index of the end position of the line containing given index.
-		/// </summary>
-		public static int GetLineEndIndexFromCharIndex( Document doc, int index )
-		{
-			int lineIndex = doc.GetLineIndexFromCharIndex( index );
-			if( lineIndex+1 < doc.Lines.Count )
-				return doc.Lines[ lineIndex+1 ].Begin;
-			else
-				return doc.Length;
 		}
 
 		/// <summary>
