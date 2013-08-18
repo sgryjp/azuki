@@ -77,8 +77,6 @@ namespace Sgry.Azuki
 			Debug.Assert( 0 <= logicalLineIndex && logicalLineIndex <= doc.Lines.Count,
 				"logicalLineIndex is out of valid range. (value:"+logicalLineIndex+", doc.Lines.Count:"+doc.Lines.Count+")" );
 
-			int lineHead;
-			string line;
 			MatchCollection matches;
 			int count = 0;
 			int lastMarkedIndex;
@@ -86,9 +84,8 @@ namespace Sgry.Azuki
 			if( logicalLineIndex == doc.Lines.Count )
 				return false;
 
-			lineHead = doc.Lines[ logicalLineIndex ].Begin;
-			line = doc.Lines[ logicalLineIndex ].Text;
-			lastMarkedIndex = lineHead;
+			var line = doc.Lines[ logicalLineIndex ];
+			lastMarkedIndex = line.Begin;
 			foreach( WatchPattern wp in doc.WatchPatterns )
 			{
 				// do nothing if invalid pattern was set
@@ -99,7 +96,7 @@ namespace Sgry.Azuki
 				}
 
 				// mark all matched parts
-				matches = wp.Pattern.Matches( line );
+				matches = wp.Pattern.Matches( line.Text );
 				foreach( Match match in matches )
 				{
 					// skip if length of this matched part is zero
@@ -109,22 +106,20 @@ namespace Sgry.Azuki
 
 					// unmark before the part
 					count += doc.Unmark( lastMarkedIndex,
-										 lineHead + match.Index,
+										 line.Begin + match.Index,
 										 wp.MarkingID ) ? 1 : 0;
 
 					// mark the part
-					count += doc.Mark( lineHead + match.Index,
-									   lineHead + match.Index + match.Length,
+					count += doc.Mark( line.Begin + match.Index,
+									   line.Begin + match.Index + match.Length,
 									   wp.MarkingID ) ? 1 : 0;
 
 					// remember lastly marked position
-					lastMarkedIndex = lineHead + match.Index + match.Length;
+					lastMarkedIndex = line.Begin + match.Index + match.Length;
 				}
 
 				// unmark remaining part of the line
-				count += doc.Unmark( lastMarkedIndex,
-									 lineHead + line.Length,
-									 wp.MarkingID ) ? 1 : 0;
+				count += doc.Unmark( lastMarkedIndex, line.End, wp.MarkingID ) ? 1 : 0;
 			}
 
 			return (0 < count);

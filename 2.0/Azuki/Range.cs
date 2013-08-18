@@ -3,11 +3,13 @@
 namespace Sgry.Azuki
 {
 	/// <summary>
-	/// Represents a range to describe where a portion of text begins from and where it ends
+	/// Basic range.
 	/// </summary>
 	public class Range : IRange
 	{
 		readonly protected TextBuffer _Buffer;
+		protected DateTime _CacheTimestamp = DateTime.MinValue;
+		protected string _CachedText;
 
 		public Range()
 			: this(null, 0, 0)
@@ -52,7 +54,13 @@ namespace Sgry.Azuki
 					throw new InvalidOperationException( "A range associated with no text buffer"
 														 + " cannot extract a substring." );
 
-				return _Buffer.GetText(this);
+				if( _CacheTimestamp < _Buffer.LastModifiedTime )
+				{
+					_CachedText = _Buffer.GetText( this );
+					_CacheTimestamp = _Buffer.LastModifiedTime;
+				}
+
+				return _CachedText;
 			}
 		}
 

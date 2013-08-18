@@ -363,14 +363,12 @@ namespace Sgry.Azuki
 				{
 					// if the replacement changed screen line count,
 					// invalidate this *logical* line
-					int logLine;
 					int logLineEnd;
 					Point logLineEndPos;
 					int logLineBottom;
 
 					// get position of the char at the end of the logical line
-					logLine = doc.GetLineIndexFromCharIndex( e.Index );
-					logLineEnd = doc.Lines[ logLine ].End;
+					logLineEnd = doc.Lines.AtOffset( e.Index ).End;
 					logLineEndPos = GetVirPosFromIndex( g, logLineEnd );
 					VirtualToScreen( ref logLineEndPos );
 					logLineBottom = logLineEndPos.Y - (LinePadding >> 1);
@@ -547,7 +545,6 @@ namespace Sgry.Azuki
 			int shiftBeginL;
 			int diff = newText.Length - oldText.Length;
 			int replaceEnd;
-			int preTargetEndL;
 
 			// calculate where to recalculate PLHI from
 			int firstDirtyLineIndex = TextUtil.GetLineIndexFromCharIndex( PLHI, index );
@@ -577,15 +574,7 @@ namespace Sgry.Azuki
 			// [phase 2] calculate range of indexes to be re-calculated
 			reCalcBegin = PLHI[ firstDirtyLineIndex ];
 			replaceEnd = index + newText.Length;
-			preTargetEndL = doc.GetLineIndexFromCharIndex( replaceEnd );
-			if( preTargetEndL+1 < doc.Lines.Count )
-			{
-				reCalcEnd = doc.Lines[ preTargetEndL+1 ].Begin;
-			}
-			else
-			{
-				reCalcEnd = doc.Length;
-			}
+			reCalcEnd = doc.RawLines.AtOffset( replaceEnd ).End;
 #			if PLHI_DEBUG
 			Console.Error.WriteLine("[2] rc:[{0}, {1})", reCalcBegin, reCalcEnd);
 #			endif

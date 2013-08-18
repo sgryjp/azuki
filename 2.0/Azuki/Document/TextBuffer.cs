@@ -41,6 +41,7 @@ namespace Sgry.Azuki
 			_MarkingBitMasks = new RleArray<uint>();
 			_LineRangeList = new LineRangeList( this );
 			_RawLineRangeList = new RawLineRangeList( this );
+			LastModifiedTime = DateTime.Now;
 		}
 		#endregion
 
@@ -668,7 +669,8 @@ namespace Sgry.Azuki
 
 		#region Utilities
 		/// <summary>
-		/// Gets when this buffer was edited lastly.
+		/// Gets when this buffer was edited lastly. Note that changing meta data such as marking
+		/// is not regarded as an 'edit' here.
 		/// </summary>
 		public DateTime LastModifiedTime
 		{
