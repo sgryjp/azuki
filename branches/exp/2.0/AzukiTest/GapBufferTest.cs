@@ -1,113 +1,76 @@
-#if TEST
 using System;
+using NUnit.Framework;
 
 namespace Sgry.Azuki.Test
 {
-	static class GapBufferTest
+	[TestFixture]
+	public class GapBufferTest
 	{
-		public static void Test()
-		{
-			int testNum = 0;
-			Console.WriteLine( "[Test for Azuki.GapBuffer]" );
-
-			// init
-			Console.WriteLine( "test {0} - initial state", ++testNum );
-			TestUtl.Do( Test_Init );
-
-			// add
-			Console.WriteLine( "test {0} - Add()", ++testNum );
-			TestUtl.Do( Test_Add );
-
-			// clear
-			Console.WriteLine( "test {0} - Clear()", ++testNum );
-			TestUtl.Do( Test_Clear );
-
-			// Insert
-			Console.WriteLine( "test {0} - Insert()", ++testNum );
-			TestUtl.Do( Test_Insert_One );
-			TestUtl.Do( Test_Insert_Array );
-
-			// Replace
-			Console.WriteLine( "test {0} - Replace()", ++testNum );
-			TestUtl.Do( Test_Replace );
-
-			// RemoveRange
-			Console.WriteLine( "test {0} - RemoveRange()", ++testNum );
-			TestUtl.Do( Test_RemoveRange );
-			
-			// CopyTo
-			Console.WriteLine( "test {0} - CopyTo()", ++testNum );
-			TestUtl.Do( Test_CopyTo );
-
-			// Binary search
-			Console.WriteLine( "test {0} - Binary search()", ++testNum );
-			TestUtl.Do( Test_BinarySearch );
-
-			Console.WriteLine( "done." );
-			Console.WriteLine();
-		}
-
-		static void Test_Init()
+		[Test]
+		public void Init()
 		{
 			GapBuffer<char> chars = new GapBuffer<char>( 5, 8 );
 
-			TestUtl.AssertEquals( 0, chars.Count );
+			Assert.AreEqual( 0, chars.Count );
 			for( int x=0; x<10; x++ )
 			{
-				TestUtl.AssertThrows<AssertException>( delegate{
+				Assert.Throws<AssertException>( delegate{
 					chars.GetAt( x );
 				} );
-				TestUtl.AssertThrows<AssertException>( delegate{
+				Assert.Throws<AssertException>( delegate{
 					chars.SetAt( '!', x );
 				} );
 			}
 		}
 
-		static void Test_Add()
+		[Test]
+		public void Add()
 		{
 			GapBuffer<char> chars = new GapBuffer<char>( 5, 8 );
 
 			chars.Add( 'a' );
-			TestUtl.AssertEquals( 1, chars.Count );
-			TestUtl.AssertEquals( 'a', chars.GetAt(0) );
+			Assert.AreEqual( 1, chars.Count );
+			Assert.AreEqual( 'a', chars.GetAt(0) );
 			chars.SetAt( 'b', 0 );
-			TestUtl.AssertEquals( 'b', chars.GetAt(0) );
-			TestUtl.AssertThrows<AssertException>( delegate{
+			Assert.AreEqual( 'b', chars.GetAt(0) );
+			Assert.Throws<AssertException>( delegate{
 				chars.GetAt( 1 );
 			} );
 		}
 
-		static void Test_Clear()
+		[Test]
+		public void Clear()
 		{
 			GapBuffer<char> chars = new GapBuffer<char>( 5, 8 );
 
 			chars.Clear();
-			TestUtl.AssertEquals( 0, chars.Count );
+			Assert.AreEqual( 0, chars.Count );
 			for( int x=0; x<10; x++ )
 			{
-				TestUtl.AssertThrows<AssertException>( delegate{
+				Assert.Throws<AssertException>( delegate{
 					chars.GetAt( x );
 				} );
-				TestUtl.AssertThrows<AssertException>( delegate{
+				Assert.Throws<AssertException>( delegate{
 					chars.SetAt( '!', x );
 				} );
 			}
 
 			chars.Add( "hoge".ToCharArray() );
 			chars.Clear();
-			TestUtl.AssertEquals( 0, chars.Count );
+			Assert.AreEqual( 0, chars.Count );
 			for( int x=0; x<10; x++ )
 			{
-				TestUtl.AssertThrows<AssertException>( delegate{
+				Assert.Throws<AssertException>( delegate{
 					chars.GetAt( x );
 				} );
-				TestUtl.AssertThrows<AssertException>( delegate{
+				Assert.Throws<AssertException>( delegate{
 					chars.SetAt( '!', x );
 				} );
 			}
 		}
 
-		static void Test_Insert_One()
+		[Test]
+		public void Insert_One()
 		{
 			const string InitData = "hogepiyo";
 			GapBuffer<char> sary = new GapBuffer<char>( 5, 8 );
@@ -116,12 +79,12 @@ namespace Sgry.Azuki.Test
 			sary.Clear();
 			sary.Add( InitData.ToCharArray() );
 			sary.Insert( 3, '\0' );
-			TestUtl.AssertEquals( "hog\0epiyo", ToString(sary) );
+			Assert.AreEqual( "hog\0epiyo", ToString(sary) );
 
 			// before head
 			sary.Clear();
 			sary.Add( InitData.ToCharArray() );
-			TestUtl.AssertThrows<AssertException>( delegate{
+			Assert.Throws<AssertException>( delegate{
 				sary.Insert( -1, 'G' );
 			} );
 
@@ -129,32 +92,33 @@ namespace Sgry.Azuki.Test
 			sary.Clear();
 			sary.Add( InitData.ToCharArray() );
 			sary.Insert( 0, 'G' );
-			TestUtl.AssertEquals( 9, sary.Count );
-			TestUtl.AssertEquals( "Ghogepiyo", ToString(sary) );
+			Assert.AreEqual( 9, sary.Count );
+			Assert.AreEqual( "Ghogepiyo", ToString(sary) );
 
 			// middle
 			sary.Clear();
 			sary.Add( InitData.ToCharArray() );
 			sary.Insert( 4, 'G' );
-			TestUtl.AssertEquals( 9, sary.Count );
-			TestUtl.AssertEquals( "hogeGpiyo", ToString(sary) );
+			Assert.AreEqual( 9, sary.Count );
+			Assert.AreEqual( "hogeGpiyo", ToString(sary) );
 
 			// end
 			sary.Clear();
 			sary.Add( InitData.ToCharArray() );
 			sary.Insert( 8, 'G' );
-			TestUtl.AssertEquals( 9, sary.Count );
-			TestUtl.AssertEquals( "hogepiyoG", ToString(sary) );
+			Assert.AreEqual( 9, sary.Count );
+			Assert.AreEqual( "hogepiyoG", ToString(sary) );
 
 			// after end
 			sary.Clear();
 			sary.Add( InitData.ToCharArray() );
-			TestUtl.AssertThrows<AssertException>( delegate{
+			Assert.Throws<AssertException>( delegate{
 				sary.Insert( 9, 'G' );
 			} );
 		}
 
-		static void Test_Insert_Array()
+		[Test]
+		public void Insert_Array()
 		{
 			const string InitData = "hogepiyo";
 			GapBuffer<char> sary = new GapBuffer<char>( 5, 8 );
@@ -162,20 +126,20 @@ namespace Sgry.Azuki.Test
 			// null array
 			sary.Clear();
 			sary.Add( InitData.ToCharArray() );
-			TestUtl.AssertThrows<AssertException>( delegate{
+			Assert.Throws<AssertException>( delegate{
 				sary.Insert( 0, null );
 			} );
-			
+
 			// empty array
 			sary.Clear();
 			sary.Add( InitData.ToCharArray() );
 			sary.Insert( 0, "".ToCharArray() );
-			TestUtl.AssertEquals( "hogepiyo", ToString(sary) );
+			Assert.AreEqual( "hogepiyo", ToString(sary) );
 
 			// before head
 			sary.Clear();
 			sary.Add( InitData.ToCharArray() );
-			TestUtl.AssertThrows<AssertException>( delegate{
+			Assert.Throws<AssertException>( delegate{
 				sary.Insert( -1, "FOO".ToCharArray() );
 			} );
 
@@ -183,32 +147,33 @@ namespace Sgry.Azuki.Test
 			sary.Clear();
 			sary.Add( InitData.ToCharArray() );
 			sary.Insert( 0, "FOO".ToCharArray() );
-			TestUtl.AssertEquals( 11, sary.Count );
-			TestUtl.AssertEquals( "FOOhogepiyo", ToString(sary) );
+			Assert.AreEqual( 11, sary.Count );
+			Assert.AreEqual( "FOOhogepiyo", ToString(sary) );
 
 			// middle
 			sary.Clear();
 			sary.Add( InitData.ToCharArray() );
 			sary.Insert( 4, "FOO".ToCharArray() );
-			TestUtl.AssertEquals( 11, sary.Count );
-			TestUtl.AssertEquals( "hogeFOOpiyo", ToString(sary) );
+			Assert.AreEqual( 11, sary.Count );
+			Assert.AreEqual( "hogeFOOpiyo", ToString(sary) );
 
 			// end
 			sary.Clear();
 			sary.Add( InitData.ToCharArray() );
 			sary.Insert( 8, "FOO".ToCharArray() );
-			TestUtl.AssertEquals( 11, sary.Count );
-			TestUtl.AssertEquals( "hogepiyoFOO", ToString(sary) );
+			Assert.AreEqual( 11, sary.Count );
+			Assert.AreEqual( "hogepiyoFOO", ToString(sary) );
 
 			// after end
 			sary.Clear();
 			sary.Add( InitData.ToCharArray() );
-			TestUtl.AssertThrows<AssertException>( delegate{
+			Assert.Throws<AssertException>( delegate{
 				sary.Insert( 9, "FOO".ToCharArray() );
 			} );
 		}
 
-		static void Test_Replace()
+		[Test]
+		public void Replace()
 		{
 			const string InitData = "hogepiyo";
 			GapBuffer<char> sary = new GapBuffer<char>( 5, 8 );
@@ -218,7 +183,7 @@ namespace Sgry.Azuki.Test
 				// before head
 				sary.Clear();
 				sary.Add( InitData.ToCharArray() );
-				TestUtl.AssertThrows<AssertException>( delegate{
+				Assert.Throws<AssertException>( delegate{
 					sary.Replace( -1, "000".ToCharArray(), 0, 2 );
 				} );
 
@@ -226,27 +191,27 @@ namespace Sgry.Azuki.Test
 				sary.Clear();
 				sary.Add( InitData.ToCharArray() );
 				sary.Replace( 0, "000".ToCharArray(), 0, 2 );
-				TestUtl.AssertEquals( "00gepiyo", ToString(sary) );
+				Assert.AreEqual( "00gepiyo", ToString(sary) );
 
 				// middle
 				sary.Clear();
 				sary.Add( InitData.ToCharArray() );
 				sary.Replace( 4, "000".ToCharArray(), 0, 2 );
-				TestUtl.AssertEquals( "hoge00yo", ToString(sary) );
+				Assert.AreEqual( "hoge00yo", ToString(sary) );
 
 				// end
 				sary.Clear();
 				sary.Add( InitData.ToCharArray() );
 				sary.Replace( 6, "000".ToCharArray(), 0, 2 );
-				TestUtl.AssertEquals( "hogepi00", ToString(sary) );
+				Assert.AreEqual( "hogepi00", ToString(sary) );
 
 				// after end
 				sary.Clear();
 				sary.Add( InitData.ToCharArray() );
-				TestUtl.AssertThrows<AssertException>( delegate{
+				Assert.Throws<AssertException>( delegate{
 					sary.Replace( 7, "000".ToCharArray(), 0, 2 );
 				} );
-				TestUtl.AssertThrows<AssertException>( delegate{
+				Assert.Throws<AssertException>( delegate{
 					sary.Replace( 8, "000".ToCharArray(), 0, 2 );
 				} );
 			}
@@ -254,36 +219,37 @@ namespace Sgry.Azuki.Test
 			// value array
 			{
 				// giving null
-				TestUtl.AssertThrows<AssertException>( delegate{
+				Assert.Throws<AssertException>( delegate{
 					sary.Replace( 0, null, 0, 1 );
 				} );
 
 				// empty array
 				sary.Replace( 0, "".ToCharArray(), 0, 0 );
-				TestUtl.AssertEquals( "hogepiyo", ToString(sary) );
+				Assert.AreEqual( "hogepiyo", ToString(sary) );
 
 				// empty range
 				sary.Replace( 0, "000".ToCharArray(), 0, 0 );
-				TestUtl.AssertEquals( "hogepiyo", ToString(sary) );
+				Assert.AreEqual( "hogepiyo", ToString(sary) );
 
 				// invalid range (reversed)
-				TestUtl.AssertThrows<AssertException>( delegate{
+				Assert.Throws<AssertException>( delegate{
 					sary.Replace( 0, "000".ToCharArray(), 1, 0 );
 				} );
 
 				// invalid range (before head)
-				TestUtl.AssertThrows<AssertException>( delegate{
+				Assert.Throws<AssertException>( delegate{
 					sary.Replace( 0, "000".ToCharArray(), -1, 0 );
 				} );
 
 				// invalid range (after head)
-				TestUtl.AssertThrows<AssertException>( delegate{
+				Assert.Throws<AssertException>( delegate{
 					sary.Replace( 0, "000".ToCharArray(), 3, 4 );
 				} );
 			}
 		}
 
-		static void Test_RemoveRange()
+		[Test]
+		public void RemoveRange()
 		{
 			const string InitData = "hogepiyo";
 			GapBuffer<char> chars = new GapBuffer<char>( 5, 8 );
@@ -291,56 +257,57 @@ namespace Sgry.Azuki.Test
 			// case 2 (moving gap to buffer head)
 			chars.Add( InitData.ToCharArray() );
 			chars.RemoveAt( 2 );
-			TestUtl.AssertEquals( 7, chars.Count );
-			TestUtl.AssertEquals( "hoepiyo", ToString(chars) );
-			TestUtl.AssertThrows<AssertException>( delegate{
+			Assert.AreEqual( 7, chars.Count );
+			Assert.AreEqual( "hoepiyo", ToString(chars) );
+			Assert.Throws<AssertException>( delegate{
 				chars.GetAt( 7 );
 			} );
-			
+
 			// case 1 (moving gap to buffer end)
 			chars.Clear();
 			chars.Add( InitData.ToCharArray() );
 			chars.RemoveRange( 5, 7 );
-			TestUtl.AssertEquals( 6, chars.Count );
-			TestUtl.AssertEquals( "hogepo", ToString(chars) );
-			TestUtl.AssertThrows<AssertException>( delegate{
+			Assert.AreEqual( 6, chars.Count );
+			Assert.AreEqual( "hogepo", ToString(chars) );
+			Assert.Throws<AssertException>( delegate{
 				chars.GetAt( 6 );
 			} );
-			
+
 			// before head to middle
 			chars.Clear();
 			chars.Add( InitData.ToCharArray() );
-			TestUtl.AssertThrows<AssertException>( delegate{
-				chars.RemoveRange(-1, 2);
+			Assert.Throws<AssertException>( delegate{
+				chars.RemoveRange( -1, 2 );
 			} );
-			
+
 			// head to middle
 			chars.Clear();
 			chars.Add( InitData.ToCharArray() );
 			chars.RemoveRange( 0, 2 );
-			TestUtl.AssertEquals( "gepiyo", ToString(chars) );
-			
+			Assert.AreEqual( "gepiyo", ToString(chars) );
+
 			// middle to middle
 			chars.Clear();
 			chars.Add( InitData.ToCharArray() );
 			chars.RemoveRange( 2, 5 );
-			TestUtl.AssertEquals( "hoiyo", ToString(chars) );
-			
+			Assert.AreEqual( "hoiyo", ToString(chars) );
+
 			// middle to end
 			chars.Clear();
 			chars.Add( InitData.ToCharArray() );
 			chars.RemoveRange( 5, 8 );
-			TestUtl.AssertEquals( "hogep", ToString(chars) );
-			
+			Assert.AreEqual( "hogep", ToString(chars) );
+
 			// middle to after end
 			chars.Clear();
 			chars.Add( InitData.ToCharArray() );
-			TestUtl.AssertThrows<AssertException>( delegate{
+			Assert.Throws<AssertException>( delegate{
 				chars.RemoveRange( 5, 9 );
 			} );
 		}
 
-		static void Test_CopyTo()
+		[Test]
+		public void CopyTo()
 		{
 			const string initBufContent = "123456";
 			GapBuffer<char> sary = new GapBuffer<char>( 5, 8 );
@@ -349,28 +316,28 @@ namespace Sgry.Azuki.Test
 
 			// before head to middle
 			buf = initBufContent.ToCharArray();
-			TestUtl.AssertThrows<AssertException>( delegate{
+			Assert.Throws<AssertException>( delegate{
 				sary.CopyTo( -1, 5, buf );
 			} );
 
 			// begin to middle
 			buf = initBufContent.ToCharArray();
 			sary.CopyTo( 0, 5, buf );
-			TestUtl.AssertEquals( "hogep6", new String(buf) );
+			Assert.AreEqual( "hogep6", new String(buf) );
 
 			// middle to middle
 			buf = initBufContent.ToCharArray();
 			sary.CopyTo( 1, 5, buf );
-			TestUtl.AssertEquals( "ogep56", new String(buf) );
+			Assert.AreEqual( "ogep56", new String(buf) );
 
 			// middle to end
 			buf = initBufContent.ToCharArray();
 			sary.CopyTo( 5, 8, buf );
-			TestUtl.AssertEquals( "iyo456", new String(buf) );
+			Assert.AreEqual( "iyo456", new String(buf) );
 
 			// end to after end
 			buf = initBufContent.ToCharArray();
-			TestUtl.AssertThrows<AssertException>( delegate{
+			Assert.Throws<AssertException>( delegate{
 				sary.CopyTo( 5, 9, buf );
 			} );
 
@@ -378,52 +345,55 @@ namespace Sgry.Azuki.Test
 			MoveGap( sary, 2 );
 			buf = initBufContent.ToCharArray();
 			sary.CopyTo( 0, 1, buf );
-			TestUtl.AssertEquals( "h23456", new String(buf) );
+			Assert.AreEqual( "h23456", new String(buf) );
 
 			// Range including the gap
 			MoveGap( sary, 2 );
 			buf = initBufContent.ToCharArray();
 			sary.CopyTo( 0, 4, buf );
-			TestUtl.AssertEquals( "hoge56", new String(buf) );
+			Assert.AreEqual( "hoge56", new String(buf) );
 
 			// Range after the gap
 			MoveGap( sary, 2 );
 			buf = initBufContent.ToCharArray();
 			sary.CopyTo( 4, 8, buf );
-			TestUtl.AssertEquals( "piyo56", new String(buf) );
+			Assert.AreEqual( "piyo56", new String(buf) );
 		}
 
-		static void Test_BinarySearch()
+		[Test]
+		public void BinarySearch()
 		{
 			GapBuffer<int> ary = new GapBuffer<int>( 4 );
 
 			ary.Clear();
-			TestUtl.AssertEquals( -1, ary.BinarySearch(1234) );
+			Assert.AreEqual( -1, ary.BinarySearch(1234) );
 
 			ary.Clear();
 			ary.Add( 3 );
-			TestUtl.AssertEquals( ~(0), ary.BinarySearch(2) );
-			TestUtl.AssertEquals(  (0), ary.BinarySearch(3) );
-			TestUtl.AssertEquals( ~(1), ary.BinarySearch(4) );
+			Assert.AreEqual( ~(0), ary.BinarySearch(2) );
+			Assert.AreEqual(  (0), ary.BinarySearch(3) );
+			Assert.AreEqual( ~(1), ary.BinarySearch(4) );
 
 			ary.Clear();
 			ary.Add( 1, 3 );
-			TestUtl.AssertEquals( ~(0), ary.BinarySearch(0) );
-			TestUtl.AssertEquals(  (0), ary.BinarySearch(1) );
-			TestUtl.AssertEquals( ~(1), ary.BinarySearch(2) );
-			TestUtl.AssertEquals(  (1), ary.BinarySearch(3) );
-			TestUtl.AssertEquals( ~(2), ary.BinarySearch(4) );
+			Assert.AreEqual( ~(0), ary.BinarySearch(0) );
+			Assert.AreEqual(  (0), ary.BinarySearch(1) );
+			Assert.AreEqual( ~(1), ary.BinarySearch(2) );
+			Assert.AreEqual(  (1), ary.BinarySearch(3) );
+			Assert.AreEqual( ~(2), ary.BinarySearch(4) );
 
+			// If Comparer<T>.Default.Compare cannot handle the element type, the method must
+			// throws ArgumentException.
 			var points = new GapBuffer<DummyData>( 4 );
 			points.Add( new DummyData() );
-			TestUtl.AssertThrows<ArgumentException>( delegate{
+			Assert.Throws<ArgumentException>( delegate{
 				points.BinarySearch( new DummyData() );
 			} );
 		}
 
-		static string ToString( GapBuffer<char> sary )
+		static string ToString( GapBuffer<char> gb )
 		{
-			return new string( sary.ToArray() );
+			return new string( gb.ToArray() );
 		}
 
 		static void MoveGap( GapBuffer<char> sary, int index )
@@ -435,4 +405,3 @@ namespace Sgry.Azuki.Test
 		{}
 	}
 }
-#endif

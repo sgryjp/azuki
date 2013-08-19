@@ -14,7 +14,7 @@ namespace Sgry.Azuki
 	/// <summary>
 	/// The array structure with 'gap' for efficient insertion/deletion.
 	/// </summary>
-	class GapBuffer<T> : IList<T>
+	internal class GapBuffer<T> : IList<T>
 	{
 		#region Fields
 		protected T[] _Data = null;
