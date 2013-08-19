@@ -428,7 +428,7 @@ namespace Sgry
 	}
 
 	#region Minimal Testing Framework
-#	if DEBUG
+#	if TEST
 	/// <summary>
 	/// Test utility.
 	/// </summary>

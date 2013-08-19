@@ -16,9 +16,7 @@ namespace Sgry.Azuki
 	/// </summary>
 	class RleArray<T> : IList<T>
 	{
-#		if TEST
-		internal
-#		endif
+		internal // only for test
 		GapBuffer<Node> _Nodes;
 		int _TotalCount = 0;
 

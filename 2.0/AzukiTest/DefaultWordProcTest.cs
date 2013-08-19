@@ -1,29 +1,13 @@
-﻿#if TEST
-using System;
+﻿using System;
+using NUnit.Framework;
 
 namespace Sgry.Azuki.Test
 {
-	class DefaultWordProcTest
+	[TestFixture]
+	public class DefaultWordProcTest
 	{
-		public static void Test()
-		{
-			int testNum = 0;
-			Console.WriteLine( "[Test for DefaultWordProc]" );
-
-			Console.WriteLine( "test {0} - WordDetection", ++testNum );
-			TestUtl.Do( Test_WordDetection );
-
-			Console.WriteLine( "test {0} - Kinsoku shori", ++testNum );
-			TestUtl.Do( Test_Kinsoku );
-
-			Console.WriteLine( "test {0} - Kinsoku shori (special cases)", ++testNum );
-			TestUtl.Do( Test_KinsokuSpecial );
-
-			Console.WriteLine( "done." );
-			Console.WriteLine();
-		}
-
-		static void Test_WordDetection()
+		[Test]
+		public void WordDetection()
 		{
 			Document doc = new Document();
 			DefaultWordProc wordProc = new DefaultWordProc();
@@ -43,32 +27,32 @@ namespace Sgry.Azuki.Test
 					{
 						int actual = wordProc.NextWordStart( doc, i );
 						if( left == right )
-							TestUtl.AssertEquals( expectedForSameClass[i], actual );
+							Assert.AreEqual( expectedForSameClass[i], actual );
 						else
-							TestUtl.AssertEquals( expected[i], actual );
+							Assert.AreEqual( expected[i], actual );
 					}
 				}
 			}
-			TestUtl.AssertEquals( doc.Length, wordProc.NextWordStart(doc, doc.Length) );
+			Assert.AreEqual( doc.Length, wordProc.NextWordStart(doc, doc.Length) );
 
 			// combining character
 			doc.Text = ".a\x0300.";
-			TestUtl.AssertEquals( 1, wordProc.NextWordStart(doc, 1) );
-			TestUtl.AssertEquals( 3, wordProc.NextWordStart(doc, 2) );
-			TestUtl.AssertEquals( 3, wordProc.NextWordStart(doc, 3) );
+			Assert.AreEqual( 1, wordProc.NextWordStart(doc, 1) );
+			Assert.AreEqual( 3, wordProc.NextWordStart(doc, 2) );
+			Assert.AreEqual( 3, wordProc.NextWordStart(doc, 3) );
 
 			// combining character
 			doc.Text = "aa\x0300a";
-			TestUtl.AssertEquals( 4, wordProc.NextWordStart(doc, 1) );
-			TestUtl.AssertEquals( 4, wordProc.NextWordStart(doc, 2) );
-			TestUtl.AssertEquals( 4, wordProc.NextWordStart(doc, 3) );
-			TestUtl.AssertThrows<ArgumentNullException>( delegate{
+			Assert.AreEqual( 4, wordProc.NextWordStart(doc, 1) );
+			Assert.AreEqual( 4, wordProc.NextWordStart(doc, 2) );
+			Assert.AreEqual( 4, wordProc.NextWordStart(doc, 3) );
+			Assert.Throws<ArgumentNullException>( delegate{
 				wordProc.NextWordStart( null, 0 );
 			} );
-			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+			Assert.Throws<ArgumentOutOfRangeException>( delegate{
 				wordProc.NextWordStart( doc, -1 );
 			} );
-			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+			Assert.Throws<ArgumentOutOfRangeException>( delegate{
 				wordProc.NextWordStart( doc, doc.Length+1 );
 			} );
 
@@ -84,32 +68,32 @@ namespace Sgry.Azuki.Test
 					{
 						int actual = wordProc.NextWordEnd( doc, i );
 						if( left == right )
-							TestUtl.AssertEquals( expectedForSameClass[i], actual );
+							Assert.AreEqual( expectedForSameClass[i], actual );
 						else
-							TestUtl.AssertEquals( expected[i], actual );
+							Assert.AreEqual( expected[i], actual );
 					}
 				}
 			}
-			TestUtl.AssertEquals( doc.Length, wordProc.NextWordEnd(doc, doc.Length) );
+			Assert.AreEqual( doc.Length, wordProc.NextWordEnd(doc, doc.Length) );
 
 			// combining character
 			doc.Text = ".a\x0300.";
-			TestUtl.AssertEquals( 1, wordProc.NextWordEnd(doc, 1) );
-			TestUtl.AssertEquals( 3, wordProc.NextWordEnd(doc, 2) );
-			TestUtl.AssertEquals( 3, wordProc.NextWordEnd(doc, 3) );
+			Assert.AreEqual( 1, wordProc.NextWordEnd(doc, 1) );
+			Assert.AreEqual( 3, wordProc.NextWordEnd(doc, 2) );
+			Assert.AreEqual( 3, wordProc.NextWordEnd(doc, 3) );
 
 			// combining character
 			doc.Text = "aa\x0300a";
-			TestUtl.AssertEquals( 4, wordProc.NextWordEnd(doc, 1) );
-			TestUtl.AssertEquals( 4, wordProc.NextWordEnd(doc, 2) );
-			TestUtl.AssertEquals( 4, wordProc.NextWordEnd(doc, 3) );
-			TestUtl.AssertThrows<ArgumentNullException>( delegate{
+			Assert.AreEqual( 4, wordProc.NextWordEnd(doc, 1) );
+			Assert.AreEqual( 4, wordProc.NextWordEnd(doc, 2) );
+			Assert.AreEqual( 4, wordProc.NextWordEnd(doc, 3) );
+			Assert.Throws<ArgumentNullException>( delegate{
 				wordProc.NextWordEnd( null, 0 );
 			} );
-			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+			Assert.Throws<ArgumentOutOfRangeException>( delegate{
 				wordProc.NextWordEnd( doc, -1 );
 			} );
-			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+			Assert.Throws<ArgumentOutOfRangeException>( delegate{
 				wordProc.NextWordEnd( doc, doc.Length+1 );
 			} );
 
@@ -125,32 +109,32 @@ namespace Sgry.Azuki.Test
 					{
 						int actual = wordProc.PrevWordStart( doc, i );
 						if( left == right )
-							TestUtl.AssertEquals( expectedForSameClass[i], actual );
+							Assert.AreEqual( expectedForSameClass[i], actual );
 						else
-							TestUtl.AssertEquals( expected[i], actual );
+							Assert.AreEqual( expected[i], actual );
 					}
 				}
 			}
-			TestUtl.AssertEquals( doc.Length, wordProc.PrevWordStart(doc, doc.Length) );
+			Assert.AreEqual( doc.Length, wordProc.PrevWordStart(doc, doc.Length) );
 
 			// combining character
 			doc.Text = ".a\x0300.";
-			TestUtl.AssertEquals( 1, wordProc.PrevWordStart(doc, 1) );
-			TestUtl.AssertEquals( 1, wordProc.PrevWordStart(doc, 2) );
-			TestUtl.AssertEquals( 3, wordProc.PrevWordStart(doc, 3) );
+			Assert.AreEqual( 1, wordProc.PrevWordStart(doc, 1) );
+			Assert.AreEqual( 1, wordProc.PrevWordStart(doc, 2) );
+			Assert.AreEqual( 3, wordProc.PrevWordStart(doc, 3) );
 
 			// combining character
 			doc.Text = "aa\x0300a";
-			TestUtl.AssertEquals( 0, wordProc.PrevWordStart(doc, 1) );
-			TestUtl.AssertEquals( 0, wordProc.PrevWordStart(doc, 2) );
-			TestUtl.AssertEquals( 0, wordProc.PrevWordStart(doc, 3) );
-			TestUtl.AssertThrows<ArgumentNullException>( delegate{
+			Assert.AreEqual( 0, wordProc.PrevWordStart(doc, 1) );
+			Assert.AreEqual( 0, wordProc.PrevWordStart(doc, 2) );
+			Assert.AreEqual( 0, wordProc.PrevWordStart(doc, 3) );
+			Assert.Throws<ArgumentNullException>( delegate{
 				wordProc.PrevWordStart( null, 0 );
 			} );
-			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+			Assert.Throws<ArgumentOutOfRangeException>( delegate{
 				wordProc.PrevWordStart( doc, -1 );
 			} );
-			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+			Assert.Throws<ArgumentOutOfRangeException>( delegate{
 				wordProc.PrevWordStart( doc, doc.Length+1 );
 			} );
 
@@ -166,37 +150,38 @@ namespace Sgry.Azuki.Test
 					{
 						int actual = wordProc.PrevWordEnd( doc, i );
 						if( left == right )
-							TestUtl.AssertEquals( expectedForSameClass[i], actual );
+							Assert.AreEqual( expectedForSameClass[i], actual );
 						else
-							TestUtl.AssertEquals( expected[i], actual );
+							Assert.AreEqual( expected[i], actual );
 					}
 				}
 			}
-			TestUtl.AssertEquals( doc.Length, wordProc.PrevWordEnd(doc, doc.Length) );
+			Assert.AreEqual( doc.Length, wordProc.PrevWordEnd(doc, doc.Length) );
 
 			// combining character
 			doc.Text = ".a\x0300.";
-			TestUtl.AssertEquals( 1, wordProc.PrevWordEnd(doc, 1) );
-			TestUtl.AssertEquals( 1, wordProc.PrevWordEnd(doc, 2) );
-			TestUtl.AssertEquals( 3, wordProc.PrevWordEnd(doc, 3) );
+			Assert.AreEqual( 1, wordProc.PrevWordEnd(doc, 1) );
+			Assert.AreEqual( 1, wordProc.PrevWordEnd(doc, 2) );
+			Assert.AreEqual( 3, wordProc.PrevWordEnd(doc, 3) );
 
 			// combining character
 			doc.Text = "aa\x0300a";
-			TestUtl.AssertEquals( 0, wordProc.PrevWordEnd(doc, 1) );
-			TestUtl.AssertEquals( 0, wordProc.PrevWordEnd(doc, 2) );
-			TestUtl.AssertEquals( 0, wordProc.PrevWordEnd(doc, 3) );
-			TestUtl.AssertThrows<ArgumentNullException>( delegate{
+			Assert.AreEqual( 0, wordProc.PrevWordEnd(doc, 1) );
+			Assert.AreEqual( 0, wordProc.PrevWordEnd(doc, 2) );
+			Assert.AreEqual( 0, wordProc.PrevWordEnd(doc, 3) );
+			Assert.Throws<ArgumentNullException>( delegate{
 				wordProc.PrevWordEnd( null, 0 );
 			} );
-			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+			Assert.Throws<ArgumentOutOfRangeException>( delegate{
 				wordProc.PrevWordEnd( doc, -1 );
 			} );
-			TestUtl.AssertThrows<ArgumentOutOfRangeException>( delegate{
+			Assert.Throws<ArgumentOutOfRangeException>( delegate{
 				wordProc.PrevWordEnd( doc, doc.Length+1 );
 			} );
 		}
 
-		static void Test_Kinsoku()
+		[Test]
+		public void Kinsoku()
 		{
 			Document doc = new Document();
 			DefaultWordProc wordProc = new DefaultWordProc();
@@ -208,60 +193,61 @@ namespace Sgry.Azuki.Test
 			wordProc.EnableLineHeadRestriction = false;
 			wordProc.EnableCharacterHanging = false;
 			wordProc.EnableEolHanging = false;
-			TestUtl.AssertEquals( 6, wordProc.HandleWordWrapping(doc, 6) );
+			Assert.AreEqual( 6, wordProc.HandleWordWrapping(doc, 6) );
 
 			// restrict characters to start lines
 			wordProc.EnableLineHeadRestriction = true;
-			TestUtl.AssertEquals( 4, wordProc.HandleWordWrapping(doc, 6) );
+			Assert.AreEqual( 4, wordProc.HandleWordWrapping(doc, 6) );
 
 			// enable word wrap
 			wordProc.EnableWordWrap = true;
-			TestUtl.AssertEquals( 3, wordProc.HandleWordWrapping(doc, 6) );
+			Assert.AreEqual( 3, wordProc.HandleWordWrapping(doc, 6) );
 
 			// restrict characters to end lines
 			wordProc.EnableLineEndRestriction = true;
-			TestUtl.AssertEquals( 1, wordProc.HandleWordWrapping(doc, 6) );
+			Assert.AreEqual( 1, wordProc.HandleWordWrapping(doc, 6) );
 
 			// change the phrase in the parentheses from a word to non-word
 			doc.Replace( "**", 3, 5 );
-			TestUtl.AssertEquals( 4, wordProc.HandleWordWrapping(doc, 6) );
+			Assert.AreEqual( 4, wordProc.HandleWordWrapping(doc, 6) );
 
 			// hang specified characters on the end of line
 			wordProc.EnableCharacterHanging = true;
 			wordProc.CharsToBeHanged = (new String(wordProc.CharsToBeHanged) + ']').ToCharArray();
-			TestUtl.AssertEquals( 7, wordProc.HandleWordWrapping(doc, 6) );
+			Assert.AreEqual( 7, wordProc.HandleWordWrapping(doc, 6) );
 
 			// hang EOL code (CR)
 			wordProc.EnableEolHanging = false;
-			TestUtl.AssertEquals( 8, wordProc.HandleWordWrapping(doc, 8) );
+			Assert.AreEqual( 8, wordProc.HandleWordWrapping(doc, 8) );
 			wordProc.EnableEolHanging = true;
-			TestUtl.AssertEquals( 9, wordProc.HandleWordWrapping(doc, 8) );
+			Assert.AreEqual( 9, wordProc.HandleWordWrapping(doc, 8) );
 
 			// hang EOL code (LF)
 			wordProc.EnableEolHanging = false;
-			TestUtl.AssertEquals( 10, wordProc.HandleWordWrapping(doc, 10) );
+			Assert.AreEqual( 10, wordProc.HandleWordWrapping(doc, 10) );
 			wordProc.EnableEolHanging = true;
-			TestUtl.AssertEquals( 11, wordProc.HandleWordWrapping(doc, 10) );
+			Assert.AreEqual( 11, wordProc.HandleWordWrapping(doc, 10) );
 
 			// hang EOL code (CR+LF)
 			wordProc.EnableEolHanging = false;
-			TestUtl.AssertEquals( 12, wordProc.HandleWordWrapping(doc, 12) );
+			Assert.AreEqual( 12, wordProc.HandleWordWrapping(doc, 12) );
 			wordProc.EnableEolHanging = true;
-			TestUtl.AssertEquals( 14, wordProc.HandleWordWrapping(doc, 12) );
-			TestUtl.AssertEquals( 14, wordProc.HandleWordWrapping(doc, 13) );
+			Assert.AreEqual( 14, wordProc.HandleWordWrapping(doc, 12) );
+			Assert.AreEqual( 14, wordProc.HandleWordWrapping(doc, 13) );
 
 			// hang two continuing EOL codes (CR+CR)
 			wordProc.EnableEolHanging = false;
-			TestUtl.AssertEquals( 15, wordProc.HandleWordWrapping(doc, 15) );
+			Assert.AreEqual( 15, wordProc.HandleWordWrapping(doc, 15) );
 			wordProc.EnableEolHanging = true;
-			TestUtl.AssertEquals( 16, wordProc.HandleWordWrapping(doc, 15) );
+			Assert.AreEqual( 16, wordProc.HandleWordWrapping(doc, 15) );
 
 			// bonus test
-			TestUtl.AssertEquals( 17, wordProc.HandleWordWrapping(doc, 16) );
-			TestUtl.AssertEquals( 17, wordProc.HandleWordWrapping(doc, 17) );
+			Assert.AreEqual( 17, wordProc.HandleWordWrapping(doc, 16) );
+			Assert.AreEqual( 17, wordProc.HandleWordWrapping(doc, 17) );
 		}
 
-		static void Test_KinsokuSpecial()
+		[Test]
+		public void KinsokuSpecial()
 		{
 			Document doc = new Document();
 			DefaultWordProc wordProc = new DefaultWordProc();
@@ -274,13 +260,13 @@ namespace Sgry.Azuki.Test
 			wordProc.EnableEolHanging = true;
 			{
 				doc.Text = "\n";
-				TestUtl.AssertEquals( 1, wordProc.HandleWordWrapping(doc, 0) );
+				Assert.AreEqual( 1, wordProc.HandleWordWrapping(doc, 0) );
 				doc.Text = "\r";
-				TestUtl.AssertEquals( 1, wordProc.HandleWordWrapping(doc, 0) );
+				Assert.AreEqual( 1, wordProc.HandleWordWrapping(doc, 0) );
 				doc.Text = "\r\n";
-				TestUtl.AssertEquals( 2, wordProc.HandleWordWrapping(doc, 0) );
+				Assert.AreEqual( 2, wordProc.HandleWordWrapping(doc, 0) );
 				doc.Text = "\r\n";
-				TestUtl.AssertEquals( 2, wordProc.HandleWordWrapping(doc, 1) );
+				Assert.AreEqual( 2, wordProc.HandleWordWrapping(doc, 1) );
 			}
 
 			// limit of char hanging
@@ -292,10 +278,10 @@ namespace Sgry.Azuki.Test
 			wordProc.EnableEolHanging = false;
 			{
 				// not applicable because of # of depth
-				TestUtl.AssertEquals( 2, wordProc.HandleWordWrapping(doc, 2) );
+				Assert.AreEqual( 2, wordProc.HandleWordWrapping(doc, 2) );
 
 				// hit the limit of the content length
-				TestUtl.AssertEquals( 8, wordProc.HandleWordWrapping(doc, 8) );
+				Assert.AreEqual( 8, wordProc.HandleWordWrapping(doc, 8) );
 			}
 
 			// limit of line head prohibition
@@ -307,10 +293,10 @@ namespace Sgry.Azuki.Test
 			wordProc.EnableEolHanging = false;
 			{
 				// not applicable because of # of depth
-				TestUtl.AssertEquals( 8, wordProc.HandleWordWrapping(doc, 8) );
+				Assert.AreEqual( 8, wordProc.HandleWordWrapping(doc, 8) );
 
 				// hit the limit of the content length
-				TestUtl.AssertEquals( 2, wordProc.HandleWordWrapping(doc, 2) );
+				Assert.AreEqual( 2, wordProc.HandleWordWrapping(doc, 2) );
 			}
 
 			// limit of line end prohibition
@@ -322,10 +308,10 @@ namespace Sgry.Azuki.Test
 			wordProc.EnableEolHanging = false;
 			{
 				// not applicable because of # of depth
-				TestUtl.AssertEquals( 8, wordProc.HandleWordWrapping(doc, 8) );
+				Assert.AreEqual( 8, wordProc.HandleWordWrapping(doc, 8) );
 
 				// hit the limit of the content length
-				TestUtl.AssertEquals( 2, wordProc.HandleWordWrapping(doc, 2) );
+				Assert.AreEqual( 2, wordProc.HandleWordWrapping(doc, 2) );
 			}
 
 			// complex pattern
@@ -335,20 +321,19 @@ namespace Sgry.Azuki.Test
 			wordProc.EnableCharacterHanging = true;
 			wordProc.EnableEolHanging = true;
 			doc.Text = "a.)";
-			TestUtl.AssertEquals( 2, wordProc.HandleWordWrapping(doc, 1) );
+			Assert.AreEqual( 2, wordProc.HandleWordWrapping(doc, 1) );
 			doc.Text = "aa.)";
-			TestUtl.AssertEquals( 1, wordProc.HandleWordWrapping(doc, 2) );
+			Assert.AreEqual( 1, wordProc.HandleWordWrapping(doc, 2) );
 			wordProc.EnableWordWrap = true;
 			doc.Text = "aa.)";
-			TestUtl.AssertEquals( 0, wordProc.HandleWordWrapping(doc, 2) );
+			Assert.AreEqual( 0, wordProc.HandleWordWrapping(doc, 2) );
 
 			// once failed pattern
 			doc.Text = "(\r\n)";
 			wordProc.EnableEolHanging = false;
-			TestUtl.AssertEquals( 1, wordProc.HandleWordWrapping(doc, 1) );
+			Assert.AreEqual( 1, wordProc.HandleWordWrapping(doc, 1) );
 			wordProc.EnableEolHanging = true;
-			TestUtl.AssertEquals( 3, wordProc.HandleWordWrapping(doc, 1) );
+			Assert.AreEqual( 3, wordProc.HandleWordWrapping(doc, 1) );
 		}
 	}
 }
-#endif

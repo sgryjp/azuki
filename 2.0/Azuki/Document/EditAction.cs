@@ -209,7 +209,6 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
-#		if DEBUG
 		/// <summary>ToString for debug :)</summary>
 		public override string ToString()
 		{
@@ -219,7 +218,7 @@ namespace Sgry.Azuki
 			do
 			{
 				text.Append( action._Index );
-				if( action._DeletedText != null && 0 < action._DeletedText.Length )
+				if( !String.IsNullOrEmpty(action._DeletedText) )
 				{
 					text.AppendFormat( null, "-[{0}]",
 							action._DeletedText
@@ -228,7 +227,7 @@ namespace Sgry.Azuki
 							.Replace("\n", "<LF>")
 						);
 				}
-				if( action._InsertedText != null && 0 < action._InsertedText.Length )
+				if( !String.IsNullOrEmpty(action._InsertedText) )
 				{
 					text.AppendFormat( null, "+[{0}]",
 							action._InsertedText
@@ -246,7 +245,6 @@ namespace Sgry.Azuki
 			text.Length--;
 			return text.ToString();
 		}
-#		endif
 	}
 
 	class LineDirtyStateUndoInfo

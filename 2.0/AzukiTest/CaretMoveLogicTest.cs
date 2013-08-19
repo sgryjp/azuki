@@ -1,126 +1,118 @@
-﻿#if TEST
-using System;
+﻿using System;
+using NUnit.Framework;
 using Sgry.Azuki.WinForms;
 
 namespace Sgry.Azuki.Test
 {
-	class CaretMoveLogicTest
+	[TestFixture]
+	public class CaretMoveLogicTest
 	{
 		static AzukiControl _Azuki;
 
-		public static void Test()
+		[SetUp]
+		public void SetUp()
 		{
-			using( _Azuki = new AzukiControl() )
-			{
-				int testNum = 0;
-				Console.WriteLine( "[Test for CaretMoveLogic]" );
-
-				Console.WriteLine( "test {0} - Right", ++testNum );
-				TestUtl.Do( Test_Right );
-
-				Console.WriteLine( "test {0} - Left", ++testNum );
-				TestUtl.Do( Test_Left );
-
-				Console.WriteLine( "test {0} - NextWord", ++testNum );
-				TestUtl.Do( Test_NextWord );
-
-				Console.WriteLine( "test {0} - PrevWord", ++testNum );
-				TestUtl.Do( Test_PrevWord );
-
-				Console.WriteLine( "done." );
-				Console.WriteLine();
-			}
+			_Azuki = new AzukiControl();
 		}
 
-		static void Test_Right()
+		[TearDown]
+		public void TearDown()
+		{
+			_Azuki.Dispose();
+		}
+
+		[Test]
+		public void Right()
 		{
 			// EOL
 			_Azuki.Text = "a\rb\nc\r\nd";
 			_Azuki.SetSelection( 0, 0 );
-			TestUtl.AssertEquals( 1, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 1, CaretMoveLogic.Calc_Right(_Azuki.View) );
 			_Azuki.SetSelection( 1, 1 );
-			TestUtl.AssertEquals( 2, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 2, CaretMoveLogic.Calc_Right(_Azuki.View) );
 			_Azuki.SetSelection( 2, 2 );
-			TestUtl.AssertEquals( 3, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 3, CaretMoveLogic.Calc_Right(_Azuki.View) );
 			_Azuki.SetSelection( 3, 3 );
-			TestUtl.AssertEquals( 4, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 4, CaretMoveLogic.Calc_Right(_Azuki.View) );
 			_Azuki.SetSelection( 4, 4 );
-			TestUtl.AssertEquals( 5, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 5, CaretMoveLogic.Calc_Right(_Azuki.View) );
 			_Azuki.SetSelection( 5, 5 );
-			TestUtl.AssertEquals( 7, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 7, CaretMoveLogic.Calc_Right(_Azuki.View) );
 			_Azuki.SetSelection( 7, 7 );
-			TestUtl.AssertEquals( 8, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 8, CaretMoveLogic.Calc_Right(_Azuki.View) );
 			_Azuki.SetSelection( 8, 8 );
-			TestUtl.AssertEquals( 8, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 8, CaretMoveLogic.Calc_Right(_Azuki.View) );
 
 			// surrogate pair
 			_Azuki.Text = "_\xd85a\xdd51_";
 			_Azuki.SetSelection( 0, 0 );
-			TestUtl.AssertEquals( 1, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 1, CaretMoveLogic.Calc_Right(_Azuki.View) );
 			_Azuki.SetSelection( 1, 1 );
-			TestUtl.AssertEquals( 3, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 3, CaretMoveLogic.Calc_Right(_Azuki.View) );
 			_Azuki.SetSelection( 3, 3 );
-			TestUtl.AssertEquals( 4, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 4, CaretMoveLogic.Calc_Right(_Azuki.View) );
 			_Azuki.SetSelection( 4, 4 );
-			TestUtl.AssertEquals( 4, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 4, CaretMoveLogic.Calc_Right(_Azuki.View) );
 
 			// combined character sequence
 			_Azuki.Text = "_a\x0300_";
 			_Azuki.SetSelection( 0, 0 );
-			TestUtl.AssertEquals( 1, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 1, CaretMoveLogic.Calc_Right(_Azuki.View) );
 			_Azuki.SetSelection( 1, 1 );
-			TestUtl.AssertEquals( 3, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 3, CaretMoveLogic.Calc_Right(_Azuki.View) );
 			_Azuki.SetSelection( 3, 3 );
-			TestUtl.AssertEquals( 4, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 4, CaretMoveLogic.Calc_Right(_Azuki.View) );
 			_Azuki.SetSelection( 4, 4 );
-			TestUtl.AssertEquals( 4, CaretMoveLogic.Calc_Right(_Azuki.View) );
+			Assert.AreEqual( 4, CaretMoveLogic.Calc_Right(_Azuki.View) );
 		}
 
-		static void Test_Left()
+		[Test]
+		public void Left()
 		{
 			// EOL
 			_Azuki.Text = "a\rb\nc\r\nd";
 			_Azuki.SetSelection( 8, 8 );
-			TestUtl.AssertEquals( 7, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 7, CaretMoveLogic.Calc_Left(_Azuki.View) );
 			_Azuki.SetSelection( 7, 7 );
-			TestUtl.AssertEquals( 5, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 5, CaretMoveLogic.Calc_Left(_Azuki.View) );
 			_Azuki.SetSelection( 5, 5 );
-			TestUtl.AssertEquals( 4, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 4, CaretMoveLogic.Calc_Left(_Azuki.View) );
 			_Azuki.SetSelection( 4, 4 );
-			TestUtl.AssertEquals( 3, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 3, CaretMoveLogic.Calc_Left(_Azuki.View) );
 			_Azuki.SetSelection( 3, 3 );
-			TestUtl.AssertEquals( 2, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 2, CaretMoveLogic.Calc_Left(_Azuki.View) );
 			_Azuki.SetSelection( 2, 2 );
-			TestUtl.AssertEquals( 1, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 1, CaretMoveLogic.Calc_Left(_Azuki.View) );
 			_Azuki.SetSelection( 1, 1 );
-			TestUtl.AssertEquals( 0, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 0, CaretMoveLogic.Calc_Left(_Azuki.View) );
 			_Azuki.SetSelection( 0, 0 );
-			TestUtl.AssertEquals( 0, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 0, CaretMoveLogic.Calc_Left(_Azuki.View) );
 
 			// surrogate pair
 			_Azuki.Text = "a\xd85a\xdd51b";
 			_Azuki.SetSelection( 4, 4 );
-			TestUtl.AssertEquals( 3, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 3, CaretMoveLogic.Calc_Left(_Azuki.View) );
 			_Azuki.SetSelection( 3, 3 );
-			TestUtl.AssertEquals( 1, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 1, CaretMoveLogic.Calc_Left(_Azuki.View) );
 			_Azuki.SetSelection( 1, 1 );
-			TestUtl.AssertEquals( 0, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 0, CaretMoveLogic.Calc_Left(_Azuki.View) );
 			_Azuki.SetSelection( 0, 0 );
-			TestUtl.AssertEquals( 0, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 0, CaretMoveLogic.Calc_Left(_Azuki.View) );
 
 			// combined character sequence
 			_Azuki.Text = "_a\x0300_";
 			_Azuki.SetSelection( 4, 4 );
-			TestUtl.AssertEquals( 3, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 3, CaretMoveLogic.Calc_Left(_Azuki.View) );
 			_Azuki.SetSelection( 3, 3 );
-			TestUtl.AssertEquals( 1, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 1, CaretMoveLogic.Calc_Left(_Azuki.View) );
 			_Azuki.SetSelection( 1, 1 );
-			TestUtl.AssertEquals( 0, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 0, CaretMoveLogic.Calc_Left(_Azuki.View) );
 			_Azuki.SetSelection( 0, 0 );
-			TestUtl.AssertEquals( 0, CaretMoveLogic.Calc_Left(_Azuki.View) );
+			Assert.AreEqual( 0, CaretMoveLogic.Calc_Left(_Azuki.View) );
 		}
 
-		static void Test_NextWord()
+		[Test]
+		public void NextWord()
 		{
 			string[][] samples = new string[][] {
 				new string[]{"aaaa",           "aa11",           "aa,,",           "aa\x3042\x3042",           "aa\x30a2\x30a2",           "aa\x963f\x963f",           "aa\n\n",           "aa  "          },
@@ -162,7 +154,7 @@ namespace Sgry.Azuki.Test
 						{
 							_Azuki.SetSelection( i, i );
 							int actual = CaretMoveLogic.Calc_NextWord( _Azuki.View );
-							TestUtl.AssertEquals( expected[x][y][i], actual );
+							Assert.AreEqual( expected[x][y][i], actual );
 						}
 						catch( AssertException ex )
 						{
@@ -174,7 +166,8 @@ namespace Sgry.Azuki.Test
 			}
 		}
 
-		static void Test_PrevWord()
+		[Test]
+		public void PrevWord()
 		{
 			string[][] samples = new string[][] {
 				new string[]{"aaaa",           "aa11",           "aa,,",           "aa\x3042\x3042",           "aa\x30a2\x30a2",           "aa\x963f\x963f",           "aa\n\n",           "aa  "          },
@@ -215,7 +208,7 @@ namespace Sgry.Azuki.Test
 						{
 							_Azuki.SetSelection( i, i );
 							int actual = CaretMoveLogic.Calc_PrevWord( _Azuki.View );
-							TestUtl.AssertEquals( expected[x][y][i], actual );
+							Assert.AreEqual( expected[x][y][i], actual );
 						}
 						catch( AssertException ex )
 						{
@@ -229,13 +222,12 @@ namespace Sgry.Azuki.Test
 			// EOL code
 			_Azuki.Text = "a\r";
 			_Azuki.SetSelection( 2, 2 );
-			TestUtl.AssertEquals( 1, CaretMoveLogic.Calc_PrevWord(_Azuki.View) );
+			Assert.AreEqual( 1, CaretMoveLogic.Calc_PrevWord(_Azuki.View) );
 
 			// EOL code
 			_Azuki.Text = "a\r\n";
 			_Azuki.SetSelection( 3, 3 );
-			TestUtl.AssertEquals( 1, CaretMoveLogic.Calc_PrevWord(_Azuki.View) );
+			Assert.AreEqual( 1, CaretMoveLogic.Calc_PrevWord(_Azuki.View) );
 		}
 	}
 }
-#endif
