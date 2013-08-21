@@ -108,7 +108,7 @@ namespace Sgry.Azuki
 			}
 		}
 
-		public void SetSelection( int anchor, int caret, IView view )
+		public void SetSelection( int anchor, int caret, IViewInternal view )
 		{
 			Debug.Assert( 0 <= anchor && anchor <= _Document.Length, "parameter 'anchor' out of range (anchor:"+anchor+", Document.Length:"+_Document.Length+")" );
 			Debug.Assert( 0 <= caret && caret <= _Document.Length, "parameter 'caret' out of range (anchor:"+anchor+", Document.Length:"+_Document.Length+")" );
@@ -192,7 +192,7 @@ namespace Sgry.Azuki
 			SetSelection_Normal( anchor, caret );
 		}
 
-		void SetSelection_Line( int anchor, int caret, IView view )
+		void SetSelection_Line( int anchor, int caret, IViewInternal view )
 		{
 			int toLineIndex;
 
@@ -221,7 +221,7 @@ namespace Sgry.Azuki
 				//-- selecting to the line (or after) where selection started --
 				// select between head of the starting line and the end of the destination line
 				anchor = view.GetLineHeadIndexFromCharIndex( _LineSelectionAnchor1 );
-				if( _Document.IsLineHead(view, caret) == false )
+				if( view.IsLineHead(caret) == false )
 				{
 					toLineIndex = view.GetLineIndexFromCharIndex( caret );
 					if( toLineIndex+1 < view.LineCount )

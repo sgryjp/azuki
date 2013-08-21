@@ -391,7 +391,7 @@ namespace Sgry.Azuki
 			if( view == null && SelectionMode != TextDataType.Normal )
 				throw new ArgumentNullException( "view", "Parameter 'view' must not be null if SelectionMode is not TextDataType.Normal. (SelectionMode:"+SelectionMode+")." );
 
-			_SelMan.SetSelection( anchor, caret, view );
+			_SelMan.SetSelection( anchor, caret, (IViewInternal)view );
 		}
 
 		/// <summary>
@@ -489,7 +489,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <param name="index">The range of a word at this index will be retrieved.</param>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		public Range GetWordRange( int index )
+		public IRange GetWordRange( int index )
 		{
 			if( index < 0 || _Buffer.Count < index ) // index can be equal to char-count
 				throw new ArgumentOutOfRangeException( "index", "Invalid index was given (index:"+index+", this.Length:"+Length+")." );
@@ -530,15 +530,14 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets number of characters currently held in this document.
-		/// Note that a surrogate pair or combining characters will be counted as two characters.
+		/// Gets number of characters in this document.
 		/// </summary>
 		/// <remarks>
 		///   <para>
-		///   This property is the number of characters currently held in this document.
-		///   Since Azuki stores characters in form of UTF-16,
-		///   surrogate pairs or combining characters will not be counted as
-		///   "1 character" in this property.
+		///   This property returns number of characters currently input in this document. Note
+		///   that because Azuki's internal character encoding is UTF-16, characters consisted with
+		///   more than one characters will NOT be counted as one (e.g. surrogate pairs, combining
+		///   character sequences.)
 		///   </para>
 		/// </remarks>
 		public int Length
@@ -973,7 +972,7 @@ namespace Sgry.Azuki
 		///   Parameter <paramref name="markingID"/> is not registered in Marking class.
 		/// </exception>
 		/// <seealso cref="Sgry.Azuki.Marking">Marking class</seealso>
-		public Range GetMarkedRange( int index, int markingID )
+		public IRange GetMarkedRange( int index, int markingID )
 		{
 			if( index < 0 || _Buffer.Count <= index )
 				throw new ArgumentOutOfRangeException( "index",
@@ -2451,29 +2450,6 @@ namespace Sgry.Azuki
 			{
 				selEndL++; // Target the final line too unless multiple lines
 						   // are selected and at least one char is selected
-			}
-		}
-
-		internal bool IsLineHead( IView view, int index )
-		{
-			DebugUtl.Assert( view != null );
-
-			if( index < 0 )
-			{
-				return false;
-			}
-			else if( index == 0 )
-			{
-				return true;
-			}
-			else if( index < Length )
-			{
-				int lineHeadIndex = view.GetLineHeadIndexFromCharIndex( index );
-				return (lineHeadIndex == index);
-			}
-			else
-			{
-				return false;
 			}
 		}
 
