@@ -894,7 +894,7 @@ namespace Sgry.Azuki
 				int prevCvtCount = cvtCount;
 				if( doc[i] == ' ' )
 				{
-					int x = view.GetVirPosFromIndex( i ).X;
+					int x = view.GetVirtualPos( i ).X;
 					int nextTabStopX = view.NextTabStopX( x );
 					int neededCount = (nextTabStopX - x) / view.SpaceWidthInPx;
 					if( 2 <= neededCount && i+neededCount <= end )

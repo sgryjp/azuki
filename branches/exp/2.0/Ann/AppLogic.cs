@@ -1248,7 +1248,6 @@ namespace Sgry.Ann
 			AzukiControl azuki = MainForm.Azuki;
 			AzukiDocument doc = azuki.Document;
 			IMouseEventArgs mea = (IMouseEventArgs)e;
-			int selBegin, selEnd;
 
 			if( mea.Index < doc.Length
 				&& doc.IsMarked(mea.Index, Marking.Uri)
@@ -1256,8 +1255,8 @@ namespace Sgry.Ann
 			{
 				// select entire URI if not selected, or deselect if selected.
 				var urlRange = doc.GetMarkedRange( mea.Index, Marking.Uri );
-				doc.GetSelection( out selBegin, out selEnd );
-				if( selBegin != urlRange.Begin && selEnd != urlRange.End )
+				var selRange = doc.GetSelection();
+				if( urlRange.Equals(selRange) == false )
 				{
 					doc.SetSelection( urlRange.Begin, urlRange.End );
 				}

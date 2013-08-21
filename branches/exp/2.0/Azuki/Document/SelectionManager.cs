@@ -94,18 +94,29 @@ namespace Sgry.Azuki
 			set{ _RectSelectRanges = value; }
 		}
 
-		public void GetSelection( out int begin, out int end )
+		public IRange GetSelection()
 		{
+			var range = new Range();
+
 			if( _AnchorIndex < _CaretIndex )
 			{
-				begin = _AnchorIndex;
-				end = _CaretIndex;
+				range.Begin = _AnchorIndex;
+				range.End = _CaretIndex;
 			}
 			else
 			{
-				begin = _CaretIndex;
-				end = _AnchorIndex;
+				range.Begin = _CaretIndex;
+				range.End = _AnchorIndex;
 			}
+
+			DebugUtl.Assert( 0 <= range.Begin && range.Begin <= _Document.Length,
+							 "range.Begin:{0}, Length:{1}", range.Begin, _Document.Length );
+			DebugUtl.Assert( 0 <= range.End && range.End <= _Document.Length, "range.End:{0},"
+							 + " Length:{1}",range.End, _Document.Length );
+			DebugUtl.Assert( range.Begin <= range.End, "range.Begin:{0}, range.End:{1}",
+							 range.Begin, range.End );
+
+			return range;
 		}
 
 		public void SetSelection( int anchor, int caret, IViewInternal view )

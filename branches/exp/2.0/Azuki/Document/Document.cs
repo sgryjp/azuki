@@ -56,6 +56,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public Document()
 		{
+			MarksUri = false;
 			_SelMan = new SelectionManager( this );
 			_WatchPatternMarker = new WatchPatternMarker( this );
 		}
@@ -395,17 +396,25 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets range of current selection.
-		/// Note that this method does not return [anchor, caret) pair but [begin, end) pair.
+		/// Gets range of currently selected text. Note that this method does not return [anchor,
+		/// caret) but [begin, end).
+		/// </summary>
+		public IRange GetSelection()
+		{
+			return _SelMan.GetSelection();
+		}
+
+		/// <summary>
+		/// Gets range of currently selected text. Note that this method does not return [anchor,
+		/// caret) pair but [begin, end) pair.
 		/// </summary>
 		/// <param name="begin">index of where the selection begins.</param>
 		/// <param name="end">index of where the selection ends (selection do not includes the char at this index).</param>
 		public void GetSelection( out int begin, out int end )
 		{
-			_SelMan.GetSelection( out begin, out end );
-			DebugUtl.Assert( 0 <= begin && begin <= Length, "begin:{0}, Length:{1}", begin, Length );
-			DebugUtl.Assert( 0 <= end && end <= Length, "end:{0}, Length:{1}", end, Length );
-			DebugUtl.Assert( begin <= end, "begin:{0}, end:{1}", begin, end );
+			var range = GetSelection();
+			begin = range.Begin;
+			end = range.End;
 		}
 
 		/// <summary>
@@ -1180,8 +1189,7 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public bool MarksUri
 		{
-			get{ return _ViewParam.MarksUri; }
-			set{ _ViewParam.MarksUri = value; }
+			get; set;
 		}
 
 		internal WatchPatternMarker WatchPatternMarker
