@@ -794,7 +794,7 @@ namespace Sgry.Azuki
 					// just set caret where the cursor is at
 					_MouseDragEditDelayTimer.Dispose();
 					View.ScreenToVirtual( ref pos );
-					int targetIndex = View.GetIndexFromVirPos( pos );
+					int targetIndex = View.GetCharIndex( pos );
 					Document.SetSelection( targetIndex, targetIndex );
 				}
 			}
@@ -815,7 +815,7 @@ namespace Sgry.Azuki
 
 			// calculate target position where the selected text is moved to
 			View.ScreenToVirtual( ref pos );
-			targetIndex = View.GetIndexFromVirPos( pos );
+			targetIndex = View.GetCharIndex( pos );
 
 			// move text
 			Document.BeginUndo();
@@ -879,7 +879,7 @@ namespace Sgry.Azuki
 					bool onSelectedText;
 
 					// calculate index of clicked character
-					clickedIndex = View.GetIndexFromVirPos( g, pos );
+					clickedIndex = View.GetCharIndex( g, pos );
 
 					// determine whether the character is selected or not
 					onSelectedText = Document.SelectionManager.IsInSelection(
@@ -968,7 +968,7 @@ namespace Sgry.Azuki
 				Point pos = e.Location;
 
 				View.ScreenToVirtual( ref pos );
-				clickedIndex = View.GetIndexFromVirPos( pos );
+				clickedIndex = View.GetCharIndex( pos );
 				_UI.SelectionMode = TextDataType.Words;
 				Document.SetSelection( clickedIndex, clickedIndex, View );
 			}
@@ -1021,7 +1021,7 @@ namespace Sgry.Azuki
 						Point alignedPos;
 
 						// calculate position of the char below the mouse cursor
-						index = View.GetIndexFromVirPos( pos );
+						index = View.GetCharIndex( pos );
 						alignedPos = View.GetVirtualPos( index );
 						View.VirtualToScreen( ref alignedPos );
 
@@ -1058,7 +1058,7 @@ namespace Sgry.Azuki
 			int curPosIndex;
 
 			// calc index of where the mouse pointer is on
-			curPosIndex = View.GetIndexFromVirPos( cursorVirPos );
+			curPosIndex = View.GetCharIndex( cursorVirPos );
 			if( curPosIndex == -1 )
 			{
 				return;
@@ -1146,7 +1146,7 @@ namespace Sgry.Azuki
 				{
 					Point virPos = cursorScreenPos.Value;
 					View.ScreenToVirtual( ref virPos );
-					index = View.GetIndexFromVirPos( virPos );
+					index = View.GetCharIndex( virPos );
 
 					onSelectedText = Document.SelectionManager.IsInSelection( index );
 					if( onSelectedText == false )
@@ -1440,7 +1440,7 @@ namespace Sgry.Azuki
 
 			// calculate the position of the nearest character in line
 			// (this will be at end of the line)
-			targetIndex = view.GetIndexFromVirPos( targetVirPos );
+			targetIndex = view.GetCharIndex( targetVirPos );
 			lineLastCharPos = view.GetVirtualPos( targetIndex );
 			if( targetVirPos.X <= lineLastCharPos.X + view.SpaceWidthInPx )
 			{

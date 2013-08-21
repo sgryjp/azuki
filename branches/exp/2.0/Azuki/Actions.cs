@@ -460,7 +460,7 @@ namespace Sgry.Azuki
 					padding = UiImpl.GetNeededPaddingChars( ui, insertPos, false );
 
 					// insert this row
-					insertIndex = ui.View.GetIndexFromVirPos( insertPos );
+					insertIndex = ui.View.GetCharIndex( insertPos );
 					doc.Replace( padding.ToString() + rowText, insertIndex, insertIndex );
 
 					// goto next line

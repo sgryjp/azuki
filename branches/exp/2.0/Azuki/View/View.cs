@@ -750,6 +750,7 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Position / Index Conversion
+		public abstract Point GetVirtualPos( IGraphics g, int index );
 		public Point GetVirtualPos( int index )
 		{
 			using( IGraphics g = _UI.GetIGraphics() )
@@ -758,8 +759,7 @@ namespace Sgry.Azuki
 			}
 		}
 
-		public abstract Point GetVirtualPos( IGraphics g, int index );
-
+		public abstract Point GetVirtualPos( IGraphics g, int lineIndex, int columnIndex );
 		public Point GetVirtualPos( int lineIndex, int columnIndex )
 		{
 			using( IGraphics g = _UI.GetIGraphics() )
@@ -768,25 +768,14 @@ namespace Sgry.Azuki
 			}
 		}
 
-		public abstract Point GetVirtualPos( IGraphics g, int lineIndex, int columnIndex );
-
-		/// <summary>
-		/// Gets char-index of the char at the point specified by location in the virtual space.
-		/// </summary>
-		/// <returns>The index of the char or -1 if invalid point was specified.</returns>
-		public int GetIndexFromVirPos( Point pt )
+		public abstract int GetCharIndex( IGraphics g, Point pos );
+		public int GetCharIndex( Point pos )
 		{
 			using( IGraphics g = _UI.GetIGraphics() )
 			{
-				return GetIndexFromVirPos( g, pt );
+				return GetCharIndex( g, pos );
 			}
 		}
-
-		/// <summary>
-		/// Gets char-index of the char at the point specified by location in the virtual space.
-		/// </summary>
-		/// <returns>The index of the char or -1 if invalid point was specified.</returns>
-		public abstract int GetIndexFromVirPos( IGraphics g, Point pt );
 
 		/// <summary>
 		/// Converts a coordinate in virtual space to a coordinate in client area.
@@ -901,8 +890,8 @@ namespace Sgry.Azuki
 			{
 				// calculate sub-selection range made with this line
 				leftPos.Y = rightPos.Y = y;
-				leftIndex = this.GetIndexFromVirPos( leftPos );
-				rightIndex = this.GetIndexFromVirPos( rightPos );
+				leftIndex = this.GetCharIndex( leftPos );
+				rightIndex = this.GetCharIndex( rightPos );
 				if( 1 < selRanges.Count && selRanges[selRanges.Count-1] == rightIndex )
 				{
 					break; // reached EOF

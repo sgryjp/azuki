@@ -1590,7 +1590,7 @@ namespace Sgry.Azuki.WinForms
 		public int GetIndexFromPosition( Point pt )
 		{
 			View.ScreenToVirtual( ref pt );
-			return View.GetIndexFromVirPos( pt );
+			return View.GetCharIndex( pt );
 		}
 
 		/// <summary>
@@ -2792,7 +2792,7 @@ namespace Sgry.Azuki.WinForms
 			{
 				Point pt = new Point( e.X, e.Y );
 				view.ScreenToVirtual( ref pt );
-				int index = view.GetIndexFromVirPos( pt );
+				int index = view.GetCharIndex( pt );
 
 				int clicks = 1;
 				clicks = e.Clicks;

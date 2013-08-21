@@ -213,7 +213,7 @@ namespace Sgry.Azuki
 			}*/
 
 			// calc index from the coord
-			nextIndex = view.GetIndexFromVirPos( pt );
+			nextIndex = view.GetCharIndex( pt );
 
 			// move caret and scroll
 			doc.SetSelection( nextIndex, nextIndex );
@@ -243,7 +243,7 @@ namespace Sgry.Azuki
 			}
 
 			// calc index from the coord
-			nextIndex = view.GetIndexFromVirPos( pt );
+			nextIndex = view.GetCharIndex( pt );
 
 			// move caret and scroll
 			doc.SetSelection( nextIndex, nextIndex );
@@ -467,7 +467,7 @@ namespace Sgry.Azuki
 			}*/
 
 			// calc index from the coord
-			nextIndex = view.GetIndexFromVirPos( pt );
+			nextIndex = view.GetCharIndex( pt );
 
 			// move caret and scroll
 			doc.SetSelection( doc.AnchorIndex, nextIndex );
@@ -496,7 +496,7 @@ namespace Sgry.Azuki
 			}
 
 			// calc index from the coord
-			nextIndex = view.GetIndexFromVirPos( pt );
+			nextIndex = view.GetCharIndex( pt );
 
 			// move caret and scroll
 			doc.SetSelection( doc.AnchorIndex, nextIndex );
