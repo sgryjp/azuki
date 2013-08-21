@@ -14,10 +14,5 @@ namespace Sgry.Azuki
 		int YofHRuler{ get; }
 		int YofTopMargin{ get; }
 		int YofTextArea{ get; }
-
-		Rectangle DirtBarRectangle{ get; }
-		Rectangle LineNumberAreaRectangle{ get; }
-		Rectangle HRulerRectangle{ get; }
-		Rectangle TextAreaRectangle{ get; }
 	}
 }
