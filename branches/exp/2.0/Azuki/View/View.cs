@@ -12,7 +12,7 @@ namespace Sgry.Azuki
 	/// <summary>
 	/// Platform independent view of Azuki.
 	/// </summary>
-	abstract partial class View : IView, IDisposable
+	abstract partial class View : IViewInternal
 	{
 		#region Fields and Types
 		const float GoldenRatio = 1.6180339887f;
@@ -1558,6 +1558,29 @@ namespace Sgry.Azuki
 						VisibleSize.Width - XofTextArea,
 						VisibleSize.Height - YofTextArea
 					);
+			}
+		}
+		#endregion
+
+		#region IViewInternal
+		public bool IsLineHead( int index )
+		{
+			if( index < 0 )
+			{
+				return false;
+			}
+			else if( index == 0 )
+			{
+				return true;
+			}
+			else if( index < Document.Length )
+			{
+				int lineHeadIndex = GetLineHeadIndexFromCharIndex( index );
+				return (lineHeadIndex == index);
+			}
+			else
+			{
+				return false;
 			}
 		}
 		#endregion

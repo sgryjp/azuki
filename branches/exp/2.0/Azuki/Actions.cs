@@ -955,7 +955,7 @@ namespace Sgry.Azuki
 				doc.SelectionManager.SetSelection(
 						doc.RectSelectRanges[0],
 						doc.RectSelectRanges[lastIndex] + delta,
-						ui.View );
+						(IViewInternal)ui.View );
 			}
 			else
 			{

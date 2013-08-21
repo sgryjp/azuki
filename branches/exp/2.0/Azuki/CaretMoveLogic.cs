@@ -9,7 +9,7 @@ namespace Sgry.Azuki
 	static class CaretMoveLogic
 	{
 		#region Public interface
-		public delegate int CalcMethod( IView view );
+		public delegate int CalcMethod( IViewInternal view );
 
 		/// <summary>
 		/// Moves caret to the index where the specified method calculates.
@@ -17,7 +17,7 @@ namespace Sgry.Azuki
 		public static void MoveCaret( CalcMethod calculator, IUserInterface ui )
 		{
 			Document doc = ui.Document;
-			IView view = ui.View;
+			IViewInternal view = (IViewInternal)ui.View;
 
 			int nextIndex = calculator( view );
 			if( nextIndex == doc.CaretIndex )
@@ -41,7 +41,7 @@ namespace Sgry.Azuki
 		public static void SelectTo( CalcMethod calculator, IUserInterface ui )
 		{
 			Document doc = ui.Document;
-			IView view = ui.View;
+			IViewInternal view = (IViewInternal)ui.View;
 			int nextIndex;
 
 			// calculate where to expand selection
@@ -109,7 +109,7 @@ namespace Sgry.Azuki
 		/// Calculate index of the location
 		/// where the caret should move to after pressing "down" key.
 		/// </summary>
-		public static int Calc_Down( IView view )
+		public static int Calc_Down( IViewInternal view )
 		{
 			Point pt;
 			int newIndex;
@@ -133,7 +133,7 @@ namespace Sgry.Azuki
 			// should select the line and a line below.
 			// To select a line below, calculate index of the char at one more line below.
 			if( doc.SelectionMode == TextDataType.Line
-				&& doc.IsLineHead(view, newIndex) )
+				&& view.IsLineHead(newIndex) )
 			{
 				Point pt2 = new Point( pt.X, pt.Y+view.LineSpacing );
 				int skippedNewIndex = view.GetIndexFromVirPos( pt2 );
@@ -150,7 +150,7 @@ namespace Sgry.Azuki
 		/// Calculate index of the location
 		/// where the caret should move to after pressing "up" key.
 		/// </summary>
-		public static int Calc_Up( IView view )
+		public static int Calc_Up( IViewInternal view )
 		{
 			Point pt;
 			int newIndex;
@@ -174,7 +174,7 @@ namespace Sgry.Azuki
 			// To select a line above, calculate index of the char at one more line above.
 			if( doc.SelectionMode == TextDataType.Line
 				&& newIndex == doc.AnchorIndex
-				&& doc.IsLineHead(view, newIndex) )
+				&& view.IsLineHead(newIndex) )
 			{
 				pt.Y -= view.LineSpacing;
 				if( 0 <= pt.Y )
