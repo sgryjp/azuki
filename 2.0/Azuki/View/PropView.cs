@@ -114,18 +114,14 @@ namespace Sgry.Azuki
 			return pos;
 		}
 
-		/// <summary>
-		/// Gets char-index of the char at the point specified by location in the virtual space.
-		/// </summary>
-		/// <returns>The index of the character at specified location.</returns>
-		public override int GetIndexFromVirPos( IGraphics g, Point pt )
+		public override int GetCharIndex( IGraphics g, Point pos )
 		{
 			Debug.Assert( g != null );
 			int lineIndex, columnIndex;
 			int drawableTextLen;
 
 			// calc line index
-			lineIndex = (pt.Y / LineSpacing);
+			lineIndex = (pos.Y / LineSpacing);
 			if( lineIndex < 0 )
 			{
 				lineIndex = 0;
@@ -140,13 +136,13 @@ namespace Sgry.Azuki
 
 			// calc column index
 			columnIndex = 0;
-			if( 0 < pt.X )
+			if( 0 < pos.X )
 			{
 				// get content of the line
 				string line = Document.Lines[ lineIndex ].Text;
 
 				// calc maximum length of chars in line
-				int rightLimitX = pt.X;
+				int rightLimitX = pos.X;
 				int leftPartWidth = MeasureTokenEndX( g, line, 0, rightLimitX, out drawableTextLen );
 				Debug.Assert( TextUtil.IsNotDividableIndex(line, drawableTextLen) == false );
 				columnIndex = drawableTextLen;
@@ -166,7 +162,7 @@ namespace Sgry.Azuki
 
 					// determine which side the location is near
 					int nextCharWidth = MeasureTokenEndX( g, nextChar, leftPartWidth ) - leftPartWidth;
-					if( leftPartWidth + nextCharWidth/2 < pt.X ) // == "x of middle of next char" < "x of click in virtual text area"
+					if( leftPartWidth + nextCharWidth/2 < pos.X ) // == "x of middle of next char" < "x of click in virtual text area"
 					{
 						columnIndex = drawableTextLen + 1;
 						while( TextUtil.IsNotDividableIndex(line, columnIndex) )

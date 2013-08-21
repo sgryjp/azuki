@@ -121,12 +121,12 @@ namespace Sgry.Azuki
 			// calculate next location
 			pt.X = view.GetDesiredColumn();
 			pt.Y += view.LineSpacing;
-			/* NOT NEEDED because View.GetIndexFromVirPos handles this case.
+			/* NOT NEEDED because View.GetCharIndex handles this case.
 			if( view.Height - view.LineSpacing < pt.Y )
 			{
 				return doc.CaretIndex; // no lines below. don't move.
 			}*/
-			newIndex = view.GetIndexFromVirPos( pt );
+			newIndex = view.GetCharIndex( pt );
 
 			// In line selection mode,
 			// moving caret across the line which contains the anchor position
@@ -136,7 +136,7 @@ namespace Sgry.Azuki
 				&& view.IsLineHead(newIndex) )
 			{
 				Point pt2 = new Point( pt.X, pt.Y+view.LineSpacing );
-				int skippedNewIndex = view.GetIndexFromVirPos( pt2 );
+				int skippedNewIndex = view.GetCharIndex( pt2 );
 				if( skippedNewIndex == doc.AnchorIndex )
 				{
 					newIndex = skippedNewIndex;
@@ -162,7 +162,7 @@ namespace Sgry.Azuki
 			// calculate next location
 			pt.X = view.GetDesiredColumn();
 			pt.Y -= view.LineSpacing;
-			newIndex = view.GetIndexFromVirPos( pt );
+			newIndex = view.GetCharIndex( pt );
 			if( newIndex < 0 )
 			{
 				return doc.CaretIndex; // don't move
@@ -179,7 +179,7 @@ namespace Sgry.Azuki
 				pt.Y -= view.LineSpacing;
 				if( 0 <= pt.Y )
 				{
-					newIndex = view.GetIndexFromVirPos( pt );
+					newIndex = view.GetCharIndex( pt );
 				}
 			}
 

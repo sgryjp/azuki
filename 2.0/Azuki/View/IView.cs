@@ -260,10 +260,10 @@ namespace Sgry.Azuki
 		Point GetVirtualPos( int lineIndex, int columnIndex );
 
 		/// <summary>
-		/// Gets char-index of a character at specified position in virtual space.
+		/// Calculates char-index of a character at specified position in virtual space.
 		/// </summary>
 		/// <returns>Index of a character.</returns>
-		int GetIndexFromVirPos( Point pt );
+		int GetCharIndex( Point virtualPos );
 
 		/// <summary>
 		/// Converts a coordinate in virtual space to a coordinate in client area.
