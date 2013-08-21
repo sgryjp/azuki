@@ -116,7 +116,7 @@ namespace Sgry.Azuki
 			Document doc = view.Document;
 
 			// get screen location of the caret
-			pt = view.GetVirPosFromIndex( doc.CaretIndex );
+			pt = view.GetVirtualPos( doc.CaretIndex );
 
 			// calculate next location
 			pt.X = view.GetDesiredColumn();
@@ -157,7 +157,7 @@ namespace Sgry.Azuki
 			Document doc = view.Document;
 
 			// get screen location of the caret
-			pt = view.GetVirPosFromIndex( doc.CaretIndex );
+			pt = view.GetVirtualPos( doc.CaretIndex );
 
 			// calculate next location
 			pt.X = view.GetDesiredColumn();

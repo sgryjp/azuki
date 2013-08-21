@@ -51,20 +51,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// If true, Azuki automatically scrolls when the caret goes near window border.
-		/// </summary>
-		/// <remarks>
-		/// If true, when the caret is near window border Azuki automatically scrolls
-		/// to ensure that at least one more line is visible between the caret and border.
-		/// </remarks>
-		[Obsolete("Use AutoScrollMargin property instead.", false)]
-		public static bool AutoScrollNearWindowBorder
-		{
-			get{ return (0 < _AutoScrollMargin); }
-			set{ _AutoScrollMargin = 1; }
-		}
-
-		/// <summary>
 		/// Gets or sets how close the caret can come to window borders at top or bottom, in line count.
 		/// </summary>
 		/// <remarks>

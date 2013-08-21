@@ -163,7 +163,7 @@ namespace Sgry.Azuki
 				{
 					// make indentation characters
 					string extraPadding;
-					Point pos = ui.View.GetVirPosFromIndex( newCaretIndex );
+					Point pos = ui.View.GetVirtualPos( newCaretIndex );
 					pos.X += ui.View.TabWidthInPx;
 					extraPadding = UiImpl.GetNeededPaddingChars( ui, pos, true );
 					doc.Replace( extraPadding, newCaretIndex, newCaretIndex );

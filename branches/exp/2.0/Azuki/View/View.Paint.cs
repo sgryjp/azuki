@@ -594,7 +594,7 @@ namespace Sgry.Azuki
 				int indicatorWidth = 2;
 
 				// calculate indicator region
-				Point caretPos = GetVirPosFromIndex( g, Document.CaretIndex );
+				Point caretPos = GetVirtualPos( g, Document.CaretIndex );
 				VirtualToScreen( ref caretPos );
 				if( caretPos.X < XofTextArea )
 				{
@@ -638,7 +638,7 @@ namespace Sgry.Azuki
 			{
 				// calculate indicator region
 				int indicatorWidth = HRulerUnitWidth - 1;
-				Point indicatorPos = GetVirPosFromIndex( g, Document.CaretIndex );
+				Point indicatorPos = GetVirtualPos( g, Document.CaretIndex );
 				indicatorPos.X -= (indicatorPos.X % HRulerUnitWidth);
 				VirtualToScreen( ref indicatorPos );
 				if( indicatorPos.X < XofTextArea )
@@ -742,7 +742,7 @@ namespace Sgry.Azuki
 			if( HRulerIndicatorType == HRulerIndicatorType.Position )
 			{
 				// get virtual position of the new caret
-				Point newCaretScreenPos = GetVirPosFromIndex( g, Document.CaretIndex );
+				Point newCaretScreenPos = GetVirtualPos( g, Document.CaretIndex );
 				VirtualToScreen( ref newCaretScreenPos );
 
 				// get previous screen position of the caret
@@ -792,7 +792,7 @@ namespace Sgry.Azuki
 				int oldSegmentX, newSegmentX;
 
 				// get virtual position of the new caret
-				Point newCaretScreenPos = GetVirPosFromIndex( g, Document.CaretIndex );
+				Point newCaretScreenPos = GetVirtualPos( g, Document.CaretIndex );
 				VirtualToScreen( ref newCaretScreenPos );
 
 				// calculate new segment of horizontal rulse

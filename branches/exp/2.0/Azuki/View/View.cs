@@ -727,7 +727,7 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public void SetDesiredColumn( IGraphics g )
 		{
-			Document.ViewParam.DesiredColumnX = GetVirPosFromIndex( g, Document.CaretIndex ).X;
+			Document.ViewParam.DesiredColumnX = GetVirtualPos( g, Document.CaretIndex ).X;
 		}
 
 		/// <summary>
@@ -750,45 +750,25 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Position / Index Conversion
-		/// <summary>
-		/// Calculates location in the virtual space of the character at specified index.
-		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		public Point GetVirPosFromIndex( int index )
+		public Point GetVirtualPos( int index )
 		{
 			using( IGraphics g = _UI.GetIGraphics() )
 			{
-				return GetVirPosFromIndex( g, index );
+				return GetVirtualPos( g, index );
 			}
 		}
 
-		/// <summary>
-		/// Calculates location in the virtual space of the character at specified index.
-		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		public abstract Point GetVirPosFromIndex( IGraphics g, int index );
+		public abstract Point GetVirtualPos( IGraphics g, int index );
 
-		/// <summary>
-		/// Calculates location in the virtual space of the character at specified index.
-		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		public Point GetVirPosFromIndex( int lineIndex, int columnIndex )
+		public Point GetVirtualPos( int lineIndex, int columnIndex )
 		{
 			using( IGraphics g = _UI.GetIGraphics() )
 			{
-				return GetVirPosFromIndex( g, lineIndex, columnIndex );
+				return GetVirtualPos( g, lineIndex, columnIndex );
 			}
 		}
 
-		/// <summary>
-		/// Calculates location in the virtual space of the character at specified index.
-		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		public abstract Point GetVirPosFromIndex( IGraphics g, int lineIndex, int columnIndex );
+		public abstract Point GetVirtualPos( IGraphics g, int lineIndex, int columnIndex );
 
 		/// <summary>
 		/// Gets char-index of the char at the point specified by location in the virtual space.
@@ -968,7 +948,7 @@ namespace Sgry.Azuki
 			// calculate location of the character in coordinate in virtual text area
 			using( IGraphics g = _UI.GetIGraphics() )
 			{
-				virPos = GetVirPosFromIndex( g, charIndex );
+				virPos = GetVirtualPos( g, charIndex );
 			}
 
 			// calculate how many smallest lines exist at left of the character
@@ -1005,7 +985,7 @@ namespace Sgry.Azuki
 			// calculate location of the character in coordinate in virtual text area
 			using( IGraphics g = _UI.GetIGraphics() )
 			{
-				virPos = GetVirPosFromIndex( g, lineIndex, columnIndex );
+				virPos = GetVirtualPos( g, lineIndex, columnIndex );
 			}
 
 			// calculate how many smallest lines exist at left of the character
@@ -1049,7 +1029,7 @@ namespace Sgry.Azuki
 			}
 
 			// calculate caret position
-			caretPos = GetVirPosFromIndex( g, Document.CaretIndex );
+			caretPos = GetVirtualPos( g, Document.CaretIndex );
 			if( threshRect.Left <= caretPos.X
 				&& caretPos.X <= threshRect.Right
 				&& threshRect.Top <= caretPos.Y

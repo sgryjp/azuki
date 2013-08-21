@@ -43,7 +43,7 @@ namespace Sgry.Azuki
 				// so ScrollToCaret does not work properly)
 				using( IGraphics g = _UI.GetIGraphics() )
 				{
-					Point pos = GetVirPosFromIndex( g, Document.CaretIndex );
+					Point pos = GetVirtualPos( g, Document.CaretIndex );
 					int newValue = pos.X - (VisibleTextAreaSize.Width / 2);
 					if( 0 < newValue )
 					{
@@ -81,24 +81,18 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Position / Index Conversion
-		/// <summary>
-		/// Calculates location in the virtual space of the character at specified index.
-		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		public override Point GetVirPosFromIndex( IGraphics g, int index )
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public override Point GetVirtualPos( IGraphics g, int index )
 		{
+			Debug.Assert( g != null );
 			var pos = Document.GetTextPosition( index );
-			return GetVirPosFromIndex( g, pos.Line, pos.Column );
+			return GetVirtualPos( g, pos.Line, pos.Column );
 		}
 
-		/// <summary>
-		/// Calculates location in the virtual space of the character at specified index.
-		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		public override Point GetVirPosFromIndex( IGraphics g, int lineIndex, int columnIndex )
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public override Point GetVirtualPos( IGraphics g, int lineIndex, int columnIndex )
 		{
+			Debug.Assert( g != null );
 			if( lineIndex < 0 || LineCount <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Specified index is out of range. (value:"+lineIndex+", line count:"+LineCount+")" );
 			if( columnIndex < 0 )
@@ -126,6 +120,7 @@ namespace Sgry.Azuki
 		/// <returns>The index of the character at specified location.</returns>
 		public override int GetIndexFromVirPos( IGraphics g, Point pt )
 		{
+			Debug.Assert( g != null );
 			int lineIndex, columnIndex;
 			int drawableTextLen;
 
@@ -360,8 +355,8 @@ namespace Sgry.Azuki
 			lastEnd = e.OldRectSelectRanges[ e.OldRectSelectRanges.Length - 1 ];
 			Debug.Assert( 0 <= firstBegin && firstBegin <= Document.Length );
 			Debug.Assert( 0 <= lastEnd && lastEnd <= Document.Length );
-			firstBeginPos = this.GetVirPosFromIndex( g, firstBegin );
-			lastEndPos = this.GetVirPosFromIndex( g, lastEnd );
+			firstBeginPos = this.GetVirtualPos( g, firstBegin );
+			lastEndPos = this.GetVirtualPos( g, lastEnd );
 			firstBeginPos.Y -= (LinePadding >> 1);
 			lastEndPos.Y -= (LinePadding >> 1);
 
@@ -536,7 +531,7 @@ namespace Sgry.Azuki
 				}
 
 				// get graphical position of the place
-				invalidStartPos = GetVirPosFromIndex( g, invalidStartIndex );
+				invalidStartPos = GetVirtualPos( g, invalidStartIndex );
 				VirtualToScreen( ref invalidStartPos );
 
 				// update indicator graphic on horizontal ruler

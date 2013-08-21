@@ -246,44 +246,24 @@ namespace Sgry.Azuki
 
 		#region Position / Index Conversion
 		/// <summary>
-		/// Calculates location in the virtual space of the character at specified index.
+		/// Calculates specified character's position in virtual space.
 		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		Point GetVirPosFromIndex( int index );
+		/// <returns>Position in virutal space.</returns>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		Point GetVirtualPos( int index );
 
 		/// <summary>
-		/// Calculates location in the virtual space of the character at specified index.
+		/// Calculates specified character's position in virtual space.
 		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		Point GetVirPosFromIndex( IGraphics g, int index );
+		/// <returns>Position in virutal space.</returns>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		Point GetVirtualPos( int lineIndex, int columnIndex );
 
 		/// <summary>
-		/// Calculates location in the virtual space of the character at specified index.
+		/// Gets char-index of a character at specified position in virtual space.
 		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		Point GetVirPosFromIndex( int lineIndex, int columnIndex );
-
-		/// <summary>
-		/// Calculates location in the virtual space of the character at specified index.
-		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		Point GetVirPosFromIndex( IGraphics g, int lineIndex, int columnIndex );
-
-		/// <summary>
-		/// Gets char-index of the char at the point specified by location in the virtual space.
-		/// </summary>
-		/// <returns>The index of the character at specified location.</returns>
+		/// <returns>Index of a character.</returns>
 		int GetIndexFromVirPos( Point pt );
-
-		/// <summary>
-		/// Gets char-index of the char at the point specified by location in the virtual space.
-		/// </summary>
-		/// <returns>The index of the char or -1 if invalid point was specified.</returns>
-		int GetIndexFromVirPos( IGraphics g, Point pt );
 
 		/// <summary>
 		/// Converts a coordinate in virtual space to a coordinate in client area.

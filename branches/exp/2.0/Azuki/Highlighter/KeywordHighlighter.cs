@@ -382,22 +382,6 @@ namespace Sgry.Azuki.Highlighter
 		}
 
 		/// <summary>
-		/// (Please use AddKeywordSet instead.)
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This method is obsoleted. Please use
-		/// <see cref="AddKeywordSet(string[],CharClass)"/>
-		/// method instead.
-		/// </para>
-		/// </remarks>
-		[Obsolete("Please use AddKeywordSet method instead.", true)]
-		public void SetKeywords( string[] keywords, CharClass klass )
-		{
-			AddKeywordSet( keywords, klass, false );
-		}
-
-		/// <summary>
 		/// Adds a set of keywords to be highlighted.
 		/// </summary>
 		/// <param name="keywords">

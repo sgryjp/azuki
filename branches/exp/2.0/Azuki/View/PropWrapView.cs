@@ -121,24 +121,18 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Position / Index Conversion
-		/// <summary>
-		/// Calculates location in the virtual space of the character at specified index.
-		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public override Point GetVirPosFromIndex( IGraphics g, int index )
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public override Point GetVirtualPos( IGraphics g, int index )
 		{
+			Debug.Assert( g != null );
 			var pos = TextUtil.GetTextPosition( Document.InternalBuffer, PLHI, index );
-			return GetVirPosFromIndex( g, pos.Line, pos.Column );
+			return GetVirtualPos( g, pos.Line, pos.Column );
 		}
 
-		/// <summary>
-		/// Calculates location in the virtual space of the character at specified index.
-		/// </summary>
-		/// <returns>The location of the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public override Point GetVirPosFromIndex( IGraphics g, int lineIndex, int columnIndex )
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public override Point GetVirtualPos( IGraphics g, int lineIndex, int columnIndex )
 		{
+			Debug.Assert( g != null );
 			if( lineIndex < 0 )
 				throw new ArgumentOutOfRangeException( "lineIndex("+lineIndex+")" );
 			if( columnIndex < 0 )
@@ -305,7 +299,7 @@ namespace Sgry.Azuki
 			using( IGraphics g = _UI.GetIGraphics() )
 			{
 				// get position of the replacement
-				oldCaretVirPos = GetVirPosFromIndex( g, e.Index );
+				oldCaretVirPos = GetVirtualPos( g, e.Index );
 				if( IsWrappedLineHead(doc, PLHI, e.Index) )
 				{
 					oldCaretVirPos.Y -= LineSpacing;
@@ -369,7 +363,7 @@ namespace Sgry.Azuki
 
 					// get position of the char at the end of the logical line
 					logLineEnd = doc.Lines.AtOffset( e.Index ).End;
-					logLineEndPos = GetVirPosFromIndex( g, logLineEnd );
+					logLineEndPos = GetVirtualPos( g, logLineEnd );
 					VirtualToScreen( ref logLineEndPos );
 					logLineBottom = logLineEndPos.Y - (LinePadding >> 1);
 
@@ -411,8 +405,8 @@ namespace Sgry.Azuki
 			logLine = doc.Lines[ logLineIndex ];
 
 			// get the screen position of both beginning and ending character
-			top = GetVirPosFromIndex( g, logLine.Begin );
-			bottom = GetVirPosFromIndex( g, logLine.End );
+			top = GetVirtualPos( g, logLine.Begin );
+			bottom = GetVirtualPos( g, logLine.End );
 			VirtualToScreen( ref top );
 			VirtualToScreen( ref bottom );
 			if( bottom.Y < YofTextArea )
