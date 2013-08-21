@@ -618,6 +618,48 @@ namespace Sgry.Azuki
 		{
 			get; set;
 		}
+
+		/// <summary>
+		/// Gets location and size of the dirt bar area.
+		/// </summary>
+		Rectangle DirtBarRectangle
+		{
+			get;
+		}
+
+		/// <summary>
+		/// Gets location and size of the line number area.
+		/// </summary>
+		Rectangle LineNumberAreaRectangle
+		{
+			get;
+		}
+
+		/// <summary>
+		/// Gets location and size of the horizontal ruler area.
+		/// </summary>
+		Rectangle HRulerRectangle
+		{
+			get;
+		}
+
+		/// <summary>
+		/// Gets location and size of the visible text area in screen.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// This property calculates rectangle of currently visible part of the text area.
+		/// Note that, in contrast to this property,
+		/// <see cref="Sgry.Azuki.IView.TextAreaWidth">TextAreaWidth</see>
+		/// property calculates 'virtual' size of the text area.
+		/// Since the virtual size is calculated including areas which is not visible,
+		/// these two property are totally different.
+		/// </para>
+		/// </remarks>
+		Rectangle TextAreaRectangle
+		{
+			get;
+		}
 		#endregion
 	}
 }
