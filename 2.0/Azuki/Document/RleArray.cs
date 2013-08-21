@@ -477,12 +477,13 @@ namespace Sgry.Azuki
 		/// </summary>
 		public IEnumerator<T> GetEnumerator()
 		{
-			throw new NotImplementedException();
+			for( int i=0; i<Count; i++ )
+				yield return this[i];
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
-			throw new NotImplementedException();
+			return GetEnumerator();
 		}
 
 		/// <summary>

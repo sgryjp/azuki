@@ -1,7 +1,5 @@
 ﻿// file: Marking.cs
 // brief: Classes related to marking which indicates attributes apart from syntax and grammar.
-// author: YAMAMOTO Suguru
-// update: 2011-09-23
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -285,12 +283,8 @@ namespace Sgry.Azuki
 		public static IEnumerable<MarkingInfo> GetEnumerator()
 		{
 			for( int i=0; i<_MarkingInfoAry.Length; i++ )
-			{
 				if( _MarkingInfoAry[i] != null )
-				{
 					yield return _MarkingInfoAry[i];
-				}
-			}
 		}
 		#endregion
 	}
