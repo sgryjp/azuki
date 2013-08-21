@@ -550,7 +550,7 @@ namespace Sgry.Ann
 
 			// Display caret position on status bar
 			var caretPos = _Azuki.GetTextPosition( _Azuki.CaretIndex );
-			columnInHRuler = _Azuki.View.GetVirPosFromIndex( _Azuki.CaretIndex ).X
+			columnInHRuler = _Azuki.View.GetVirtualPos( _Azuki.CaretIndex ).X
 				/ _Azuki.View.HRulerUnitWidth;
 			_Status_CaretPos.Text = String.Format( StatusMsg_CaretPos,
 					caretPos.Line+1, columnInHRuler+1, caretPos.Column+1,

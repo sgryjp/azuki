@@ -434,7 +434,7 @@ namespace Sgry.Azuki
 				string padding;
 
 				// Insert every row at same column position
-				insertPos = ui.View.GetVirPosFromIndex( doc.CaretIndex );
+				insertPos = ui.View.GetVirtualPos( doc.CaretIndex );
 				rowBegin = 0;
 				rowEnd = TextUtil.NextLineHead( clipboardText, rowBegin );
 				while( 0 <= rowEnd )

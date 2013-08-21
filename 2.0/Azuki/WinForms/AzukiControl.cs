@@ -1566,7 +1566,7 @@ namespace Sgry.Azuki.WinForms
 		/// <exception cref="ArgumentOutOfRangeException">Invalid index was given.</exception>
 		public Point GetPositionFromIndex( int index )
 		{
-			Point virPos = View.GetVirPosFromIndex( index );
+			Point virPos = View.GetVirtualPos( index );
 			View.VirtualToScreen( ref virPos );
 			return virPos;
 		}
@@ -1578,7 +1578,7 @@ namespace Sgry.Azuki.WinForms
 		/// <exception cref="ArgumentOutOfRangeException">Invalid index was given.</exception>
 		public Point GetPositionFromIndex( int lineIndex, int columnIndex )
 		{
-			Point vPos = View.GetVirPosFromIndex( lineIndex, columnIndex );
+			Point vPos = View.GetVirtualPos( lineIndex, columnIndex );
 			View.VirtualToScreen( ref vPos );
 			return vPos;
 		}

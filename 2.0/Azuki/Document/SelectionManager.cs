@@ -191,8 +191,8 @@ namespace Sgry.Azuki
 		void SetSelection_Rect( int anchor, int caret, IView view )
 		{
 			// calculate graphical position of both anchor and new caret
-			Point anchorPos = view.GetVirPosFromIndex( anchor );
-			Point caretPos = view.GetVirPosFromIndex( caret );
+			Point anchorPos = view.GetVirtualPos( anchor );
+			Point caretPos = view.GetVirtualPos( caret );
 
 			// calculate ranges selected by the rectangle made with the two points
 			_RectSelectRanges = view.GetRectSelectRanges(

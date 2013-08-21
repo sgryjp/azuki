@@ -202,7 +202,7 @@ namespace Sgry.Azuki
 			int diff = (view.VisibleSize.Height / view.LineSpacing);
 
 			// get current virtual coordinate of the caret
-			pt = view.GetVirPosFromIndex( doc.CaretIndex );
+			pt = view.GetVirtualPos( doc.CaretIndex );
 			
 			// calc new virtual coordinate of the caret
 			pt.Y += diff * view.LineSpacing;
@@ -233,7 +233,7 @@ namespace Sgry.Azuki
 			int diff = (view.VisibleSize.Height / view.LineSpacing);
 
 			// get current virtual coordinate of the caret
-			pt = view.GetVirPosFromIndex( doc.CaretIndex );
+			pt = view.GetVirtualPos( doc.CaretIndex );
 			
 			// calc new virtual coordinate of the caret
 			pt.Y -= diff * view.LineSpacing;
@@ -456,7 +456,7 @@ namespace Sgry.Azuki
 			int diff = (view.VisibleSize.Height / view.LineSpacing);
 
 			// get current virtual coordinate of the caret
-			pt = view.GetVirPosFromIndex( doc.CaretIndex );
+			pt = view.GetVirtualPos( doc.CaretIndex );
 			
 			// calc new virtual coordinate of the caret
 			pt.Y += diff * view.LineSpacing;
@@ -486,7 +486,7 @@ namespace Sgry.Azuki
 			int diff = (view.VisibleSize.Height / view.LineSpacing);
 
 			// get current virtual coordinate of the caret
-			pt = view.GetVirPosFromIndex( doc.CaretIndex );
+			pt = view.GetVirtualPos( doc.CaretIndex );
 			
 			// calc new virtual coordinate of the caret
 			pt.Y -= diff * view.LineSpacing;

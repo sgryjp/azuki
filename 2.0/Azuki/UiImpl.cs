@@ -1022,7 +1022,7 @@ namespace Sgry.Azuki
 
 						// calculate position of the char below the mouse cursor
 						index = View.GetIndexFromVirPos( pos );
-						alignedPos = View.GetVirPosFromIndex( index );
+						alignedPos = View.GetVirtualPos( index );
 						View.VirtualToScreen( ref alignedPos );
 
 						// display caret graphic at where
@@ -1409,7 +1409,7 @@ namespace Sgry.Azuki
 			StringBuilder spaces = new StringBuilder( 32 );
 
 			// Calculate next tab stop
-			Point insertPos = view.GetVirPosFromIndex( index );
+			Point insertPos = view.GetVirtualPos( index );
 			int nextTabStop = view.NextTabStopX( insertPos.X );
 
 			// make padding spaces
@@ -1441,7 +1441,7 @@ namespace Sgry.Azuki
 			// calculate the position of the nearest character in line
 			// (this will be at end of the line)
 			targetIndex = view.GetIndexFromVirPos( targetVirPos );
-			lineLastCharPos = view.GetVirPosFromIndex( targetIndex );
+			lineLastCharPos = view.GetVirtualPos( targetIndex );
 			if( targetVirPos.X <= lineLastCharPos.X + view.SpaceWidthInPx )
 			{
 				return ""; // no padding is needed
