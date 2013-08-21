@@ -2,7 +2,7 @@
 
 namespace Sgry.Azuki
 {
-	public class TextPoint
+	public struct TextPoint
 	{
 		public int Line
 		{
@@ -15,6 +15,7 @@ namespace Sgry.Azuki
 		}
 
 		public TextPoint( int line, int column )
+			: this()
 		{
 			Line = line;
 			Column = column;

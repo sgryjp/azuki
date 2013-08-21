@@ -120,14 +120,9 @@ namespace Sgry.Azuki
 								 new TextPoint(endLineIndex, endColumnIndex) );
 		}
 
-		/// <exception cref="ArgumentNullException"/>
 		/// <exception cref="ArgumentOutOfRangeException"/>
 		public IRange GetTextRange( TextPoint beginPos, TextPoint endPos )
 		{
-			if( beginPos == null )
-				throw new ArgumentNullException( "beginPos" );
-			if( endPos == null )
-				throw new ArgumentNullException( "endPos" );
 			if( endPos.Line < 0 || Lines.Count <= endPos.Line )
 				throw new ArgumentOutOfRangeException( "endPos", endPos, "Specified line index is"
 													   + " out of valid range. (endPos:" + endPos
