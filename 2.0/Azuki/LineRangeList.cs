@@ -13,6 +13,7 @@ namespace Sgry.Azuki
 			_Buffer = buf;
 		}
 
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public ILineRange AtOffset( int charIndex )
 		{
 			if( charIndex < 0 || _Buffer.Count < charIndex )
@@ -23,6 +24,7 @@ namespace Sgry.Azuki
 			return this[ _Buffer.GetTextPosition(charIndex).Line ];
 		}
 
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public virtual ILineRange this[ int lineIndex ]
 		{
 			get

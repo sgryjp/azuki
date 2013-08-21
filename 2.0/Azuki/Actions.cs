@@ -502,7 +502,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void Undo( IUserInterface ui )
 		{
-			IView view = ui.View;
+			IViewInternal view = (IViewInternal)ui.View;
 			if( view.Document.CanUndo == false
 				|| view.Document.IsReadOnly )
 			{
@@ -520,7 +520,7 @@ namespace Sgry.Azuki
 			// redraw graphic of dirt-bar
 			if( ui.ShowsDirtBar )
 			{
-				ui.View.Invalidate( ui.View.DirtBarRectangle );
+				ui.View.Invalidate( view.DirtBarRectangle );
 			}
 		}
 

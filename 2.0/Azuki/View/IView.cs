@@ -24,15 +24,14 @@ namespace Sgry.Azuki
 		/// Gets number of the screen lines.
 		/// </summary>
 		/// <remarks>
-		/// Through this property,
-		/// number of the screen lines in this document can be retrieved.
-		/// "Screen line" here means a text line drawn as a graphc
-		/// and differs from "logical line" (strings simply separated by EOL codes).
-		/// To retrieve count of the logical lines,
-		/// use <see cref="Sgry.Azuki.Document.LineCount">Document.LineCount</see>
-		/// instead.
+		/// <para>
+		/// Through this property, number of the screen lines in this document can be retrieved.
+		/// "Screen line" here means a text line drawn as a graphc and is different from "logical
+		/// line," which is a string simply separated by EOL codes. To retrieve count of logical
+		/// lines, use Document.Lines.Count instead.
+		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.LineCount">Document.LineCount</seealso>
+		/// <seealso cref="Sgry.Azuki.Document.Lines"/>
 		int LineCount
 		{
 			get;
@@ -40,7 +39,7 @@ namespace Sgry.Azuki
 		#endregion
 
 		/// <summary>
-		/// Gets length of the pysical line.
+		/// Gets length of a screen line.
 		/// </summary>
 		/// <param name="lineIndex">Index of the line of which to get the length.</param>
 		/// <returns>Length of the specified line in character count.</returns>
@@ -132,8 +131,9 @@ namespace Sgry.Azuki
 		/// ColorScheme.DirtyLineBar, ColorScheme.CleanedLineBar.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="DirtyState">DirtyState enum</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.GetLineDirtyState">Document.GetLineDirtyState method</seealso>
+		/// <seealso cref="DirtyState"/>
+		/// <seealso cref="Document.Lines"/>
+		/// <seealso cref="ILineRange.DirtyState"/>
 		bool ShowsDirtBar
 		{
 			get; set;
@@ -617,106 +617,6 @@ namespace Sgry.Azuki
 		bool ScrollsBeyondLastLine
 		{
 			get; set;
-		}
-		#endregion
-
-		#region Coordinates of Graphical Parts
-		/// <summary>
-		/// Gets X coordinate in client area of line number area.
-		/// </summary>
-		int XofLineNumberArea
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets X coordinate in client area of dirt bar area.
-		/// </summary>
-		int XofDirtBar
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets X coordinate in client area of left margin.
-		/// </summary>
-		int XofLeftMargin
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets X coordinate in client area of text area.
-		/// </summary>
-		int XofTextArea
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets Y coordinate in client area of horizontal ruler.
-		/// </summary>
-		int YofHRuler
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets Y coordinate in client area of top margin.
-		/// </summary>
-		int YofTopMargin
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets Y coordinate in client area of text area.
-		/// </summary>
-		int YofTextArea
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets location and size of the dirt bar area.
-		/// </summary>
-		Rectangle DirtBarRectangle
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets location and size of the line number area.
-		/// </summary>
-		Rectangle LineNumberAreaRectangle
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets location and size of the horizontal ruler area.
-		/// </summary>
-		Rectangle HRulerRectangle
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets location and size of the visible text area in screen.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This property calculates rectangle of currently visible part of the text area.
-		/// Note that, in contrast to this property,
-		/// <see cref="Sgry.Azuki.IView.TextAreaWidth">TextAreaWidth</see>
-		/// property calculates 'virtual' size of the text area.
-		/// Since the virtual size is calculated including areas which is not visible,
-		/// these two property are totally different.
-		/// </para>
-		/// </remarks>
-		Rectangle TextAreaRectangle
-		{
-			get;
 		}
 		#endregion
 	}
