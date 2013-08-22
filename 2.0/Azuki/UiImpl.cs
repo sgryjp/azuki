@@ -617,12 +617,12 @@ namespace Sgry.Azuki
 
 		#region Other
 		/// <summary>
-		/// Gets number of characters currently selected.
+		/// Gets the number of characters currently selected.
 		/// </summary>
 		/// <returns>Number of characters currently selected.</returns>
 		/// <remarks>
 		/// <para>
-		/// This method gets number of characters currently selected,
+		/// This method gets the number of characters currently selected,
 		/// properly even if the selection mode is rectangle selection.
 		/// </para>
 		/// <para>
@@ -638,7 +638,7 @@ namespace Sgry.Azuki
 
 			if( Document.RectSelectRanges != null )
 			{
-				// Get number of characters in each line of the rectangle
+				// Get the number of characters in each line of the rectangle
 				count = 0;
 				for( int i=0; i<Document.RectSelectRanges.Length; i+=2 )
 				{

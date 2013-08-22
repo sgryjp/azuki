@@ -539,11 +539,11 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets number of characters in this document.
+		/// Gets the number of characters in this document.
 		/// </summary>
 		/// <remarks>
 		///   <para>
-		///   This property returns number of characters currently input in this document. Note
+		///   This property returns the number of characters currently input in this document. Note
 		///   that because Azuki's internal character encoding is UTF-16, characters consisted with
 		///   more than one characters will NOT be counted as one (e.g. surrogate pairs, combining
 		///   character sequences.)

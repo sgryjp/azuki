@@ -38,7 +38,7 @@ namespace Sgry.Azuki
 
 		#region Properties
 		/// <summary>
-		/// Gets number of the screen lines.
+		/// Gets the number of the screen lines.
 		/// </summary>
 		public override int LineCount
 		{
@@ -870,7 +870,7 @@ namespace Sgry.Azuki
 					string peekingChar;
 					int peekingCharRight = 0;
 
-					// calculate number of chars which fits within the clip-rect
+					// calculate the number of characters which fits within the clip-rect
 					visPartRight = MeasureTokenEndX( g, token, pos.X, clipRect.Right, out visCharCount );
 
 					// (if the clip-rect's right boundary is NOT the text area's right boundary,
