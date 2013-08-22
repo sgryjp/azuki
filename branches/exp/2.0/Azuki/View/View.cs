@@ -137,7 +137,7 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets number of the screen lines.
+		/// Gets the number of the screen lines.
 		/// </summary>
 		public abstract int LineCount
 		{

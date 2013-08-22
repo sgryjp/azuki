@@ -1480,12 +1480,12 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Gets number of characters currently selected.
+		/// Gets the number of characters currently selected.
 		/// </summary>
 		/// <returns>Number of characters currently selected.</returns>
 		/// <remarks>
 		/// <para>
-		/// This method gets number of characters currently selected,
+		/// This method gets the number of characters currently selected,
 		/// properly even if the selection mode is rectangle selection.
 		/// </para>
 		/// <para>
@@ -1548,7 +1548,7 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Gets number of lines currently inputted.
+		/// Gets the number of lines currently inputted.
 		/// </summary>
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]

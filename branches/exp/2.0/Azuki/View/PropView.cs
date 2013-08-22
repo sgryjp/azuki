@@ -57,7 +57,7 @@ namespace Sgry.Azuki
 
 		#region Properties
 		/// <summary>
-		/// Gets number of the screen lines.
+		/// Gets the number of the screen lines.
 		/// </summary>
 		public override int LineCount
 		{
