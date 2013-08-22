@@ -16,7 +16,7 @@
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This property extracts a substring from a text buffer associated with. The substring
+		/// This property extracts a substring from an associated text buffer. The substring
 		/// extracted is cached so that subsequent access won't hurt performance.
 		/// </para>
 		/// </remarks>
