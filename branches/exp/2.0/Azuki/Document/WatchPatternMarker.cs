@@ -50,7 +50,7 @@ namespace Sgry.Azuki
 			Debug.Assert( ui.Document == _Document );
 
 			// Mark up all URIs in the logical line
-			int scrernLineHeadIndex = ui.View.GetLineHeadIndex( e.LineIndex );
+			int scrernLineHeadIndex = ui.View.Lines[ e.LineIndex ].Begin;
 			int logicalLineIndex = ui.Document.GetLineIndexFromCharIndex( scrernLineHeadIndex );
 			if( logicalLineIndex == _LastDrawnLogicalLineIndex )
 			{

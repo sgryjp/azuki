@@ -1646,7 +1646,7 @@ namespace Sgry.Azuki.WinForms
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
 		public int GetLineHeadIndex( int lineIndex )
 		{
-			return View.GetLineHeadIndex( lineIndex );
+			return View.Lines[ lineIndex ].Begin;
 		}
 
 		/// <summary>

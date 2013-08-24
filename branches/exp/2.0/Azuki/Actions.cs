@@ -612,13 +612,12 @@ namespace Sgry.Azuki
 			if( 0 < caretLine )
 			{
 				//-- insertion point is end of previous line --
-				insIndex = view.GetLineHeadIndex( caretLine-1 )
-					+ view.GetLineLength( caretLine-1 );
+				insIndex = view.Lines[ caretLine-1 ].End;
 			}
 			else
 			{
 				//-- insertion point is head of current line --
-				insIndex = view.GetLineHeadIndex( caretLine );
+				insIndex = view.Lines[ caretLine ].Begin;
 			}
 
 			// insert an EOL code
