@@ -54,14 +54,6 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
-		/// <summary>
-		/// Gets length of a screen line.
-		/// </summary>
-		/// <param name="lineIndex">Index of the line of which to get the length.</param>
-		/// <returns>Length of the specified line in character count.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		int GetLineLength( int lineIndex );
-
 		#region Drawing Options
 		/// <summary>
 		/// Gets or sets top margin of the view in pixel.
