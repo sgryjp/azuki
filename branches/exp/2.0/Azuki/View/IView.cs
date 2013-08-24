@@ -36,6 +36,22 @@ namespace Sgry.Azuki
 		{
 			get;
 		}
+
+		/// <summary>
+		/// Gets collection of screen line ranges, which does not include EOL codes.
+		/// </summary>
+		ILineRangeList Lines
+		{
+			get;
+		}
+
+		/// <summary>
+		/// Gets collection of screen line ranges, which includes EOL codes.
+		/// </summary>
+		ILineRangeList RawLines
+		{
+			get;
+		}
 		#endregion
 
 		/// <summary>

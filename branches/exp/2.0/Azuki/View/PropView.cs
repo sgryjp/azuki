@@ -56,6 +56,16 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Properties
+		public override ILineRangeList Lines
+		{
+			get{ return Document.Lines; }
+		}
+
+		public override ILineRangeList RawLines
+		{
+			get{ return Document.RawLines; }
+		}
+
 		/// <summary>
 		/// Gets the number of the screen lines.
 		/// </summary>
