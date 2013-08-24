@@ -326,14 +326,6 @@ namespace Sgry.Azuki
 		void ScreenToVirtual( ref Point pt );
 
 		/// <summary>
-		/// Calculates screen line index from char-index.
-		/// </summary>
-		/// <param name="charIndex">The index of the line which contains the char at this parameter will be calculated.</param>
-		/// <returns>The index of the line which contains the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		int GetLineIndexFromCharIndex( int charIndex );
-
-		/// <summary>
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>

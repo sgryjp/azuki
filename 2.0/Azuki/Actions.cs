@@ -593,59 +593,39 @@ namespace Sgry.Azuki
 
 		#region Line editing
 		/// <summary>
-		/// Inserts a new line above the cursor.
+		/// Inserts a new line above the caret.
 		/// </summary>
 		public static void BreakPreviousLine( IUserInterface ui )
 		{
 			Document doc = ui.Document;
 			IView view = ui.View;
-			int caretLine;
-			int insIndex;
 
 			if( doc.IsReadOnly || ui.IsSingleLineMode )
 				return;
 
-			// get index of the head of current line
-			caretLine = view.GetLineIndexFromCharIndex( doc.CaretIndex );
-
-			// calculate index of the insertion point
-			if( 0 < caretLine )
-			{
-				//-- insertion point is end of previous line --
-				insIndex = view.Lines[ caretLine-1 ].End;
-			}
-			else
-			{
-				//-- insertion point is head of current line --
-				insIndex = view.Lines[ caretLine ].Begin;
-			}
-
-			// insert an EOL code
+			// Insert an EOL code at the beginning of the previous line
+			var caretLine = view.Lines.AtOffset( doc.CaretIndex );
+			int insIndex = (0 == caretLine.LineIndex) ? 0
+													  : view.Lines[ caretLine.LineIndex-1 ].End;
 			doc.SetSelection( insIndex, insIndex );
 			ui.HandleTextInput( "\n" );
 			ui.ScrollToCaret();
 		}
 
 		/// <summary>
-		/// Inserts a new line below the cursor.
+		/// Inserts a new line below the caret.
 		/// </summary>
 		public static void BreakNextLine( IUserInterface ui )
 		{
 			Document doc = ui.Document;
 			IView view = ui.View;
-			int caretLine, caretLineHeadIndex;
-			int insIndex;
 
 			if( doc.IsReadOnly || ui.IsSingleLineMode )
 				return;
 
-			// get index of the end of current line
-			caretLine = view.GetLineIndexFromCharIndex( doc.CaretIndex );
-			caretLineHeadIndex = view.Lines.AtOffset( doc.CaretIndex ).Begin;
-			insIndex = caretLineHeadIndex + view.Lines[ caretLine ].Length;
-
-			// insert an EOL code
-			doc.SetSelection( insIndex, insIndex );
+			// Insert an EOL code at the end of current line
+			var caretLine = view.Lines.AtOffset( doc.CaretIndex );
+			doc.SetSelection( caretLine.End, caretLine.End );
 			ui.HandleTextInput( "\n" );
 			ui.ScrollToCaret();
 		}

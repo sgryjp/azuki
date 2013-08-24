@@ -779,17 +779,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Calculates screen line index from char-index.
-		/// </summary>
-		/// <param name="charIndex">The index of the line which contains the char at this parameter will be calculated.</param>
-		/// <returns>The index of the line which contains the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public int GetLineIndexFromCharIndex( int charIndex )
-		{
-			return GetTextPosition( charIndex ).Line;
-		}
-
-		/// <summary>
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
@@ -1264,9 +1253,9 @@ namespace Sgry.Azuki
 
 				// re-calculate line index of caret and anchor
 				Document.ViewParam.PrevCaretLine
-					= GetLineIndexFromCharIndex( Document.CaretIndex );
+					= Lines.AtOffset( Document.CaretIndex ).LineIndex;
 				Document.ViewParam.PrevAnchorLine
-					= GetLineIndexFromCharIndex( Document.AnchorIndex );
+					= Lines.AtOffset( Document.AnchorIndex ).LineIndex;
 
 				// reset desired column to current caret position
 				SetDesiredColumn( g );
@@ -1340,7 +1329,9 @@ namespace Sgry.Azuki
 					Document.GetSelection( out selBegin, out selEnd );
 					if( selBegin == selEnd )
 					{
-						DrawUnderLine( g, YofLine(GetLineIndexFromCharIndex(selBegin)), ColorScheme.HighlightColor );
+						DrawUnderLine( g,
+									   YofLine( Lines.AtOffset(selBegin).LineIndex ),
+									   ColorScheme.HighlightColor );
 					}
 				}
 			}
@@ -1357,7 +1348,9 @@ namespace Sgry.Azuki
 					Document.GetSelection( out selBegin, out selEnd );
 					if( selBegin == selEnd )
 					{
-						DrawUnderLine( g, YofLine(GetLineIndexFromCharIndex(selBegin)), ColorScheme.BackColor );
+						DrawUnderLine( g,
+									   YofLine( Lines.AtOffset(selBegin).LineIndex ),
+									   ColorScheme.BackColor );
 					}
 				}
 			}

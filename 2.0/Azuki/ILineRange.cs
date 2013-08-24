@@ -6,7 +6,7 @@
 	public interface ILineRange : IRange
 	{
 		/// <summary>
-		/// Gets index of the line in a text buffer which contains the line.
+		/// Gets index of this line in a text buffer.
 		/// </summary>
 		int LineIndex{ get; }
 

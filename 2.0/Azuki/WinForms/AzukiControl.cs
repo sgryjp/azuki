@@ -1667,7 +1667,7 @@ namespace Sgry.Azuki.WinForms
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
 		public int GetLineIndexFromCharIndex( int charIndex )
 		{
-			return View.GetLineIndexFromCharIndex( charIndex );
+			return View.Lines.AtOffset( charIndex ).LineIndex;
 		}
 
 		/// <summary>
