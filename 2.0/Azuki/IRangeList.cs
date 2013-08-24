@@ -1,6 +1,12 @@
-﻿namespace Sgry.Azuki
+﻿using System;
+using System.Collections.Generic;
+
+namespace Sgry.Azuki
 {
-	public interface IRangeList
+	/// <summary>
+	/// Collection of text ranges.
+	/// </summary>
+	public interface IRangeList : IEnumerable<IRange>
 	{
 		/// <summary>
 		/// Gets a range at a specifed index.

@@ -8,12 +8,16 @@ namespace Sgry.Azuki
 	/// </summary>
 	internal class LineRange : Range, ILineRange
 	{
-		protected int _LineIndex;
-
 		internal LineRange( TextBuffer buf, int begin, int end, int lineIndex )
 			: base( buf, begin, end )
 		{
-			_LineIndex = lineIndex;
+			LineIndex = lineIndex;
+		}
+
+		public int LineIndex
+		{
+			get;
+			private set;
 		}
 
 		public virtual string EolCode
@@ -21,8 +25,8 @@ namespace Sgry.Azuki
 			get
 			{
 				int begin = End;
-				int end = (_LineIndex+1 < _Buffer.Lines.Count) ? _Buffer.Lines[_LineIndex+1].Begin
-															   : _Buffer.Count;
+				int end = (LineIndex+1 < _Buffer.Lines.Count) ? _Buffer.Lines[LineIndex+1].Begin
+															  : _Buffer.Count;
 				return _Buffer.GetText( new Range(begin, end) );
 			}
 		}
@@ -31,21 +35,21 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				if( _LineIndex < 0 )
+				if( LineIndex < 0 )
 					throw new InvalidOperationException( "The line index is out of valid range."
-														 + " (lineIndex:" + _LineIndex+ ", Line"
+														 + " (lineIndex:" + LineIndex+ ", Line"
 														 + " count:" + _Buffer.Lines.Count + ")" );
 
-				return (_LineIndex < _Buffer.LDS.Count) ? _Buffer.LDS[ _LineIndex ]
+				return (LineIndex < _Buffer.LDS.Count) ? _Buffer.LDS[ LineIndex ]
 														: DirtyState.Clean;
 			}
 			set
 			{
-				Debug.Assert( 0 <= _LineIndex );
-				Debug.Assert( _LineIndex <= _Buffer.LDS.Count );
+				Debug.Assert( 0 <= LineIndex );
+				Debug.Assert( LineIndex <= _Buffer.LDS.Count );
 
-				if( _LineIndex < _Buffer.LDS.Count )
-					_Buffer.LDS[_LineIndex] = value;
+				if( LineIndex < _Buffer.LDS.Count )
+					_Buffer.LDS[LineIndex] = value;
 			}
 		}
 	}

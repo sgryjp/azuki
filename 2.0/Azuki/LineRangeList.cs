@@ -40,18 +40,12 @@ namespace Sgry.Azuki
 			}
 		}
 
-		/// <exception cref="ArgumentOutOfRangeException"/>
-		IRange IRangeList.this[int lineIndex]
-		{
-			get{ return this[lineIndex]; }
-		}
-
 		public int Count
 		{
 			get{ return _Buffer.LHI.Count; }
 		}
 
-		#region IEnumerator
+		#region IEnumerable
 		public IEnumerator<ILineRange> GetEnumerator()
 		{
 			for( int i=0; i<Count; i++ )
