@@ -279,9 +279,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static int Calc_LineHead( IView view )
 		{
-			return view.GetLineHeadIndexFromCharIndex(
-					view.Document.CaretIndex
-				);
+			return view.Lines.AtOffset( view.Document.CaretIndex ).Begin;
 		}
 
 		/// <summary>
@@ -289,12 +287,10 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static int Calc_LineHeadSmart( IView view )
 		{
-			int lineHeadIndex, firstNonSpaceIndex;
 			Document doc = view.Document;
 
-			lineHeadIndex = view.GetLineHeadIndexFromCharIndex( doc.CaretIndex );
-
-			firstNonSpaceIndex = lineHeadIndex;
+			int lineHeadIndex = view.Lines.AtOffset( doc.CaretIndex ).Begin;
+			int firstNonSpaceIndex = lineHeadIndex;
 			while( firstNonSpaceIndex < doc.Length
 				&& Utl.IsWhiteSpace(doc, firstNonSpaceIndex) )
 			{

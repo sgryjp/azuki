@@ -187,16 +187,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets the index of the first char in the screen line
-		/// which contains the specified char-index.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public override int GetLineHeadIndexFromCharIndex( int charIndex )
-		{
-			return Document.GetLineHeadIndexFromCharIndex( charIndex );
-		}
-
-		/// <summary>
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
@@ -473,8 +463,8 @@ namespace Sgry.Azuki
 				end = e.OldAnchor;
 				endL = prevAnchorLine;
 			}
-			beginLineHead = GetLineHeadIndexFromCharIndex( begin );
-			endLineHead = GetLineHeadIndexFromCharIndex( end );
+			beginLineHead = Lines.AtOffset( begin ).Begin;
+			endLineHead = Lines.AtOffset( end ).Begin;
 
 			// if old selection was in one line?
 			if( prevCaretLine == prevAnchorLine )
@@ -522,9 +512,7 @@ namespace Sgry.Azuki
 					|| TextUtil.IsCombiningCharacter(e.NewText, 0) )
 				{
 					// [*1]
-					invalidStartIndex = GetLineHeadIndexFromCharIndex(
-							invalidStartIndex
-						);
+					invalidStartIndex = Lines.AtOffset( invalidStartIndex ).Begin;
 				}
 
 				// get graphical position of the place
