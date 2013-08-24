@@ -1369,27 +1369,16 @@ namespace Sgry.Azuki
 		#region Utilitites
 		int GetIndexOfLastVisibleCharacter()
 		{
-			int lastDrawnLineIndex;
-			int visibleLineCount;
-			int index;
-
 			// calculate line-index of last visible line
-			visibleLineCount = View.VisibleSize.Height / View.LineSpacing;
-			lastDrawnLineIndex = View.FirstVisibleLine + visibleLineCount + 1;
+			int visibleLineCount = View.VisibleSize.Height / View.LineSpacing;
+			int lastDrawnLineIndex = View.FirstVisibleLine + visibleLineCount + 1;
 			if( View.LineCount <= lastDrawnLineIndex )
 			{
 				lastDrawnLineIndex = View.LineCount - 1;
 			}
 
 			// calculate end index of the line
-			if( lastDrawnLineIndex+1 < View.LineCount )
-			{
-				index = View.GetLineHeadIndex( lastDrawnLineIndex+1 );
-			}
-			else
-			{
-				index = Document.Length;
-			}
+			int index = View.RawLines[ lastDrawnLineIndex ].End;
 
 			// return it
 			Debug.Assert( 0 <= index && index <= Document.Length );

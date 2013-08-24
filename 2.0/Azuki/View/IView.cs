@@ -334,12 +334,6 @@ namespace Sgry.Azuki
 		void ScreenToVirtual( ref Point pt );
 
 		/// <summary>
-		/// Gets the index of the first char in the line.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		int GetLineHeadIndex( int lineIndex );
-
-		/// <summary>
 		/// Gets the index of the first char in the screen line
 		/// which contains the specified char-index.
 		/// </summary>

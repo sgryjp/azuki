@@ -215,15 +215,9 @@ namespace Sgry.Azuki
 				//-- line selection anchor changed or did not exists --
 				// select between head of the line and end of the line
 				int fromLineIndex = view.GetLineIndexFromCharIndex( anchor );
-				anchor = view.GetLineHeadIndex( fromLineIndex );
-				if( fromLineIndex+1 < view.LineCount )
-				{
-					caret = view.GetLineHeadIndex( fromLineIndex + 1 );
-				}
-				else
-				{
-					caret = _Document.Length;
-				}
+				var range = view.RawLines[ fromLineIndex ];
+				anchor = range.Begin;
+				caret = range.End;
 				_LineSelectionAnchor1 = anchor;
 				_LineSelectionAnchor2 = anchor;
 			}
@@ -235,32 +229,17 @@ namespace Sgry.Azuki
 				if( view.IsLineHead(caret) == false )
 				{
 					toLineIndex = view.GetLineIndexFromCharIndex( caret );
-					if( toLineIndex+1 < view.LineCount )
-					{
-						caret = view.GetLineHeadIndex( toLineIndex + 1 );
-					}
-					else
-					{
-						caret = _Document.Length;
-					}
+					caret = view.RawLines[ toLineIndex ].End;
 				}
 			}
 			else// if( caret < LineSelectionAnchor )
 			{
 				//-- selecting to foregoing lines where selection started --
 				// select between head of the destination line and end of the starting line
-				int anchorLineIndex;
+				int anchorLineIndex = view.GetLineIndexFromCharIndex( _LineSelectionAnchor1 );
+				caret = view.RawLines[ toLineIndex ].Begin;
+				anchor = view.RawLines[ anchorLineIndex ].End;
 
-				caret = view.GetLineHeadIndex( toLineIndex );
-				anchorLineIndex = view.GetLineIndexFromCharIndex( _LineSelectionAnchor1 );
-				if( anchorLineIndex+1 < view.LineCount )
-				{
-					anchor = view.GetLineHeadIndex( anchorLineIndex + 1 );
-				}
-				else
-				{
-					anchor = _Document.Length;
-				}
 				//DO_NOT//_LineSelectionAnchor1 = anchor;
 				_LineSelectionAnchor2 = anchor;
 			}

@@ -187,15 +187,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets the index of the first char in the line.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public override int GetLineHeadIndex( int lineIndex )
-		{
-			return Document.Lines[ lineIndex ].Begin;
-		}
-
-		/// <summary>
 		/// Gets the index of the first char in the screen line
 		/// which contains the specified char-index.
 		/// </summary>
@@ -399,7 +390,7 @@ namespace Sgry.Azuki
 			}
 
 			// get chars at left of invalid rect
-			beginLineHead = GetLineHeadIndex( beginL );
+			beginLineHead = Lines[ beginL ].Begin;
 			if( beginLineHead < begin )
 			{
 				token = Document.GetText( beginLineHead, begin );
@@ -449,8 +440,8 @@ namespace Sgry.Azuki
 				end = e.OldCaret;
 				endL = doc.ViewParam.PrevCaretLine;
 			}
-			beginLineHead = GetLineHeadIndex( beginL );
-			endLineHead = GetLineHeadIndex( endL ); // if old caret is the end pos and if the pos exceeds current text length, this will fail.
+			beginLineHead = Lines[ beginL ].Begin;
+			endLineHead = Lines[ endL ].Begin; // if old caret is the end pos and if the pos exceeds current text length, this will fail.
 
 			// invalidate
 			Invalidate_MultiLines( g, begin, end, beginL, endL, beginLineHead, endLineHead );
@@ -615,12 +606,12 @@ namespace Sgry.Azuki
 			// get needed coordinates
 			var beginPos = GetTextPosition( beginIndex );
 			var endPos = GetTextPosition( endIndex );
-			beginLineHead = GetLineHeadIndex( beginPos.Line );
+			beginLineHead = Lines[ beginPos.Line ].Begin;
 
 			// switch invalidation logic by whether the invalidated area is multiline or not
 			if( beginPos.Line != endPos.Line )
 			{
-				endLineHead = GetLineHeadIndex( endPos.Line ); // this is needed for invalidating multiline selection
+				endLineHead = Lines[ endPos.Line ].Begin; // this is needed for invalidating multiline selection
 				Invalidate_MultiLines( g, beginIndex, endIndex, beginPos.Line, endPos.Line, beginLineHead, endLineHead );
 			}
 			else

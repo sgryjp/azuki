@@ -5,8 +5,8 @@
 //DEBUG//#define DRAW_SLOWLY
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
+using System.Diagnostics;
 
 namespace Sgry.Azuki
 {
@@ -226,18 +226,6 @@ namespace Sgry.Azuki
 
 			return TextUtil.GetCharIndex( Document.InternalBuffer, PLHI,
 										  new TextPoint(lineIndex, columnIndex) );
-		}
-
-		/// <summary>
-		/// Gets the index of the first char in the line.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public override int GetLineHeadIndex( int lineIndex )
-		{
-			if( lineIndex < 0 || PLHI.Count <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid index was given (lineIndex:"+lineIndex+", LineCount:"+LineCount+")." );
-
-			return PLHI[ lineIndex ];
 		}
 
 		/// <summary>
@@ -987,7 +975,8 @@ namespace Sgry.Azuki
 
 		static bool IsWrappedLineHead( Document doc, GapBuffer<int> plhi, int index )
 		{
-			int lineHeadIndex = TextUtil.GetLineHeadIndexFromCharIndex( doc.InternalBuffer, plhi, index );
+			int lineHeadIndex = TextUtil.GetLineHeadIndexFromCharIndex( doc.InternalBuffer,
+																		plhi, index );
 			if( lineHeadIndex <= 0 )
 			{
 				return false;

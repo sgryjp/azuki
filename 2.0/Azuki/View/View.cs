@@ -289,10 +289,10 @@ namespace Sgry.Azuki
 			Document doc = Document;
 			int lineHeadIndex, lineEndIndex;
 
-			lineHeadIndex = GetLineHeadIndex( lineIndex );
+			lineHeadIndex = Lines[ lineIndex ].Begin;
 			if( lineIndex+1 < LineCount )
 			{
-				lineEndIndex = GetLineHeadIndex( lineIndex + 1 );
+				lineEndIndex = Lines[ lineIndex + 1 ].Begin;
 				if( 0 <= lineEndIndex-1 && doc[lineEndIndex-1] == '\n'
 					&& 0 <= lineEndIndex-2 && doc[lineEndIndex-2] == '\r' )
 				{
@@ -813,12 +813,6 @@ namespace Sgry.Azuki
 			pt.X = (pt.X + ScrollPosX) - XofTextArea;
 			pt.Y = (pt.Y + FirstVisibleLine * LineSpacing) - YofTextArea;
 		}
-
-		/// <summary>
-		/// Gets the index of the first char in the line.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public abstract int GetLineHeadIndex( int lineIndex );
 
 		/// <summary>
 		/// Gets the index of the first char in the screen line

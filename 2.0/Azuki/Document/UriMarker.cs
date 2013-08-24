@@ -96,7 +96,7 @@ namespace Sgry.Azuki
 			<-- DO_NOT*/
 
 			// mark up all URIs in the logical line
-			int scrernLineHeadIndex = ui.View.GetLineHeadIndex( e.LineIndex );
+			int scrernLineHeadIndex = ui.View.Lines[ e.LineIndex ].Begin;
 			int logicalLineIndex = ui.Document.GetLineIndexFromCharIndex( scrernLineHeadIndex );
 			e.ShouldBeRedrawn = MarkOrUnmarkOneLine( ui.Document, logicalLineIndex, ui.MarksUri );
 		}
