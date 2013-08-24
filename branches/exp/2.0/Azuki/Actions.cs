@@ -642,7 +642,7 @@ namespace Sgry.Azuki
 			// get index of the end of current line
 			caretLine = view.GetLineIndexFromCharIndex( doc.CaretIndex );
 			caretLineHeadIndex = view.GetLineHeadIndexFromCharIndex( doc.CaretIndex );
-			insIndex = caretLineHeadIndex + view.GetLineLength( caretLine );
+			insIndex = caretLineHeadIndex + view.Lines[ caretLine ].Length;
 
 			// insert an EOL code
 			doc.SetSelection( insIndex, insIndex );

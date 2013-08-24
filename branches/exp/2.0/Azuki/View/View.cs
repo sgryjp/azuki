@@ -275,42 +275,6 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
-		/// <summary>
-		/// Gets length of a screen line.
-		/// </summary>
-		/// <param name="lineIndex">Index of the line of which to get the length.</param>
-		/// <returns>Length of the specified line in character count.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
-		public int GetLineLength( int lineIndex )
-		{
-			if( lineIndex < 0 || LineCount <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid line index was given (lineIndex:"+lineIndex+", this.LineCount:"+LineCount+")." );
-
-			Document doc = Document;
-			int lineHeadIndex, lineEndIndex;
-
-			lineHeadIndex = Lines[ lineIndex ].Begin;
-			if( lineIndex+1 < LineCount )
-			{
-				lineEndIndex = Lines[ lineIndex + 1 ].Begin;
-				if( 0 <= lineEndIndex-1 && doc[lineEndIndex-1] == '\n'
-					&& 0 <= lineEndIndex-2 && doc[lineEndIndex-2] == '\r' )
-				{
-					lineEndIndex -= 2; // CR+LF
-				}
-				else
-				{
-					lineEndIndex -= 1; // CR or LF
-				}
-			}
-			else
-			{
-				lineEndIndex = doc.Length;
-			}
-
-			return lineEndIndex - lineHeadIndex;
-		}
-
 		#region Drawing Options
 		/// <summary>
 		/// Gets or sets top margin of the view in pixel.
