@@ -87,9 +87,9 @@ namespace Sgry.Azuki
 
 						// re-calculate line index of caret and anchor
 						Document.ViewParam.PrevCaretLine
-							= GetLineIndexFromCharIndex( Document.CaretIndex );
+							= Lines.AtOffset( Document.CaretIndex ).LineIndex;
 						Document.ViewParam.PrevAnchorLine
-							= GetLineIndexFromCharIndex( Document.AnchorIndex );
+							= Lines.AtOffset( Document.AnchorIndex ).LineIndex;
 
 						// update desired column
 						// (must be done after UpdatePLHI)
@@ -999,10 +999,11 @@ namespace Sgry.Azuki
 			/// <exception cref="ArgumentOutOfRangeException"/>
 			public ILineRange AtOffset( int charIndex )
 			{
-				if( charIndex < 0 || _View.PLHI.Count < charIndex )
+				if( charIndex < 0 || _View.Document.Length < charIndex )
 					throw new ArgumentOutOfRangeException( "charIndex", charIndex, "Invalid index"
 														   + " was given. (charIndex:" + charIndex
-														   + ", PLHI.Count:" + Count + ")." );
+														   + ", Document.Length:"
+														   + _View.Document.Length + ")." );
 
 				return this[ _View.GetTextPosition(charIndex).Line ];
 			}

@@ -205,17 +205,12 @@ namespace Sgry.Azuki
 
 		void SetSelection_Line( int anchor, int caret, IViewInternal view )
 		{
-			int toLineIndex;
-
-			// get line index of the lines where selection starts and ends
-			toLineIndex = view.GetLineIndexFromCharIndex( caret );
 			if( _LineSelectionAnchor1 < 0
 				|| (anchor != _LineSelectionAnchor1 && anchor != _LineSelectionAnchor2) )
 			{
-				//-- line selection anchor changed or did not exists --
-				// select between head of the line and end of the line
-				int fromLineIndex = view.GetLineIndexFromCharIndex( anchor );
-				var range = view.RawLines[ fromLineIndex ];
+				//-- Line selection anchor was changed or did not exist --
+				// Select the line and set the anchors
+				var range = view.RawLines.AtOffset( anchor );
 				anchor = range.Begin;
 				caret = range.End;
 				_LineSelectionAnchor1 = anchor;
@@ -223,28 +218,25 @@ namespace Sgry.Azuki
 			}
 			else if( _LineSelectionAnchor1 < caret )
 			{
-				//-- selecting to the line (or after) where selection started --
-				// select between head of the starting line and the end of the destination line
+				//-- Selecting toward the end of the document --
+				// Expand selection to the end of the line
 				anchor = view.Lines.AtOffset( _LineSelectionAnchor1 ).Begin;
 				if( view.IsLineHead(caret) == false )
 				{
-					toLineIndex = view.GetLineIndexFromCharIndex( caret );
-					caret = view.RawLines[ toLineIndex ].End;
+					caret = view.RawLines.AtOffset( caret ).End;
 				}
 			}
 			else// if( caret < LineSelectionAnchor )
 			{
-				//-- selecting to foregoing lines where selection started --
-				// select between head of the destination line and end of the starting line
-				int anchorLineIndex = view.GetLineIndexFromCharIndex( _LineSelectionAnchor1 );
-				caret = view.RawLines[ toLineIndex ].Begin;
-				anchor = view.RawLines[ anchorLineIndex ].End;
+				//-- Selecting toward the beginning of the document --
+				// Expand selection to the beginning of the line
+				caret = view.RawLines.AtOffset( caret ).Begin;
+				anchor = view.RawLines.AtOffset( _LineSelectionAnchor1 ).End;
 
 				//DO_NOT//_LineSelectionAnchor1 = anchor;
 				_LineSelectionAnchor2 = anchor;
 			}
 
-			// apply new selection
 			SetSelection_Normal( anchor, caret );
 		}
 
