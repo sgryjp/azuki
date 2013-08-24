@@ -144,6 +144,16 @@ namespace Sgry.Azuki
 			get;
 		}
 
+		public abstract ILineRangeList Lines
+		{
+			get;
+		}
+
+		public abstract ILineRangeList RawLines
+		{
+			get;
+		}
+
 		/// <summary>
 		/// Gets or sets width of the virtual text area (line number area is not included).
 		/// </summary>

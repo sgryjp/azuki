@@ -4,6 +4,7 @@
 //DEBUG//#define PLHI_DEBUG
 //DEBUG//#define DRAW_SLOWLY
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 
@@ -36,6 +37,16 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Properties
+		public override ILineRangeList Lines
+		{
+			get{ return new WrappedLineRangeList(this); }
+		}
+
+		public override ILineRangeList RawLines
+		{
+			get{ return new WrappedRawLineRangeList(this); }
+		}
+
 		/// <summary>
 		/// Gets the number of the screen lines.
 		/// </summary>
@@ -984,6 +995,81 @@ namespace Sgry.Azuki
 
 			char lastCharOfPrevLine = doc[lineHeadIndex-1];
 			return ( TextUtil.IsEolChar(lastCharOfPrevLine) == false );
+		}
+
+		class WrappedLineRangeList : ILineRangeList
+		{
+			protected PropWrapView _View;
+
+			public WrappedLineRangeList( PropWrapView view )
+			{
+				Debug.Assert( view != null );
+				_View = view;
+			}
+
+			/// <exception cref="ArgumentOutOfRangeException"/>
+			public virtual ILineRange this[ int lineIndex ]
+			{
+				get
+				{
+					if( lineIndex < 0 || _View.PLHI.Count < lineIndex )
+						throw new ArgumentOutOfRangeException();
+
+					var buf = _View.Document.InternalBuffer;
+					var range = TextUtil.GetLineRange( buf, _View.PLHI, lineIndex, false );
+					return new LineRange( _View.Document.InternalBuffer,
+										  range.Begin, range.End, lineIndex );
+				}
+			}
+
+			/// <exception cref="ArgumentOutOfRangeException"/>
+			public ILineRange AtOffset( int charIndex )
+			{
+				if( charIndex < 0 || _View.PLHI.Count < charIndex )
+					throw new ArgumentOutOfRangeException( "charIndex", charIndex, "Invalid index"
+														   + " was given. (charIndex:" + charIndex
+														   + ", PLHI.Count:" + Count + ")." );
+
+				return this[ _View.GetTextPosition(charIndex).Line ];
+			}
+
+			public int Count
+			{
+				get{ return _View.PLHI.Count; }
+			}
+
+			public IEnumerator<ILineRange> GetEnumerator()
+			{
+				for( int i=0; i<_View.PLHI.Count; i++ )
+					yield return this[i];
+			}
+
+			System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+			{
+				return GetEnumerator();
+			}
+		}
+
+		class WrappedRawLineRangeList : WrappedLineRangeList
+		{
+			public WrappedRawLineRangeList( PropWrapView view )
+				: base( view )
+			{}
+
+			/// <exception cref="ArgumentOutOfRangeException"/>
+			public override ILineRange this[ int lineIndex ]
+			{
+				get
+				{
+					if( lineIndex < 0 || _View.PLHI.Count < lineIndex )
+						throw new ArgumentOutOfRangeException();
+
+					var buf = _View.Document.InternalBuffer;
+					var range = TextUtil.GetLineRange( buf, _View.PLHI, lineIndex, true );
+					return new LineRange( _View.Document.InternalBuffer,
+										  range.Begin, range.End, lineIndex );
+				}
+			}
 		}
 		#endregion
 	}
