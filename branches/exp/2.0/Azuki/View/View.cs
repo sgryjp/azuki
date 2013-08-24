@@ -779,13 +779,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets the index of the first char in the screen line
-		/// which contains the specified char-index.
-		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public abstract int GetLineHeadIndexFromCharIndex( int charIndex );
-
-		/// <summary>
 		/// Calculates screen line index from char-index.
 		/// </summary>
 		/// <param name="charIndex">The index of the line which contains the char at this parameter will be calculated.</param>
@@ -1512,7 +1505,7 @@ namespace Sgry.Azuki
 			}
 			else if( index < Document.Length )
 			{
-				int lineHeadIndex = GetLineHeadIndexFromCharIndex( index );
+				int lineHeadIndex = Lines.AtOffset( index ).Begin;
 				return (lineHeadIndex == index);
 			}
 			else

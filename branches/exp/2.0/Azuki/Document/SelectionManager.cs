@@ -225,7 +225,7 @@ namespace Sgry.Azuki
 			{
 				//-- selecting to the line (or after) where selection started --
 				// select between head of the starting line and the end of the destination line
-				anchor = view.GetLineHeadIndexFromCharIndex( _LineSelectionAnchor1 );
+				anchor = view.Lines.AtOffset( _LineSelectionAnchor1 ).Begin;
 				if( view.IsLineHead(caret) == false )
 				{
 					toLineIndex = view.GetLineIndexFromCharIndex( caret );

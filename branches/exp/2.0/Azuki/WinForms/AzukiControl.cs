@@ -1656,7 +1656,7 @@ namespace Sgry.Azuki.WinForms
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
 		public int GetLineHeadIndexFromCharIndex( int charIndex )
 		{
-			return View.GetLineHeadIndexFromCharIndex( charIndex );
+			return View.Lines.AtOffset( charIndex ).Begin;
 		}
 
 		/// <summary>
@@ -2834,7 +2834,7 @@ namespace Sgry.Azuki.WinForms
 				{
 					// this is a tab so calculate distance
 					// from current position to next tab-stop and return it
-					int lineHead = view.GetLineHeadIndexFromCharIndex( caretIndex );
+					int lineHead = view.Lines.AtOffset( caretIndex ).Begin;
 					string leftPart = doc.GetText( lineHead, caretIndex );
 					int currentX = view.MeasureTokenEndX( g, leftPart, 0 );
 					int nextTabStopX = view.MeasureTokenEndX( g, leftPart+'\t', 0 );
