@@ -4,9 +4,8 @@
 //DEBUG//#define PLHI_DEBUG
 //DEBUG//#define DRAW_SLOWLY
 using System;
-using System.Drawing;
 using System.Diagnostics;
-using StringBuilder = System.Text.StringBuilder;
+using System.Drawing;
 
 namespace Sgry.Azuki
 {
@@ -973,19 +972,6 @@ namespace Sgry.Azuki
 				Debug.Assert( Document != null );
 				return Document.ViewParam.PLHI;
 			}
-		}
-
-		bool IsEolCode( string str )
-		{
-			return (str == "\r" || str == "\n" || str == "\r\n");
-		}
-
-		int Min( int a, int b, int c )
-		{
-			return Math.Min(
-				Math.Min(a, b),
-				c
-			);
 		}
 
 		static bool IsWrappedLineHead( Document doc, GapBuffer<int> plhi, int index )
