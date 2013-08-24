@@ -6,6 +6,11 @@
 	public interface ILineRange : IRange
 	{
 		/// <summary>
+		/// Gets index of the line in a text buffer which contains the line.
+		/// </summary>
+		int LineIndex{ get; }
+
+		/// <summary>
 		/// Gets EOL code which terminates this line.
 		/// </summary>
 		string EolCode{ get; }
