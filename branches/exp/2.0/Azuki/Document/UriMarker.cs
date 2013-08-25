@@ -200,8 +200,7 @@ namespace Sgry.Azuki
 
 			// prepare parsing
 			isMailAddress = false;
-			lineEnd = doc.GetLineHeadIndexFromCharIndex( startIndex );
-			lineEnd += doc.GetLineRange( doc.GetLineIndexFromCharIndex(startIndex) ).Length;
+			lineEnd = doc.Lines.AtOffset( startIndex ).End;
 			DebugUtl.Assert( lineEnd <= doc.Length );
 
 		//scheme:

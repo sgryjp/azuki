@@ -1054,11 +1054,11 @@ namespace Sgry.Azuki.Highlighter
 			}
 
 			// Get the content of the line
-			int lineHeadIndex = doc.GetLineHeadIndexFromCharIndex( begin );
-			if( cache.lineBegin != lineHeadIndex )
+			var line = doc.Lines.AtOffset( begin );
+			if( cache.lineBegin != line.Begin )
 			{
-				cache.lineBegin = lineHeadIndex;
-				cache.lineContent = doc.Lines.AtOffset( cache.lineBegin ).Text;
+				cache.lineBegin = line.Begin;
+				cache.lineContent = line.Text;
 			}
 			int offset = begin - cache.lineBegin;
 

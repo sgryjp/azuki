@@ -56,7 +56,7 @@ namespace Sgry.Azuki
 				str.Append( doc.EolCode );
 
 				// get indent chars
-				lineHead = doc.GetLineHeadIndexFromCharIndex( doc.CaretIndex );
+				lineHead = doc.Lines.AtOffset( doc.CaretIndex ).Begin;
 				for( int i=lineHead; i<doc.CaretIndex; i++ )
 				{
 					if( doc[i] == ' ' || doc[i] == '\t' || doc[i] == '\x3000' )
