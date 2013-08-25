@@ -293,14 +293,17 @@ namespace Sgry.Azuki
 				prevLineCount = LineCount;
 				UpdatePLHI( g, e.Index, e.OldText, e.NewText );
 #				if PLHI_DEBUG
-				string __result_of_new_logic__ = PLHI.ToString();
-				DoLayout();
-				if( __result_of_new_logic__ != PLHI.ToString() )
 				{
-					System.Windows.Forms.MessageBox.Show("sync error");
-					Console.Error.WriteLine( __result_of_new_logic__ );
-					Console.Error.WriteLine( PLHI );
-					Console.Error.WriteLine();
+					string result = PLHI.ToString();
+					PLHI.Clear(); PLHI.Add( 0 );
+					UpdatePLHI( g, 0, String.Empty, Document.Text );
+					if( result != PLHI.ToString() )
+					{
+						System.Windows.Forms.MessageBox.Show("sync error");
+						Console.Error.WriteLine( result );
+						Console.Error.WriteLine( PLHI );
+						Console.Error.WriteLine();
+					}
 				}
 #				endif
 
@@ -428,66 +431,6 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Layout Logic
-#if PLHI_DEBUG
-		void DoLayout()
-		{
-			// initialize PLHI
-			PLHI.Clear();
-			PLHI.Add( 0 );
-			
-			// if the view is very thin, text may not be able to be rendered
-			if( TextAreaWidth < (TabWidthInPx >> 2) )
-			{
-				return;
-			}
-
-			// calculate
-			for( int i=0; i<Document.LineCount; i++ )
-			{
-				DoLayoutOneLine( i );
-			}
-
-			PLHI.RemoveRange( PLHI.Count-1, PLHI.Count );
-		}
-
-		void DoLayoutOneLine( int lineIndex )
-		{
-			Document doc = Document;
-			int begin, end;
-			string lineContent;
-			int drawableLength;
-
-			// get range of this line
-			begin = doc.GetLineHeadIndex( lineIndex );
-			if( lineIndex+1 < doc.LineCount )
-				end = doc.GetLineHeadIndex( lineIndex + 1 );
-			else
-				end = doc.Length;
-
-			// get content of this line
-			lineContent = doc.GetText( begin, end );
-
-			// meaure this line and add line end index to PLHI
-			MeasureTokenEndX( lineContent, 0, TextAreaWidth, out drawableLength );
-			while( drawableLength < end-begin )
-			{
-				// whole line can not be printed in the virtual space.
-				// so wrap this line
-
-				// make drawable part of this line as a screen line
-				PLHI.Add( begin + drawableLength );
-				begin += drawableLength;
-
-				// measure following
-				lineContent = lineContent.Substring( drawableLength );
-				MeasureTokenEndX( lineContent, 0, TextAreaWidth, out drawableLength );
-			}
-
-			// add last part
-			PLHI.Add( begin + drawableLength );
-		}
-#endif
-
 		/// <summary>
 		/// Maintain line head indexes.
 		/// </summary>
