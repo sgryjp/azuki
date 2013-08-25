@@ -1390,20 +1390,6 @@ namespace Sgry.Azuki
 
 		#region Index Conversion
 		/// <summary>
-		/// Gets index of where a logical line specified with char-index starts.
-		/// </summary>
-		/// <exception cref="System.ArgumentOutOfRangeException"/>
-		public int GetLineHeadIndexFromCharIndex( int charIndex )
-		{
-			if( charIndex < 0 || _Buffer.Count < charIndex )
-				throw new ArgumentOutOfRangeException( "charIndex",
-					"Invalid index was given (charIndex:" + charIndex
-					+ ", document.Length:" + Length + ")." );
-
-			return _Buffer.GetLineRangeFromCharIndex( charIndex, false ).Begin;
-		}
-
-		/// <summary>
 		/// Calculates logical line index from char-index.
 		/// </summary>
 		/// <exception cref="System.ArgumentOutOfRangeException">

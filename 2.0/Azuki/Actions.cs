@@ -477,7 +477,7 @@ namespace Sgry.Azuki
 				if( dataType == TextDataType.Line )
 				{
 					// make the insertion point to caret line head if it is line data type
-					insertIndex = doc.GetLineHeadIndexFromCharIndex( begin );
+					insertIndex = doc.Lines.AtOffset( begin ).Begin;
 				}
 
 				// insert
