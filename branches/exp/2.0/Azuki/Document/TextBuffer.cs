@@ -16,7 +16,7 @@ namespace Sgry.Azuki
 		#region Fields
 		readonly GapCharBuffer _Chars;
 		readonly GapBuffer<CharClass> _Classes;
-		readonly GapBuffer<int> _LHI; // line head indexes
+		internal readonly GapBuffer<int> _LHI; // line head indexes
 		readonly GapBuffer<DirtyState> _LDS; // line dirty states
 		readonly RleArray<uint> _MarkingBitMasks;
 		readonly LineRangeList _LineRangeList;

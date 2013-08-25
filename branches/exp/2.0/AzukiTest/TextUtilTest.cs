@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 
 namespace Sgry.Azuki.Test
@@ -19,11 +20,9 @@ namespace Sgry.Azuki.Test
 		[Test]
 		public void GetCharIndex()
 		{
-			TextBuffer text;
+			IList<char> text;
 			GapBuffer<int> lhi;
-			GapBuffer<DirtyState> lds;
-
-			MakeTestData( out text, out lhi, out lds );
+			MakeTestData( out text, out lhi );
 
 			Assert.AreEqual(  0, TextUtil.GetCharIndex(text, lhi, new TextPoint(0,  0)) );
 			Assert.AreEqual( 34, TextUtil.GetCharIndex(text, lhi, new TextPoint(2,  1)) );
@@ -35,9 +34,9 @@ namespace Sgry.Azuki.Test
 		[Test]
 		public void NextLineHead()
 		{
-			var text = new TextBuffer( 1, 32 );
-
-			text.Insert( 0, TestData );
+			IList<char> text;
+			GapBuffer<int> lhi;
+			MakeTestData( out text, out lhi );
 
 			Assert.Throws<AssertException>( delegate{
 				TextUtil.NextLineHead( text, -1 );
@@ -64,9 +63,9 @@ namespace Sgry.Azuki.Test
 		[Test]
 		public void PrevLineHead()
 		{
-			var text = new TextBuffer( 1, 32 );
-
-			text.Insert( 0, TestData );
+			IList<char> text;
+			GapBuffer<int> lhi;
+			MakeTestData( out text, out lhi );
 
 			int i=71;
 			for( ; 53<=i; i-- )
@@ -88,11 +87,11 @@ namespace Sgry.Azuki.Test
 		[Test]
 		public void GetLineLengthByCharIndex()
 		{
-			var text = new TextBuffer( 1, 32 );
+			IList<char> text;
+			GapBuffer<int> lhi;
+			MakeTestData( out text, out lhi );
+
 			int i = 0;
-
-			text.Insert( 0, TestData );
-
 			for( ; i<32; i++ )
 				Assert.AreEqual( 32, TextUtil.GetLineLengthByCharIndex(text, i) );
 			for( ; i<33; i++ )
@@ -114,11 +113,9 @@ namespace Sgry.Azuki.Test
 		public void GetLineRange()
 		{
 			Range range;
-			TextBuffer text;
+			IList<char> text;
 			GapBuffer<int> lhi;
-			GapBuffer<DirtyState> lds;
-
-			MakeTestData( out text, out lhi, out lds );
+			MakeTestData( out text, out lhi );
 
 			range = TextUtil.GetLineRange( text, lhi, 0, true );
 			Assert.AreEqual( 0, range.Begin );
@@ -196,10 +193,9 @@ namespace Sgry.Azuki.Test
 		[Test]
 		public void GetTextPosition()
 		{
-			TextBuffer text;
-			GapBuffer<int> lhi;
 			TextPoint pos;
-
+			IList<char> text;
+			GapBuffer<int> lhi;
 			MakeTestData( out text, out lhi );
 
 			pos = TextUtil.GetTextPosition( text, lhi, 0 );
@@ -222,9 +218,8 @@ namespace Sgry.Azuki.Test
 		[Test]
 		public void LineHeadIndexFromCharIndex()
 		{
-			TextBuffer text;
+			IList<char> text;
 			GapBuffer<int> lhi;
-
 			MakeTestData( out text, out lhi );
 
 			int i=0;
@@ -248,23 +243,27 @@ namespace Sgry.Azuki.Test
 		}
 
 		#region Utilities
-		void MakeTestData( out TextBuffer text, out GapBuffer<int> lhi )
+		void MakeTestData( out IList<char> text,
+						   out GapBuffer<int> lhi )
 		{
 			var lds = new GapBuffer<DirtyState>( 8 );
 			MakeTestData( out text, out lhi, out lds );
 		}
 
-		void MakeTestData( out TextBuffer text, out GapBuffer<int> lhi, out GapBuffer<DirtyState> lds )
+		void MakeTestData( out IList<char> text,
+						   out GapBuffer<int> lhi,
+						   out GapBuffer<DirtyState> lds )
 		{
-			text = new TextBuffer( 1, 1 );
-			lhi = new GapBuffer<int>( 1, 8 );
-			lds = new GapBuffer<DirtyState>( 1 );
+			text = new List<char>();
+			lhi = new GapBuffer<int>( 32 );
+			lds = new GapBuffer<DirtyState>( 32 );
 
 			lhi.Add( 0 );
 			lds.Add( DirtyState.Clean );
 
 			TextUtil.LHI_Insert( lhi, lds, text, TestData.ToCharArray(), 0 );
-			text.Insert( 0, TestData );
+			foreach( var ch in TestData )
+				text.Add( ch );
 		}
 		#endregion
 	}
