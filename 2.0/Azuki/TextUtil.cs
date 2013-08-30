@@ -105,8 +105,8 @@ namespace Sgry.Azuki
 			{
 				range.End = text.Count;
 			}
-			Debug.Assert( 0 <= range.Begin && range.Begin <= range.End );
-			Debug.Assert( range.End <= text.Count );
+			DebugUtl.Assert( 0 <= range.Begin && range.Begin <= range.End );
+			//DO_NOT//DebugUtl.Assert( range.End <= text.Count );
 
 			// Subtract length of the trailing EOL code
 			if( includesEolCode == false )
@@ -188,6 +188,9 @@ namespace Sgry.Azuki
 		public static int NextLineHead( IList<char> str, int startIndex )
 		{
 			DebugUtl.Assert( str != null );
+			DebugUtl.Assert( 0 <= startIndex );
+			DebugUtl.Assert( startIndex <= str.Count );
+
 			for( int i=startIndex; i<str.Count; i++ )
 			{
 				// found EOL code?
@@ -430,6 +433,13 @@ namespace Sgry.Azuki
 			{
 				lds[insPos.Line] = DirtyState.Dirty;
 			}
+
+			#if DEBUG
+			Debug.Assert( 0 < lhi.Count );
+			for( int i=1; i<lhi.Count; i++ )
+				Debug.Assert( lhi[i-1] < lhi[i] );
+			//DO_NOT//Debug.Assert( lhi[lhi.Count-1] <= text.Count );
+			#endif
 		}
 		
 		/// <summary>
@@ -510,6 +520,13 @@ namespace Sgry.Azuki
 			{
 				lds[delFirstLine] = DirtyState.Dirty;
 			}
+
+			#if DEBUG
+			Debug.Assert( 0 < lhi.Count );
+			for( int i=1; i<lhi.Count; i++ )
+				Debug.Assert( lhi[i-1] < lhi[i] );
+			Debug.Assert( lhi[lhi.Count-1] <= text.Count );
+			#endif
 		}
 		#endregion
 

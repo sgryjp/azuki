@@ -28,19 +28,18 @@ namespace Sgry.Azuki
 		{
 			UiImpl ui = (UiImpl)sender;
 			Document doc = _Document;
-			int lineIndex;
 			bool shouldBeRedrawn;
 
 			Debug.Assert( ui.Document == _Document );
 
 			// update marking in this line
-			lineIndex = doc.GetLineIndexFromCharIndex( e.Index );
-			shouldBeRedrawn = MarkOneLine( doc, lineIndex, true );
+			var line = doc.Lines.AtOffset( e.Index );
+			shouldBeRedrawn = MarkOneLine( doc, line.LineIndex, true );
 			if( shouldBeRedrawn )
 			{
 				// update entire graphic of the logical line
 				// if marking bits associated with any character was changed
-				ui.View.Invalidate( doc.Lines[lineIndex] );
+				ui.View.Invalidate( line );
 			}
 		}
 
@@ -50,8 +49,8 @@ namespace Sgry.Azuki
 			Debug.Assert( ui.Document == _Document );
 
 			// Mark up all URIs in the logical line
-			int scrernLineHeadIndex = ui.View.Lines[ e.LineIndex ].Begin;
-			int logicalLineIndex = ui.Document.GetLineIndexFromCharIndex( scrernLineHeadIndex );
+			int screenLineHeadIndex = ui.View.Lines[ e.LineIndex ].Begin;
+			int logicalLineIndex = ui.Document.Lines.AtOffset( screenLineHeadIndex ).LineIndex;
 			if( logicalLineIndex == _LastDrawnLogicalLineIndex )
 			{
 				// Skip marking already marked line

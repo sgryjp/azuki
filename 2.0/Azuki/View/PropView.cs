@@ -546,7 +546,7 @@ namespace Sgry.Azuki
 				}
 
 				// update left side of text area
-				DrawDirtBar( g, invalidRect1.Top, Document.GetLineIndexFromCharIndex(e.Index) );
+				DrawDirtBar( g, invalidRect1.Top, Document.Lines.AtOffset(e.Index).LineIndex );
 				UpdateLineNumberWidth( g );
 
 				//DO_NOT//base.HandleContentChanged( sender, e );
@@ -792,7 +792,7 @@ namespace Sgry.Azuki
 				int caretLine, caretPosY;
 
 				// draw underline only when the current line is visible
-				caretLine = Document.GetLineIndexFromCharIndex( Document.CaretIndex );
+				caretLine = Document.Lines.AtOffset( Document.CaretIndex ).LineIndex;
 				if( FirstVisibleLine <= caretLine )
 				{
 					// calculate position of the underline

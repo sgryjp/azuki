@@ -365,7 +365,7 @@ namespace Sgry.Azuki
 				}
 
 				// update left side of text area
-				UpdateDirtBar( g, doc.GetLineIndexFromCharIndex(e.Index) );
+				UpdateDirtBar( g, doc.Lines.AtOffset(e.Index).LineIndex );
 				UpdateLineNumberWidth( g );
 
 				//DO_NOT//base.HandleContentChanged( sender, e );
@@ -473,7 +473,7 @@ namespace Sgry.Azuki
 
 			// [phase 3] calculate range of indexes to be deleted
 			delBeginL = firstDirtyLineIndex + 1;
-			int lastDirtyLogLineIndex = doc.GetLineIndexFromCharIndex( index + newText.Length );
+			int lastDirtyLogLineIndex = doc.Lines.AtOffset( index + newText.Length ).LineIndex;
 			if( lastDirtyLogLineIndex+1 < doc.Lines.Count )
 			{
 				int delEnd = doc.Lines[ lastDirtyLogLineIndex + 1 ].Begin - diff;
@@ -698,42 +698,22 @@ namespace Sgry.Azuki
 
 			// note that given pos is NOT virtual position BUT screen position.
 			string token;
-			int lineHead, lineEnd;
 			int begin, end; // range of the token in the text
 			CharClass klass;
 			Point tokenEndPos = pos;
 			bool inSelection;
 
-			// calc position of head/end of this line
-			lineHead = PLHI[ lineIndex ];
-			if( lineIndex+1 < PLHI.Count )
-				lineEnd = PLHI[ lineIndex + 1 ];
-			else
-				lineEnd = Document.Length;
+			// Calculate range of this screen line
+			var screenLine = RawLines[lineIndex];
 
 			// adjust and set clipping rect
 			if( clipRect.X < XofTextArea )
 			{
-				// given clip rect covers line number area.
-				// redraw line nubmer and shrink clip rect
-				// to avoid overwriting line number by text content
-				bool drawsText;
-				int logicalLineIndex;
-
-				// get logical line index from given line head index
-				logicalLineIndex = Document.GetLineIndexFromCharIndex( lineHead );
-				if( Document.Lines[logicalLineIndex].Begin == lineHead )
-				{
-					drawsText = true;
-				}
-				else
-				{
-					// screen line head index is different from logical line head index.
-					// this means this screen line was a wrapped line so do not draw foregorund text.
-					drawsText = false;
-				}
-
-				DrawLeftOfLine( g, pos.Y, logicalLineIndex+1, drawsText );
+				// Given clip rectangle includes line number area. Redraw line nubmer and exclude
+				// its area from the clip rectangle to avoid overwriting
+				DrawLeftOfLine( g, pos.Y,
+								Document.Lines.AtOffset(screenLine.Begin).LineIndex + 1,
+								IsWrappedLineHead(Document, PLHI, lineIndex) );
 				clipRect.Width -= (XofTextArea - clipRect.X);
 				clipRect.X = XofTextArea;
 			}
@@ -742,9 +722,9 @@ namespace Sgry.Azuki
 #			endif
 
 			// draw line text
-			begin = lineHead;
-			end = NextPaintToken( Document, begin, lineEnd, out klass, out inSelection );
-			while( end <= lineEnd && end != -1 )
+			begin = screenLine.Begin;
+			end = NextPaintToken( Document, begin, screenLine.End, out klass, out inSelection );
+			while( end <= screenLine.End && end != -1 )
 			{
 				// get this token
 				Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, begin) );
@@ -837,15 +817,14 @@ namespace Sgry.Azuki
 				// get next token
 				pos.X = tokenEndPos.X;
 				begin = end;
-				end = NextPaintToken( Document, begin, lineEnd, out klass, out inSelection );
+				end = NextPaintToken( Document, begin, screenLine.End, out klass, out inSelection );
 			}
 
 			// draw EOF mark
-			if( DrawsEofMark && lineEnd == Document.Length )
+			if( DrawsEofMark && screenLine.End == Document.Length )
 			{
-				DebugUtl.Assert( lineHead <= lineEnd );
-				if( lineHead == lineEnd
-					|| (0 < lineEnd && TextUtil.IsEolChar(Document[lineEnd-1]) == false) )
+				if( screenLine.IsEmpty
+					|| (0 < screenLine.End && TextUtil.IsEolChar(Document[screenLine.End-1]) == false) )
 				{
 					DrawEofMark( g, ref pos );
 				}

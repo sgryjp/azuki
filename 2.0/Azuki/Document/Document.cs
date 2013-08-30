@@ -610,7 +610,7 @@ namespace Sgry.Azuki
 		///   </para>
 		/// </remarks>
 		/// <exception cref="ArgumentOutOfRangeException"/>
-		public string GetText( Range range )
+		public string GetText( IRange range )
 		{
 			return _Buffer.GetText( range );
 		}
@@ -718,7 +718,7 @@ namespace Sgry.Azuki
 				ldsUndoInfo = new LineDirtyStateUndoInfo();
 
 				// calculate range of the lines which will be affectd by this replacement
-				affectedBeginLI = GetLineIndexFromCharIndex( begin );
+				affectedBeginLI = Lines.AtOffset( begin ).LineIndex;
 				if( 0 < begin-1 && _Buffer[begin-1] == '\r' )
 				{
 					if( (0 < text.Length && text[0] == '\n')
@@ -729,8 +729,7 @@ namespace Sgry.Azuki
 						affectedBeginLI--;
 					}
 				}
-				int affectedEndLI = GetLineIndexFromCharIndex( end );
-				int affectedLineCount = affectedEndLI - affectedBeginLI + 1;
+				int affectedLineCount = Lines.AtOffset( end ).LineIndex - affectedBeginLI + 1;
 				Debug.Assert( 0 < affectedLineCount );
 
 				// store current state of the lines as 'deleted' history
@@ -1389,22 +1388,6 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Index Conversion
-		/// <summary>
-		/// Calculates logical line index from char-index.
-		/// </summary>
-		/// <exception cref="System.ArgumentOutOfRangeException">
-		/// Specified index is out of valid range.
-		/// </exception>
-		public int GetLineIndexFromCharIndex( int charIndex )
-		{
-			if( charIndex < 0 || _Buffer.Count < charIndex )
-				throw new ArgumentOutOfRangeException( "charIndex",
-					"Invalid index was given (charIndex:" + charIndex
-					+ ", document.Length:" + Length + ")." );
-
-			return _Buffer.GetTextPosition( charIndex ).Line;
-		}
-
 		/// <summary>
 		/// Calculates line/column index from an offset.
 		/// </summary>
@@ -2437,8 +2420,8 @@ namespace Sgry.Azuki
 			int selBegin, selEnd;
 
 			GetSelection( out selBegin, out selEnd );
-			selBeginL = GetLineIndexFromCharIndex( selBegin );
-			selEndL = GetLineIndexFromCharIndex( selEnd );
+			selBeginL = Lines.AtOffset( selBegin ).LineIndex;
+			selEndL = Lines.AtOffset( selEnd ).LineIndex;
 			if( selBeginL == selEndL
 				|| Lines[selEndL].Begin != selEnd )
 			{

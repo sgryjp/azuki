@@ -252,7 +252,7 @@ namespace Sgry.Azuki
 		int GetDesiredColumn();
 		#endregion
 
-		#region Position / Index Conversion
+		#region Virtual position and char-index
 		/// <summary>
 		/// Calculates specified character's position in virtual space.
 		/// </summary>
@@ -272,7 +272,9 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <returns>Index of a character.</returns>
 		int GetCharIndex( Point virtualPos );
+		#endregion
 
+		#region Screen positions and virtual positions
 		/// <summary>
 		/// Converts a coordinate in virtual space to a coordinate in client area.
 		/// </summary>
@@ -324,7 +326,9 @@ namespace Sgry.Azuki
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.IView.VirtualToScreen">VirtualToScreen property</seealso>
 		void ScreenToVirtual( ref Point pt );
+		#endregion
 
+		#region Line and column
 		/// <summary>
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
@@ -336,7 +340,9 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
 		int GetCharIndex( TextPoint position );
+		#endregion
 
+		#region Misc.
 		/// <summary>
 		/// Calculates and returns text ranges that will be selected by specified rectangle.
 		/// </summary>
