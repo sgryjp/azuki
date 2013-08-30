@@ -63,21 +63,21 @@ namespace Sgry.Azuki.Test
 			i = 0;
 			for( ; i<31; i++ )
 			{
-				Assert.AreEqual( 0, doc.GetLineIndexFromCharIndex(i) );
+				Assert.AreEqual( 0, doc.Lines.AtOffset(i).LineIndex );
 			}
 			for( ; i<35; i++ )
 			{
-				Assert.AreEqual( 1, doc.GetLineIndexFromCharIndex(i) );
+				Assert.AreEqual( 1, doc.Lines.AtOffset(i).LineIndex );
 			}
 			for( ; i<49; i++ )
 			{
-				Assert.AreEqual( 2, doc.GetLineIndexFromCharIndex(i) );
+				Assert.AreEqual( 2, doc.Lines.AtOffset(i).LineIndex );
 			}
-			Assert.AreEqual( 3, doc.GetLineIndexFromCharIndex(49) );
+			Assert.AreEqual( 3, doc.Lines.AtOffset(49).LineIndex );
 
 			// out of range
 			Assert.Throws<ArgumentOutOfRangeException>( delegate{
-				doc.GetLineIndexFromCharIndex( 50 );
+				int x = doc.Lines.AtOffset( 50 ).LineIndex;
 			} );
 		}
 

@@ -94,7 +94,7 @@ namespace Sgry.Ann
 			using( GotoForm form = new GotoForm() )
 			{
 				Document doc = app.ActiveDocument;
-				form.LineNumber = doc.GetLineIndexFromCharIndex( doc.CaretIndex ) + 1;
+				form.LineNumber = doc.Lines.AtOffset( doc.CaretIndex ).LineIndex + 1;
 				DialogResult result = form.ShowDialog();
 				if( result == DialogResult.OK
 					&& form.LineNumber < doc.Lines.Count)

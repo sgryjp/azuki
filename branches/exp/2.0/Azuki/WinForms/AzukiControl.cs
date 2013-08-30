@@ -2270,8 +2270,8 @@ namespace Sgry.Azuki.WinForms
 				int selBeginL, selEndL;
 
 				Document.GetSelection( out selBegin, out selEnd );
-				selBeginL = Document.GetLineIndexFromCharIndex( selBegin );
-				selEndL = Document.GetLineIndexFromCharIndex( selEnd );
+				selBeginL = Document.Lines.AtOffset( selBegin ).LineIndex;
+				selEndL = Document.Lines.AtOffset( selEnd ).LineIndex;
 				if( selBeginL != selEndL )
 				{
 					if( WinApi.IsKeyDown(Keys.ShiftKey) )
@@ -2372,12 +2372,10 @@ namespace Sgry.Azuki.WinForms
 				// nothing selected.
 				// set current line as string body
 				// and let IME to determine composition string and target string.
-				int lineIndex;
 				int begin, end;
 
 				// get current line range
-				lineIndex = Document.GetLineIndexFromCharIndex( selBegin );
-				IRange line = Document.Lines[ lineIndex ];
+				IRange line = Document.Lines.AtOffset( selBegin );
 				begin = Math.Max( line.Begin, selBegin - (MaxRangeLength / 2) );
 				end = Math.Min( selBegin + (MaxRangeLength / 2), line.End );
 

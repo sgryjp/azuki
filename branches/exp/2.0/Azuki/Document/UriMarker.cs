@@ -74,7 +74,7 @@ namespace Sgry.Azuki
 				return;
 
 			// update marking in this line
-			lineIndex = doc.GetLineIndexFromCharIndex( e.Index );
+			lineIndex = doc.Lines.AtOffset( e.Index ).LineIndex;
 			shouldBeRedrawn = MarkOrUnmarkOneLine( doc, lineIndex, true );
 			if( shouldBeRedrawn )
 			{
@@ -96,8 +96,8 @@ namespace Sgry.Azuki
 			<-- DO_NOT*/
 
 			// mark up all URIs in the logical line
-			int scrernLineHeadIndex = ui.View.Lines[ e.LineIndex ].Begin;
-			int logicalLineIndex = ui.Document.GetLineIndexFromCharIndex( scrernLineHeadIndex );
+			int screenLineHeadIndex = ui.View.Lines[ e.LineIndex ].Begin;
+			int logicalLineIndex = ui.Document.Lines.AtOffset( screenLineHeadIndex ).LineIndex;
 			e.ShouldBeRedrawn = MarkOrUnmarkOneLine( ui.Document, logicalLineIndex, ui.MarksUri );
 		}
 		#endregion
