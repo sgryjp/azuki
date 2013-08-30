@@ -2387,7 +2387,7 @@ namespace Sgry.Azuki
 			if( index < 0 || Length <= index )
 				return false;
 
-			return IsCombiningCharacter( this[index] );
+			return TextUtil.IsCombiningCharacter( this[index] );
 		}
 
 		/// <summary>
