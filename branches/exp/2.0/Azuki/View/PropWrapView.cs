@@ -713,7 +713,7 @@ namespace Sgry.Azuki
 				// its area from the clip rectangle to avoid overwriting
 				DrawLeftOfLine( g, pos.Y,
 								Document.Lines.AtOffset(screenLine.Begin).LineIndex + 1,
-								IsWrappedLineHead(Document, PLHI, lineIndex) );
+								!IsWrappedLineHead(Document, PLHI, screenLine.Begin) );
 				clipRect.Width -= (XofTextArea - clipRect.X);
 				clipRect.X = XofTextArea;
 			}
