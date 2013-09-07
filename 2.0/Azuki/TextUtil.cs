@@ -555,9 +555,28 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
+		/// Determines whether given character(s) is a variation selector or not.
+		/// </summary>
+		public static bool IsVariationSelector( char ch, char nextCh )
+		{
+			if( 0xfe00 <= ch && ch <= 0xfe0f )
+			{
+				return true; // Standard Variation Selectors
+			}
+			if( ch == 0xdb40 && 0xdd00 <= nextCh && nextCh <= 0xddef )
+			{
+				// IVS (ideographic variable sequence) is from 0xE0100 to 0xE01EF, that is from
+				// "db40 dd00" to "db40" "ddef" in UTF-16.
+				return true;
+			}
+
+			return false;
+		}
+
+		/// <summary>
 		/// Determines whether text can not be divided at given index or not.
 		/// </summary>
-		public static bool IsNotDividableIndex( char prevCh, char ch )
+		public static bool IsNotDividableIndex( char prevCh, char ch, char nextCh )
 		{
 			if( prevCh == '\r' && ch == '\n' )
 			{
@@ -568,6 +587,10 @@ namespace Sgry.Azuki
 				return true;
 			}
 			if( IsCombiningCharacter(ch) && IsEolChar(prevCh) == false )
+			{
+				return true;
+			}
+			if( IsVariationSelector(ch, nextCh) )
 			{
 				return true;
 			}
@@ -595,7 +618,10 @@ namespace Sgry.Azuki
 			if( text == null || index <= 0 || text.Length <= index )
 				return false;
 
-			return IsNotDividableIndex( text[index-1], text[index] );
+			return IsNotDividableIndex( text[index-1],
+										text[index],
+										(index+1 < text.Length) ? text[index+1]
+																: '\0' );
 		}
 
 		/// <summary>
@@ -618,7 +644,10 @@ namespace Sgry.Azuki
 			if( text == null || index <= 0 || text.Count <= index )
 				return false;
 
-			return IsNotDividableIndex( text[index-1], text[index] );
+			return IsNotDividableIndex( text[index-1],
+										text[index],
+										(index+1 < text.Count) ? text[index+1]
+															   : '\0' );
 		}
 
 		public static bool IsDividableIndex( IList<char> text, int index )

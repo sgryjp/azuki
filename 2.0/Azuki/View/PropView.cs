@@ -826,8 +826,6 @@ namespace Sgry.Azuki
 				&& end != -1 ) // or reaches the end of text
 			{
 				// get this token
-				Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, begin) );
-				Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, end) );
 				token = Document.GetText( begin, end );
 				DebugUtl.Assert( 0 < token.Length );
 
