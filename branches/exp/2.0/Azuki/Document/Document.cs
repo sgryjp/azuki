@@ -543,10 +543,10 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		///   <para>
-		///   This property returns the number of characters currently input in this document. Note
-		///   that because Azuki's internal character encoding is UTF-16, characters consisted with
-		///   more than one characters will NOT be counted as one (e.g. surrogate pairs, combining
-		///   character sequences.)
+		///   This property returns the number of characters in this document. Note that because
+		///   Azuki's internal character encoding is UTF-16, characters consisted with more than
+		///   one characters will NOT be counted as one (e.g. surrogate pairs, combining character
+		///   sequences, and variation sequences.)
 		///   </para>
 		/// </remarks>
 		public int Length
@@ -2241,6 +2241,7 @@ namespace Sgry.Azuki
 		///     <item>CR+LF</item>
 		///     <item>Surrogate pair</item>
 		///     <item>Combining character sequence</item>
+		///     <item>Variation sequence (including IVS)</item>
 		///   </list>
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.Document.PrevGraphemeClusterIndex">Document.PrevGraphemeClusterIndex method</seealso>
@@ -2278,6 +2279,7 @@ namespace Sgry.Azuki
 		///     <item>CR+LF</item>
 		///     <item>Surrogate pair</item>
 		///     <item>Combining character sequence</item>
+		///     <item>Variation sequence (including IVS)</item>
 		///   </list>
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.Document.PrevGraphemeClusterIndex">Document.PrevGraphemeClusterIndex method</seealso>
@@ -2326,40 +2328,48 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Determines whether text can not be divided at given index or not.
 		/// </summary>
-		/// <param name="index">The index to determine whether it points to middle of an undividable character sequence or not.</param>
+		/// <param name="index">
+		///   The index to determine whether it points to middle of an undividable character
+		///   sequence or not.
+		/// </param>
 		/// <returns>Whether charcter sequence can not be divided at the index or not.</returns>
 		/// <remarks>
 		///   <para>
-		///   This method determines whether text can not be divided at given index or not.
-		///   To seek document through grapheme cluster by grapheme cluster,
-		///   please consider to use
-		///   <see cref="Sgry.Azuki.Document.NextGraphemeClusterIndex">Document.NextGraphemeClusterIndex method</see>
-		///   or
-		///   <see cref="Sgry.Azuki.Document.PrevGraphemeClusterIndex">Document.PrevGraphemeClusterIndex method</see>.
+		///   This method determines whether text can not be divided at given index or not. To seek
+		///   document through grapheme cluster by grapheme cluster, please consider to use
+		///   <see cref="Sgry.Azuki.Document.NextGraphemeClusterIndex">
+		///   Document.NextGraphemeClusterIndex method</see> or
+		///   <see cref="Sgry.Azuki.Document.PrevGraphemeClusterIndex">
+		///   Document.PrevGraphemeClusterIndex method</see>.
 		///   </para>
 		///   <para>
-		///   This method determines an index pointing the middle of character sequences next as undividable:
+		///   This method determines an index pointing the middle of character sequences next as
+		///   undividable:
 		///   </para>
 		///   <para>
-		///   'Grapheme cluster' is a sequence of characters
-		///   which consists one 'user perceived character'
-		///   such as sequence of U+0041 and U+0300; a capital 'A' with grave (&#x0041;&#x0300;).
-		///   In most cases, such sequence should not be divided unless user wishes to do so.
+		///   'Grapheme cluster' is a sequence of characters which consists one 'user perceived
+		///   character' such as sequence of U+0041 and U+0300; a capital 'A' with grave
+		///   (&#x0041;&#x0300;). In most cases, such sequence should not be divided unless user
+		///   wishes to do so.
 		///   </para>
 		///   <list type="bullet">
 		///     <item>CR+LF</item>
 		///     <item>Surrogate pair</item>
 		///     <item>Combining character sequence</item>
+		///     <item>Variation sequence (including IVS)</item>
 		///   </list>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.NextGraphemeClusterIndex">Document.NextGraphemeClusterIndex method</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.PrevGraphemeClusterIndex">Document.PrevGraphemeClusterIndex method</seealso>
+		/// <seealso cref="Document.NextGraphemeClusterIndex"/>
+		/// <seealso cref="Document.PrevGraphemeClusterIndex"/>
 		public bool IsNotDividableIndex( int index )
 		{
 			if( index <= 0 || Length <= index )
 				return false;
 
-			return TextUtil.IsNotDividableIndex( this[index-1], this[index] );
+			return TextUtil.IsNotDividableIndex( this[index-1],
+												 this[index],
+												 (index+1 < Length) ? this[index+1]
+																	: '\0' );
 		}
 
 		/// <summary>
@@ -2371,6 +2381,17 @@ namespace Sgry.Azuki
 				return false;
 
 			return TextUtil.IsCombiningCharacter( this[index] );
+		}
+
+		/// <summary>
+		/// Determines whether given character(s) is a variation selector or not.
+		/// </summary>
+		public bool IsVariationSelector( int index )
+		{
+			if( index < 0 || Length <= index+1 )
+				return false;
+
+			return TextUtil.IsVariationSelector( this[index], this[index+1] );
 		}
 
 		/// <summary>
