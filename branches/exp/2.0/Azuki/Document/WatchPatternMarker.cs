@@ -51,11 +51,10 @@ namespace Sgry.Azuki
 			// Mark up all URIs in the logical line
 			int screenLineHeadIndex = ui.View.Lines[ e.LineIndex ].Begin;
 			int logicalLineIndex = ui.Document.Lines.AtOffset( screenLineHeadIndex ).LineIndex;
-			if( logicalLineIndex == _LastDrawnLogicalLineIndex )
+			if( logicalLineIndex != e.LineIndex
+				&& logicalLineIndex == _LastDrawnLogicalLineIndex )
 			{
-				// Skip marking already marked line
-				// (more optimization can be done though)
-				return;
+				return; // except continuation lines
 			}
 			_LastDrawnLogicalLineIndex = logicalLineIndex;
 
