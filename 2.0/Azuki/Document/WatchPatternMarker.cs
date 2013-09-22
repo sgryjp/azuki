@@ -75,17 +75,17 @@ namespace Sgry.Azuki
 			Debug.Assert( 0 <= logicalLineIndex && logicalLineIndex <= doc.Lines.Count,
 				"logicalLineIndex is out of valid range. (value:"+logicalLineIndex+", doc.Lines.Count:"+doc.Lines.Count+")" );
 
-			MatchCollection matches;
 			int count = 0;
-			int lastMarkedIndex;
 
 			if( logicalLineIndex == doc.Lines.Count )
 				return false;
 
 			var line = doc.Lines[ logicalLineIndex ];
-			lastMarkedIndex = line.Begin;
 			foreach( WatchPattern wp in doc.WatchPatterns )
 			{
+				MatchCollection matches;
+				int lastMarkedIndex;
+
 				// do nothing if invalid pattern was set
 				if( wp.Pattern == null )
 				{
@@ -93,6 +93,7 @@ namespace Sgry.Azuki
 				}
 
 				// mark all matched parts
+				lastMarkedIndex = line.Begin;
 				matches = wp.Pattern.Matches( line.Text );
 				foreach( Match match in matches )
 				{
