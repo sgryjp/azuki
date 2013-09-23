@@ -26,7 +26,7 @@ namespace Sgry.Ann
 		{
 			_FileType = FileType.TextFileType;
 			base.MarksUri = true;
-			base.WatchPatterns.Register( new WatchPattern(0, null) );
+			base.WatchPatterns.Register( 0, null );
 		}
 		#endregion
 
@@ -122,8 +122,8 @@ namespace Sgry.Ann
 		/// </summary>
 		public Regex SearchingPattern
 		{
-			get{ return base.WatchPatterns.Get(0).Pattern; }
-			set{ base.WatchPatterns.Register( new WatchPattern(0, value) ); }
+			get{ return base.WatchPatterns[0].Pattern; }
+			set{ base.WatchPatterns.Register(0, value); }
 		}
 		#endregion
 

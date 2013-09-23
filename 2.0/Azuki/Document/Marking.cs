@@ -262,7 +262,9 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets information about marking specified by ID.
 		/// </summary>
-		/// <returns>Information about specified marking.</returns>
+		/// <returns>
+		/// Information of marking or null if nothing is associated with the specified ID.
+		/// </returns>
 		/// <exception cref="System.ArgumentOutOfRangeException">
 		///   <paramref name="id"/> is out of valid range.
 		/// </exception>
