@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Regex = System.Text.RegularExpressions.Regex;
 
+
 namespace Sgry.Azuki
 {
 	/// <summary>
@@ -13,34 +14,40 @@ namespace Sgry.Azuki
 	/// <see cref="Sgry.Azuki.WatchPattern">WatchPattern class</see>
 	public class WatchPatternSet : IEnumerable<WatchPattern>
 	{
-		List<WatchPattern> _Patterns = new List<WatchPattern>();
+		Dictionary<int, WatchPattern> _Patterns = new Dictionary<int,WatchPattern>();
 
 		/// <summary>
 		/// Registers a text pattern to be watched and automatically marked.
 		/// </summary>
-		/// <param name="pattern">The pattern of the text to be watched and automatically marked.</param>
-		/// <exception cref="System.ArgumentNullException">The argument 'pattern' was null.</exception>
-		/// <seealso cref="Sgry.Azuki.WatchPatternSet.Unregister">Unregister method</seealso>
+		/// <param name="pattern">
+		/// The pattern of the text to be watched and automatically marked.
+		/// </param>
+		/// <exception cref="System.ArgumentNullException"/>
+		/// <seealso cref="Sgry.Azuki.WatchPatternSet.Unregister"/>
 		public void Register( WatchPattern pattern )
 		{
 			if( pattern == null )
 				throw new ArgumentNullException( "pattern" );
 
-			// if the ID was already registered, overwrite it
-			for( int i=0; i<_Patterns.Count; i++ )
-			{
-				if( _Patterns[i].MarkingID == pattern.MarkingID )
-				{
-					_Patterns[i] = pattern;
-					return;
-				}
-			}
+			_Patterns[ pattern.MarkingID ] = pattern;
+		}
 
-			// otherwise, add the pattern
-			if( pattern.Pattern != null )
-			{
-				_Patterns.Add( pattern );
-			}
+		/// <summary>
+		/// Registers a text pattern to be watched and automatically marked.
+		/// </summary>
+		/// <param name="pattern">
+		/// The pattern of the text to be watched and automatically marked.
+		/// </param>
+		/// <exception cref="System.ArgumentNullException"/>
+		/// <seealso cref="Sgry.Azuki.WatchPatternSet.Unregister"/>
+		public void Register( int markingID, Regex pattern )
+		{
+			if( Marking.GetMarkingInfo(markingID) == null )
+				throw new ArgumentNullException( "markingID" );
+			if( pattern == null )
+				throw new ArgumentNullException( "pattern" );
+
+			_Patterns[ markingID ] = new WatchPattern( markingID, pattern );
 		}
 
 		/// <summary>
@@ -48,39 +55,40 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void Unregister( int markingID )
 		{
-			// if the ID was already registered, overwrite it
-			for( int i=0; i<_Patterns.Count; i++ )
-			{
-				if( _Patterns[i].MarkingID == markingID )
-				{
-					_Patterns.RemoveAt( i );
-					return;
-				}
-			}
+			_Patterns.Remove( markingID );
 		}
 
 		/// <summary>
 		/// Gets a watch-pattern by marking ID.
 		/// </summary>
+		[Obsolete("Use indexer (WatchPatternSet.Items) instead.")]
 		public WatchPattern Get( int markingID )
 		{
-			// if the ID was already registered, overwrite it
-			for( int i=0; i<_Patterns.Count; i++ )
-			{
-				if( _Patterns[i].MarkingID == markingID )
-				{
-					return _Patterns[ i ];
-				}
-			}
-			return null;
+			return this[ markingID ];
 		}
 
+		/// <summary>
+		/// Gets a watch-pattern by marking ID.
+		/// </summary>
+		public WatchPattern this[ int markingID ]
+		{
+			get
+			{
+				WatchPattern pattern;
+				if( _Patterns.TryGetValue( markingID, out pattern ) )
+					return pattern;
+				else
+					return null;
+			}
+		}
+
+		#region IEnumerator
 		/// <summary>
 		/// Gets the enumerator that iterates through the WatchPatternSet.
 		/// </summary>
 		public IEnumerator<WatchPattern> GetEnumerator()
 		{
-			return _Patterns.GetEnumerator();
+			return _Patterns.Values.GetEnumerator();
 		}
 
 		/// <summary>
@@ -88,8 +96,9 @@ namespace Sgry.Azuki
 		/// </summary>
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
 		{
-			return _Patterns.GetEnumerator();
+			return _Patterns.Values.GetEnumerator();
 		}
+		#endregion
 	}
 
 	/// <summary>
@@ -153,6 +162,13 @@ namespace Sgry.Azuki
 		/// Creates a new instance.
 		/// </summary>
 		public WatchPattern()
+		{}
+
+		/// <summary>
+		/// Creates a new instance.
+		/// </summary>
+		public WatchPattern( WatchPattern other )
+			: this( other.MarkingID, other.Pattern )
 		{}
 
 		/// <summary>
