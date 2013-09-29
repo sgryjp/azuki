@@ -35,18 +35,24 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Registers a text pattern to be watched and automatically marked.
 		/// </summary>
-		/// <param name="pattern">
-		/// The pattern of the text to be watched and automatically marked.
+		/// <param name="markingID">
+		///   The marking ID to be marked for each found matching patterns.
 		/// </param>
-		/// <exception cref="System.ArgumentNullException"/>
+		/// <param name="pattern">
+		///   The pattern of the text to be watched and automatically marked.
+		/// </param>
+		/// <exception cref="System.ArgumentException">
+		///   Parameter '<paramref name="markingID"/>' is invalid or not registered.
+		/// </exception>
 		/// <seealso cref="Sgry.Azuki.WatchPatternSet.Unregister"/>
+		/// <remarks>
+		///   <para>
+		///   If <paramref name="pattern"/> is an empty string, nothing won't be matched with it
+		///   so that every character in a document will be unmarked.
+		///   </para>
+		/// </remarks>
 		public void Register( int markingID, Regex pattern )
 		{
-			if( Marking.GetMarkingInfo(markingID) == null )
-				throw new ArgumentNullException( "markingID" );
-			if( pattern == null )
-				throw new ArgumentNullException( "pattern" );
-
 			_Patterns[ markingID ] = new WatchPattern( markingID, pattern );
 		}
 
@@ -183,12 +189,24 @@ namespace Sgry.Azuki
 		/// <exception cref="System.ArgumentException">
 		///   Parameter '<paramref name="markingID"/>' is invalid or not registered.
 		/// </exception>
+		/// <exception cref="System.ArgumentNullException">
+		///   Parameter '<paramref name="patternToBeWatched"/>' is null.
+		/// </exception>
+		/// <remarks>
+		///   <para>
+		///   If <paramref name="patternToBeWatched"/> is an empty string, nothing won't be matched
+		///   with it so that every character in a document will be unmarked.
+		///   </para>
+		/// </remarks>
 		public WatchPattern( int markingID, Regex patternToBeWatched )
 		{
 			if( Marking.GetMarkingInfo(markingID) == null )
 				throw new ArgumentException( "Specified marking ID (" + markingID + ") is"
 											 + " not registered.",
 											 "markingID" );
+			if( patternToBeWatched == null )
+				throw new ArgumentNullException( "patternToBeWatched",
+												 "The pattern must not be null." );
 
 			MarkingID = markingID;
 			Pattern = patternToBeWatched;
