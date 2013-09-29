@@ -26,7 +26,7 @@ namespace Sgry.Ann
 		{
 			_FileType = FileType.TextFileType;
 			base.MarksUri = true;
-			base.WatchPatterns.Register( 0, null );
+			base.WatchPatterns.Register( 0, new Regex("") );
 		}
 		#endregion
 

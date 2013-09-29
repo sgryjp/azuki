@@ -246,7 +246,7 @@ namespace Sgry.Azuki
 		///   </para>
 		/// </remarks>
 		/// <exception cref="System.ArgumentOutOfRangeException">
-		///   ID of parameter <paramref name="info"/> is out of valid range.
+		///   The specified ID is out of valid range.
 		///	</exception>
 		///	<seealso cref="Sgry.Azuki.Marking.Register">Marking.Register method</seealso>
 		public static void Unregister( int id )
