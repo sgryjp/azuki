@@ -1035,6 +1035,7 @@ namespace Sgry.Ann
 			MainForm.Azuki.HRulerIndicatorType		= AppConfig.HRulerIndicatorType;
 			MainForm.Azuki.ScrollsBeyondLastLine	= AppConfig.ScrollsBeyondLastLine;
 			MainForm.Azuki.CopyLineWhenNoSelection	= AppConfig.CopyLineWhenNoSelection;
+			MainForm.Azuki.AutoScrollMargin			= AppConfig.AutoScrollMargin;
 
 			// apply window config
 			if( includeWindowConfig )
@@ -1081,6 +1082,7 @@ namespace Sgry.Ann
 			AppConfig.HRulerIndicatorType		= MainForm.Azuki.HRulerIndicatorType;
 			AppConfig.ScrollsBeyondLastLine		= MainForm.Azuki.ScrollsBeyondLastLine;
 			AppConfig.CopyLineWhenNoSelection	= MainForm.Azuki.CopyLineWhenNoSelection;
+			AppConfig.AutoScrollMargin			= MainForm.Azuki.AutoScrollMargin;
 
 			// save to file
 			AppConfig.Save();

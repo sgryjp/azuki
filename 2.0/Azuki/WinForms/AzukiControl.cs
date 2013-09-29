@@ -1208,6 +1208,25 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
+		/// Gets or sets how many lines are kept visible on moving caret by keyboard.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// When user moves the caret with keyboard, Azuki automatically scrolls to ensure the
+		/// caret always be visible in screen. This property determines how many lines the caret is
+		/// distant at least from top or bottom of the window.
+		/// </para>
+		/// </remarks>
+		[Category("Behavior")]
+		[DefaultValue(1)]
+		[Description("The number of lines always visible on moving caret by keyboard.")]
+		public int AutoScrollMargin
+		{
+			get{ return _Impl.AutoScrollMargin; }
+			set{ _Impl.AutoScrollMargin = value; }
+		}
+
+		/// <summary>
 		/// Gets or sets whether URIs in the active document
 		/// should be marked automatically with built-in URI marker or not.
 		/// </summary>
