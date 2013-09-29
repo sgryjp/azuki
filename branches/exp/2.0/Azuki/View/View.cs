@@ -940,7 +940,7 @@ namespace Sgry.Azuki
 		{
 			using( IGraphics g = _UI.GetIGraphics() )
 			{
-				ScrollToCaret( g, UserPref.AutoScrollMargin );
+				ScrollToCaret( g, _UI.AutoScrollMargin );
 			}
 		}
 
@@ -949,7 +949,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void ScrollToCaret( IGraphics g )
 		{
-			ScrollToCaret( g, UserPref.AutoScrollMargin );
+			ScrollToCaret( g, _UI.AutoScrollMargin );
 		}
 
 		/// <summary>

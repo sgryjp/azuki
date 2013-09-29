@@ -458,6 +458,21 @@ namespace Sgry.Azuki
 		{
 			get; set;
 		}
+
+		/// <summary>
+		/// Gets or sets how many lines are kept visible on moving caret by keyboard.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// When user moves the caret with keyboard, Azuki automatically scrolls to ensure the
+		/// caret always be visible in screen. This property determines how many lines the caret is
+		/// distant at least from top or bottom of the window.
+		/// </para>
+		/// </remarks>
+		int AutoScrollMargin
+		{
+			get; set;
+		}
 		#endregion
 
 		#region Edit Actions

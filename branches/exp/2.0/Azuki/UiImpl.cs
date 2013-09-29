@@ -38,6 +38,7 @@ namespace Sgry.Azuki
 		bool _UsesStickyCaret = false;
 		bool _IsSingleLineMode = false;
 		bool _CopyLineWhenNoSelection = true;
+		int _AutoScrollMargin = 1;
 
 		// X coordinate of this also be used as a flag to determine
 		// whether the mouse button is down or not.
@@ -303,6 +304,15 @@ namespace Sgry.Azuki
 		{
 			get{ return _CopyLineWhenNoSelection; }
 			set{ _CopyLineWhenNoSelection = value; }
+		}
+
+		/// <summary>
+		/// Gets or sets how many lines are kept visible on moving caret by keyboard.
+		/// </summary>
+		public int AutoScrollMargin
+		{
+			get{ return _AutoScrollMargin; }
+			set{ _AutoScrollMargin = Math.Max(0, value); }
 		}
 
 		/// <summary>
