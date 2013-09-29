@@ -35,6 +35,7 @@ namespace Sgry.Ann
 		public static bool ConvertsFullWidthSpaceToSpace = true;
 		public static HRulerIndicatorType HRulerIndicatorType = HRulerIndicatorType.Segment;
 		public static bool ScrollsBeyondLastLine = true;
+		public static bool CopyLineWhenNoSelection = true;
 		public static MruFileList MruFiles = new MruFileList();
 		public static Ini Ini = new Ini();
 
@@ -77,11 +78,11 @@ namespace Sgry.Ann
 				AppConfig.ConvertsFullWidthSpaceToSpace = Ini.Get( "Default", "ConvertsFullWidthSpaceToSpace", false );
 				AppConfig.HRulerIndicatorType		= Ini.Get( "Default", "HRulerIndicatorType", HRulerIndicatorType.Segment );
 				AppConfig.ScrollsBeyondLastLine		= Ini.Get( "Default", "ScrollsBeyondLastLine", true );
+				AppConfig.CopyLineWhenNoSelection	= Ini.Get( "Default", "CopyLineWhenNoSelection", AppConfig.CopyLineWhenNoSelection );
 				AppConfig.MruFiles.Load( Ini.Get("Default", "Mru", "") );
 
 				UserPref.Antialias					= Ini.Get( "Default", "Antialias", UserPref.Antialias );
 				UserPref.AutoScrollMargin			= Ini.Get( "Default", "AutoScrollMargin", UserPref.AutoScrollMargin );
-				UserPref.CopyLineWhenNoSelection	= Ini.Get( "Default", "CopyLineWhenNoSelection", UserPref.CopyLineWhenNoSelection );
 				UserPref.UseTextForEofMark			= Ini.Get( "Default", "UseTextForEofMark", UserPref.UseTextForEofMark );
 			}
 			catch
@@ -120,6 +121,7 @@ namespace Sgry.Ann
 				Ini.Set( "Default", "ConvertsFullWidthSpaceToSpace", AppConfig.ConvertsFullWidthSpaceToSpace );
 				Ini.Set( "Default", "HRulerIndicatorType",		AppConfig.HRulerIndicatorType );
 				Ini.Set( "Default", "ScrollsBeyondLastLine",	AppConfig.ScrollsBeyondLastLine );
+				Ini.Set( "Default", "CopyLineWhenNoSelection",	AppConfig.CopyLineWhenNoSelection );
 				Ini.Set( "Default", "Mru",						AppConfig.MruFiles.ToString() );
 				Ini.Set( "Default", "Antialias",				UserPref.Antialias );
 

@@ -1182,6 +1182,32 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
+		/// Gets or sets whether an cut/copy action targets the current line when nothing selected.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// This property changes behavior of cut and copy actions when no characters are selected.
+		/// If this property was set to true, cut and copy action targets the line where the caret
+		/// is currently on. If it's false, cut nor copy action does nothing.
+		/// </para>
+		/// <para>
+		/// This property also affects CanCut and CanCopy property of IUserInterface as well.
+		/// </para>
+		/// </remarks>
+		/// <seealso cref="AzukiControl.Cut"/>
+		/// <seealso cref="AzukiControl.Copy"/>
+		/// <seealso cref="AzukiControl.CanCut"/>
+		/// <seealso cref="AzukiControl.CanCopy"/>
+		[Category("Behavior")]
+		[DefaultValue(true)]
+		[Description("If this is true, cur/copy action targets the current line when nothing selected.")]
+		public bool CopyLineWhenNoSelection
+		{
+			get{ return _Impl.CopyLineWhenNoSelection; }
+			set{ _Impl.CopyLineWhenNoSelection = value; }
+		}
+
+		/// <summary>
 		/// Gets or sets whether URIs in the active document
 		/// should be marked automatically with built-in URI marker or not.
 		/// </summary>
