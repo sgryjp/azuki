@@ -1034,6 +1034,7 @@ namespace Sgry.Ann
 			MainForm.Azuki.ConvertsFullWidthSpaceToSpace = AppConfig.ConvertsFullWidthSpaceToSpace;
 			MainForm.Azuki.HRulerIndicatorType		= AppConfig.HRulerIndicatorType;
 			MainForm.Azuki.ScrollsBeyondLastLine	= AppConfig.ScrollsBeyondLastLine;
+			MainForm.Azuki.CopyLineWhenNoSelection	= AppConfig.CopyLineWhenNoSelection;
 
 			// apply window config
 			if( includeWindowConfig )
@@ -1079,6 +1080,7 @@ namespace Sgry.Ann
 			AppConfig.ConvertsFullWidthSpaceToSpace = MainForm.Azuki.ConvertsFullWidthSpaceToSpace;
 			AppConfig.HRulerIndicatorType		= MainForm.Azuki.HRulerIndicatorType;
 			AppConfig.ScrollsBeyondLastLine		= MainForm.Azuki.ScrollsBeyondLastLine;
+			AppConfig.CopyLineWhenNoSelection	= MainForm.Azuki.CopyLineWhenNoSelection;
 
 			// save to file
 			AppConfig.Save();

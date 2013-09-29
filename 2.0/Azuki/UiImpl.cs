@@ -37,6 +37,7 @@ namespace Sgry.Azuki
 		bool _ConvertsFullWidthSpaceToSpace = false;
 		bool _UsesStickyCaret = false;
 		bool _IsSingleLineMode = false;
+		bool _CopyLineWhenNoSelection = true;
 
 		// X coordinate of this also be used as a flag to determine
 		// whether the mouse button is down or not.
@@ -105,7 +106,7 @@ namespace Sgry.Azuki
 				{
 					return true; // one or more characters are selected
 				}
-				else if( UserPref.CopyLineWhenNoSelection )
+				else if( CopyLineWhenNoSelection )
 				{
 					return true; // nothing selected
 				}
@@ -293,6 +294,15 @@ namespace Sgry.Azuki
 		{
 			get{ return _IsSingleLineMode; }
 			set{ _IsSingleLineMode = value; }
+		}
+
+		/// <summary>
+		/// Gets or sets whether an cut/copy action targets the current line when nothing selected.
+		/// </summary>
+		public bool CopyLineWhenNoSelection
+		{
+			get{ return _CopyLineWhenNoSelection; }
+			set{ _CopyLineWhenNoSelection = value; }
 		}
 
 		/// <summary>

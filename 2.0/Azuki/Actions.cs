@@ -256,20 +256,18 @@ namespace Sgry.Azuki
 
 		#region Clipboard
 		/// <summary>
-		/// Cuts current selection to clipboard.
+		/// Cuts currently selected text (copies it to the system clipboard and removes it).
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This action cuts currently selected text to clipboard.
-		/// If nothing selected and invokes this action,
-		/// result will be different according to
-		/// <see cref="Sgry.Azuki.UserPref.CopyLineWhenNoSelection">UserPref.CopyLineWhenNoSelection</see>
-		/// property value.
-		/// If that property is true, current line will be cut.
-		/// If that property is false, Azuki will do nothing.
+		/// If there are selected characters in a document, the characters will be copied to the
+		/// system clipboard and be removed from the document. If nothing is selected,
+		/// <see cref="IUserInterface.CopyLineWhenNoSelection"/> property determines the action. If
+		/// the property is true, the line where the caret is at will be cut. Otherwise, nothing
+		/// happens.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.UserPref.CopyLineWhenNoSelection">UserPref.CopyLineWhenNoSelection</seealso>
+		/// <seealso cref="IUserInterface.CopyLineWhenNoSelection"/>
 		public static void Cut( IUserInterface ui )
 		{
 			Document doc = ui.Document;
@@ -305,7 +303,7 @@ namespace Sgry.Azuki
 			else
 			{
 				// no selection.
-				if( !UserPref.CopyLineWhenNoSelection )
+				if( !ui.CopyLineWhenNoSelection )
 				{
 					return; // nothing should be done
 				}
@@ -324,20 +322,18 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Copies current selection to clipboard.
+		/// Copies currently selected text to clipboard.
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This action copies currently selected text to clipboard.
-		/// If nothing selected and invokes this action,
-		/// result will be different according to
-		/// <see cref="Sgry.Azuki.UserPref.CopyLineWhenNoSelection">UserPref.CopyLineWhenNoSelection</see>
-		/// property value.
-		/// If that property is true, current line will be copied.
-		/// If that property is false, Azuki will do nothing.
+		/// If there are selected characters in a document, the characters will be copied to the
+		/// system clipboard. If nothing is selected,
+		/// <see cref="IUserInterface.CopyLineWhenNoSelection"/> property determines the action. If
+		/// the property is true, the line where the caret is at will be copied. Otherwise, nothing
+		/// happens.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.UserPref.CopyLineWhenNoSelection">UserPref.CopyLineWhenNoSelection</seealso>
+		/// <seealso cref="IUserInterface.CopyLineWhenNoSelection"/>
 		public static void Copy( IUserInterface ui )
 		{
 			Document doc = ui.Document;
@@ -361,7 +357,7 @@ namespace Sgry.Azuki
 			else
 			{
 				// no selection.
-				if( !UserPref.CopyLineWhenNoSelection )
+				if( !ui.CopyLineWhenNoSelection )
 				{
 					return; // nothing should be done
 				}

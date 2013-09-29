@@ -436,6 +436,28 @@ namespace Sgry.Azuki
 		{
 			get; set;
 		}
+
+		/// <summary>
+		/// Gets or sets whether an cut/copy action targets the current line when nothing selected.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// This property changes behavior of cut and copy actions when no characters are selected.
+		/// If this property was set to true, cut and copy action targets the line where the caret
+		/// is currently on. If it's false, cut nor copy action does nothing.
+		/// </para>
+		/// <para>
+		/// This property also affects CanCut and CanCopy property of IUserInterface as well.
+		/// </para>
+		/// </remarks>
+		/// <seealso cref="Cut"/>
+		/// <seealso cref="Copy"/>
+		/// <seealso cref="CanCut"/>
+		/// <seealso cref="CanCopy"/>
+		bool CopyLineWhenNoSelection
+		{
+			get; set;
+		}
 		#endregion
 
 		#region Edit Actions
