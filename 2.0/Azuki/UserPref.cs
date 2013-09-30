@@ -17,17 +17,7 @@ namespace Sgry.Azuki
 	/// </remarks>
 	public static class UserPref
 	{
-		static bool _UseTextForEofMark = true;
 		static Antialias _TextRenderingMode = Antialias.Default;
-
-		/// <summary>
-		/// If true, Azuki draws EOF mark as text "[EOF]".
-		/// </summary>
-		public static bool UseTextForEofMark
-		{
-			get{ return _UseTextForEofMark; }
-			set{ _UseTextForEofMark = value; }
-		}
 
 		/// <summary>
 		/// Gets or sets how Azuki anti-aliases text.
