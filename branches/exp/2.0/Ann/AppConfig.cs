@@ -84,7 +84,6 @@ namespace Sgry.Ann
 				AppConfig.MruFiles.Load( Ini.Get("Default", "Mru", "") );
 
 				UserPref.Antialias					= Ini.Get( "Default", "Antialias", UserPref.Antialias );
-				UserPref.UseTextForEofMark			= Ini.Get( "Default", "UseTextForEofMark", UserPref.UseTextForEofMark );
 			}
 			catch
 			{}

@@ -694,39 +694,20 @@ namespace Sgry.Azuki
 			Point textPos;
 
 			g.BackColor = ColorScheme.BackColor;
-			if( UserPref.UseTextForEofMark )
-			{
-				int margin = (_SpaceWidth >> 2);
+			int margin = (_SpaceWidth >> 2);
 
-				// fill background
-				int width = g.MeasureText( "[EOF]" ).Width;
-				g.FillRectangle( pos.X, pos.Y, width+margin, LineSpacing );
+			// fill background
+			int width = g.MeasureText( "[EOF]" ).Width;
+			g.FillRectangle( pos.X, pos.Y, width+margin, LineSpacing );
 
-				// calculate text position
-				pos.X += margin;
-				textPos = pos;
-				textPos.Y += (LinePadding >> 1);
+			// calculate text position
+			pos.X += margin;
+			textPos = pos;
+			textPos.Y += (LinePadding >> 1);
 
-				// draw text
-				g.DrawText( "[EOF]", ref textPos, ColorScheme.EofColor );
-				pos.X += width;
-			}
-			else
-			{
-				int width = LineHeight - (LineHeight >> 2);
-
-				// fill background
-				g.FillRectangle( pos.X, pos.Y, width, LineSpacing );
-
-				// draw graphic
-				textPos = pos;
-				textPos.Y += (LinePadding >> 1);
-				g.ForeColor = ColorScheme.EofColor;
-				g.DrawLine( pos.X+2, textPos.Y+2, pos.X+2, textPos.Y + LineHeight - 3 );
-				g.DrawLine( pos.X+2, textPos.Y+2, pos.X + width - 3, textPos.Y+2 );
-				g.DrawLine( pos.X+2, textPos.Y + LineHeight - 3, pos.X + width - 3, textPos.Y+2 );
-				pos.X += width;
-			}
+			// draw text
+			g.DrawText( "[EOF]", ref textPos, ColorScheme.EofColor );
+			pos.X += width;
 		}
 		#endregion
 
