@@ -1,7 +1,5 @@
 // file: PlatWin.cs
 // brief: Platform API caller for Windows.
-// author: YAMAMOTO Suguru
-// encoding: UTF-8
 //=========================================================
 using System;
 using System.Drawing;
@@ -351,11 +349,13 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Font used for drawing/measuring text.
 		/// </summary>
+		/// <exception cref="ArgumentNullException"/>
 		public FontInfo FontInfo
 		{
 			set
 			{
-				Debug.Assert( value != null, "invalid operation; PlatWin.Font must not be set as null." );
+				if( value == null )
+					throw new ArgumentNullException();
 				
 				// delete old font
 				Utl.SafeDeleteObject( _Font );
@@ -368,11 +368,11 @@ namespace Sgry.Azuki.WinForms
 					WinApi.CreateLogFont( IntPtr.Zero, value, out logicalFont );
 					
 					// apply anti-alias method that user prefered
-					if( UserPref.Antialias == Antialias.None )
+					if( value.Antialias == Antialias.None )
 						logicalFont.quality = 3; // NONANTIALIASED_QUALITY
-					else if( UserPref.Antialias == Antialias.Gray )
+					else if( value.Antialias == Antialias.Gray )
 						logicalFont.quality = 4; // ANTIALIASED_QUALITY
-					else if( UserPref.Antialias == Antialias.Subpixel )
+					else if( value.Antialias == Antialias.Subpixel )
 						logicalFont.quality = 5; // CLEARTYPE_QUALITY
 					
 					_Font = WinApi.CreateFontIndirectW( &logicalFont );
@@ -383,9 +383,16 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Font used for drawing/measuring text.
 		/// </summary>
+		/// <exception cref="ArgumentNullException"/>
 		public Font Font
 		{
-			set{ FontInfo = new FontInfo(value); }
+			set
+			{
+				if( value == null )
+					throw new ArgumentNullException();
+
+				FontInfo = new FontInfo(value);
+			}
 		}
 
 		/// <summary>

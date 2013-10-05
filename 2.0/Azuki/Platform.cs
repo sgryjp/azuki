@@ -2,10 +2,7 @@
 // brief: Platform API caller.
 //=========================================================
 using System;
-using System.Text;
 using System.Drawing;
-using System.Runtime.InteropServices;
-using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki
 {
@@ -75,8 +72,6 @@ namespace Sgry.Azuki
 	/// </summary>
 	public interface IGraphics : IDisposable
 	{
-		//void Dispose();
-
 		#region Off-screen Rendering
 		/// <summary>
 		/// Begin using off-screen buffer and cache drawing which will be done after.
@@ -94,6 +89,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Font used for drawing/measuring text.
 		/// </summary>
+		/// <exception cref="ArgumentNullException"/>
 		Font Font
 		{
 			set;
@@ -102,6 +98,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Font used for drawing/measuring text.
 		/// </summary>
+		/// <exception cref="ArgumentNullException"/>
 		FontInfo FontInfo
 		{
 			set;
@@ -187,18 +184,13 @@ namespace Sgry.Azuki
 	/// </summary>
 	public class FontInfo
 	{
-		string _Name;
-		int _Size;
-		FontStyle _Style;
-
 		#region Properties
 		/// <summary>
 		/// Font face name of this font.
 		/// </summary>
 		public string Name
 		{
-			get{ return _Name; }
-			set{ _Name = value; }
+			get; set;
 		}
 
 		/// <summary>
@@ -206,8 +198,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public int Size
 		{
-			get{ return _Size; }
-			set{ _Size = value; }
+			get; set;
 		}
 
 		/// <summary>
@@ -215,8 +206,15 @@ namespace Sgry.Azuki
 		/// </summary>
 		public FontStyle Style
 		{
-			get{ return _Style; }
-			set{ _Style = value; }
+			get; set;
+		}
+
+		/// <summary>
+		/// Gets or sets type of anti-alias feature to be used for rendering text.
+		/// </summary>
+		public Antialias Antialias
+		{
+			get; set;
 		}
 		#endregion
 
@@ -225,46 +223,60 @@ namespace Sgry.Azuki
 		/// Creates a new instance.
 		/// </summary>
 		public FontInfo()
+			: this( SystemFonts.DefaultFont.Name,
+					(int)SystemFonts.DefaultFont.Size,
+					SystemFonts.DefaultFont.Style )
+		{}
+
+		/// <summary>
+		/// Creates a new instance.
+		/// </summary>
+		/// <exception cref="ArgumentNullException"/>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public FontInfo( string name,
+						 int size,
+						 FontStyle style,
+						 Antialias antialias = Antialias.Default )
 		{
-			_Name = SystemFonts.DefaultFont.Name;
-			_Size = (int)SystemFonts.DefaultFont.Size;
-			_Style = SystemFonts.DefaultFont.Style;
+			if( name == null )
+				throw new ArgumentNullException( "name" );
+			if( size < 0 )
+				throw new ArgumentOutOfRangeException( "size" );
+
+			Name = name;
+			Size = size;
+			Style = style;
+			Antialias = antialias;
 		}
 
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
-		public FontInfo( string name, int size, FontStyle style )
-		{
-			_Name = name;
-			_Size = size;
-			_Style = style;
-		}
-
-		/// <summary>
-		/// Creates a new instance.
-		/// </summary>
+		/// <exception cref="ArgumentNullException"/>
 		public FontInfo( FontInfo fontInfo )
 		{
 			if( fontInfo == null )
 				throw new ArgumentNullException( "fontInfo" );
 
-			_Name = fontInfo.Name;
-			_Size = fontInfo.Size;
-			_Style = fontInfo.Style;
+			Name = fontInfo.Name;
+			Size = fontInfo.Size;
+			Style = fontInfo.Style;
+			Antialias = fontInfo.Antialias;
 		}
 
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
+		/// <exception cref="ArgumentNullException"/>
 		public FontInfo( Font font )
 		{
 			if( font == null )
 				throw new ArgumentNullException( "font" );
 
-			_Name = font.Name;
-			_Size = (int)font.Size;
-			_Style = font.Style;
+			Name = font.Name;
+			Size = (int)font.Size;
+			Style = font.Style;
+			Antialias = Antialias.Default;
 		}
 		#endregion
 
@@ -274,7 +286,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public override string ToString()
 		{
-			return String.Format( "\"{0}\", {1}, {2}", _Name, _Size, _Style );
+			return String.Format( "\"{0}\", {1}, {2}", Name, Size, Style );
 		}
 
 		/// <summary>
@@ -432,7 +444,7 @@ namespace Sgry.Azuki
 	/// <summary>
 	/// Methods of Anti-Alias to be used for text rendering.
 	/// </summary>
-	/// <seealso cref="Sgry.Azuki.UserPref.Antialias">UserPref.Antialias property</seealso>
+	/// <seealso cref="Sgry.Azuki.FontInfo.Antialias"/>
 	public enum Antialias
 	{
 		/// <summary>Uses system default setting.</summary>

@@ -1012,7 +1012,7 @@ namespace Sgry.Ann
 			AppConfig.Load();
 
 			// apply config
-			MainForm.Azuki.FontInfo				= AppConfig.FontInfo;
+			MainForm.Azuki.FontInfo					= AppConfig.FontInfo;
 			MainForm.TabPanelEnabled				= AppConfig.TabPanelEnabled;
 
 			MainForm.Azuki.DrawsEolCode				= AppConfig.DrawsEolCode;

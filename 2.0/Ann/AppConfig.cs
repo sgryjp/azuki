@@ -37,6 +37,7 @@ namespace Sgry.Ann
 		public static bool ScrollsBeyondLastLine = true;
 		public static bool CopyLineWhenNoSelection = true;
 		public static int AutoScrollMargin = 1;
+		public static Antialias Antialias = Antialias.Default;
 		public static MruFileList MruFiles = new MruFileList();
 		public static Ini Ini = new Ini();
 
@@ -56,7 +57,9 @@ namespace Sgry.Ann
 				width = Ini.GetInt( "Default", "WindowWidth", 100, Int32.MaxValue, WindowSize.Width );
 				height = Ini.GetInt( "Default", "WindowHeight", 100, Int32.MaxValue, WindowSize.Height );
 
+				AppConfig.Antialias					= Ini.Get( "Default", "Antialias", Antialias );
 				AppConfig.FontInfo					= new FontInfo( fontName, fontSize, FontStyle.Regular );
+				AppConfig.FontInfo.Antialias		= AppConfig.Antialias;
 				AppConfig.WindowSize				= new Size( width, height );
 				AppConfig.WindowMaximized			= Ini.Get( "Default", "WindowMaximized", false );
 				AppConfig.TabPanelEnabled			= Ini.Get( "Default", "TabPanelEnabled", false );
@@ -82,8 +85,6 @@ namespace Sgry.Ann
 				AppConfig.CopyLineWhenNoSelection	= Ini.Get( "Default", "CopyLineWhenNoSelection", AppConfig.CopyLineWhenNoSelection );
 				AppConfig.AutoScrollMargin			= Ini.Get( "Default", "AutoScrollMargin", AutoScrollMargin );
 				AppConfig.MruFiles.Load( Ini.Get("Default", "Mru", "") );
-
-				UserPref.Antialias					= Ini.Get( "Default", "Antialias", UserPref.Antialias );
 			}
 			catch
 			{}
@@ -124,7 +125,7 @@ namespace Sgry.Ann
 				Ini.Set( "Default", "CopyLineWhenNoSelection",	AppConfig.CopyLineWhenNoSelection );
 				Ini.Set( "Default", "AutoScrollMargin",			AppConfig.AutoScrollMargin );
 				Ini.Set( "Default", "Mru",						AppConfig.MruFiles.ToString() );
-				Ini.Set( "Default", "Antialias",				UserPref.Antialias );
+				Ini.Set( "Default", "Antialias",				AppConfig.Antialias );
 
 				Ini.Save( IniFilePath, Encoding.UTF8, "\r\n" );
 			}

@@ -212,23 +212,22 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets or sets the font used for drawing text.
 		/// </summary>
+		/// <exception cref="ArgumentNullException"/>
 		public virtual FontInfo FontInfo
 		{
 			get{ return _Font; }
 			set
 			{
 				if( value == null )
-					throw new ArgumentNullException( "View.FontInfo was set to null." );
+					throw new ArgumentNullException();
 
-				// apply font
+				// Apply font
 				_Font = value;
-				_HRulerFont = new FontInfo(
-						value.Name,
-						(int)( value.Size / GoldenRatio ),
-						FontStyle.Regular
-					);
+				_HRulerFont = new FontInfo( value.Name,
+											(int)( value.Size / GoldenRatio ),
+											FontStyle.Regular );
 
-				// update font metrics and graphic
+				// Update font metrics and graphic
 				using( IGraphics g = _UI.GetIGraphics() )
 				{
 					UpdateMetrics( g );
