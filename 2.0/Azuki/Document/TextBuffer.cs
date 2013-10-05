@@ -536,12 +536,14 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Finds a text pattern.
 		/// </summary>
-		/// <param name="value">The String to find.</param>
-		/// <param name="begin">Begin index of the search range.</param>
-		/// <param name="end">End index of the search range.</param>
+		/// <param name="value">The string to find.</param>
+		/// <param name="begin">The index of the position to start searching.</param>
+		/// <param name="end">The index of the position to stop searching.</param>
 		/// <param name="matchCase">Whether the search should be case-sensitive or not.</param>
-		/// <returns>Search result object if found, otherwise null if not found.</returns>
-		public SearchResult FindNext( string value, int begin, int end, bool matchCase )
+		/// <returns>Range of the firstly found pattern or null if not found.</returns>
+		/// <exception cref="ArgumentNullException"/>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public IRange FindNext( string value, int begin, int end, bool matchCase )
 		{
 			if( begin < 0 )
 				throw new ArgumentOutOfRangeException( "begin", "parameter begin must be a positive integer. (begin:"+begin+")" );
@@ -552,18 +554,23 @@ namespace Sgry.Azuki
 			if( value == null )
 				throw new ArgumentNullException( "value" );
 
-			return _Chars.FindNext( value, begin, end, matchCase );
+			int foundBegin, foundEnd;
+			_Chars.FindNext( value, begin, end, matchCase, out foundBegin, out foundEnd );
+			return (foundBegin < 0) ? null
+									: new Range( this, foundBegin, foundEnd );
 		}
 
 		/// <summary>
 		/// Finds previous occurrence of a text pattern.
 		/// </summary>
-		/// <param name="value">The String to find.</param>
-		/// <param name="begin">The begin index of the search range.</param>
-		/// <param name="end">The end index of the search range.</param>
+		/// <param name="value">The string to find.</param>
+		/// <param name="begin">The index of the position to start searching.</param>
+		/// <param name="end">The index of the position to stop searching.</param>
 		/// <param name="matchCase">Whether the search should be case-sensitive or not.</param>
-		/// <returns>Search result object if found, otherwise null if not found.</returns>
-		public SearchResult FindPrev( string value, int begin, int end, bool matchCase )
+		/// <returns>Range of the firstly found pattern or null if not found.</returns>
+		/// <exception cref="ArgumentNullException"/>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public IRange FindPrev( string value, int begin, int end, bool matchCase )
 		{
 			if( begin < 0 )
 				throw new ArgumentOutOfRangeException( "begin", "parameter begin must be a positive integer. (begin:"+begin+")" );
@@ -574,24 +581,23 @@ namespace Sgry.Azuki
 			if( value == null )
 				throw new ArgumentNullException( "value" );
 
-			return _Chars.FindPrev( value, begin, end, matchCase );
+			int foundBegin, foundEnd;
+			_Chars.FindPrev( value, begin, end, matchCase, out foundBegin, out foundEnd );
+			return (foundBegin < 0) ? null
+									: new Range( this, foundBegin, foundEnd );
 		}
 
 		/// <summary>
-		/// Find a text pattern by regular expression.
+		/// Find a text pattern.
 		/// </summary>
-		/// <param name="regex">A Regex object expressing the text pattern.</param>
-		/// <param name="begin">The search starting position.</param>
+		/// <param name="regex">Regular expression of the text pattern to find.</param>
+		/// <param name="begin">The index of the position to start searching.</param>
 		/// <param name="end">Index of where the search must be terminated</param>
-		/// <returns></returns>
-		/// <remarks>
-		/// This method find a text pattern
-		/// expressed by a regular expression in the current content.
-		/// The text matching process continues for the index
-		/// specified with the <paramref name="end"/> parameter
-		/// and does not stop at line ends nor null-characters.
-		/// </remarks>
-		public SearchResult FindNext( Regex regex, int begin, int end )
+		/// <returns>Range of the firstly found pattern or null if not found.</returns>
+		/// <exception cref="ArgumentException"/>
+		/// <exception cref="ArgumentNullException"/>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public IRange FindNext( Regex regex, int begin, int end )
 		{
 			if( begin < 0 )
 				throw new ArgumentOutOfRangeException( "begin", "parameter begin must be a positive integer. (begin:"+begin+")" );
@@ -604,10 +610,23 @@ namespace Sgry.Azuki
 			if( (regex.Options & RegexOptions.RightToLeft) != 0 )
 				throw new ArgumentException( "RegexOptions.RightToLeft option must not be set to the object 'regex'.", "regex" );
 
-			return _Chars.FindNext( regex, begin, end );
+			int foundBegin, foundEnd;
+			_Chars.FindNext( regex, begin, end, out foundBegin, out foundEnd );
+			return (foundBegin < 0) ? null
+									: new Range( this, foundBegin, foundEnd );
 		}
 
-		public SearchResult FindPrev( Regex regex, int begin, int end )
+		/// <summary>
+		/// Find previous occurence of a text pattern.
+		/// </summary>
+		/// <param name="regex">Regular expression of the text pattern to find.</param>
+		/// <param name="begin">The index of the position to start searching.</param>
+		/// <param name="end">Index of where the search must be terminated</param>
+		/// <returns>Range of the firstly found pattern or null if not found.</returns>
+		/// <exception cref="ArgumentException"/>
+		/// <exception cref="ArgumentNullException"/>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public IRange FindPrev( Regex regex, int begin, int end )
 		{
 			if( begin < 0 )
 				throw new ArgumentOutOfRangeException( "begin", "parameter begin must be a positive integer. (begin:"+begin+")" );
@@ -620,7 +639,10 @@ namespace Sgry.Azuki
 			if( (regex.Options & RegexOptions.RightToLeft) == 0 )
 				throw new ArgumentException( "RegexOptions.RightToLeft option must be set to the object 'regex'.", "regex" );
 
-			return _Chars.FindPrev( regex, begin, end );
+			int foundBegin, foundEnd;
+			_Chars.FindPrev( regex, begin, end, out foundBegin, out foundEnd );
+			return (foundBegin < 0) ? null
+									: new Range( this, foundBegin, foundEnd );
 		}
 		#endregion
 

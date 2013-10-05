@@ -348,7 +348,7 @@ namespace Sgry.Azuki.Test
 		public void FindNextR()
 		{
 			var doc = new Document();
-			SearchResult result;
+			IRange result;
 			doc.Replace( "aababcabcd" );
 
 			// black box test
