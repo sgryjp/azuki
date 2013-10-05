@@ -10,8 +10,7 @@ namespace Sgry.Ann
 		/// <summary>
 		/// Shows a dialog to select visibility of each special chars.
 		/// </summary>
-		public static AnnAction SelectSpecialCharVisibility
-			= delegate( AppLogic app )
+		public static void SelectSpecialCharVisibility( AppLogic app )
 		{
 			DialogResult result;
 			AzukiControl azuki = app.MainForm.Azuki;
@@ -58,13 +57,12 @@ namespace Sgry.Ann
 				azuki.FontInfo = dialog.FontInfo;
 				app.SaveConfig();
 			}
-		};
+		}
 
 		/// <summary>
 		/// Toggles whether lines should be drawn wrapped or not.
 		/// </summary>
-		public static AnnAction ToggleWrapLines
-			= delegate( AppLogic app )
+		public static void ToggleWrapLines( AppLogic app )
 		{
 			AzukiControl azuki = app.MainForm.Azuki;
 			if( azuki.ViewType == ViewType.Proportional )
@@ -77,15 +75,14 @@ namespace Sgry.Ann
 				azuki.ViewType = ViewType.Proportional;
 			}
 			app.MainForm.UpdateUI(); // update check state of menu item
-		};
+		}
 
 		/// <summary>
 		/// Toggles whether tab panel is enabled or not.
 		/// </summary>
-		public static AnnAction ToggleTabPanel
-			= delegate( AppLogic app )
+		public static void ToggleTabPanel( AppLogic app )
 		{
 			app.MainForm.TabPanelEnabled = !( app.MainForm.TabPanelEnabled );
-		};
+		}
 	}
 }
