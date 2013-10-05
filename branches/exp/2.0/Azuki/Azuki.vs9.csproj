@@ -110,7 +110,6 @@
     <Compile Include="Platform.cs" />
     <Compile Include="TrackingRange.cs" />
     <Compile Include="UiImpl.cs" />
-    <Compile Include="UserPref.cs" />
     <Compile Include="View\ColorScheme.cs" />
     <Compile Include="View\DrawingOption.cs" />
     <Compile Include="View\HRulerIndicatorType.cs" />

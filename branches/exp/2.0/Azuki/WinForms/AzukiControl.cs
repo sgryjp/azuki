@@ -513,7 +513,7 @@ namespace Sgry.Azuki.WinForms
 				}
 				catch
 				{}
-				View.FontInfo = new FontInfo( value.Name, value.Size, value.Style );
+				View.FontInfo = new FontInfo( value );
 			}
 		}
 
