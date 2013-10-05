@@ -909,7 +909,7 @@ namespace Sgry.Ann
 		{
 			AzukiDocument doc = ActiveDocument;
 			int startIndex;
-			SearchResult result;
+			IRange result;
 			Regex regex;
 
 			// determine where to start text search
@@ -959,7 +959,7 @@ namespace Sgry.Ann
 		{
 			AzukiDocument doc = ActiveDocument;
 			int startIndex;
-			SearchResult result;
+			IRange result;
 			Regex regex;
 
 			// determine where to start text search

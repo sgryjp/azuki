@@ -2,6 +2,7 @@
 // brief: Data structure holding a 'gap' in it for efficient insert/delete operation.
 //=========================================================
 using System;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace Sgry.Azuki
@@ -24,8 +25,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public GapCharBuffer( int initBufferSize, int growSize )
 			: base( initBufferSize, growSize )
-		{
-		}
+		{}
 		#endregion
 
 		#region Edit
@@ -60,33 +60,28 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Text Search
-		/// <summary>
-		/// Finds a text pattern.
-		/// </summary>
-		/// <param name="value">The String to find.</param>
-		/// <param name="begin">Begin index of the search range.</param>
-		/// <param name="end">End index of the search range.</param>
-		/// <param name="matchCase">Whether the search should be case-sensitive or not.</param>
-		/// <returns>Search result object if found, otherwise null if not found.</returns>
-		public SearchResult FindNext( string value, int begin, int end, bool matchCase )
+		public void FindNext( string value,
+							  int begin, int end, bool matchCase,
+							  out int foundBegin, out int foundEnd )
 		{
+			Debug.Assert( value != null );
+			Debug.Assert( 0 <= begin );
+			Debug.Assert( begin <= end );
+			Debug.Assert( end <= _Count );
+
 			// If the gap exists after the search starting position,
 			// it must be moved to before the starting position.
 			int start, length;
 			int foundIndex;
 			StringComparison compType;
 
-			DebugUtl.Assert( value != null );
-			DebugUtl.Assert( 0 <= begin );
-			DebugUtl.Assert( begin <= end );
-			DebugUtl.Assert( end <= _Count );
-
 			// convert begin/end indexes to start/length indexes
 			start = begin;
 			length = end - begin;
 			if( length <= 0 )
 			{
-				return null;
+				foundBegin = foundEnd = -1;
+				return;
 			}
 
 			// move the gap if necessary
@@ -109,7 +104,8 @@ namespace Sgry.Azuki
 			foundIndex = new String(_Data).IndexOf( value, start, length, compType );
 			if( foundIndex == -1 )
 			{
-				return null;
+				foundBegin = foundEnd = -1;
+				return;
 			}
 
 			// calculate found index not in gapped buffer but in content
@@ -119,33 +115,30 @@ namespace Sgry.Azuki
 			}
 
 			// return found index
-			return new SearchResult( foundIndex, foundIndex + value.Length );
+			foundBegin = foundIndex;
+			foundEnd = foundIndex + value.Length;
 		}
 
-		/// <summary>
-		/// Finds previous occurrence of a text pattern.
-		/// </summary>
-		/// <param name="value">The String to find.</param>
-		/// <param name="begin">The begin index of the search range.</param>
-		/// <param name="end">The end index of the search range.</param>
-		/// <param name="matchCase">Whether the search should be case-sensitive or not.</param>
-		/// <returns>Search result object if found, otherwise null if not found.</returns>
-		public SearchResult FindPrev( string value, int begin, int end, bool matchCase )
+		public void FindPrev( string value,
+							  int begin, int end, bool matchCase,
+							  out int foundBegin, out int foundEnd )
 		{
+			Debug.Assert( value != null );
+			Debug.Assert( 0 <= begin );
+			Debug.Assert( begin <= end );
+			Debug.Assert( end <= _Count );
+
 			// If the gap exists before the search starting position,
 			// it must be moved to after the starting position.
 			int start, length;
 			int foundIndex;
 			StringComparison compType;
 
-			DebugUtl.Assert( value != null );
-			DebugUtl.Assert( begin <= end );
-			DebugUtl.Assert( end <= _Count );
-
 			// if empty string is the value to search, just return search start index
 			if( value.Length == 0 )
 			{
-				return new SearchResult( end, end );
+				foundBegin = foundEnd = end;
+				return;
 			}
 
 			// convert begin/end indexes to start/length indexes
@@ -153,7 +146,8 @@ namespace Sgry.Azuki
 			length = end - begin;
 			if( start < 0 || length <= 0 )
 			{
-				return null;
+				foundBegin = foundEnd = -1;
+				return;
 			}
 
 			// calculate start index in the gapped buffer
@@ -174,7 +168,8 @@ namespace Sgry.Azuki
 			foundIndex = new String(_Data).LastIndexOf( value, start, length, compType );
 			if( foundIndex == -1 )
 			{
-				return null;
+				foundBegin = foundEnd = -1;
+				return;
 			}
 
 			// calculate found index not in gapped buffer but in content
@@ -184,31 +179,21 @@ namespace Sgry.Azuki
 			}
 
 			// return found index
-			return new SearchResult( foundIndex, foundIndex + value.Length );
+			foundBegin = foundIndex;
+			foundEnd = foundIndex + value.Length;
 		}
 
-		/// <summary>
-		/// Find a text pattern by regular expression.
-		/// </summary>
-		/// <param name="regex">A Regex object expressing the text pattern.</param>
-		/// <param name="begin">The search starting position.</param>
-		/// <param name="end">Index of where the search must be terminated</param>
-		/// <returns></returns>
-		/// <remarks>
-		/// This method find a text pattern
-		/// expressed by a regular expression in the current content.
-		/// The text matching process continues for the index
-		/// specified with the <paramref name="end"/> parameter
-		/// and does not stop at line ends nor null-characters.
-		/// </remarks>
-		public SearchResult FindNext( Regex regex, int begin, int end )
+		public void FindNext( Regex regex,
+							  int begin, int end,
+							  out int foundBegin, out int foundEnd )
 		{
+			Debug.Assert( regex != null );
+			Debug.Assert( 0 <= begin );
+			Debug.Assert( begin <= end );
+			Debug.Assert( end <= _Count );
+
 			int start, length;
 			Match match;
-
-			DebugUtl.Assert( regex != null );
-			DebugUtl.Assert( begin <= end );
-			DebugUtl.Assert( end <= _Count );
 
 			// in any cases, search length is "end - begin".
 			length = end - begin;
@@ -227,29 +212,39 @@ namespace Sgry.Azuki
 				MoveGapTo( begin );
 			}
 
-			// find
+			// do search
 			match = regex.Match( new String(_Data), start, length );
 			if( match.Success == false )
 			{
-				return null;
+				foundBegin = foundEnd = -1;
+				return;
 			}
 
 			// return found index
 			if( start == begin )
-				return new SearchResult( match.Index, match.Index + match.Length );
+			{
+				foundBegin = match.Index;
+				foundEnd = match.Index + match.Length;
+			}
 			else
-				return new SearchResult( match.Index - _GapLen, match.Index - _GapLen + match.Length );
+			{
+				foundBegin = match.Index - _GapLen;
+				foundEnd = match.Index - _GapLen + match.Length;
+			}
 		}
 
-		public SearchResult FindPrev( Regex regex, int begin, int end )
+		public void FindPrev( Regex regex,
+							  int begin, int end,
+							  out int foundBegin, out int foundEnd )
 		{
+			Debug.Assert( regex != null );
+			Debug.Assert( 0 <= begin );
+			Debug.Assert( begin <= end );
+			Debug.Assert( end <= _Count );
+			Debug.Assert( (regex.Options & RegexOptions.RightToLeft) != 0 );
+
 			int start, length;
 			Match match;
-
-			DebugUtl.Assert( regex != null );
-			DebugUtl.Assert( begin <= end );
-			DebugUtl.Assert( end <= _Count );
-			DebugUtl.Assert( (regex.Options & RegexOptions.RightToLeft) != 0 );
 
 			// convert begin/end indexes to start/length
 			length = end - begin;
@@ -266,18 +261,25 @@ namespace Sgry.Azuki
 				MoveGapTo( begin );
 			}
 
-			// find
+			// do search
 			match = regex.Match( new String(_Data), start, length );
 			if( match.Success == false )
 			{
-				return null;
+				foundBegin = foundEnd = -1;
+				return;
 			}
 
 			// return found index
 			if( start == begin )
-				return new SearchResult( match.Index, match.Index + match.Length );
+			{
+				foundBegin = match.Index;
+				foundEnd = match.Index + match.Length;
+			}
 			else
-				return new SearchResult( match.Index - _GapLen, match.Index - _GapLen + match.Length );
+			{
+				foundBegin  = match.Index - _GapLen;
+				foundEnd = match.Index - _GapLen + match.Length;
+			}
 		}
 		#endregion
 	}
