@@ -1,7 +1,5 @@
 // file: Platform.cs
 // brief: Platform API caller.
-// author: YAMAMOTO Suguru
-// update: 2011-02-20
 //=========================================================
 using System;
 using System.Text;
@@ -138,24 +136,28 @@ namespace Sgry.Azuki
 
 		#region Text Drawing
 		/// <summary>
-		/// Draws a text.
+		/// Draws a string.
 		/// </summary>
 		void DrawText( string text, ref Point position, Color color );
 
 		/// <summary>
-		/// Measures graphical size of the specified text.
+		/// Measures graphical size of a string.
 		/// </summary>
-		/// <param name="text">text to measure</param>
-		/// <returns>size of the text in the graphic device context</returns>
+		/// <param name="text">Text to measure.</param>
+		/// <returns>Size of the text.</returns>
 		Size MeasureText( string text );
 
 		/// <summary>
-		/// Measures graphical size of the a text within the specified clipping width.
+		/// Measures graphical size of a text within the specified clipping width.
 		/// </summary>
-		/// <param name="text">text to measure</param>
-		/// <param name="clipWidth">width of the clipping area for rendering text (in pixel unit if the context is screen)</param>
-		/// <param name="drawableLength">count of characters which could be drawn within the clipping area width</param>
-		/// <returns>size of the text in the graphic device context</returns>
+		/// <param name="text">Text to measure</param>
+		/// <param name="clipWidth">
+		/// Width of the clipping area. (in pixel unit if the context is screen)
+		/// </param>
+		/// <param name="drawableLength">
+		/// Number of characters which could be drawn within the specified clipping area.
+		/// </param>
+		/// <returns>Size of the text.</returns>
 		Size MeasureText( string text, int clipWidth, out int drawableLength );
 		#endregion
 

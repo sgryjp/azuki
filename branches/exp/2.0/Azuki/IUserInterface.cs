@@ -157,8 +157,8 @@ namespace Sgry.Azuki
 		/// ColorScheme.DirtyLineBar, ColorScheme.CleanedLineBar.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="DirtyState">DirtyState enum</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.GetLineDirtyState">Document.GetLineDirtyState method</seealso>
+		/// <seealso cref="DirtyState"/>
+		/// <seealso cref="ILineRange.DirtyState"/>
 		bool ShowsDirtBar
 		{
 			get; set;

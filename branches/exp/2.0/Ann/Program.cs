@@ -11,15 +11,12 @@ namespace Sgry.Ann
 		[STAThread]
 		static void Main( string[] args )
 		{
-			Mutex mutex;
-			bool owned;
-			List<string> initOpenFilePaths = new List<string>();
+			bool createdNew;
+			var initOpenFilePaths = new List<string>();
 
 			// get mutex object to control application instance
-			using( mutex = new Mutex(true, AppLogic.AppInstanceMutexName) )
+			using( var mutex = new Mutex(true, AppLogic.AppInstanceMutexName, out createdNew) )
 			{
-				owned = mutex.WaitOne( 0 );
-
 				// parse arguments
 				for( int i=0; i<args.Length; i++ )
 				{
@@ -27,7 +24,7 @@ namespace Sgry.Ann
 				}
 
 				// if another instance already exists, activate it and exit
-				if( owned )
+				if( createdNew )
 				{
 					Main_LaunchFirstInstance( initOpenFilePaths.ToArray() );
 					mutex.ReleaseMutex();
