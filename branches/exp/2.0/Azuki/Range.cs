@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Sgry.Azuki
 {
@@ -46,6 +47,7 @@ namespace Sgry.Azuki
 			get{ return Math.Abs(End - Begin); }
 		}
 
+		/// <exception cref="InvalidOperationException"/>
 		public virtual string Text
 		{
 			get
@@ -69,17 +71,63 @@ namespace Sgry.Azuki
 			get{ return (Begin == End); }
 		}
 
+		/// <exception cref="ArgumentNullException"/>
 		public Range Intersect( IRange another )
 		{
+			if( another == null )
+				throw new ArgumentNullException( "another" );
+
 			return Intersect( this, another );
 		}
 
+		/// <exception cref="ArgumentNullException"/>
 		public static Range Intersect( IRange x, IRange y )
 		{
+			if( x == null )
+				throw new ArgumentNullException( "x" );
+			if( y == null )
+				throw new ArgumentNullException( "y" );
+
 			var begin = Math.Max( x.Begin, y.Begin );
 			var end = Math.Min( x.End, y.End );
 			return (begin <= end) ? new Range( begin, end )
 								  : Range.Empty;
+		}
+
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public CharData this[ int index ]
+		{
+			get
+			{
+				if( index < 0 || _Buffer.Count <= Begin + index )
+					throw new ArgumentOutOfRangeException();
+
+				return new CharData( _Buffer, Begin + index );
+			}
+		}
+
+		/// <exception cref="InvalidOperationException"/>
+		public IEnumerable<CharData> Chars
+		{
+			get
+			{
+				if( _Buffer == null )
+					throw new InvalidOperationException();
+
+				return new CharDataList( _Buffer, this );
+			}
+		}
+
+		/// <exception cref="InvalidOperationException"/>
+		public IEnumerable<CharData> RawChars
+		{
+			get
+			{
+				if( _Buffer == null )
+					throw new InvalidOperationException();
+
+				return new RawCharDataList( _Buffer, this );
+			}
 		}
 
 		public override string ToString()
