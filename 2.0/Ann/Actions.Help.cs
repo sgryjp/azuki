@@ -1,9 +1,6 @@
 using System;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Windows.Forms;
-using Path = System.IO.Path;
 
 namespace Sgry.Ann
 {
@@ -12,8 +9,7 @@ namespace Sgry.Ann
 		/// <summary>
 		/// Shows the "About" dialog.
 		/// </summary>
-		public static AnnAction ShowAboutDialog
-			= delegate( AppLogic app )
+		public static void ShowAboutDialog( AppLogic app )
 		{
 			AssemblyName	annAsmName;
 			string			annNameStr;
@@ -49,9 +45,9 @@ namespace Sgry.Ann
 			}
 			catch( Exception ex )
 			{
-				MessageBox.Show( "failed to get assembly versions!\n" + ex.ToString(), "Ann bug",
+				MessageBox.Show( "Failed to get assembly versions!\n" + ex.ToString(), "Ann bug",
 					MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1 );
 			}
-		};
+		}
 	}
 }

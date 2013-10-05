@@ -22,12 +22,8 @@ namespace Sgry.Ann
 		public const string PythonFileTypeName = "Python";
 		public const string RubyFileTypeName = "Ruby";
 		public const string XmlFileTypeName = "XML";
-		static Dictionary<string, FileType> _FileTypeMap
+		readonly static Dictionary<string, FileType> _FileTypeMap
 			= new Dictionary<string,FileType>();
-
-		string _Name = null;
-		IHighlighter _Highlighter = null;
-		AutoIndentHook _AutoIndentHook = null;
 		#endregion
 
 		private FileType()
@@ -56,10 +52,10 @@ namespace Sgry.Ann
 		{
 			get
 			{
-				FileType fileType = new FileType();
-				fileType._AutoIndentHook = AutoIndentHooks.GenericHook;
-				fileType._Name = TextFileTypeName;
-				return fileType;
+				return new FileType() { 
+					AutoIndentHook = AutoIndentHooks.GenericHook,
+					Name = TextFileTypeName
+				};
 			}
 		}
 
@@ -70,11 +66,11 @@ namespace Sgry.Ann
 		{
 			get
 			{
-				FileType fileType = new FileType();
-				fileType._Highlighter = Highlighters.BatchFile;
-				fileType._AutoIndentHook = AutoIndentHooks.GenericHook;
-				fileType._Name = BatchFileTypeName;
-				return fileType;
+				return new FileType() {
+					Highlighter = Highlighters.BatchFile,
+					AutoIndentHook = AutoIndentHooks.GenericHook,
+					Name = BatchFileTypeName
+				};
 			}
 		}
 
@@ -85,11 +81,11 @@ namespace Sgry.Ann
 		{
 			get
 			{
-				FileType fileType = new FileType();
-				fileType._Highlighter = Highlighters.Cpp;
-				fileType._AutoIndentHook = AutoIndentHooks.CHook;
-				fileType._Name = CppFileTypeName;
-				return fileType;
+				return new FileType() {
+					Highlighter = Highlighters.Cpp,
+					AutoIndentHook = AutoIndentHooks.CHook,
+					Name = CppFileTypeName
+				};
 			}
 		}
 
@@ -100,11 +96,11 @@ namespace Sgry.Ann
 		{
 			get
 			{
-				FileType fileType = new FileType();
-				fileType._Highlighter = Highlighters.CSharp;
-				fileType._AutoIndentHook = AutoIndentHooks.CHook;
-				fileType._Name = CSharpFileTypeName;
-				return fileType;
+				return new FileType() {
+					Highlighter = Highlighters.CSharp,
+					AutoIndentHook = AutoIndentHooks.CHook,
+					Name = CSharpFileTypeName
+				};
 			}
 		}
 
@@ -115,10 +111,10 @@ namespace Sgry.Ann
 		{
 			get
 			{
-				FileType fileType = new FileType();
-				fileType._Highlighter = Highlighters.Diff;
-				fileType._Name = DiffFileTypeName;
-				return fileType;
+				return new FileType() {
+					Highlighter = Highlighters.Diff,
+					Name = DiffFileTypeName
+				};
 			}
 		}
 
@@ -129,10 +125,10 @@ namespace Sgry.Ann
 		{
 			get
 			{
-				FileType fileType = new FileType();
-				fileType._Highlighter = Highlighters.Ini;
-				fileType._Name = IniFileTypeName;
-				return fileType;
+				return new FileType() {
+					Highlighter = Highlighters.Ini,
+					Name = IniFileTypeName
+				};
 			}
 		}
 
@@ -143,11 +139,11 @@ namespace Sgry.Ann
 		{
 			get
 			{
-				FileType fileType = new FileType();
-				fileType._Highlighter = Highlighters.Java;
-				fileType._AutoIndentHook = AutoIndentHooks.CHook;
-				fileType._Name = JavaFileTypeName;
-				return fileType;
+				return new FileType() {
+					Highlighter = Highlighters.Java,
+					AutoIndentHook = AutoIndentHooks.CHook,
+					Name = JavaFileTypeName
+				};
 			}
 		}
 
@@ -158,11 +154,11 @@ namespace Sgry.Ann
 		{
 			get
 			{
-				FileType fileType = new FileType();
-				fileType._Highlighter = Highlighters.JavaScript;
-				fileType._AutoIndentHook = AutoIndentHooks.CHook;
-				fileType._Name = JavaScriptFileTypeName;
-				return fileType;
+				return new FileType() {
+					Highlighter = Highlighters.JavaScript,
+					AutoIndentHook = AutoIndentHooks.CHook,
+					Name = JavaScriptFileTypeName
+				};
 			}
 		}
 
@@ -173,11 +169,11 @@ namespace Sgry.Ann
 		{
 			get
 			{
-				FileType fileType = new FileType();
-				fileType._Highlighter = Highlighters.Latex;
-				fileType._AutoIndentHook = AutoIndentHooks.GenericHook;
-				fileType._Name = LatexFileTypeName;
-				return fileType;
+				return new FileType() {
+					Highlighter = Highlighters.Latex,
+					AutoIndentHook = AutoIndentHooks.GenericHook,
+					Name = LatexFileTypeName
+				};
 			}
 		}
 
@@ -188,11 +184,11 @@ namespace Sgry.Ann
 		{
 			get
 			{
-				FileType fileType = new FileType();
-				fileType._Highlighter = Highlighters.Python;
-				fileType._AutoIndentHook = AutoIndentHooks.GenericHook;
-				fileType._Name = PythonFileTypeName;
-				return fileType;
+				return new FileType() {
+					Highlighter = Highlighters.Python,
+					AutoIndentHook = AutoIndentHooks.GenericHook,
+					Name = PythonFileTypeName
+				};
 			}
 		}
 
@@ -203,11 +199,11 @@ namespace Sgry.Ann
 		{
 			get
 			{
-				FileType fileType = new FileType();
-				fileType._Highlighter = Highlighters.Ruby;
-				fileType._AutoIndentHook = AutoIndentHooks.GenericHook;
-				fileType._Name = RubyFileTypeName;
-				return fileType;
+				return new FileType() {
+					Highlighter = Highlighters.Ruby,
+					AutoIndentHook = AutoIndentHooks.GenericHook,
+					Name = RubyFileTypeName
+				};
 			}
 		}
 
@@ -218,11 +214,11 @@ namespace Sgry.Ann
 		{
 			get
 			{
-				FileType fileType = new FileType();
-				fileType._Highlighter = Highlighters.Xml;
-				fileType._AutoIndentHook = AutoIndentHooks.GenericHook;
-				fileType._Name = XmlFileTypeName;
-				return fileType;
+				return new FileType() {
+					Highlighter = Highlighters.Xml,
+					AutoIndentHook = AutoIndentHooks.GenericHook,
+					Name = XmlFileTypeName
+				};
 			}
 		}
 
@@ -256,7 +252,8 @@ namespace Sgry.Ann
 		/// </summary>
 		public IHighlighter Highlighter
 		{
-			get{ return _Highlighter; }
+			get;
+			private set;
 		}
 
 		/// <summary>
@@ -264,7 +261,8 @@ namespace Sgry.Ann
 		/// </summary>
 		public AutoIndentHook AutoIndentHook
 		{
-			get{ return _AutoIndentHook; }
+			get;
+			private set;
 		}
 
 		/// <summary>
@@ -272,7 +270,8 @@ namespace Sgry.Ann
 		/// </summary>
 		public String Name
 		{
-			get{ return _Name; }
+			get;
+			private set;
 		}
 		#endregion
 	}

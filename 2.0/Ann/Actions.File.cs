@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
@@ -13,38 +11,34 @@ namespace Sgry.Ann
 		/// <summary>
 		/// Creates a new empty document.
 		/// </summary>
-		public static AnnAction CreateNewDocument
-			= delegate( AppLogic app )
+		public static void CreateNewDocument( AppLogic app )
 		{
 			app.CreateNewDocument();
-		};
+		}
 
 		/// <summary>
 		/// Shows a dialog and opens a file.
 		/// </summary>
-		public static AnnAction OpenDocument
-			= delegate( AppLogic app )
+		public static void OpenDocument( AppLogic app )
 		{
 			app.OpenDocument();
-		};
+		}
 
 		/// <summary>
 		/// Save document with another file name.
 		/// </summary>
-		public static AnnAction SaveDocumentAs
-			= delegate( AppLogic app )
+		public static void SaveDocumentAs( AppLogic app )
 		{
 			app.SaveDocumentAs( app.ActiveDocument );
-		};
+		}
 
 		/// <summary>
 		/// Save file.
 		/// </summary>
-		public static AnnAction SaveDocument
-			= delegate( AppLogic app )
+		public static void SaveDocument( AppLogic app )
 		{
 			app.SaveDocument( app.ActiveDocument );
-		};
+		}
 
 		public static void ChangeEncoding_Auto( AppLogic app )
 		{
@@ -99,44 +93,41 @@ namespace Sgry.Ann
 		/// <summary>
 		/// Close active document.
 		/// </summary>
-		public static AnnAction CloseDocument
-			= delegate( AppLogic app )
+		public static void CloseDocument( AppLogic app )
 		{
 			app.CloseDocument( app.ActiveDocument );
-		};
+		}
 
 		/// <summary>
 		/// Toggles read-only mode on or off.
 		/// </summary>
-		public static AnnAction ToggleReadOnlyMode
-			= delegate( AppLogic app )
+		public static void ToggleReadOnlyMode( AppLogic app )
 		{
 			// toggle read-only mode
 			app.ActiveDocument.IsReadOnly = !( app.ActiveDocument.IsReadOnly );
 
 			// update menu item's check state
 			app.MainForm.UpdateUI();
-		};
+		}
 
 		/// <summary>
 		/// Close all documents and exit application.
 		/// </summary>
-		public static AnnAction Exit
-			= delegate( AppLogic app )
+		public static void Exit( AppLogic app )
 		{
 			app.MainForm.Close();
-		};
+		}
 		#endregion
 
 		static void ChangeEncoding( AppLogic app, Encoding enc, bool? withBom )
 		{
-			Document doc = app.ActiveDocument;
+			var doc = app.ActiveDocument;
 
 			doc.Encoding = enc;
 			doc.WithBom = withBom ?? false;
 			if( enc != null && doc.FilePath != null )
 			{
-				DialogResult result = app.ConfirmReloadOrJustChangeEncoding(doc, enc);
+				var result = app.ConfirmReloadOrJustChangeEncoding(doc, enc);
 				if( result != DialogResult.Yes )
 				{
 					app.MainForm.UpdateUI();
@@ -146,7 +137,7 @@ namespace Sgry.Ann
 
 			if( doc.IsDirty )
 			{
-				DialogResult result = app.AlertBeforeDiscarding( doc );
+				var result = app.AlertBeforeDiscarding( doc );
 				if( result != DialogResult.Yes )
 				{
 					app.MainForm.UpdateUI();

@@ -1,21 +1,15 @@
 using System;
 using System.Text;
-using Sgry.Azuki;
-using Debug = System.Diagnostics.Debug;
-using Regex = System.Text.RegularExpressions.Regex;
 using Path = System.IO.Path;
+using Regex = System.Text.RegularExpressions.Regex;
 
 namespace Sgry.Ann
 {
 	class Document : Azuki.Document
 	{
 		#region Fields
-		string _FilePath = null;
-		Encoding _Encoding = Encoding.Default;
-		bool _WithBom = false;
-		FileType _FileType;
+		string _FilePath;
 		string _DisplayName = null;
-		DateTime _LastSavedTime;
 		#endregion
 
 		#region Init / Dispose
@@ -24,7 +18,8 @@ namespace Sgry.Ann
 		/// </summary>
 		public Document()
 		{
-			_FileType = FileType.TextFileType;
+			FileType = FileType.TextFileType;
+			Encoding = Encoding.Default;
 			base.MarksUri = true;
 			base.WatchPatterns.Register( 0, new Regex("") );
 		}
@@ -72,8 +67,7 @@ namespace Sgry.Ann
 		/// </summary>
 		public FileType FileType
 		{
-			get{ return _FileType; }
-			set{ _FileType = value; }
+			get; set;
 		}
 
 		/// <summary>
@@ -84,7 +78,8 @@ namespace Sgry.Ann
 			get{ return _FilePath; }
 			set
 			{
-				// once file path was associated with a document, set display name to the file name and lock it
+				// Once file path was associated with a document, set display name to the file name
+				// and lock it
 				_DisplayName = Path.GetFileName( value );
 				_FilePath = value;
 			}
@@ -95,8 +90,7 @@ namespace Sgry.Ann
 		/// </summary>
 		public Encoding Encoding
 		{
-			get{ return _Encoding; }
-			set{ _Encoding = value; }
+			get; set;
 		}
 
 		/// <summary>
@@ -104,8 +98,7 @@ namespace Sgry.Ann
 		/// </summary>
 		public bool WithBom
 		{
-			get{ return _WithBom; }
-			set{ _WithBom = value; }
+			get; set;
 		}
 
 		/// <summary>
@@ -113,8 +106,7 @@ namespace Sgry.Ann
 		/// </summary>
 		public DateTime LastSavedTime
 		{
-			get{ return _LastSavedTime; }
-			set{ _LastSavedTime = value; }
+			get; set;
 		}
 
 		/// <summary>
@@ -122,8 +114,8 @@ namespace Sgry.Ann
 		/// </summary>
 		public Regex SearchingPattern
 		{
-			get{ return base.WatchPatterns[0].Pattern; }
-			set{ base.WatchPatterns.Register(0, value); }
+			get{ return WatchPatterns[0].Pattern; }
+			set{ WatchPatterns.Register(0, value); }
 		}
 		#endregion
 
