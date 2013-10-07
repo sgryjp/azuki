@@ -132,21 +132,15 @@ namespace Sgry.Azuki
 
 		#region Position / Index Conversion
 		/// <exception cref="ArgumentOutOfRangeException"/>
-		public override Point GetVirtualPos( IGraphics g, int index )
-		{
-			Debug.Assert( g != null );
-			var pos = TextUtil.GetTextPosition( Document.InternalBuffer, PLHI, index );
-			return GetVirtualPos( g, pos.Line, pos.Column );
-		}
-
-		/// <exception cref="ArgumentOutOfRangeException"/>
 		public override Point GetVirtualPos( IGraphics g, int lineIndex, int columnIndex )
 		{
 			Debug.Assert( g != null );
 			if( lineIndex < 0 )
-				throw new ArgumentOutOfRangeException( "lineIndex("+lineIndex+")" );
+				throw new ArgumentOutOfRangeException( "lineIndex", "Specified index is out of"
+													   + " range. (value:" + lineIndex + ")" );
 			if( columnIndex < 0 )
-				throw new ArgumentOutOfRangeException( "columnIndex("+columnIndex+")" );
+				throw new ArgumentOutOfRangeException( "columnIndex", "Specified index is out of"
+													   + " range. (value:" + columnIndex + ")" );
 
 			// set value for when the columnIndex is 0
 			var pos = new Point( 0, (lineIndex * LineSpacing) + (LinePadding >> 1) );

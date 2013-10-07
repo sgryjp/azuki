@@ -478,10 +478,10 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Measures graphical size of the a text.
+		/// Measures graphical size of a string.
 		/// </summary>
-		/// <param name="text">text to measure</param>
-		/// <returns>size of the text in the graphic device context</returns>
+		/// <param name="text">Text to measure.</param>
+		/// <returns>Size of the text.</returns>
 		public Size MeasureText( string text )
 		{
 			int dummy;
@@ -489,55 +489,63 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Measures graphical size of the a text within the specified clipping width.
+		/// Measures graphical size of a string.
 		/// </summary>
-		/// <param name="text">text to measure</param>
-		/// <param name="clipWidth">width of the clipping area for rendering text (in pixel unit if the context is screen)</param>
-		/// <param name="drawableLength">count of characters which could be drawn within the clipping area width</param>
-		/// <returns>size of the text in the graphic device context</returns>
+		/// <param name="text">Text to measure.</param>
+		/// <param name="clipWidth">
+		/// Width of clipping area. (in pixel unit if the context is screen)
+		/// </param>
+		/// <param name="drawableLength">
+		/// Number of characters which could be drawn within the specified clipping area.
+		/// </param>
+		/// <returns>Size of the text.</returns>
 		public Size MeasureText( string text, int clipWidth, out int drawableLength )
 		{
-			IntPtr oldFont;
-			Size size;
-			int[] extents = new int[text.Length];
-			
-			oldFont = WinApi.SelectObject( DC, _Font ); // measuring do not need to be done in offscreen buffer.
+			IntPtr oldFont = IntPtr.Zero;
 
-			// calculate width of given text and graphical distance from left end to where the each char is at
-			size = WinApi.GetTextExtent( DC, text, text.Length, clipWidth, out drawableLength, out extents );
+			try
+			{
+				Size size;
+				int[] extents;
 
-			// calculate width of the drawable part
-			if( drawableLength == 0 )
-			{
-				// no chars can be written in clipping area.
-				// so width of the drawable part is zero.
-				size.Width = 0;
-			}
-			else
-			{
-				// there are chars which can be written in clipping area.
-				// so get distance of the char at right most; this is the width of the drawable part of the text
-				// (note: array of extents will always be filled by GetTextExtentExPoint API in WinCE.)
-				if( drawableLength < extents.Length )
+				oldFont = WinApi.SelectObject( DC, _Font ); // Measuring does not need to be done
+															// in offscreen buffer.
+
+				// Calculate total width of given text and distance of each character
+				size = WinApi.GetTextExtent( DC, text, text.Length, clipWidth,
+											 out drawableLength, out extents );
+
+				// Shurink the width to exclude characters which is invisible or visible partially.
+				if( drawableLength == 0 )
+				{
+					size.Width = 0;
+				}
+				else if( drawableLength < extents.Length )
 				{
 					size.Width = extents[ drawableLength - 1 ];
 				}
-			}
-
-			// (MUST DO AFTER GETTING EXTENTS)
-			// extend length if it ends with in a grapheme cluster
-			if( 0 < drawableLength && TextUtil.IsNotDividableIndex(text, drawableLength) )
-			{
-				do
+				else
 				{
-					drawableLength++;
+					Debug.Assert( drawableLength == extents.Length,
+								  "GetTextExtentExPoint returned an invalid data." );
 				}
-				while( TextUtil.IsNotDividableIndex(text, drawableLength) );
+
+				// Ensure not to break a grapheme cluster
+				if( 0 < drawableLength && TextUtil.IsNotDividableIndex(text, drawableLength) )
+				{
+					do
+					{
+						drawableLength++;
+					}
+					while( TextUtil.IsNotDividableIndex(text, drawableLength) );
+				}
+				return size;
 			}
-
-			WinApi.SelectObject( DC, oldFont );
-
-			return size;
+			finally
+			{
+				if( oldFont != IntPtr.Zero )
+					WinApi.SelectObject( DC, oldFont );
+			}
 		}
 		#endregion
 
