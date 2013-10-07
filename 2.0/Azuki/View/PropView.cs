@@ -92,14 +92,6 @@ namespace Sgry.Azuki
 
 		#region Position / Index Conversion
 		/// <exception cref="ArgumentOutOfRangeException"/>
-		public override Point GetVirtualPos( IGraphics g, int index )
-		{
-			Debug.Assert( g != null );
-			var pos = Document.GetTextPosition( index );
-			return GetVirtualPos( g, pos.Line, pos.Column );
-		}
-
-		/// <exception cref="ArgumentOutOfRangeException"/>
 		public override Point GetVirtualPos( IGraphics g, int lineIndex, int columnIndex )
 		{
 			Debug.Assert( g != null );

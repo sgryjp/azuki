@@ -723,7 +723,15 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Position / Index Conversion
-		public abstract Point GetVirtualPos( IGraphics g, int index );
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public virtual Point GetVirtualPos( IGraphics g, int index )
+		{
+			Debug.Assert( g != null );
+			var pos = GetTextPosition( index );
+			return GetVirtualPos( g, pos.Line, pos.Column );
+		}
+
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public Point GetVirtualPos( int index )
 		{
 			using( IGraphics g = _UI.GetIGraphics() )
@@ -732,7 +740,10 @@ namespace Sgry.Azuki
 			}
 		}
 
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public abstract Point GetVirtualPos( IGraphics g, int lineIndex, int columnIndex );
+
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public Point GetVirtualPos( int lineIndex, int columnIndex )
 		{
 			using( IGraphics g = _UI.GetIGraphics() )
