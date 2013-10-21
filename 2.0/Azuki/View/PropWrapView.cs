@@ -887,7 +887,7 @@ namespace Sgry.Azuki
 
 		class WrappedLineRangeList : ILineRangeList
 		{
-			protected PropWrapView _View;
+			protected readonly PropWrapView _View;
 
 			public WrappedLineRangeList( PropWrapView view )
 			{

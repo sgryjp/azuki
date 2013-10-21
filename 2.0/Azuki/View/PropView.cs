@@ -96,9 +96,12 @@ namespace Sgry.Azuki
 		{
 			Debug.Assert( g != null );
 			if( lineIndex < 0 || LineCount <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "Specified index is out of range. (value:"+lineIndex+", line count:"+LineCount+")" );
+				throw new ArgumentOutOfRangeException( "lineIndex", "Specified index is out of"
+													   + " range. (value:" + lineIndex
+													   + ", line count:" + LineCount + ")" );
 			if( columnIndex < 0 )
-				throw new ArgumentOutOfRangeException( "columnIndex", "Specified index is out of range. (value:"+columnIndex+")" );
+				throw new ArgumentOutOfRangeException( "columnIndex", "Specified index is out of"
+													   + " range. (value:" + columnIndex + ")" );
 
 			// set value for when the columnIndex is 0
 			var pos = new Point( 0, (lineIndex * LineSpacing) + (LinePadding >> 1) );
@@ -145,7 +148,8 @@ namespace Sgry.Azuki
 
 				// calc maximum length of chars in line
 				int rightLimitX = pos.X;
-				int leftPartWidth = MeasureTokenEndX( g, line, 0, rightLimitX, out drawableTextLen );
+				int leftPartWidth = MeasureTokenEndX( g, line, 0, rightLimitX,
+													  out drawableTextLen );
 				Debug.Assert( TextUtil.IsNotDividableIndex(line, drawableTextLen) == false );
 				columnIndex = drawableTextLen;
 
@@ -163,8 +167,9 @@ namespace Sgry.Azuki
 					}
 
 					// determine which side the location is near
-					int nextCharWidth = MeasureTokenEndX( g, nextChar, leftPartWidth ) - leftPartWidth;
-					if( leftPartWidth + nextCharWidth/2 < pos.X ) // == "x of middle of next char" < "x of click in virtual text area"
+					int nextCharWidth = MeasureTokenEndX( g, nextChar, leftPartWidth )
+										- leftPartWidth;
+					if( leftPartWidth + nextCharWidth/2 < pos.X )
 					{
 						columnIndex = drawableTextLen + 1;
 						while( TextUtil.IsNotDividableIndex(line, columnIndex) )
@@ -181,7 +186,9 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// Specified index was out of range.
+		/// </exception>
 		public override TextPoint GetTextPosition( int charIndex )
 		{
 			return Document.GetTextPosition( charIndex );
@@ -244,7 +251,8 @@ namespace Sgry.Azuki
 					if( HighlightsCurrentLine
 						&& prevCaretLine != caretPos.Line )
 					{
-						HandleSelectionChanged_UpdateCurrentLineHighlight( g, prevCaretLine, caretPos.Line );
+						HandleSelectionChanged_UpdateCurrentLineHighlight( g, prevCaretLine,
+																		   caretPos.Line );
 					}
 				}
 				// or, does the change release selection?
@@ -255,7 +263,7 @@ namespace Sgry.Azuki
 				// then, the change expands selection.
 				else
 				{
-					// if this is the beginning of selection, remove current line highlight (underline)
+					// if this is the beginning of selection, remove current line highlight
 					if( HighlightsCurrentLine && e.OldCaret == e.OldAnchor )
 					{
 						var oldCaretLineY = YofLine( GetTextPosition(e.OldCaret).Line );
@@ -267,9 +275,11 @@ namespace Sgry.Azuki
 					{
 						// in a line.
 						if( e.OldCaret < caret )
-							HandleSelectionChanged_OnExpandSelInLine( g, e, e.OldCaret, caret, prevCaretLine );
+							HandleSelectionChanged_OnExpandSelInLine( g, e, e.OldCaret, caret,
+																	  prevCaretLine );
 						else
-							HandleSelectionChanged_OnExpandSelInLine( g, e, caret, e.OldCaret, caretPos.Line );
+							HandleSelectionChanged_OnExpandSelInLine( g, e, caret, e.OldCaret,
+																	  caretPos.Line );
 					}
 					else
 					{
@@ -299,7 +309,9 @@ namespace Sgry.Azuki
 			}
 		}
 
-		void HandleSelectionChanged_UpdateCurrentLineHighlight( IGraphics g, int oldCaretLine, int newCaretLine )
+		void HandleSelectionChanged_UpdateCurrentLineHighlight( IGraphics g,
+																int oldCaretLine,
+																int newCaretLine )
 		{
 			int prevAnchorLine = Document.ViewParam.PrevAnchorLine;
 			int prevCaretLine = Document.ViewParam.PrevCaretLine;
@@ -344,16 +356,16 @@ namespace Sgry.Azuki
 			VirtualToScreen( ref lastEndPos );
 
 			// then, invalidate that rectangle
-			invalidRect = new Rectangle(
-					0,
-					firstBeginPos.Y - LineSpacing,
-					VisibleSize.Width,
-					(lastEndPos.Y - firstBeginPos.Y) + (LineSpacing * 3) // 3 ... a line above, the line, and a line below
-				);
+			// (triple of line-spacing: a line above, the line, and a line below)
+			invalidRect = new Rectangle( 0,
+										 firstBeginPos.Y - LineSpacing,
+										 VisibleSize.Width,
+										 (lastEndPos.Y - firstBeginPos.Y) + (LineSpacing * 3) );
 			Invalidate( invalidRect );
 		}
 
-		void HandleSelectionChanged_OnExpandSelInLine( IGraphics g, SelectionChangedEventArgs e, int begin, int end, int beginL )
+		void HandleSelectionChanged_OnExpandSelInLine( IGraphics g, SelectionChangedEventArgs e,
+													   int begin, int end, int beginL )
 		{
 			DebugUtl.Assert( beginL < LineCount );
 			Document doc = Document;
@@ -390,7 +402,8 @@ namespace Sgry.Azuki
 			Invalidate( rect );
 		}
 
-		void HandleSelectionChanged_OnExpandSel( IGraphics g, SelectionChangedEventArgs e, int caretLine, int caretColumn )
+		void HandleSelectionChanged_OnExpandSel( IGraphics g, SelectionChangedEventArgs e,
+												 int caretLine, int caretColumn )
 		{
 			Document doc = this.Document;
 			int begin, beginL;
@@ -423,7 +436,8 @@ namespace Sgry.Azuki
 				endL = doc.ViewParam.PrevCaretLine;
 			}
 			beginLineHead = Lines[ beginL ].Begin;
-			endLineHead = Lines[ endL ].Begin; // if old caret is the end pos and if the pos exceeds current text length, this will fail.
+			endLineHead = Lines[ endL ].Begin; // if old caret is the end pos and if the pos
+											   // exceeds current text length, this will fail.
 
 			// invalidate
 			Invalidate_MultiLines( g, begin, end, beginL, endL, beginLineHead, endLineHead );
@@ -576,8 +590,10 @@ namespace Sgry.Azuki
 		public override void Invalidate( IGraphics g, int beginIndex, int endIndex )
 		{
 			DebugUtl.Assert( 0 <= beginIndex, "cond: 0 <= beginIndex("+beginIndex+")" );
-			DebugUtl.Assert( beginIndex <= endIndex, "cond: beginIndex("+beginIndex+") <= endIndex("+endIndex+")" );
-			DebugUtl.Assert( endIndex <= Document.Length, "endIndex("+endIndex+") must not exceed document length ("+Document.Length+")" );
+			DebugUtl.Assert( beginIndex <= endIndex, "cond: beginIndex(" + beginIndex
+							 + ") <= endIndex(" + endIndex + ")" );
+			DebugUtl.Assert( endIndex <= Document.Length, "endIndex(" + endIndex
+							 + ") must not exceed document length (" + Document.Length + ")" );
 			if( beginIndex == endIndex )
 				return;
 			
@@ -591,8 +607,9 @@ namespace Sgry.Azuki
 			// switch invalidation logic by whether the invalidated area is multiline or not
 			if( beginPos.Line != endPos.Line )
 			{
-				endLineHead = Lines[ endPos.Line ].Begin; // this is needed for invalidating multiline selection
-				Invalidate_MultiLines( g, beginIndex, endIndex, beginPos.Line, endPos.Line, beginLineHead, endLineHead );
+				endLineHead = Lines[ endPos.Line ].Begin; // for invalidating multiline selection
+				Invalidate_MultiLines( g, beginIndex, endIndex, beginPos.Line, endPos.Line,
+									   beginLineHead, endLineHead );
 			}
 			else
 			{
@@ -603,12 +620,15 @@ namespace Sgry.Azuki
 		void Invalidate_InLine( IGraphics g, int begin, int end, int beginL, int beginLineHead )
 		{
 			DebugUtl.Assert( g != null, "null was given to PropView.Invalidate_InfLine." );
-			DebugUtl.Assert( 0 <= begin, "cond: 0 <= begin("+begin+")" );
-			DebugUtl.Assert( begin <= end, "cond: begin("+begin+") <= end("+end+")" );
-			DebugUtl.Assert( end <= Document.Length, "cond: end("+end+") <= Document.Length("+Document.Length+")" );
-			DebugUtl.Assert( 0 <= beginL, "cond: 0 <= beginL("+beginL+")" );
-			DebugUtl.Assert( beginL <= this.LineCount, "cond: beginL("+beginL+") <= IView.LineCount("+this.LineCount+")" );
-			DebugUtl.Assert( beginLineHead <= begin, "cond: beginLineHead("+beginLineHead+") <= begin("+begin+")" );
+			DebugUtl.Assert( 0 <= begin, "cond: 0 <= begin(" + begin + ")" );
+			DebugUtl.Assert( begin <= end, "cond: begin(" + begin + ") <= end(" + end + ")" );
+			DebugUtl.Assert( end <= Document.Length, "cond: end(" + end + ") <= Document.Length("
+							 + Document.Length + ")" );
+			DebugUtl.Assert( 0 <= beginL, "cond: 0 <= beginL(" + beginL + ")" );
+			DebugUtl.Assert( beginL <= LineCount, "cond: beginL(" + beginL
+							 + ") <= IView.LineCount(" + LineCount + ")" );
+			DebugUtl.Assert( beginLineHead <= begin, "cond: beginLineHead(" + beginLineHead
+							 + ") <= begin(" + begin + ")" );
 			if( begin == end )
 				return;
 
@@ -632,18 +652,25 @@ namespace Sgry.Azuki
 			Invalidate( rect );
 		}
 
-		void Invalidate_MultiLines( IGraphics g, int begin, int end, int beginLine, int endLine, int beginLineHead, int endLineHead )
+		void Invalidate_MultiLines( IGraphics g, int begin, int end, int beginLine, int endLine,
+									int beginLineHead, int endLineHead )
 		{
 			DebugUtl.Assert( g != null, "null was given to PropView.Invalidate_MultiLines." );
-			DebugUtl.Assert( 0 <= begin, "cond: 0 <= begin("+begin+")" );
-			DebugUtl.Assert( begin <= end, "cond: begin("+begin+") <= end("+end+")" );
-			DebugUtl.Assert( end <= Document.Length, "cond: end("+end+") <= Document.Length("+Document.Length+")" );
-			DebugUtl.Assert( 0 <= beginLine, "cond: 0 <= beginLine("+beginLine+")" );
-			DebugUtl.Assert( beginLine < endLine, "cond: beginLine("+beginLine+") < endLine("+endLine+")" );
-			DebugUtl.Assert( endLine <= this.LineCount, "cond: endLine("+endLine+") <= IView.LineCount("+this.LineCount+")" );
-			DebugUtl.Assert( beginLineHead <= begin, "cond: beginLineHead("+beginLineHead+") <= begin("+begin+")" );
-			DebugUtl.Assert( beginLineHead < endLineHead, "cond: beginLineHead("+beginLineHead+" < endLineHead("+endLineHead+")" );
-			DebugUtl.Assert( endLineHead <= end, "cond: endLineHead("+endLineHead+") <= end("+end+")" );
+			DebugUtl.Assert( 0 <= begin, "cond: 0 <= begin(" + begin + ")" );
+			DebugUtl.Assert( begin <= end, "cond: begin(" + begin + ") <= end(" + end + ")" );
+			DebugUtl.Assert( end <= Document.Length, "cond: end(" + end + ") <= Document.Length("
+							 + Document.Length + ")" );
+			DebugUtl.Assert( 0 <= beginLine, "cond: 0 <= beginLine(" + beginLine + ")" );
+			DebugUtl.Assert( beginLine < endLine, "cond: beginLine(" + beginLine + ") < endLine("
+							 + endLine + ")" );
+			DebugUtl.Assert( endLine <= LineCount, "cond: endLine(" + endLine + ") <= IView"
+							 + ".LineCount(" + LineCount + ")" );
+			DebugUtl.Assert( beginLineHead <= begin, "cond: beginLineHead(" + beginLineHead
+							 + ") <= begin(" + begin + ")" );
+			DebugUtl.Assert( beginLineHead < endLineHead, "cond: beginLineHead(" + beginLineHead
+							 + " < endLineHead(" + endLineHead + ")" );
+			DebugUtl.Assert( endLineHead <= end, "cond: endLineHead(" + endLineHead
+							 + ") <= end(" + end + ")" );
 			if( begin == end )
 				return;
 
@@ -697,7 +724,9 @@ namespace Sgry.Azuki
 		/// Paints content to a graphic device.
 		/// </summary>
 		/// <param name="g">graphic drawing interface to be used.</param>
-		/// <param name="clipRect">clipping rectangle that covers all invalidated region (in client area coordinate)</param>
+		/// <param name="clipRect">
+		/// clipping rectangle that covers all invalidated region (in client area coordinate)
+		/// </param>
 		public override void Paint( IGraphics g, Rectangle clipRect )
 		{
 			// [*1] if the graphic of a line should be redrawn by owner draw,
@@ -765,7 +794,8 @@ namespace Sgry.Azuki
 
 			// fill area below of the text
 			g.BackColor = ColorScheme.BackColor;
-			g.FillRectangle( XofTextArea, pos.Y, VisibleSize.Width-XofTextArea, VisibleSize.Height-pos.Y );
+			g.FillRectangle( XofTextArea, pos.Y,
+							 VisibleSize.Width-XofTextArea, VisibleSize.Height-pos.Y );
 			for( int y=pos.Y; y<VisibleSize.Height; y+=LineSpacing )
 			{
 				DrawLeftOfLine( g, y, -1, false );
@@ -797,7 +827,8 @@ namespace Sgry.Azuki
 			}
 		}
 
-		void DrawLine( IGraphics g, int lineIndex, Point pos, Rectangle clipRect, ref int longestLineLength )
+		void DrawLine( IGraphics g, int lineIndex, Point pos, Rectangle clipRect,
+					   ref int longestLineLength )
 		{
 			// note that given pos is NOT virtual position BUT screen position.
 			string token;
@@ -841,7 +872,8 @@ namespace Sgry.Azuki
 					int rightLimit = clipRect.Left - pos.X;
 
 					// calculate how many chars will not be in the clip-rect
-					invisibleWidth = MeasureTokenEndX( g, token, 0, rightLimit, out invisibleCharCount );
+					invisibleWidth = MeasureTokenEndX( g, token, 0, rightLimit,
+													   out invisibleCharCount );
 					if( 0 < invisibleCharCount && invisibleCharCount < token.Length )
 					{
 						// cut extra (invisible) part of the token
@@ -879,7 +911,8 @@ namespace Sgry.Azuki
 				}
 
 				// draw this token
-				DrawToken( g, Document, begin, token, klass, ref pos, ref tokenEndPos, ref clipRect, inSelection );
+				DrawToken( g, Document, begin, token, klass, ref pos, ref tokenEndPos,
+						   ref clipRect, inSelection );
 
 			next_token:
 				// get next token
@@ -902,16 +935,16 @@ namespace Sgry.Azuki
 			// fill right of the line text
 			if( pos.X < clipRect.Right )
 			{
-				// to prevent drawing line number area,
-				// make drawing pos to text area's left if the line end does not exceed left of text area
+				// to prevent drawing line number area, make drawing pos to text area's left if the
+				// line end does not exceed left of text area
 				if( pos.X < XofTextArea )
 					pos.X = XofTextArea;
 				g.BackColor = ColorScheme.BackColor;
 				g.FillRectangle( pos.X, pos.Y, clipRect.Right-pos.X, LineSpacing );
 			}
 
-			// if this line is wider than the width of virtual space,
-			// calculate full width of this line and make it the width of virtual space.
+			// if this line is wider than the width of virtual space, calculate full width of this
+			// line and make it the width of virtual space.
 			Point virPos = pos;
 			ScreenToVirtual( ref virPos );
 			if( TextAreaWidth < virPos.X + (VisibleSize.Width >> 3) )
