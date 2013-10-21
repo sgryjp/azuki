@@ -512,8 +512,8 @@ namespace Sgry.Azuki.WinForms
 															// in offscreen buffer.
 
 				// Calculate total width of given text and distance of each character
-				size = WinApi.GetTextExtent( DC, text, text.Length, clipWidth,
-											 out drawableLength, out extents );
+				size = WinApi.GetTextExtentExPoint( DC, text, text.Length, clipWidth,
+													out drawableLength, out extents );
 
 				// Shurink the width to exclude characters which is invisible or visible partially.
 				if( drawableLength == 0 )

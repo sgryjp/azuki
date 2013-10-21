@@ -11,7 +11,7 @@
 		int LineIndex{ get; }
 
 		/// <summary>
-		/// Gets EOL code which terminates this line.
+		/// Gets EOL code which terminates this line. This property will never be null.
 		/// </summary>
 		string EolCode{ get; }
 

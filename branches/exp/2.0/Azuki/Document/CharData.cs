@@ -11,7 +11,7 @@ namespace Sgry.Azuki
 	/// </summary>
 	public struct CharData
 	{
-		readonly TextBuffer _Buf;
+		readonly TextBuffer _Buffer;
 		int _Index;
 
 		#region Init / Dispose
@@ -19,7 +19,7 @@ namespace Sgry.Azuki
 		{
 			Debug.Assert( buf != null );
 			Debug.Assert( 0 <= index );
-			_Buf = buf;
+			_Buffer = buf;
 			_Index = index;
 		}
 		#endregion
@@ -44,7 +44,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public int Length
 		{
-			get{ return TextUtil.NextGraphemeClusterIndex(_Buf, Index) - Index; }
+			get{ return TextUtil.NextGraphemeClusterIndex(_Buffer, Index) - Index; }
 		}
 
 		/// <summary>
@@ -52,7 +52,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public CharClass Class
 		{
-			get{ return _Buf.GetCharClassAt(Index); }
+			get{ return _Buffer.GetCharClassAt(Index); }
 		}
 		#endregion
 
@@ -62,7 +62,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public char ToChar()
 		{
-			return _Buf[Index];
+			return _Buffer[Index];
 		}
 
 		/// <summary>
@@ -81,7 +81,7 @@ namespace Sgry.Azuki
 			var length = Length;
 			for( int i=0; i<length; i++ )
 			{
-				buf.Append( _Buf[_Index + i] );
+				buf.Append( _Buffer[_Index + i] );
 			}
 			return buf.ToString();
 		}

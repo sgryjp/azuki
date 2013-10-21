@@ -390,7 +390,7 @@ namespace Sgry.Azuki.WinForms
 
 		[DllImport(gdi32_dll, CharSet=CharSet.Unicode)]
 		unsafe static extern Int32 GetTextExtentExPointW( IntPtr hdc, string text, int textLen, int maxWidth, int* out_fitLength, int* out_x, SIZE* out_size );
-		public static Size GetTextExtent( IntPtr hdc, string text, int textLen, int maxWidth, out int fitLength, out int[] extents )
+		public static Size GetTextExtentExPoint( IntPtr hdc, string text, int textLen, int maxWidth, out int fitLength, out int[] extents )
 		{
 			Int32 bOk;
 			SIZE size;
@@ -405,7 +405,7 @@ namespace Sgry.Azuki.WinForms
 			}
 		}
 
-		public static Size GetTextExtent( IntPtr hdc, string text, int textLen )
+		public static Size GetTextExtentExPoint( IntPtr hdc, string text, int textLen )
 		{
 			SIZE size;
 			
