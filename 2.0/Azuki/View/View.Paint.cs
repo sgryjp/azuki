@@ -118,7 +118,7 @@ namespace Sgry.Azuki
 				Point tokenVirPos = tokenPos;
 				ScreenToVirtual( ref tokenVirPos );
 				bgRight = Utl.CalcNextTabStop( tokenVirPos.X, TabWidthInPx );
-				bgRight -= ScrollPosX - XofTextArea;
+				bgRight -= ScrollPosX - ScrXofTextArea;
 				
 				// calc desired foreground graphic position
 				fgLeft = tokenPos.X + 2;
@@ -384,7 +384,7 @@ namespace Sgry.Azuki
 			if( lineTopY < 0 )
 				return;
 
-			DebugUtl.Assert( (lineTopY % LineSpacing) == (YofTextArea % LineSpacing), "lineTopY:"+lineTopY+", LineSpacing:"+LineSpacing+", YofTextArea:"+YofTextArea );
+			DebugUtl.Assert( (lineTopY % LineSpacing) == (ScrYofTextArea % LineSpacing), "lineTopY:"+lineTopY+", LineSpacing:"+LineSpacing+", ScrYofTextArea:"+ScrYofTextArea );
 
 			// calculate position to underline
 			int bottom = lineTopY + LineHeight + (LinePadding >> 1);
@@ -396,7 +396,7 @@ namespace Sgry.Azuki
 				g.ForeColor = ColorScheme.BackColor;
 
 			// draw under line
-			g.DrawLine( XofTextArea, bottom, _VisibleSize.Width, bottom );
+			g.DrawLine( ScrXofTextArea, bottom, _VisibleSize.Width, bottom );
 		}
 
 		/// <summary>
@@ -404,7 +404,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		protected void DrawDirtBar( IGraphics g, int lineTopY, int logicalLineIndex )
 		{
-			Debug.Assert( ((lineTopY-YofTextArea) % LineSpacing) == 0, "((lineTopY-YofTextArea) % LineSpacing) is not 0 but " + (lineTopY-YofTextArea) % LineSpacing );
+			Debug.Assert( ((lineTopY-ScrYofTextArea) % LineSpacing) == 0, "((lineTopY-ScrYofTextArea) % LineSpacing) is not 0 but " + (lineTopY-ScrYofTextArea) % LineSpacing );
 			DirtyState dirtyState;
 			Color backColor;
 
@@ -438,7 +438,7 @@ namespace Sgry.Azuki
 
 			// fill
 			g.BackColor = backColor;
-			g.FillRectangle( XofDirtBar, lineTopY, DirtBarWidth, LineSpacing );
+			g.FillRectangle( ScrXofDirtBar, lineTopY, DirtBarWidth, LineSpacing );
 		}
 
 		/// <summary>
@@ -450,14 +450,14 @@ namespace Sgry.Azuki
 		/// <param name="drawsText">specify true if line number text should be drawn.</param>
 		protected void DrawLeftOfLine( IGraphics g, int lineTopY, int lineNumber, bool drawsText )
 		{
-			DebugUtl.Assert( (lineTopY % LineSpacing) == (YofTextArea % LineSpacing), "lineTopY:"+lineTopY+", LineSpacing:"+LineSpacing+", YofTextArea:"+YofTextArea );
-			Point pos = new Point( XofLineNumberArea, lineTopY );
+			DebugUtl.Assert( (lineTopY % LineSpacing) == (ScrYofTextArea % LineSpacing), "lineTopY:"+lineTopY+", LineSpacing:"+LineSpacing+", ScrYofTextArea:"+ScrYofTextArea );
+			Point pos = new Point( ScrXofLineNumberArea, lineTopY );
 			
 			// fill line number area
 			if( ShowLineNumber )
 			{
 				g.BackColor = Utl.BackColorOfLineNumber( ColorScheme );
-				g.FillRectangle( XofLineNumberArea, pos.Y, LineNumAreaWidth, LineSpacing );
+				g.FillRectangle( ScrXofLineNumberArea, pos.Y, LineNumAreaWidth, LineSpacing );
 			}
 
 			// fill dirt bar
@@ -470,7 +470,7 @@ namespace Sgry.Azuki
 			if( 0 < LeftMargin )
 			{
 				g.BackColor = ColorScheme.BackColor;
-				g.FillRectangle( XofLeftMargin, pos.Y, LeftMargin, LineSpacing );
+				g.FillRectangle( ScrXofLeftMargin, pos.Y, LeftMargin, LineSpacing );
 			}
 			
 			// draw line number text
@@ -481,7 +481,7 @@ namespace Sgry.Azuki
 
 				// calculate text position
 				lineNumText = lineNumber.ToString();
-				pos.X = XofDirtBar - g.MeasureText( lineNumText ).Width - LineNumberAreaPadding;
+				pos.X = ScrXofDirtBar - g.MeasureText( lineNumText ).Width - LineNumberAreaPadding;
 				textPos = pos;
 				textPos.Y += (LinePadding >> 1);
 
@@ -492,7 +492,7 @@ namespace Sgry.Azuki
 			// draw margin line between the line number area and text area
 			if( ShowLineNumber || ShowsDirtBar )
 			{
-				pos.X = XofLeftMargin - 1;
+				pos.X = ScrXofLeftMargin - 1;
 				g.ForeColor = Utl.ForeColorOfLineNumber( ColorScheme );
 				g.DrawLine( pos.X, pos.Y, pos.X, pos.Y+LineSpacing );
 			}
@@ -508,7 +508,7 @@ namespace Sgry.Azuki
 			int leftMostLineX, leftMostRulerIndex;
 			int indexDiff;
 
-			if( ShowsHRuler == false || YofTopMargin < clipRect.Y )
+			if( ShowsHRuler == false || ScrYofTopMargin < clipRect.Y )
 				return;
 
 			g.SetClipRect( clipRect );
@@ -516,21 +516,21 @@ namespace Sgry.Azuki
 			// fill ruler area
 			g.ForeColor = Utl.ForeColorOfLineNumber( ColorScheme );
 			g.BackColor = Utl.BackColorOfLineNumber( ColorScheme );
-			g.FillRectangle( 0, YofHRuler, VisibleSize.Width, HRulerHeight );
+			g.FillRectangle( 0, ScrYofHRuler, VisibleSize.Width, HRulerHeight );
 
 			// if clipping rectangle covers left of text area,
 			// reset clipping rect that does not covers left of text area
-			if( clipRect.X < XofLeftMargin )
+			if( clipRect.X < ScrXofLeftMargin )
 			{
-				clipRect.Width -= XofLeftMargin - clipRect.X;
-				clipRect.X = XofLeftMargin;
+				clipRect.Width -= ScrXofLeftMargin - clipRect.X;
+				clipRect.X = ScrXofLeftMargin;
 				g.RemoveClipRect();
 				g.SetClipRect( clipRect );
 			}
 
 			// calculate first line to be drawn
 			leftMostRulerIndex = ScrollPosX / HRulerUnitWidth;
-			leftMostLineX = XofTextArea + (leftMostRulerIndex * HRulerUnitWidth) - ScrollPosX;
+			leftMostLineX = ScrXofTextArea + (leftMostRulerIndex * HRulerUnitWidth) - ScrollPosX;
 			while( leftMostLineX < clipRect.Left )
 			{
 				leftMostRulerIndex++;
@@ -557,22 +557,22 @@ namespace Sgry.Azuki
 					Point pos;
 
 					// draw largest line
-					g.DrawLine( lineX, YofHRuler, lineX, YofHRuler+HRulerHeight );
+					g.DrawLine( lineX, ScrYofHRuler, lineX, ScrYofHRuler+HRulerHeight );
 
 					// draw column text
 					columnNumberText = (rulerIndex / 10).ToString();
-					pos = new Point( lineX+2, YofHRuler );
+					pos = new Point( lineX+2, ScrYofHRuler );
 					g.DrawText( columnNumberText, ref pos, Utl.ForeColorOfLineNumber(ColorScheme) );
 				}
 				else if( (rulerIndex % 5) == 0 )
 				{
 					// draw middle-length line
-					g.DrawLine( lineX, YofHRuler+_HRulerY_5, lineX, YofHRuler+HRulerHeight );
+					g.DrawLine( lineX, ScrYofHRuler+_HRulerY_5, lineX, ScrYofHRuler+HRulerHeight );
 				}
 				else
 				{
 					// draw smallest line
-					g.DrawLine( lineX, YofHRuler+_HRulerY_1, lineX, YofHRuler+HRulerHeight );
+					g.DrawLine( lineX, ScrYofHRuler+_HRulerY_1, lineX, ScrYofHRuler+HRulerHeight );
 				}
 
 				// go to next ruler line
@@ -583,8 +583,8 @@ namespace Sgry.Azuki
 
 			// draw bottom border line
 			g.DrawLine(
-					XofLeftMargin-1, YofHRuler + HRulerHeight - 1,
-					VisibleSize.Width, YofHRuler + HRulerHeight - 1
+					ScrXofLeftMargin-1, ScrYofHRuler + HRulerHeight - 1,
+					VisibleSize.Width, ScrYofHRuler + HRulerHeight - 1
 				);
 
 			// draw indicator of caret column
@@ -596,20 +596,20 @@ namespace Sgry.Azuki
 				// calculate indicator region
 				Point caretPos = GetVirtualPos( g, Document.CaretIndex );
 				VirtualToScreen( ref caretPos );
-				if( caretPos.X < XofTextArea )
+				if( caretPos.X < ScrXofTextArea )
 				{
-					indicatorWidth -= XofTextArea - caretPos.X;
-					caretPos.X = XofTextArea;
+					indicatorWidth -= ScrXofTextArea - caretPos.X;
+					caretPos.X = ScrXofTextArea;
 				}
 
 				// draw indicator
 				if( 0 < indicatorWidth )
 				{
-					g.FillRectangle( caretPos.X, YofHRuler, indicatorWidth, HRulerHeight );
+					g.FillRectangle( caretPos.X, ScrYofHRuler, indicatorWidth, HRulerHeight );
 				}
 
 				// remember lastly drawn ruler bar position
-				Document.ViewParam.PrevHRulerVirX = caretPos.X - XofTextArea + ScrollPosX;
+				Document.ViewParam.PrevHRulerVirX = caretPos.X - ScrXofTextArea + ScrollPosX;
 			}
 			else if( HRulerIndicatorType == HRulerIndicatorType.CharCount )
 			{
@@ -619,20 +619,20 @@ namespace Sgry.Azuki
 				var caretPos = GetTextPosition( Document.CaretIndex );
 				indicatorWidth = HRulerUnitWidth - 1;
 				indicatorX = leftMostLineX + (caretPos.Column - leftMostRulerIndex) * HRulerUnitWidth;
-				if( indicatorX < XofTextArea )
+				if( indicatorX < ScrXofTextArea )
 				{
-					indicatorWidth -= XofTextArea - indicatorX;
-					indicatorX = XofTextArea;
+					indicatorWidth -= ScrXofTextArea - indicatorX;
+					indicatorX = ScrXofTextArea;
 				}
 				
 				// draw indicator
 				if( 0 < indicatorWidth )
 				{
-					g.FillRectangle( indicatorX+1, YofHRuler, indicatorWidth, HRulerHeight-1 );
+					g.FillRectangle( indicatorX+1, ScrYofHRuler, indicatorWidth, HRulerHeight-1 );
 				}
 
 				// remember lastly filled ruler segmentr position
-				Document.ViewParam.PrevHRulerVirX = indicatorX - XofTextArea + ScrollPosX;
+				Document.ViewParam.PrevHRulerVirX = indicatorX - ScrXofTextArea + ScrollPosX;
 			}
 			else// if( HRulerIndicatorType == HRulerIndicatorType.Segment )
 			{
@@ -641,20 +641,21 @@ namespace Sgry.Azuki
 				Point indicatorPos = GetVirtualPos( g, Document.CaretIndex );
 				indicatorPos.X -= (indicatorPos.X % HRulerUnitWidth);
 				VirtualToScreen( ref indicatorPos );
-				if( indicatorPos.X < XofTextArea )
+				if( indicatorPos.X < ScrXofTextArea )
 				{
-					indicatorWidth -= XofTextArea - indicatorPos.X;
-					indicatorPos.X = XofTextArea;
+					indicatorWidth -= ScrXofTextArea - indicatorPos.X;
+					indicatorPos.X = ScrXofTextArea;
 				}
 
 				// draw indicator
 				if( 0 < indicatorWidth )
 				{
-					g.FillRectangle( indicatorPos.X+1, YofHRuler, indicatorWidth, HRulerHeight-1 );
+					g.FillRectangle( indicatorPos.X + 1, ScrYofHRuler,
+									 indicatorWidth, HRulerHeight - 1 );
 				}
 
 				// remember lastly filled ruler segmentr position
-				Document.ViewParam.PrevHRulerVirX = indicatorPos.X - XofTextArea + ScrollPosX;
+				Document.ViewParam.PrevHRulerVirX = indicatorPos.X - ScrXofTextArea + ScrollPosX;
 			}
 
 			g.RemoveClipRect();
@@ -668,22 +669,23 @@ namespace Sgry.Azuki
 			// fill area above the line-number area [copied from DrawLineNumber]
 			g.BackColor = Utl.BackColorOfLineNumber( ColorScheme );
 			g.FillRectangle(
-					XofLineNumberArea, YofTopMargin,
-					XofTextArea-XofLineNumberArea, TopMargin
+					ScrXofLineNumberArea, ScrYofTopMargin,
+					ScrXofTextArea-ScrXofLineNumberArea, TopMargin
 				);
 			
 			// fill left margin area [copied from DrawLineNumber]
 			g.BackColor = ColorScheme.BackColor;
-			g.FillRectangle( XofLeftMargin, YofTopMargin, LeftMargin, TopMargin );
+			g.FillRectangle( ScrXofLeftMargin, ScrYofTopMargin, LeftMargin, TopMargin );
 
 			// draw margin line between the line number area and text area [copied from DrawLineNumber]
-			int x = XofLeftMargin - 1;
+			int x = ScrXofLeftMargin - 1;
 			g.ForeColor = Utl.ForeColorOfLineNumber( ColorScheme );
-			g.DrawLine( x, YofTopMargin, x, YofTopMargin+TopMargin );
+			g.DrawLine( x, ScrYofTopMargin, x, ScrYofTopMargin+TopMargin );
 
 			// fill area above the text area
 			g.BackColor = ColorScheme.BackColor;
-			g.FillRectangle( XofTextArea, YofTopMargin, VisibleSize.Width-XofTextArea, TopMargin );
+			g.FillRectangle( ScrXofTextArea, ScrYofTopMargin,
+							 VisibleSize.Width - ScrXofTextArea, TopMargin );
 		}
 
 		/// <summary>
@@ -727,7 +729,7 @@ namespace Sgry.Azuki
 				VirtualToScreen( ref newCaretScreenPos );
 
 				// get previous screen position of the caret
-				int oldCaretX = Document.ViewParam.PrevHRulerVirX + XofTextArea - ScrollPosX;
+				int oldCaretX = Document.ViewParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
 				if( oldCaretX == newCaretScreenPos.X )
 				{
 					return; // horizontal poisition of the caret not changed
@@ -735,12 +737,12 @@ namespace Sgry.Azuki
 
 				// calculate indicator rectangle for old caret position
 				updateRect_old = new Rectangle(
-						oldCaretX, YofHRuler, 2, HRulerHeight
+						oldCaretX, ScrYofHRuler, 2, HRulerHeight
 					);
 
 				// calculate indicator rectangle for new caret position
 				udpateRect_new = new Rectangle(
-						newCaretScreenPos.X, YofHRuler, 2, HRulerHeight
+						newCaretScreenPos.X, ScrYofHRuler, 2, HRulerHeight
 					);
 			}
 			else if( HRulerIndicatorType == HRulerIndicatorType.CharCount )
@@ -749,10 +751,10 @@ namespace Sgry.Azuki
 
 				// calculate new segment of horizontal ruler
 				var newCaretPos = GetTextPosition( Document.CaretIndex );
-				newSegmentX = (newCaretPos.Column * HRulerUnitWidth) + XofTextArea - ScrollPosX;
+				newSegmentX = (newCaretPos.Column * HRulerUnitWidth) + ScrXofTextArea - ScrollPosX;
 
 				// calculate previous segment of horizontal ruler
-				oldSegmentX = Document.ViewParam.PrevHRulerVirX + XofTextArea - ScrollPosX;
+				oldSegmentX = Document.ViewParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
 				if( oldSegmentX == newSegmentX )
 				{
 					return; // horizontal poisition of the caret not changed
@@ -760,12 +762,12 @@ namespace Sgry.Azuki
 
 				// calculate indicator rectangle for old caret position
 				updateRect_old = new Rectangle(
-						oldSegmentX, YofHRuler, HRulerUnitWidth, HRulerHeight
+						oldSegmentX, ScrYofHRuler, HRulerUnitWidth, HRulerHeight
 					);
 
 				// calculate indicator rectangle for new caret position
 				udpateRect_new = new Rectangle(
-						newSegmentX, YofHRuler, HRulerUnitWidth, HRulerHeight
+						newSegmentX, ScrYofHRuler, HRulerUnitWidth, HRulerHeight
 					);
 			}
 			else// if( HRulerIndicatorType == HRulerIndicatorType.Segment )
@@ -778,7 +780,9 @@ namespace Sgry.Azuki
 
 				// calculate new segment of horizontal rulse
 				int leftMostRulerIndex = ScrollPosX / HRulerUnitWidth;
-				int leftMostLineX = XofTextArea + (leftMostRulerIndex * HRulerUnitWidth) - ScrollPosX;
+				int leftMostLineX = ScrXofTextArea
+									+ (leftMostRulerIndex * HRulerUnitWidth)
+									- ScrollPosX;
 				newSegmentX = leftMostLineX;
 				while( newSegmentX+HRulerUnitWidth <= newCaretScreenPos.X )
 				{
@@ -786,7 +790,7 @@ namespace Sgry.Azuki
 				}
 
 				// calculate previous segment of horizontal ruler
-				oldSegmentX = Document.ViewParam.PrevHRulerVirX + XofTextArea - ScrollPosX;
+				oldSegmentX = Document.ViewParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
 				if( oldSegmentX == newSegmentX )
 				{
 					return; // segment was not changed
@@ -794,10 +798,10 @@ namespace Sgry.Azuki
 
 				// calculate invalid rectangle
 				updateRect_old = new Rectangle(
-						oldSegmentX, YofHRuler, HRulerUnitWidth, HRulerHeight
+						oldSegmentX, ScrYofHRuler, HRulerUnitWidth, HRulerHeight
 					);
 				udpateRect_new = new Rectangle(
-						newSegmentX, YofHRuler, HRulerUnitWidth, HRulerHeight
+						newSegmentX, ScrYofHRuler, HRulerUnitWidth, HRulerHeight
 					);
 			}
 

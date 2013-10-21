@@ -398,7 +398,7 @@ namespace Sgry.Azuki
 			rect.Height = LineSpacing;
 
 			// invalidate
-			rect.X -= (ScrollPosX - XofTextArea);
+			rect.X -= (ScrollPosX - ScrXofTextArea);
 			Invalidate( rect );
 		}
 
@@ -478,8 +478,8 @@ namespace Sgry.Azuki
 				Rectangle rect = new Rectangle();
 				string textBeforeSel = doc.GetText( beginLineHead, begin );
 				string textSelected = doc.GetText( endLineHead, end );
-				int left = MeasureTokenEndX( g, textBeforeSel, 0 ) - (ScrollPosX - XofTextArea);
-				int right = MeasureTokenEndX( g, textSelected, 0 ) - (ScrollPosX - XofTextArea);
+				int left = MeasureTokenEndX( g, textBeforeSel, 0 ) - (ScrollPosX - ScrXofTextArea);
+				int right = MeasureTokenEndX( g, textSelected, 0 ) - (ScrollPosX - ScrXofTextArea);
 				rect.X = left;
 				rect.Y = YofLine( beginL );
 				rect.Width = right - left;
@@ -648,7 +648,7 @@ namespace Sgry.Azuki
 			Debug.Assert( 0 <= rect.Width );
 
 			// invalidate
-			rect.X -= (ScrollPosX - XofTextArea);
+			rect.X -= (ScrollPosX - ScrXofTextArea);
 			Invalidate( rect );
 		}
 
@@ -682,7 +682,7 @@ namespace Sgry.Azuki
 			upper = new Rectangle();
 			if( FirstVisibleLine <= beginLine ) // if not visible, no need to invalidate
 			{
-				upper.X = MeasureTokenEndX( g, firstLinePart, 0 ) - (ScrollPosX - XofTextArea);
+				upper.X = MeasureTokenEndX( g, firstLinePart, 0 ) - (ScrollPosX - ScrXofTextArea);
 				upper.Y = YofLine( beginLine );
 				upper.Width = VisibleSize.Width - upper.X;
 				upper.Height = LineSpacing;
@@ -693,7 +693,7 @@ namespace Sgry.Azuki
 			lower = new Rectangle();
 			if( FirstVisibleLine <= endLine ) // if not visible, no need to invalidate
 			{
-				lower.X = XofTextArea;
+				lower.X = ScrXofTextArea;
 				lower.Y = YofLine( endLine );
 				lower.Width = MeasureTokenEndX( g, finalLinePart, 0 ) - ScrollPosX;
 				lower.Height = LineSpacing;
@@ -705,7 +705,7 @@ namespace Sgry.Azuki
 			{
 				middle.Y = YofLine( beginLine + 1 );
 			}
-			middle.X = XofTextArea;
+			middle.X = ScrXofTextArea;
 			middle.Width = VisibleSize.Width;
 			middle.Height = lower.Y - middle.Y;
 
@@ -763,8 +763,8 @@ namespace Sgry.Azuki
 
 			// draw all lines
 			g.SetClipRect( clipRect );
-			pos.X = -(ScrollPosX - XofTextArea);
-			pos.Y = YofTextArea;
+			pos.X = -(ScrollPosX - ScrXofTextArea);
+			pos.Y = ScrYofTextArea;
 			for( int i=FirstVisibleLine; i<LineCount; i++ )
 			{
 				if( pos.Y < clipRect.Bottom && clipRect.Top <= pos.Y+LineSpacing )
@@ -794,8 +794,8 @@ namespace Sgry.Azuki
 
 			// fill area below of the text
 			g.BackColor = ColorScheme.BackColor;
-			g.FillRectangle( XofTextArea, pos.Y,
-							 VisibleSize.Width-XofTextArea, VisibleSize.Height-pos.Y );
+			g.FillRectangle( ScrXofTextArea, pos.Y,
+							 VisibleSize.Width-ScrXofTextArea, VisibleSize.Height-pos.Y );
 			for( int y=pos.Y; y<VisibleSize.Height; y+=LineSpacing )
 			{
 				DrawLeftOfLine( g, y, -1, false );
@@ -819,7 +819,7 @@ namespace Sgry.Azuki
 				{
 					// calculate position of the underline
 					int lineDiff = caretLine - FirstVisibleLine;
-					caretPosY = (lineDiff * LineSpacing) + YofTextArea;
+					caretPosY = (lineDiff * LineSpacing) + ScrYofTextArea;
 					
 					// draw underline
 					DrawUnderLine( g, caretPosY, ColorScheme.HighlightColor );
@@ -854,9 +854,9 @@ namespace Sgry.Azuki
 
 				// calc next drawing pos before drawing text
 				{
-					int virLeft = pos.X - (XofTextArea - ScrollPosX);
+					int virLeft = pos.X - (ScrXofTextArea - ScrollPosX);
 					tokenEndPos.X = MeasureTokenEndX( g, token, virLeft );
-					tokenEndPos.X += (XofTextArea - ScrollPosX);
+					tokenEndPos.X += (ScrXofTextArea - ScrollPosX);
 				}
 
 				// if this token is out of the clip-rect, skip drawing.
@@ -937,8 +937,8 @@ namespace Sgry.Azuki
 			{
 				// to prevent drawing line number area, make drawing pos to text area's left if the
 				// line end does not exceed left of text area
-				if( pos.X < XofTextArea )
-					pos.X = XofTextArea;
+				if( pos.X < ScrXofTextArea )
+					pos.X = ScrXofTextArea;
 				g.BackColor = ColorScheme.BackColor;
 				g.FillRectangle( pos.X, pos.Y, clipRect.Right-pos.X, LineSpacing );
 			}

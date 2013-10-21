@@ -1255,7 +1255,7 @@ namespace Sgry.Ann
 
 			if( mea.Index < doc.Length
 				&& doc.IsMarked(mea.Index, Marking.Uri)
-				&& azuki.View.TextAreaRectangle.Contains(mea.Location) )
+				&& azuki.View.TextAreaRect.Contains(mea.Location) )
 			{
 				// select entire URI if not selected, or deselect if selected.
 				var urlRange = doc.GetMarkedRange( mea.Index, Marking.Uri );

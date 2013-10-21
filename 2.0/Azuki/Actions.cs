@@ -520,7 +520,7 @@ namespace Sgry.Azuki
 			// redraw graphic of dirt-bar
 			if( ui.ShowsDirtBar )
 			{
-				ui.View.Invalidate( view.DirtBarRectangle );
+				ui.View.Invalidate( view.DirtBarRect );
 			}
 		}
 

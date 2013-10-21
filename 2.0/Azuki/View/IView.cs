@@ -140,7 +140,7 @@ namespace Sgry.Azuki
 		/// </para>
 		/// </remarks>
 		/// <seealso cref="DirtyState"/>
-		/// <seealso cref="Document.Lines"/>
+		/// <seealso cref="Sgry.Azuki.Document.Lines"/>
 		/// <seealso cref="ILineRange.DirtyState"/>
 		bool ShowsDirtBar
 		{
@@ -538,25 +538,17 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">A negative number was set.</exception>
 		/// <remarks>
 		///	<para>
-		/// This property accesses the width of the *virtual* text area.
-		/// Text area indicates the logical space where Azuki draws text content
-		/// and is not the area which is graphically visible;
-		/// visible text area is a portion of the text area.
+		/// This property accesses the width of the *virtual* text area. Text area indicates the
+		/// logical space where Azuki draws text content and is not the area which is graphically
+		/// visible; visible text area is a portion of the text area.
 		/// </para>
 		/// <para>
-		/// Since Azuki only draws text in the text area,
-		/// width of it affectes how text lines were drawn.
-		/// If <see cref="Sgry.Azuki.IUserInterface.ViewType">
-		/// IUserInterface.ViewType</see> was set to
-		/// <see cref="Sgry.Azuki.ViewType.Proportional">
-		/// ViewType.Proportional</see>,
-		/// the width will be expanded as needed
-		/// to continue drawing a long logical line.
-		/// If <see cref="Sgry.Azuki.IUserInterface.ViewType">
-		/// IUserInterface.ViewType</see> was set to
-		/// <see cref="Sgry.Azuki.ViewType.WrappedProportional">
-		/// ViewType.WrappedProportional</see>,
-		/// each logical text lines will be wrapped at right end of the text area.
+		/// Since Azuki only draws text in the text area, width of it affectes how text lines were
+		/// drawn. If <see cref="IUserInterface.ViewType"/> was set to
+		/// <see cref="ViewType.Proportional"/>, the width will be expanded as needed to continue
+		/// drawing a long logical line. If <see cref="IUserInterface.ViewType"/> was set to
+		/// <see cref="ViewType.WrappedProportional"/>, each logical text lines will be wrapped at
+		/// right end of the text area.
 		/// </para>
 		/// <para>
 		/// Note that text area does not contain line-number area nor left margin.
@@ -595,7 +587,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets location and size of the dirt bar area.
 		/// </summary>
-		Rectangle DirtBarRectangle
+		Rectangle DirtBarRect
 		{
 			get;
 		}
@@ -603,7 +595,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets location and size of the line number area.
 		/// </summary>
-		Rectangle LineNumberAreaRectangle
+		Rectangle LineNumberAreaRect
 		{
 			get;
 		}
@@ -611,7 +603,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets location and size of the horizontal ruler area.
 		/// </summary>
-		Rectangle HRulerRectangle
+		Rectangle HRulerRect
 		{
 			get;
 		}
@@ -621,15 +613,13 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This property calculates rectangle of currently visible part of the text area.
-		/// Note that, in contrast to this property,
-		/// <see cref="Sgry.Azuki.IView.TextAreaWidth">TextAreaWidth</see>
-		/// property calculates 'virtual' size of the text area.
-		/// Since the virtual size is calculated including areas which is not visible,
-		/// these two property are totally different.
+		/// This property calculates rectangle of currently visible part of the text area. Note
+		/// that, in contrast to this property, <see cref="IView.TextAreaWidth"/> property
+		/// calculates 'virtual' size of the text area. Since the virtual size is calculated
+		/// including areas which is not visible, these two property are totally different.
 		/// </para>
 		/// </remarks>
-		Rectangle TextAreaRectangle
+		Rectangle TextAreaRect
 		{
 			get;
 		}
