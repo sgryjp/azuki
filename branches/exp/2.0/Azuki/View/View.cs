@@ -194,8 +194,8 @@ namespace Sgry.Azuki
 			get
 			{
 				Size size = _VisibleSize;
-				size.Width -= XofTextArea;
-				size.Height -= YofTextArea;
+				size.Width -= ScrXofTextArea;
+				size.Height -= ScrYofTextArea;
 				return size;
 			}
 		}
@@ -766,8 +766,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void VirtualToScreen( ref Point pt )
 		{
-			pt.X = (pt.X - ScrollPosX) + XofTextArea;
-			pt.Y = (pt.Y - FirstVisibleLine * LineSpacing) + YofTextArea;
+			pt.X = (pt.X - ScrollPosX) + ScrXofTextArea;
+			pt.Y = (pt.Y - FirstVisibleLine * LineSpacing) + ScrYofTextArea;
 		}
 
 		/// <summary>
@@ -775,8 +775,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void VirtualToScreen( ref Rectangle rect )
 		{
-			rect.X = (rect.X - ScrollPosX) + XofTextArea;
-			rect.Y = (rect.Y - FirstVisibleLine * LineSpacing) + YofTextArea;
+			rect.X = (rect.X - ScrollPosX) + ScrXofTextArea;
+			rect.Y = (rect.Y - FirstVisibleLine * LineSpacing) + ScrYofTextArea;
 		}
 
 		/// <summary>
@@ -784,8 +784,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void ScreenToVirtual( ref Point pt )
 		{
-			pt.X = (pt.X + ScrollPosX) - XofTextArea;
-			pt.Y = (pt.Y + FirstVisibleLine * LineSpacing) - YofTextArea;
+			pt.X = (pt.X + ScrollPosX) - ScrXofTextArea;
+			pt.Y = (pt.Y + FirstVisibleLine * LineSpacing) - ScrYofTextArea;
 		}
 
 		/// <summary>
@@ -974,8 +974,8 @@ namespace Sgry.Azuki
 			// make rentangle of virtual text view
 			threshRect.X = ScrollPosX + SpaceWidthInPx;
 			threshRect.Y = FirstVisibleLine * LineSpacing;
-			threshRect.Width = (_VisibleSize.Width - XofTextArea) - (SpaceWidthInPx * 2);
-			threshRect.Height = (_VisibleSize.Height - YofTextArea) - LineSpacing;
+			threshRect.Width = (_VisibleSize.Width - ScrXofTextArea) - (SpaceWidthInPx * 2);
+			threshRect.Height = (_VisibleSize.Height - ScrYofTextArea) - LineSpacing;
 
 			// shrink the rectangle if some lines must be visible
 			if( 0 < autoScrollMargin )
@@ -1077,7 +1077,7 @@ namespace Sgry.Azuki
 				return;
 
 			// make clipping rectangle
-			clipRect = new Rectangle( 0, YofTextArea, _VisibleSize.Width, _VisibleSize.Height );
+			clipRect = new Rectangle( 0, ScrYofTextArea, _VisibleSize.Width, _VisibleSize.Height );
 
 			// do scroll
 			FirstVisibleLine += delta;
@@ -1135,9 +1135,9 @@ namespace Sgry.Azuki
 			}
 
 			// make clipping rectangle
-			clipRect.X = XofTextArea;
+			clipRect.X = ScrXofTextArea;
 			clipRect.Y = 0;
-			clipRect.Width = _VisibleSize.Width - XofTextArea;
+			clipRect.Width = _VisibleSize.Width - ScrXofTextArea;
 			clipRect.Height = _VisibleSize.Height;
 
 			// do scroll
@@ -1200,7 +1200,7 @@ namespace Sgry.Azuki
 		public void ZoomIn()
 		{
 			// remember left-end position of text area
-			int oldTextAreaX = XofTextArea;
+			int oldTextAreaX = ScrXofTextArea;
 
 			// calculate next font size
 			int newSize = (int)( FontInfo.Size / 0.9 );
@@ -1215,7 +1215,7 @@ namespace Sgry.Azuki
 
 			// reset text area to sustain total width of view
 			// because changing font size also changes width of line number area,
-			TextAreaWidth += oldTextAreaX - XofTextArea;
+			TextAreaWidth += oldTextAreaX - ScrXofTextArea;
 
 			_UI.UpdateCaretGraphic();
 		}
@@ -1226,7 +1226,7 @@ namespace Sgry.Azuki
 		public void ZoomOut()
 		{
 			// remember left-end position of text area
-			int oldTextAreaX = XofTextArea;
+			int oldTextAreaX = ScrXofTextArea;
 
 			// calculate next font size
 			int newSize = (int)(FontInfo.Size * 0.9);
@@ -1241,7 +1241,7 @@ namespace Sgry.Azuki
 
 			// reset text area to sustain total width of view
 			// because changing font size also changes width of line number area,
-			TextAreaWidth += oldTextAreaX - XofTextArea;
+			TextAreaWidth += oldTextAreaX - ScrXofTextArea;
 
 			_UI.UpdateCaretGraphic();
 		}
@@ -1294,8 +1294,8 @@ namespace Sgry.Azuki
 			if( Document.IsDirty == false )
 			{
 				Rectangle rect = new Rectangle();
-				rect.X = XofDirtBar;
-				rect.Y = YofTextArea;
+				rect.X = ScrXofDirtBar;
+				rect.Y = ScrYofTextArea;
 				rect.Width = DirtBarWidth;
 				rect.Height = VisibleSize.Height;
 				Invalidate( rect );
@@ -1379,7 +1379,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets X coordinate in client area of line number area.
 		/// </summary>
-		public int XofLineNumberArea
+		public int ScrXofLineNumberArea
 		{
 			get{ return 0; }
 		}
@@ -1387,19 +1387,19 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets X coordinate in client area of dirt bar area.
 		/// </summary>
-		public int XofDirtBar
+		public int ScrXofDirtBar
 		{
-			get{ return XofLineNumberArea + LineNumAreaWidth; }
+			get{ return ScrXofLineNumberArea + LineNumAreaWidth; }
 		}
 
 		/// <summary>
 		/// Gets X coordinate in client area of left margin.
 		/// </summary>
-		public int XofLeftMargin
+		public int ScrXofLeftMargin
 		{
 			get
 			{
-				int value = XofDirtBar + DirtBarWidth;
+				int value = ScrXofDirtBar + DirtBarWidth;
 				if( 0 < value )
 					return value + 1;
 				else
@@ -1410,11 +1410,11 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets X coordinate in client area of text area.
 		/// </summary>
-		public int XofTextArea
+		public int ScrXofTextArea
 		{
 			get
 			{
-				int value = XofLeftMargin + LeftMargin;
+				int value = ScrXofLeftMargin + LeftMargin;
 				if( LeftMargin <= 0 )
 					return value + 1;
 				else
@@ -1425,7 +1425,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets Y coordinate in client area of horizontal ruler.
 		/// </summary>
-		public int YofHRuler
+		public int ScrYofHRuler
 		{
 			get{ return 0; }
 		}
@@ -1433,29 +1433,29 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets Y coordinate in client area of top margin.
 		/// </summary>
-		public int YofTopMargin
+		public int ScrYofTopMargin
 		{
-			get{ return YofHRuler + HRulerHeight; }
+			get{ return ScrYofHRuler + HRulerHeight; }
 		}
 
 		/// <summary>
 		/// Gets Y coordinate in client area of text area.
 		/// </summary>
-		public int YofTextArea
+		public int ScrYofTextArea
 		{
-			get{ return YofTopMargin + TopMargin; }
+			get{ return ScrYofTopMargin + TopMargin; }
 		}
 
 		/// <summary>
 		/// Calculates size and location of the dirt bar area.
 		/// </summary>
-		public Rectangle DirtBarRectangle
+		public Rectangle DirtBarRect
 		{
 			get
 			{
 				return new Rectangle(
-						XofDirtBar, YofTextArea,
-						DirtBarWidth, VisibleSize.Height - YofTextArea
+						ScrXofDirtBar, ScrYofTextArea,
+						DirtBarWidth, VisibleSize.Height - ScrYofTextArea
 					);
 			}
 		}
@@ -1463,13 +1463,13 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets location and size of the line number area.
 		/// </summary>
-		public Rectangle LineNumberAreaRectangle
+		public Rectangle LineNumberAreaRect
 		{
 			get
 			{
 				return new Rectangle(
-						XofLineNumberArea, YofTextArea,
-						LineNumAreaWidth, VisibleSize.Height - YofTextArea
+						ScrXofLineNumberArea, ScrYofTextArea,
+						LineNumAreaWidth, VisibleSize.Height - ScrYofTextArea
 					);
 			}
 		}
@@ -1477,12 +1477,12 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets location and size of the horizontal ruler area.
 		/// </summary>
-		public Rectangle HRulerRectangle
+		public Rectangle HRulerRect
 		{
 			get
 			{
 				return new Rectangle(
-						0, YofHRuler, VisibleSize.Width, YofTopMargin
+						0, ScrYofHRuler, VisibleSize.Width, ScrYofTopMargin
 					);
 			}
 		}
@@ -1490,14 +1490,14 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets location and size of the visible text area in screen.
 		/// </summary>
-		public Rectangle TextAreaRectangle
+		public Rectangle TextAreaRect
 		{
 			get
 			{
 				return new Rectangle(
-						XofTextArea, YofTextArea,
-						VisibleSize.Width - XofTextArea,
-						VisibleSize.Height - YofTextArea
+						ScrXofTextArea, ScrYofTextArea,
+						VisibleSize.Width - ScrXofTextArea,
+						VisibleSize.Height - ScrYofTextArea
 					);
 			}
 		}
@@ -1539,7 +1539,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		internal int YofLine( int lineIndex )
 		{
-			return (  (lineIndex - FirstVisibleLine) * LineSpacing  ) + YofTextArea;
+			return (  (lineIndex - FirstVisibleLine) * LineSpacing  ) + ScrYofTextArea;
 		}
 
 		internal int EolCodeWidthInPx

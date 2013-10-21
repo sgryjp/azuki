@@ -1,18 +1,15 @@
-﻿using System.Drawing;
-
-namespace Sgry.Azuki
+﻿namespace Sgry.Azuki
 {
 	internal interface IViewInternal : IView
 	{
+		int ScrXofLineNumberArea{ get; }
+		int ScrXofDirtBar{ get; }
+		int ScrXofLeftMargin{ get; }
+		int ScrXofTextArea{ get; }
+		int ScrYofHRuler{ get; }
+		int ScrYofTopMargin{ get; }
+		int ScrYofTextArea{ get; }
+
 		bool IsLineHead( int index );
-
-		int XofLineNumberArea{ get; }
-		int XofDirtBar{ get; }
-		int XofLeftMargin{ get; }
-		int XofTextArea{ get; }
-
-		int YofHRuler{ get; }
-		int YofTopMargin{ get; }
-		int YofTextArea{ get; }
 	}
 }

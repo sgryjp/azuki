@@ -425,8 +425,8 @@ namespace Sgry.Azuki.WinForms
 			if( Document != null )
 			{
 				// calculate caret position and show/hide caret
-				if( caretRect.X < _Impl.View.XofTextArea
-					|| caretRect.Y < _Impl.View.YofTextArea )
+				if( caretRect.X < _Impl.View.ScrXofTextArea
+					|| caretRect.Y < _Impl.View.ScrYofTextArea )
 				{
 					WinApi.SetCaretPos( caretRect.X, caretRect.Y );
 					WinApi.HideCaret( Handle );
@@ -890,10 +890,10 @@ namespace Sgry.Azuki.WinForms
 		[Description("Width of the text content area. In proportional view, highlight line will be drawn in this width and this will be automatically expanded to enough width to show the input text. In wrapped-proportional view, text will be wrapped in this width.")]
 		public int ViewWidth
 		{
-			get{ return _Impl.View.TextAreaWidth + _Impl.View.XofTextArea; }
+			get{ return _Impl.View.TextAreaWidth + _Impl.View.ScrXofTextArea; }
 			set
 			{
-				_Impl.View.TextAreaWidth = value - _Impl.View.XofTextArea;
+				_Impl.View.TextAreaWidth = value - _Impl.View.ScrXofTextArea;
 				UpdateCaretGraphic();
 				UpdateScrollBarRange(); // (needed for PropWrapView)
 				Refresh();

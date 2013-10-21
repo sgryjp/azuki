@@ -385,16 +385,16 @@ namespace Sgry.Azuki
 			bottom = GetVirtualPos( g, logLine.End );
 			VirtualToScreen( ref top );
 			VirtualToScreen( ref bottom );
-			if( bottom.Y < YofTextArea )
+			if( bottom.Y < ScrYofTextArea )
 			{
 				return;
 			}
 			bottom.Y += LineSpacing;
 
 			// prevent to draw on horizontal ruler
-			if( top.Y < YofTextArea )
+			if( top.Y < ScrYofTextArea )
 			{
-				top.Y = YofTextArea;
+				top.Y = ScrYofTextArea;
 			}
 
 			// adjust drawing position for line padding
@@ -622,13 +622,13 @@ namespace Sgry.Azuki
 			DrawTopMargin( g );
 
 			// draw all lines
-			pos.Y = YofTextArea;
+			pos.Y = ScrYofTextArea;
 			for( int i=FirstVisibleLine; i<LineCount; i++ )
 			{
 				if( pos.Y < clipRect.Bottom && clipRect.Top <= pos.Y+LineSpacing )
 				{
 					// reset x-coord of drawing position
-					pos.X = -(ScrollPosX - XofTextArea);
+					pos.X = -(ScrollPosX - ScrXofTextArea);
 
 					// invoke pre-draw event
 					shouldRedraw1 = _UI.InvokeLineDrawing( g, i, pos );
@@ -665,9 +665,9 @@ namespace Sgry.Azuki
 
 			// draw right edge
 			{
-				int x = (XofTextArea + TextAreaWidth) - ScrollPosX;
+				int x = (ScrXofTextArea + TextAreaWidth) - ScrollPosX;
 				g.ForeColor = ColorScheme.RightEdgeColor;
-				g.DrawLine( x, YofTextArea, x, VisibleSize.Height );
+				g.DrawLine( x, ScrYofTextArea, x, VisibleSize.Height );
 			}
 
 			// draw underline to highlight current line if there is no selection
@@ -678,7 +678,7 @@ namespace Sgry.Azuki
 
 				// calculate position of the underline
 				caretLine = TextUtil.GetLineIndexFromCharIndex( PLHI, Document.CaretIndex );
-				caretPosY = YofTextArea + (caretLine - FirstVisibleLine) * LineSpacing;
+				caretPosY = ScrYofTextArea + (caretLine - FirstVisibleLine) * LineSpacing;
 				
 				// draw underline to current line
 				DrawUnderLine( g, caretPosY, ColorScheme.HighlightColor );
@@ -701,15 +701,15 @@ namespace Sgry.Azuki
 			var screenLine = RawLines[lineIndex];
 
 			// adjust and set clipping rect
-			if( clipRect.X < XofTextArea )
+			if( clipRect.X < ScrXofTextArea )
 			{
 				// Given clip rectangle includes line number area. Redraw line nubmer and exclude
 				// its area from the clip rectangle to avoid overwriting
 				DrawLeftOfLine( g, pos.Y,
 								Document.Lines.AtOffset(screenLine.Begin).LineIndex + 1,
 								!IsWrappedLineHead(Document, PLHI, screenLine.Begin) );
-				clipRect.Width -= (XofTextArea - clipRect.X);
-				clipRect.X = XofTextArea;
+				clipRect.Width -= (ScrXofTextArea - clipRect.X);
+				clipRect.X = ScrXofTextArea;
 			}
 #			if !DRAW_SLOWLY
 			g.SetClipRect( clipRect );
@@ -726,9 +726,9 @@ namespace Sgry.Azuki
 
 				// calc next drawing pos before drawing text
 				{
-					int virLeft = pos.X - (XofTextArea - ScrollPosX);
+					int virLeft = pos.X - (ScrXofTextArea - ScrollPosX);
 					tokenEndPos.X = MeasureTokenEndX( g, token, virLeft );
-					tokenEndPos.X += (XofTextArea - ScrollPosX);
+					tokenEndPos.X += (ScrXofTextArea - ScrollPosX);
 				}
 
 				// if this token is at right of the clip-rect, no need to draw more.
@@ -827,8 +827,8 @@ namespace Sgry.Azuki
 			{
 				// to prevent drawing line number area,
 				// make drawing pos to text area's left if the line end does not exceed left of text area
-				if( pos.X < XofTextArea )
-					pos.X = XofTextArea;
+				if( pos.X < ScrXofTextArea )
+					pos.X = ScrXofTextArea;
 				g.BackColor = ColorScheme.BackColor;
 				g.FillRectangle( pos.X, pos.Y, clipRect.Right-pos.X, LineSpacing );
 			}
@@ -849,7 +849,7 @@ namespace Sgry.Azuki
 			if( lineTopY < 0 )
 				return;
 
-			DebugUtl.Assert( (lineTopY % LineSpacing) == (YofTextArea % LineSpacing), "lineTopY:"+lineTopY+", LineSpacing:"+LineSpacing+", YofTextArea:"+YofTextArea );
+			DebugUtl.Assert( (lineTopY % LineSpacing) == (ScrYofTextArea % LineSpacing), "lineTopY:"+lineTopY+", LineSpacing:"+LineSpacing+", ScrYofTextArea:"+ScrYofTextArea );
 
 			// calculate position to underline
 			int bottom = lineTopY + LineHeight + (LinePadding >> 1);
@@ -858,7 +858,7 @@ namespace Sgry.Azuki
 			Point rightEnd = new Point( TextAreaWidth, 0 );
 			VirtualToScreen( ref rightEnd );
 			g.ForeColor = color;
-			g.DrawLine( XofTextArea, bottom, rightEnd.X-1, bottom );
+			g.DrawLine( ScrXofTextArea, bottom, rightEnd.X-1, bottom );
 		}
 		#endregion
 

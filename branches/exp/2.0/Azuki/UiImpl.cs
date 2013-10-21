@@ -884,7 +884,7 @@ namespace Sgry.Azuki
 				}
 
 				// check whether the mouse position is on the line number area or not
-				if( pos.X < View.XofLeftMargin )
+				if( pos.X < View.ScrXofLeftMargin )
 				{
 					onLineNumberArea = true;
 				}
@@ -982,7 +982,7 @@ namespace Sgry.Azuki
 			_MouseDownVirPos = e.Location;
 
 			// select a word there if it is in the text area
-			if( _View.TextAreaRectangle.Contains(_MouseDownVirPos) )
+			if( _View.TextAreaRect.Contains(_MouseDownVirPos) )
 			{
 				int clickedIndex;
 				Point pos = e.Location;
@@ -1154,11 +1154,11 @@ namespace Sgry.Azuki
 			{
 				int index;
 
-				if( cursorScreenPos.Value.X < View.XofLeftMargin )
+				if( cursorScreenPos.Value.X < View.ScrXofLeftMargin )
 				{
 					onLineNumberArea = true;
 				}
-				else if( cursorScreenPos.Value.Y < View.YofTopMargin )
+				else if( cursorScreenPos.Value.Y < View.ScrYofTopMargin )
 				{
 					onHRulerArea = true;
 				}
