@@ -149,7 +149,7 @@ namespace Sgry.Azuki
 			if( 0 < columnIndex )
 			{
 				// get partial content of the line which exists before the caret
-				Range r = TextUtil.GetLineRange( Document.InternalBuffer, PLHI, lineIndex, true );
+				Range r = TextUtil.GetLineRange( Document.Buffer, PLHI, lineIndex, true );
 				string leftPart = Document.GetText( r.Begin, r.Begin + columnIndex );
 
 				// measure the characters
@@ -186,7 +186,7 @@ namespace Sgry.Azuki
 				bool isWrapLine = false;
 
 				// get content of the line
-				Range range = TextUtil.GetLineRange( Document.InternalBuffer, PLHI, lineIndex, false );
+				Range range = TextUtil.GetLineRange( Document.Buffer, PLHI, lineIndex, false );
 				line = Document.GetText( range.Begin, range.End );
 				if( range.End+1 < Document.Length
 					&& !TextUtil.IsEolChar(Document[range.End]) )
@@ -218,7 +218,7 @@ namespace Sgry.Azuki
 				}
 			}
 
-			return TextUtil.GetCharIndex( Document.InternalBuffer, PLHI,
+			return TextUtil.GetCharIndex( Document.Buffer, PLHI,
 										  new TextPoint(lineIndex, columnIndex) );
 		}
 
@@ -231,7 +231,7 @@ namespace Sgry.Azuki
 			if( charIndex < 0 || Document.Length < charIndex )
 				throw new ArgumentOutOfRangeException( "charIndex", "Invalid index was given (charIndex:"+charIndex+", document.Length:"+Document.Length+")." );
 
-			return TextUtil.GetTextPosition( Document.InternalBuffer, PLHI, charIndex );
+			return TextUtil.GetTextPosition( Document.Buffer, PLHI, charIndex );
 		}
 
 		/// <summary>
@@ -245,7 +245,7 @@ namespace Sgry.Azuki
 													   + " (position:" + position + ", LineCount:"
 													   + LineCount + ")." );
 
-			return TextUtil.GetCharIndex( Document.InternalBuffer, PLHI, position );
+			return TextUtil.GetCharIndex( Document.Buffer, PLHI, position );
 		}
 		#endregion
 
@@ -496,7 +496,7 @@ namespace Sgry.Azuki
 				shiftBeginL = Int32.MaxValue;
 			}
 			else if( replaceEnd < doc.Length
-				&& TextUtil.NextLineHead(doc.InternalBuffer, replaceEnd) == -1 )
+				&& TextUtil.NextLineHead(doc.Buffer, replaceEnd) == -1 )
 			{
 				// there exists more characters but no lines.
 				shiftBeginL = Int32.MaxValue;
@@ -542,7 +542,7 @@ namespace Sgry.Azuki
 				{
 					end = reCalcEnd;
 				}
-				while( TextUtil.IsNotDividableIndex(Document.InternalBuffer, end) )
+				while( TextUtil.IsNotDividableIndex(Document.Buffer, end) )
 				{
 					end++;
 				}
@@ -874,7 +874,7 @@ namespace Sgry.Azuki
 
 		static bool IsWrappedLineHead( Document doc, GapBuffer<int> plhi, int index )
 		{
-			int lineHeadIndex = TextUtil.GetLineHeadIndexFromCharIndex( doc.InternalBuffer,
+			int lineHeadIndex = TextUtil.GetLineHeadIndexFromCharIndex( doc.Buffer,
 																		plhi, index );
 			if( lineHeadIndex <= 0 )
 			{
@@ -903,9 +903,9 @@ namespace Sgry.Azuki
 					if( lineIndex < 0 || _View.PLHI.Count < lineIndex )
 						throw new ArgumentOutOfRangeException();
 
-					var buf = _View.Document.InternalBuffer;
+					var buf = _View.Document.Buffer;
 					var range = TextUtil.GetLineRange( buf, _View.PLHI, lineIndex, false );
-					return new LineRange( _View.Document.InternalBuffer,
+					return new LineRange( _View.Document.Buffer,
 										  range.Begin, range.End, lineIndex );
 				}
 			}
@@ -953,9 +953,9 @@ namespace Sgry.Azuki
 					if( lineIndex < 0 || _View.PLHI.Count < lineIndex )
 						throw new ArgumentOutOfRangeException();
 
-					var buf = _View.Document.InternalBuffer;
+					var buf = _View.Document.Buffer;
 					var range = TextUtil.GetLineRange( buf, _View.PLHI, lineIndex, true );
-					return new LineRange( _View.Document.InternalBuffer,
+					return new LineRange( _View.Document.Buffer,
 										  range.Begin, range.End, lineIndex );
 				}
 			}

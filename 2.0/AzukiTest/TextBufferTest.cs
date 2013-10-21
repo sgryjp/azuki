@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
@@ -693,6 +694,52 @@ namespace Sgry.Azuki.Test
 			}
 		}
 
+		[Test]
+		public void Range()
+		{
+			{
+				IRange range;
+				IEnumerator<CharData> iter;
+				var doc = new Document(); doc.Replace( "aa\x0300a" );
+
+				Assert.Throws<ArgumentOutOfRangeException>( delegate{
+					range = new Range( doc.Buffer, -1, 0 );
+				} );
+				Assert.Throws<ArgumentOutOfRangeException>( delegate{
+					range = new Range( doc.Buffer, 0, -1 );
+				} );
+				Assert.Throws<ArgumentException>( delegate{
+					range = new Range( doc.Buffer, 1, 0 );
+				} );
+
+				range = new Range( doc.Buffer, 0, 0 );
+				Assert.AreEqual( true, range.IsEmpty );
+				Assert.AreEqual( 0, range.Begin );
+				Assert.AreEqual( 0, range.End );
+				Assert.AreEqual( 0, range.Length );
+				Assert.AreEqual( "", range.Text );
+				iter = range.Chars.GetEnumerator();
+				Assert.AreEqual( false, iter.MoveNext() );
+
+				range = new Range( doc.Buffer, 1, 4 );
+				Assert.AreEqual( false, range.IsEmpty );
+				Assert.AreEqual( 1, range.Begin );
+				Assert.AreEqual( 4, range.End );
+				Assert.AreEqual( 3, range.Length );
+				Assert.AreEqual( "a\x0300a", range.Text );
+				iter = range.Chars.GetEnumerator();
+				Assert.AreEqual( true, iter.MoveNext() );
+				Assert.AreEqual( 2, iter.Current.Length );
+				Assert.AreEqual( 'a', iter.Current.ToChar() );
+				Assert.AreEqual( "a\x0300", iter.Current.ToString() );
+				Assert.AreEqual( true, iter.MoveNext() );
+				Assert.AreEqual( 1, iter.Current.Length );
+				Assert.AreEqual( 'a', iter.Current.ToChar() );
+				Assert.AreEqual( "a", iter.Current.ToString() );
+				Assert.AreEqual( false, iter.MoveNext() );
+			}
+		}
+
 		#region Utilities
 		static string MakeLdsText( TextBuffer text )
 		{
@@ -718,7 +765,7 @@ namespace Sgry.Azuki.Test
 
 		static void MoveGap( Document doc, int index )
 		{
-			doc.InternalBuffer.Insert( index, String.Empty );
+			doc.Buffer.Insert( index, String.Empty );
 		}
 
 		static void MoveGap( TextBuffer buf, int index )

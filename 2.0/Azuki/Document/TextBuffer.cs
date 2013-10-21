@@ -385,14 +385,19 @@ namespace Sgry.Azuki
 			return GetText( new Range(0, Count) );
 		}
 
+		/// <exception cref="ArgumentException"/>
+		/// <exception cref="ArgumentNullException"/>
 		/// <exception cref="ArgumentOutOfRangeException"/>
 		public string GetText( IRange range )
 		{
-			if( range.End < 0 || Count < range.End
-				|| range.Begin < 0 || range.End < range.Begin )
+			if( range == null )
+				throw new ArgumentNullException( "range" );
+			if( range.Begin < 0 || range.End < 0 || Count < range.End )
 				throw new ArgumentOutOfRangeException( "range", range, "Invalid index was given"
 													   + " (range:" + range + ", Count:"
 													   + Count + ")." );
+			if( range.End < range.Begin )
+				throw new ArgumentException( "range", "Invalid range was given: " + range );
 
 			if( range.IsEmpty )
 				return String.Empty;

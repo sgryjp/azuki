@@ -8,9 +8,22 @@ namespace Sgry.Azuki
 	/// </summary>
 	internal class LineRange : Range, ILineRange
 	{
+		/// <exception cref="ArgumentException"/>
+		/// <exception cref="ArgumentNullException"/>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		internal LineRange( TextBuffer buf, int begin, int end, int lineIndex )
 			: base( buf, begin, end )
 		{
+			if( buf == null )
+				throw new ArgumentNullException( "buf" );
+			if( lineIndex < 0 )
+				throw new ArgumentOutOfRangeException( "lineIndex", "Parameter 'lineIndex' must"
+													  + " not be null." );
+			if( buf.Lines.Count <= lineIndex )
+				throw new ArgumentOutOfRangeException( "lineIndex", "Parameter 'lineIndex' was"
+													   + " too large. (lineIndex:" + lineIndex
+													   + ", LineCount:" + buf.Lines.Count + ")" );
+
 			LineIndex = lineIndex;
 		}
 
@@ -24,10 +37,13 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				int begin = End;
-				int end = (LineIndex+1 < _Buffer.Lines.Count) ? _Buffer.Lines[LineIndex+1].Begin
-															  : _Buffer.Count;
-				return _Buffer.GetText( new Range(begin, end) );
+				Debug.Assert( TextBuffer != null );
+
+				var buf = TextBuffer;
+				var begin = End;
+				var end = (LineIndex+1 < buf.Lines.Count) ? buf.Lines[LineIndex+1].Begin
+														  : buf.Count;
+				return buf.GetText( new Range(begin, end) );
 			}
 		}
 
@@ -35,21 +51,20 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				if( LineIndex < 0 )
-					throw new InvalidOperationException( "The line index is out of valid range."
-														 + " (lineIndex:" + LineIndex+ ", Line"
-														 + " count:" + _Buffer.Lines.Count + ")" );
+				Debug.Assert( TextBuffer != null );
 
-				return (LineIndex < _Buffer.LDS.Count) ? _Buffer.LDS[ LineIndex ]
-														: DirtyState.Clean;
+				var buf = TextBuffer;
+				return (LineIndex < buf.LDS.Count) ? buf.LDS[ LineIndex ]
+												   : DirtyState.Clean;
 			}
 			set
 			{
+				Debug.Assert( TextBuffer != null );
 				Debug.Assert( 0 <= LineIndex );
-				Debug.Assert( LineIndex <= _Buffer.LDS.Count );
+				Debug.Assert( LineIndex <= TextBuffer.LDS.Count );
 
-				if( LineIndex < _Buffer.LDS.Count )
-					_Buffer.LDS[LineIndex] = value;
+				if( LineIndex < TextBuffer.LDS.Count )
+					TextBuffer.LDS[LineIndex] = value;
 			}
 		}
 	}

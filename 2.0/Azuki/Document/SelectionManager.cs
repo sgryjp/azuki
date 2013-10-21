@@ -126,7 +126,7 @@ namespace Sgry.Azuki
 			Debug.Assert( _SelectionMode == TextDataType.Normal || view != null );
 
 			// ensure that document can be divided at given index
-			TextUtil.ConstrainIndex( _Document.InternalBuffer, ref anchor, ref caret );
+			TextUtil.ConstrainIndex( _Document.Buffer, ref anchor, ref caret );
 
 			// set selection
 			if( SelectionMode == TextDataType.Rectangle )

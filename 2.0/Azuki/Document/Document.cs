@@ -441,7 +441,7 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Content Access
-		internal TextBuffer InternalBuffer
+		internal TextBuffer Buffer
 		{
 			get{ return _Buffer; }
 		}
