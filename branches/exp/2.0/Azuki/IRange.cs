@@ -28,8 +28,11 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This property extracts a substring from an associated text buffer. The substring
-		/// extracted is cached so that subsequent access won't hurt performance.
+		/// This property extracts a substring from an associated text buffer.
+		/// </para>
+		/// <para>
+		/// Range objects caches extracted substring until the associated text buffer was modified
+		/// so that subsequent read access won't hurt performance.
 		/// </para>
 		/// </remarks>
 		/// <exception cref="InvalidOperationException">

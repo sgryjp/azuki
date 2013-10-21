@@ -26,14 +26,14 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				if( 0 < End && _Buffer[End-1] == '\n' )
+				if( 0 < End && TextBuffer[End-1] == '\n' )
 				{
-					if( 1 < End && _Buffer[End-2] == '\r' )
+					if( 1 < End && TextBuffer[End-2] == '\r' )
 						return "\r\n";
 					else
 						return "\n";
 				}
-				else if( 0 < End && _Buffer[End-1] == '\r' )
+				else if( 0 < End && TextBuffer[End-1] == '\r' )
 				{
 					return "\r";
 				}

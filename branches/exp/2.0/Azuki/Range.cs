@@ -8,10 +8,11 @@ namespace Sgry.Azuki
 	/// </summary>
 	public class Range : IRange
 	{
-		readonly protected TextBuffer _Buffer;
+		readonly TextBuffer _Buffer;
 		protected DateTime _CacheTimestamp = DateTime.MinValue;
 		protected string _CachedText;
 
+		#region Init / Dispose
 		public Range()
 			: this(null, 0, 0)
 		{}
@@ -20,12 +21,22 @@ namespace Sgry.Azuki
 			: this(null, begin, end)
 		{}
 
+		/// <exception cref="ArgumentException"/>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		internal Range( TextBuffer buf, int begin, int end )
 		{
+			if( begin < 0 )
+				throw new ArgumentOutOfRangeException( "begin" );
+			if( end < 0 )
+				throw new ArgumentOutOfRangeException( "end" );
+			if( end < begin )
+				throw new ArgumentException();
+
 			_Buffer = buf;
 			Begin = begin;
 			End = end;
 		}
+		#endregion
 
 		internal TextBuffer TextBuffer
 		{
@@ -53,8 +64,8 @@ namespace Sgry.Azuki
 			get
 			{
 				if( _Buffer == null )
-					throw new InvalidOperationException( "A range associated with no text buffer"
-														 + " cannot extract a substring." );
+					throw new InvalidOperationException( "No text buffer was associated with this"
+														 + " range object." );
 
 				if( _CacheTimestamp < _Buffer.LastModifiedTime )
 				{
@@ -94,11 +105,15 @@ namespace Sgry.Azuki
 								  : Range.Empty;
 		}
 
+		/// <exception cref="InvalidOperationException"/>
 		/// <exception cref="ArgumentOutOfRangeException"/>
 		public CharData this[ int index ]
 		{
 			get
 			{
+				if( _Buffer == null )
+					throw new InvalidOperationException( "No text buffer was associated with this"
+														 + " range object." );
 				if( index < 0 || _Buffer.Count <= Begin + index )
 					throw new ArgumentOutOfRangeException();
 
@@ -112,7 +127,8 @@ namespace Sgry.Azuki
 			get
 			{
 				if( _Buffer == null )
-					throw new InvalidOperationException();
+					throw new InvalidOperationException( "No text buffer was associated with this"
+														 + " range object." );
 
 				return new CharDataList( _Buffer, this );
 			}
@@ -124,7 +140,8 @@ namespace Sgry.Azuki
 			get
 			{
 				if( _Buffer == null )
-					throw new InvalidOperationException();
+					throw new InvalidOperationException( "No text buffer was associated with this"
+														 + " range object." );
 
 				return new RawCharDataList( _Buffer, this );
 			}
@@ -140,7 +157,7 @@ namespace Sgry.Azuki
 			var another = obj as IRange;
 
 			if( another is Range
-				&& TextBuffer != (another as Range).TextBuffer )
+				&& _Buffer != (another as Range)._Buffer )
 				return false;
 
 			return (another != null) && (another.Begin == Begin && another.End == End);

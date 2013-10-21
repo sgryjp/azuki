@@ -133,7 +133,7 @@ namespace Sgry.Azuki.Test
 				} );
 
 				// invalid range (minus range)
-				Assert.Throws<ArgumentOutOfRangeException>( delegate{
+				Assert.Throws<ArgumentException>( delegate{
 					doc.GetText( 10, 9 );
 				} );
 			}
@@ -254,7 +254,7 @@ namespace Sgry.Azuki.Test
 
 			// Index constraint
 			var range = new Range( 1, 1 );
-			TextUtil.ConstrainIndex( doc.InternalBuffer, ref range );
+			TextUtil.ConstrainIndex( doc.Buffer, ref range );
 			Assert.AreEqual( 0, range.Begin );
 			Assert.AreEqual( 0, range.End );
 		}
@@ -1036,7 +1036,7 @@ namespace Sgry.Azuki.Test
 		#region Utilities
 		static void MoveGap( Document doc, int index )
 		{
-			doc.InternalBuffer.Insert( index, String.Empty );
+			doc.Buffer.Insert( index, String.Empty );
 		}
 		#endregion
 	}
