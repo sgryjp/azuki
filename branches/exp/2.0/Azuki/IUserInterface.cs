@@ -708,25 +708,6 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
-		#region Others
-		/// <summary>
-		/// Gets or sets highlighter object to highlight currently active document
-		/// or null to disable highlighting.
-		/// </summary>
-		IHighlighter Highlighter
-		{
-			get; set;
-		}
-
-		/// <summary>
-		/// Gets this component is focused by user or not.
-		/// </summary>
-		bool Focused
-		{
-			get;
-		}
-		#endregion
-
 		#region Position / Index Conversion
 		/// <summary>
 		/// Calculate screen location of the character at specified index.

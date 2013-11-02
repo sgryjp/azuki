@@ -20,5 +20,7 @@ namespace Sgry.Azuki
 		bool InvokeLineDrawn( IGraphics g, int lineIndex, Point pos );
 		void InvokeVScroll();
 		void InvokeHScroll();
+
+		bool Focused{ get; }
 	}
 }
