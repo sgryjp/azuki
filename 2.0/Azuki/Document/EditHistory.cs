@@ -1,6 +1,5 @@
 ﻿// file: EditHistory.cs
 // brief: History managemer for UNDO.
-// author: Suguru YAMAMOTO
 //=========================================================
 using System;
 

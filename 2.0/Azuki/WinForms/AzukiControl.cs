@@ -2,12 +2,10 @@
 // brief: User interface for WinForms framework
 //=========================================================
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 using System.Drawing;
+using System.Text;
 using System.Windows.Forms;
-using System.Runtime.InteropServices;
 using WinFormsTimer = System.Windows.Forms.Timer;
 
 namespace Sgry.Azuki.WinForms
@@ -712,26 +710,28 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This property gets or sets whether to show 'dirt bar' or not.
-		/// The dirt bar is graphically a thin bar at right end of the line number area
-		/// that indicates the dirty state of each text line.
-		/// The state of line is one of the following states.
+		/// This property gets or sets whether to show 'dirt bar' or not. Dirt bar is graphically
+		/// a thin bar at right end of the line number area that indicates dirtiness of each text
+		/// line. The state of line is one of the following.
 		/// </para>
 		/// <list type="bullet">
-		///		<item>DirtyState.Clean: the line is not modified yet.</item>
-		///		<item>DirtyState.Dirty: the line is modified and not saved.</item>
-		///		<item>DirtyState.Saved: the line is modified but saved.</item>
+		///		<item>DirtyState.Clean: Not modified yet.</item>
+		///		<item>DirtyState.Dirty: Modified and not saved.</item>
+		///		<item>DirtyState.Saved: Modified but saved.</item>
 		/// </list>
 		/// <para>
-		/// Color of each line dirty state can be customized by setting
-		/// ColorScheme.DirtyLineBar, ColorScheme.CleanedLineBar.
+		/// Corresponding area for each line will be colorized according to its dirty state.
+		/// <see cref="ColorScheme"/>.BackColor for 'clean' lines,
+		/// <see cref="ColorScheme"/>.DirtyLineBar for 'dirty' lines,
+		/// and <see cref="ColorScheme"/>.CleanedLineBar for 'saved' lines are used.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="DirtyState">DirtyState enum</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.GetLineDirtyState">Document.GetLineDirtyState method</seealso>
+		/// <seealso cref="DirtyState"/>
+		/// <seealso cref="ILineRange.DirtyState"/>
 		[Category("Appearance")]
 		[DefaultValue(true)]
-		[Description("Set true to show a thin bar at right end of the line number area which indicates the dirty state of each text line.")]
+		[Description("Set true to show a thin bar at right end of the line number area which"
+					 + " indicates the dirty state of each text line.")]
 		public bool ShowsDirtBar
 		{
 			get{ return View.ShowsDirtBar; }
@@ -1734,7 +1734,7 @@ namespace Sgry.Azuki.WinForms
 
 		#region IUserInterface - Events
 		/// <summary>
-		/// Occurs soon after the document's caret was moved.
+		/// Occurs when the caret was moved.
 		/// </summary>
 		public event EventHandler CaretMoved;
 
@@ -1750,9 +1750,9 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Occurs soon after the overwrite mode was changed.
+		/// Occurs when the overwrite mode was changed.
 		/// </summary>
-		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.IsOverwriteMode">AzukiControl.IsOverwriteMode property</seealso>
+		/// <seealso cref="IsOverwriteMode"/>
 		public event EventHandler OverwriteModeChanged;
 
 		/// <summary>
@@ -1767,7 +1767,7 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Occurres before a screen line was drawn.
+		/// Occurs when a screen line was drawn.
 		/// </summary>
 		public event LineDrawEventHandler LineDrawing;
 
@@ -1778,7 +1778,7 @@ namespace Sgry.Azuki.WinForms
 		{
 			if( LineDrawing != null )
 			{
-				LineDrawEventArgs e = new LineDrawEventArgs( g, lineIndex, pos );
+				var e = new LineDrawEventArgs( g, lineIndex, pos );
 				e.ShouldBeRedrawn = false;
 				LineDrawing( this, e );
 				return e.ShouldBeRedrawn;
@@ -1787,7 +1787,7 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Occurres after a screen line was drawn.
+		/// Occurs when a screen line was drawn.
 		/// </summary>
 		public event LineDrawEventHandler LineDrawn;
 
@@ -1798,7 +1798,7 @@ namespace Sgry.Azuki.WinForms
 		{
 			if( LineDrawn != null )
 			{
-				LineDrawEventArgs e = new LineDrawEventArgs( g, lineIndex, pos );
+				var e = new LineDrawEventArgs( g, lineIndex, pos );
 				e.ShouldBeRedrawn = false;
 				LineDrawn( this, e );
 				return e.ShouldBeRedrawn;
@@ -1807,13 +1807,14 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Occurres after vertical scroll happened.
+		/// Occurs when the viewport was scrolled vertially.
 		/// </summary>
 		public event EventHandler VScroll;
 
 		/// <summary>
 		/// Invokes VScroll event.
 		/// </summary>
+		/// <seealso cref="VScroll"/>
 		public void InvokeVScroll()
 		{
 			if( VScroll != null )
@@ -1821,13 +1822,14 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Occurres after norizontal scroll happened.
+		/// Occurs when the viewport was scrolled horizontally.
 		/// </summary>
 		public event EventHandler HScroll;
 
 		/// <summary>
 		/// Invokes HScroll event.
 		/// </summary>
+		/// <seealso cref="HScroll"/>
 		public void InvokeHScroll()
 		{
 			if( HScroll != null )

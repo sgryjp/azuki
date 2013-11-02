@@ -2,16 +2,14 @@
 // brief: User interface logic that independent from platform.
 //=========================================================
 using System;
-using System.Text;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Text;
 using System.Threading;
 using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki
 {
-	using IHighlighter = Highlighter.IHighlighter;
-
 	/// <summary>
 	/// User interface logic that independent from platform.
 	/// </summary>
@@ -728,18 +726,19 @@ namespace Sgry.Azuki
 			// If any characters which were not highlighted after last edit were drawn,
 			// expand invalid range to cover the chracters
 			// so that the highlighter thread can highlight them on next run
-			if( Document != null && Document.Highlighter != null )
+			var doc = Document;
+			if( doc != null && doc.Highlighter != null )
 			{
-				ViewParam vp = Document.ViewParam;
-				int end = GetIndexOfLastVisibleCharacter();
-				if( vp.H_ValidRangeEnd < end )
+				var param = doc.ViewParam;
+				var end = GetIndexOfLastVisibleCharacter();
+				if( param.H_ValidRangeEnd < end )
 				{
-					Debug.Assert( 0 <= vp.H_InvalidRangeBegin );
-					vp.H_InvalidRangeBegin = Math.Min( vp.H_InvalidRangeBegin,
-													   vp.H_ValidRangeEnd );
-					vp.H_InvalidRangeEnd = Math.Max( vp.H_InvalidRangeEnd,
-													 end );
-					vp.H_IsInvalid = true;
+					Debug.Assert( 0 <= param.H_InvalidRangeBegin );
+					param.H_InvalidRangeBegin = Math.Min( param.H_InvalidRangeBegin,
+														  param.H_ValidRangeEnd );
+					param.H_InvalidRangeEnd = Math.Max( param.H_InvalidRangeEnd,
+														end );
+					param.H_IsInvalid = true;
 					_UI.RescheduleHighlighting();
 				}
 			}
@@ -1236,25 +1235,25 @@ namespace Sgry.Azuki
 			_UI.InvokeCaretMoved();
 		}
 
-		public void Doc_ContentChanged( object sender, ContentChangedEventArgs e )
+		void Doc_ContentChanged( object sender, ContentChangedEventArgs e )
 		{
 			Debug.Assert( _IsDisposed == false );
-			ViewParam param = Document.ViewParam;
+			var param = Document.ViewParam;
 
-			// delegate to marker objects
+			// Delegate to marker objects
 			if( _Document.MarksUri )
 			{
 				UriMarker.Inst.HandleContentChanged( this, e );
 			}
 			_Document.WatchPatternMarker.HandleContentChanged( this, e );
 
-			// delegate to view object
+			// Delegate to view object
 			View.HandleContentChanged( sender, e );
 
-			// redraw caret graphic
+			// Redraw caret graphic
 			_UI.UpdateCaretGraphic();
 
-			// update matched bracket positions
+			// Update matched bracket positions
 			for( int i=0; i<param.MatchedBracketIndexes.Length; i++ )
 			{
 				if( e.Index + e.OldText.Length < param.MatchedBracketIndexes[i] )
@@ -1270,10 +1269,10 @@ namespace Sgry.Azuki
 			}
 			UpdateMatchedBracketPosition();
 
-			// update range of scroll bars
+			// Update range of scroll bars
 			_UI.UpdateScrollBarRange();
 
-			// update range of text which should be highlighted
+			// Update range of text which should be highlighted
 			if( e.Index < param.H_InvalidRangeBegin )
 			{
 				param.H_InvalidRangeBegin = e.Index;
@@ -1284,22 +1283,20 @@ namespace Sgry.Azuki
 			}
 			param.H_IsInvalid = true;
 
-			// update range of text which should NOT be highlighted until this document was modified
+			// Update range of text which should NOT be highlighted until this document was modified
 			param.H_ValidRangeEnd = e.Index;
 			if( param.H_ValidRangeEnd <= param.H_ValidRangeBegin )
 			{
 				param.H_ValidRangeBegin = param.H_ValidRangeEnd;
 			}
 
-			// start (reset) the timer to run a highlighter after a moment
+			// Start (reset) the timer to run a highlighter after a moment
 			_UI.RescheduleHighlighting();
 		}
 
-		public void Doc_DirtyStateChanged( object sender, EventArgs e )
+		void Doc_DirtyStateChanged( object sender, EventArgs e )
 		{
 			Debug.Assert( _IsDisposed == false );
-
-			// delegate to view object
 			View.HandleDirtyStateChanged( sender, e );
 		}
 

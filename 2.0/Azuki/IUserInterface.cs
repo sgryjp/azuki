@@ -775,22 +775,22 @@ namespace Sgry.Azuki
 		event EventHandler OverwriteModeChanged;
 
 		/// <summary>
-		/// Occurres before a screen line was drawn.
+		/// Occurs before a screen line was drawn.
 		/// </summary>
 		event LineDrawEventHandler LineDrawing;
 
 		/// <summary>
-		/// Occurres after a screen line was drawn.
+		/// Occurs after a screen line was drawn.
 		/// </summary>
 		event LineDrawEventHandler LineDrawn;
 
 		/// <summary>
-		/// Occurres after vertical scroll happened.
+		/// Occurs when the viewport was scrolled vertically.
 		/// </summary>
 		event EventHandler VScroll;
 
 		/// <summary>
-		/// Occurres after vertical scroll happened.
+		/// Occurs when the viewport was scrolled horizontally.
 		/// </summary>
 		event EventHandler HScroll;
 		#endregion

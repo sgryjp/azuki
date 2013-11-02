@@ -7,7 +7,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Conditional = System.Diagnostics.ConditionalAttribute;
-using Marshal = System.Runtime.InteropServices.Marshal;
 
 namespace Sgry.Azuki
 {

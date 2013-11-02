@@ -27,7 +27,7 @@ namespace Sgry.Azuki
 		int _PrevHRulerVirX;
 
 		// for PropWrapView
-		GapBuffer<int> _PLHI = new GapBuffer<int>( 128, 128 ); // this was 'physical line head indexes' in past so its name starts with 'P'
+		GapBuffer<int> _SLHI = new GapBuffer<int>( 128, 128 );
 		int _LastTextAreaWidth = 0;
 		int _LastFontHashCode = 0;
 		DateTime _LastModifiedTime = DateTime.MinValue;
@@ -54,7 +54,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public ViewParam()
 		{
-			_PLHI.Add( 0 );
+			_SLHI.Add( 0 );
 		}
 		#endregion
 
@@ -130,9 +130,9 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region PropWrapView specific parameters
-		public GapBuffer<int> PLHI
+		public GapBuffer<int> SLHI
 		{
-			get{ return _PLHI; }
+			get{ return _SLHI; }
 		}
 
 		public int LastTextAreaWidth

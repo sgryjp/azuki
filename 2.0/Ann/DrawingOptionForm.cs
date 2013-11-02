@@ -39,7 +39,7 @@ namespace Sgry.Ann
 		/// <summary>
 		/// This event handler will be called on
 		/// on each time user changed a parameter on dialog.
-		/// Use this for preview option values.
+		/// Use this to preview option values.
 		/// </summary>
 		public EventHandler OptionChangedHandler
 		{
