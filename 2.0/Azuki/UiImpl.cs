@@ -557,34 +557,7 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Highlighter
-		/// <summary>
-		/// Gets or sets highlighter for currently active document.
-		/// Setting null to this property will disable highlighting.
-		/// </summary>
-		public IHighlighter Highlighter
-		{
-			get
-			{
-				if( Document == null )
-					return null;
-				else
-					return Document.Highlighter;
-			}
-			set
-			{
-				Debug.Assert( _IsDisposed == false );
-				if( Document == null )
-					return;
-				
-				// switch document's highlighter
-				Document.Highlighter = value;
-
-				// then, invalidate view's whole area
-				_View.Invalidate();
-			}
-		}
-
-		internal void ExecHighlighter()
+		public void ExecHighlighter()
 		{
 			if( _UI.Document == null )
 				return;
