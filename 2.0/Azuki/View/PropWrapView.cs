@@ -23,7 +23,7 @@ namespace Sgry.Azuki
 		internal PropWrapView( IUserInterfaceInternal ui )
 			: base( ui )
 		{
-			Document.ViewParam.ScrollPosX = 0;
+			PerDocParam.ScrollPosX = 0;
 		}
 
 		/// <summary>
@@ -32,7 +32,7 @@ namespace Sgry.Azuki
 		internal PropWrapView( View other )
 			: base( other )
 		{
-			Document.ViewParam.ScrollPosX = 0;
+			PerDocParam.ScrollPosX = 0;
 		}
 		#endregion
 
@@ -87,8 +87,8 @@ namespace Sgry.Azuki
 						UpdateSLHI( g, 0, "", text );
 
 						// re-calculate line index of caret and anchor
-						doc.ViewParam.PrevCaretLine = Lines.AtOffset( doc.CaretIndex ).LineIndex;
-						doc.ViewParam.PrevAnchorLine = Lines.AtOffset( doc.AnchorIndex ).LineIndex;
+						PerDocParam.PrevCaretLine = Lines.AtOffset( doc.CaretIndex ).LineIndex;
+						PerDocParam.PrevAnchorLine = Lines.AtOffset( doc.AnchorIndex ).LineIndex;
 
 						// update desired column
 						// (must be done after UpdateSLHI)
@@ -412,9 +412,9 @@ namespace Sgry.Azuki
 		{
 			// update screen line head indexes if needed
 			var doc = Document;
-			if( doc.ViewParam.LastModifiedTime != doc.LastModifiedTime
-				|| doc.ViewParam.LastFontHashCode != FontInfo.GetHashCode()
-				|| doc.ViewParam.LastTextAreaWidth != TextAreaWidth )
+			if( PerDocParam.LastModifiedTime != doc.LastModifiedTime
+				|| PerDocParam.LastFontHashCode != FontInfo.GetHashCode()
+				|| PerDocParam.LastTextAreaWidth != TextAreaWidth )
 			{
 				DebugUtl.Assert( 0 < SLHI.Count );
 				UpdateSLHI( 0, "", doc.Text );
@@ -581,9 +581,9 @@ namespace Sgry.Azuki
 			}
 
 			// remember the condition of the calculation
-			doc.ViewParam.LastTextAreaWidth = TextAreaWidth;
-			doc.ViewParam.LastFontHashCode = FontInfo.GetHashCode();
-			doc.ViewParam.LastModifiedTime = doc.LastModifiedTime;
+			PerDocParam.LastTextAreaWidth = TextAreaWidth;
+			PerDocParam.LastFontHashCode = FontInfo.GetHashCode();
+			PerDocParam.LastModifiedTime = doc.LastModifiedTime;
 		}
 		#endregion
 
@@ -868,7 +868,7 @@ namespace Sgry.Azuki
 			get
 			{
 				Debug.Assert( Document != null );
-				return Document.ViewParam.SLHI;
+				return PerDocParam.SLHI;
 			}
 		}
 

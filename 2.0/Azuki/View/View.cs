@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using StringBuilder = System.Text.StringBuilder;
 using Debug = System.Diagnostics.Debug;
+using StringBuilder = System.Text.StringBuilder;
 
 namespace Sgry.Azuki
 {
@@ -256,7 +256,7 @@ namespace Sgry.Azuki
 			_LineHeight = g.MeasureText( "Mp" ).Height;
 			if( this.Document != null )
 			{
-				_LastUsedLineNumberSample = Document.ViewParam.MaxLineNumber;
+				_LastUsedLineNumberSample = PerDocParam.MaxLineNumber;
 			}
 			_LineNumAreaWidth
 				= g.MeasureText( _LastUsedLineNumberSample.ToString() ).Width + _SpaceWidth;
@@ -563,25 +563,19 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets or sets index of the line which is displayed at top of this view.
 		/// </summary>
-		/// <remarks>
-		/// This property simply accesses Document.ViewParam.FirstVisibleLine property.
-		/// </remarks>
 		public int FirstVisibleLine
 		{
-			get{ return Document.ViewParam.FirstVisibleLine; }
-			set{ Document.ViewParam.FirstVisibleLine = value; }
+			get{ return PerDocParam.FirstVisibleLine; }
+			set{ PerDocParam.FirstVisibleLine = value; }
 		}
 
 		/// <summary>
 		/// Gets or sets x-coordinate of the view's origin.
 		/// </summary>
-		/// <remarks>
-		/// This property simply accesses Document.ViewParam.ScrollPosX property.
-		/// </remarks>
 		internal int ScrollPosX
 		{
-			get{ return Document.ViewParam.ScrollPosX; }
-			set{ Document.ViewParam.ScrollPosX = value; }
+			get{ return PerDocParam.ScrollPosX; }
+			set{ PerDocParam.ScrollPosX = value; }
 		}
 
 		/// <summary>
@@ -700,7 +694,7 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public void SetDesiredColumn( IGraphics g )
 		{
-			Document.ViewParam.DesiredColumnX = GetVirtualPos( g, Document.CaretIndex ).X;
+			PerDocParam.DesiredColumnX = GetVirtualPos( g, Document.CaretIndex ).X;
 		}
 
 		/// <summary>
@@ -718,7 +712,7 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public int GetDesiredColumn()
 		{
-			return Document.ViewParam.DesiredColumnX;
+			return PerDocParam.DesiredColumnX;
 		}
 		#endregion
 
@@ -1271,8 +1265,8 @@ namespace Sgry.Azuki
 				UpdateLineNumberWidth( g );
 
 				// re-calculate line index of caret and anchor
-				doc.ViewParam.PrevCaretLine = Lines.AtOffset( doc.CaretIndex ).LineIndex;
-				doc.ViewParam.PrevAnchorLine = Lines.AtOffset( doc.AnchorIndex ).LineIndex;
+				PerDocParam.PrevCaretLine = Lines.AtOffset( doc.CaretIndex ).LineIndex;
+				PerDocParam.PrevAnchorLine = Lines.AtOffset( doc.AnchorIndex ).LineIndex;
 
 				// reset desired column to current caret position
 				SetDesiredColumn( g );
@@ -1315,7 +1309,7 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( doc != null );
 
 			// if current width of line number area is appropriate, do nothing
-			if( doc.Lines.Count <= doc.ViewParam.MaxLineNumber )
+			if( doc.Lines.Count <= PerDocParam.MaxLineNumber )
 			{
 				return;
 			}
@@ -1325,7 +1319,7 @@ namespace Sgry.Azuki
 			{
 				if( doc.Lines.Count <= _LineNumberSamples[i] )
 				{
-					doc.ViewParam.MaxLineNumber = _LineNumberSamples[i];
+					PerDocParam.MaxLineNumber = _LineNumberSamples[i];
 					if( _LastUsedLineNumberSample != _LineNumberSamples[i] )
 					{
 						UpdateMetrics( g );
@@ -1545,6 +1539,33 @@ namespace Sgry.Azuki
 		internal int EolCodeWidthInPx
 		{
 			get{ return (_LineHeight >> 1) + (_LineHeight >> 2); }
+		}
+		#endregion
+
+		#region Per document parameters
+		readonly Dictionary<int, PerDocParam> _PerDocParams = new Dictionary<int,PerDocParam>();
+		public PerDocParam PerDocParam
+		{
+			get
+			{
+				var code = Document.GetHashCode();
+				PerDocParam param;
+				if( _PerDocParams.TryGetValue(code, out param) == false )
+				{
+					// Collect garbages
+					var ids = new List<int>();
+					foreach( var key in _PerDocParams.Keys )
+						if( _PerDocParams[key].WeakRef.IsAlive == false )
+							ids.Add( key );
+					foreach( var id in ids )
+						_PerDocParams.Remove( id );
+
+					// Allocate a new parameter object
+					param = new PerDocParam( Document );
+					_PerDocParams[code] = param;
+				}
+				return param;
+			}
 		}
 		#endregion
 	}
