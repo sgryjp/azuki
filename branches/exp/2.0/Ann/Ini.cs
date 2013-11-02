@@ -619,7 +619,7 @@ namespace Sgry
 			valueEnd = line.Length - 1;
 			if( valueEnd == -1 )
 			{
-				Debug.Fail( "this case must not be occurred." );
+				Debug.Fail( "this case must not be occured." );
 				goto error;
 			}
 			valueEnd++;

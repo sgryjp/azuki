@@ -721,15 +721,16 @@ namespace Sgry.Azuki
 
 			Rectangle updateRect_old;
 			Rectangle udpateRect_new;
+			var doc = Document;
 
 			if( HRulerIndicatorType == HRulerIndicatorType.Position )
 			{
 				// get virtual position of the new caret
-				Point newCaretScreenPos = GetVirtualPos( g, Document.CaretIndex );
+				Point newCaretScreenPos = GetVirtualPos( g, doc.CaretIndex );
 				VirtualToScreen( ref newCaretScreenPos );
 
 				// get previous screen position of the caret
-				int oldCaretX = Document.ViewParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
+				int oldCaretX = doc.ViewParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
 				if( oldCaretX == newCaretScreenPos.X )
 				{
 					return; // horizontal poisition of the caret not changed
@@ -747,14 +748,12 @@ namespace Sgry.Azuki
 			}
 			else if( HRulerIndicatorType == HRulerIndicatorType.CharCount )
 			{
-				int oldSegmentX, newSegmentX;
-
 				// calculate new segment of horizontal ruler
-				var newCaretPos = GetTextPosition( Document.CaretIndex );
-				newSegmentX = (newCaretPos.Column * HRulerUnitWidth) + ScrXofTextArea - ScrollPosX;
+				var newCaretPos = GetTextPosition( doc.CaretIndex );
+				var newSegmentX = (newCaretPos.Column * HRulerUnitWidth) + ScrXofTextArea - ScrollPosX;
 
 				// calculate previous segment of horizontal ruler
-				oldSegmentX = Document.ViewParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
+				var oldSegmentX = doc.ViewParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
 				if( oldSegmentX == newSegmentX )
 				{
 					return; // horizontal poisition of the caret not changed
@@ -775,7 +774,7 @@ namespace Sgry.Azuki
 				int oldSegmentX, newSegmentX;
 
 				// get virtual position of the new caret
-				Point newCaretScreenPos = GetVirtualPos( g, Document.CaretIndex );
+				Point newCaretScreenPos = GetVirtualPos( g, doc.CaretIndex );
 				VirtualToScreen( ref newCaretScreenPos );
 
 				// calculate new segment of horizontal rulse
@@ -790,19 +789,17 @@ namespace Sgry.Azuki
 				}
 
 				// calculate previous segment of horizontal ruler
-				oldSegmentX = Document.ViewParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
+				oldSegmentX = doc.ViewParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
 				if( oldSegmentX == newSegmentX )
 				{
 					return; // segment was not changed
 				}
 
 				// calculate invalid rectangle
-				updateRect_old = new Rectangle(
-						oldSegmentX, ScrYofHRuler, HRulerUnitWidth, HRulerHeight
-					);
-				udpateRect_new = new Rectangle(
-						newSegmentX, ScrYofHRuler, HRulerUnitWidth, HRulerHeight
-					);
+				updateRect_old = new Rectangle( oldSegmentX, ScrYofHRuler,
+												HRulerUnitWidth, HRulerHeight );
+				udpateRect_new = new Rectangle( newSegmentX, ScrYofHRuler,
+												HRulerUnitWidth, HRulerHeight );
 			}
 
 			// not invalidate but DRAW old and new indicator here

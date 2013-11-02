@@ -225,7 +225,8 @@ namespace Sgry.Azuki
 		public FontInfo()
 			: this( SystemFonts.DefaultFont.Name,
 					(int)SystemFonts.DefaultFont.Size,
-					SystemFonts.DefaultFont.Style )
+					SystemFonts.DefaultFont.Style,
+					Antialias.Default )
 		{}
 
 		/// <summary>
@@ -233,10 +234,16 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <exception cref="ArgumentNullException"/>
 		/// <exception cref="ArgumentOutOfRangeException"/>
-		public FontInfo( string name,
-						 int size,
-						 FontStyle style,
-						 Antialias antialias = Antialias.Default )
+		public FontInfo( string name, int size, FontStyle style )
+			: this( name, size, style, Antialias.Default )
+		{}
+
+		/// <summary>
+		/// Creates a new instance.
+		/// </summary>
+		/// <exception cref="ArgumentNullException"/>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public FontInfo( string name, int size, FontStyle style, Antialias antialias )
 		{
 			if( name == null )
 				throw new ArgumentNullException( "name" );
@@ -396,42 +403,42 @@ namespace Sgry.Azuki
 		int ButtonIndex { get; }
 
 		/// <summary>
-		/// Gets the index of the character at where the mouse cursor points when this event occurred.
+		/// Gets the index of the character at where the mouse cursor points when this event occured.
 		/// </summary>
 		int Index { get; }
 
 		/// <summary>
-		/// Gets the location of the mouse cursor when this event occurred.
+		/// Gets the location of the mouse cursor when this event occured.
 		/// </summary>
 		Point Location { get; }
 
 		/// <summary>
-		/// Gets x-coordinate of the mouse cursor when this event occurred.
+		/// Gets x-coordinate of the mouse cursor when this event occured.
 		/// </summary>
 		int X { get; }
 
 		/// <summary>
-		/// Gets y-coordinate of the mouse cursor when this event occurred.
+		/// Gets y-coordinate of the mouse cursor when this event occured.
 		/// </summary>
 		int Y { get; }
 
 		/// <summary>
-		/// Gets whether Shift key was pressed down when this event occurred.
+		/// Gets whether Shift key was pressed down when this event occured.
 		/// </summary>
 		bool Shift { get; }
 
 		/// <summary>
-		/// Gets whether Control key was pressed down when this event occurred.
+		/// Gets whether Control key was pressed down when this event occured.
 		/// </summary>
 		bool Control { get; }
 
 		/// <summary>
-		/// Gets whether Alt key was pressed down when this event occurred.
+		/// Gets whether Alt key was pressed down when this event occured.
 		/// </summary>
 		bool Alt { get; }
 
 		/// <summary>
-		/// Gets whether Special key (Windows key) was pressed down when this event occurred.
+		/// Gets whether Special key (Windows key) was pressed down when this event occured.
 		/// </summary>
 		bool Special { get; }
 

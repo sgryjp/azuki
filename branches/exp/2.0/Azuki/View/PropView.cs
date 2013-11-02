@@ -207,7 +207,7 @@ namespace Sgry.Azuki
 		#region Appearance Invalidating and Updating
 		internal override void HandleSelectionChanged( object sender, SelectionChangedEventArgs e )
 		{
-			Document doc = Document;
+			var doc = Document;
 			int anchor = doc.AnchorIndex;
 			int caret = doc.CaretIndex;
 			int prevCaretLine = doc.ViewParam.PrevCaretLine;
@@ -447,7 +447,7 @@ namespace Sgry.Azuki
 		{
 			// in this case, we must invalidate between
 			// old anchor pos and old caret pos.
-			Document doc = base.Document;
+			var doc = base.Document;
 			int beginLineHead, endLineHead;
 			int begin, beginL;
 			int end, endL;

@@ -1,8 +1,6 @@
 ﻿// file: Actions.Selection.cs
 // brief: Actions for Azuki engine (actions to change selection).
-// author: Suguru YAMAMOTO
 //=========================================================
-using System;
 using System.Drawing;
 
 namespace Sgry.Azuki

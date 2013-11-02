@@ -1,6 +1,5 @@
 // file: EditAction.cs
 // brief: Recorded editing action for UNDO/REDO.
-// author: Suguru YAMAMOTO
 //=========================================================
 using System;
 using System.Collections.Generic;

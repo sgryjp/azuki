@@ -1,10 +1,8 @@
 ﻿// file: UriMarker.cs
 // brief: a singleton class which marks URIs up in document.
-// author: YAMAMOTO Suguru
 //=========================================================
 using System;
 using System.Text;
-using System.Collections.Generic;
 using UnicodeCategory = System.Globalization.UnicodeCategory;
 
 namespace Sgry.Azuki

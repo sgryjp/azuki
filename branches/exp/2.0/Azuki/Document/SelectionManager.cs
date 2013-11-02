@@ -1,8 +1,6 @@
 ﻿// file: SelectionManager.cs
 // brief: Internal class to manage text selection range.
-// author: YAMAMOTO Suguru
 //=========================================================
-using System;
 using System.Diagnostics;
 using System.Drawing;
 

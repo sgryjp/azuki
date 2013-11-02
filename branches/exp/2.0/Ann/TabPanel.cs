@@ -1,7 +1,5 @@
 // file: TabPanel.cs
 // brief: simple tab control
-// create: 2006-01-08 YAMAMOTO Suguru
-// update: 2010-11-14 YAMAMOTO Suguru
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -215,7 +213,7 @@ namespace Sgry.Azuki
 
 		#region Events
 		/// <summary>
-		/// Occures when a tab was selected.
+		/// Occurs when a tab was selected.
 		/// </summary>
 		public event TabSelectedEventHandler TabSelected;
 		

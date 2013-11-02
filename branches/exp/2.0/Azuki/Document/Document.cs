@@ -2063,9 +2063,11 @@ namespace Sgry.Azuki
 
 		/// <summary>
 		/// Occurs when the document content was changed.
-		/// ContentChangedEventArgs contains the old (replaced) text,
-		/// new text, and index indicating the replacement occured.
 		/// </summary>
+		/// <remarks>
+		/// <see cref="ContentChangedEventArgs"/> contains the old (replaced) text,
+		/// new text, and index indicating the replacement occured.
+		/// </remarks>
 		public event ContentChangedEventHandler ContentChanged;
 		void InvokeContentChanged( int index, string oldText, string newText )
 		{
@@ -2078,7 +2080,7 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Occurs when IsDirty property has changed.
+		/// Occurs when the IsDirty property was changed.
 		/// </summary>
 		public event EventHandler DirtyStateChanged;
 		void InvokeDirtyStateChanged()
@@ -2088,7 +2090,7 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Occures soon after selection mode was changed.
+		/// Occurs when the selection mode was changed.
 		/// </summary>
 		public event EventHandler SelectionModeChanged;
 		internal void InvokeSelectionModeChanged()
@@ -2316,10 +2318,7 @@ namespace Sgry.Azuki
 				// replace this row
 				Debug.Assert( IsNotDividableIndex(RectSelectRanges[i]) == false );
 				Debug.Assert( IsNotDividableIndex(RectSelectRanges[i+1]) == false );
-				Replace( String.Empty,
-						RectSelectRanges[i],
-						RectSelectRanges[i+1]
-					);
+				Replace( String.Empty, RectSelectRanges[i], RectSelectRanges[i+1] );
 
 				// go to next row
 				diff += RectSelectRanges[i+1] - RectSelectRanges[i];

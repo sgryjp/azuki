@@ -664,7 +664,7 @@ namespace Sgry.Azuki
 			var zombies =  new List<int>( _TrackingRanges.Count );
 			for( int i=0; i<_TrackingRanges.Count; i++ )
 			{
-				WeakReference ptr = _TrackingRanges[i];
+				var ptr = _TrackingRanges[i];
 				if( ptr.IsAlive )
 				{
 					var range = (TrackingRange)ptr.Target;

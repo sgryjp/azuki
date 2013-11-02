@@ -789,7 +789,7 @@ namespace Sgry.Ann
 		/// <exception cref="System.ArgumentException">Specified path is too long.</exception>
 		/// <exception cref="System.IO.PathTooLongException">Specified path is too long.</exception>
 		/// <exception cref="System.IO.DirectoryNotFoundException">Specified path string contains unexisting directory.</exception>
-		/// <exception cref="System.IO.IOException">An I/O error occurred.</exception>
+		/// <exception cref="System.IO.IOException"/>
 		/// <exception cref="System.IO.FileNotFoundException">Specified file was not found.</exception>
 		/// <exception cref="System.NotSupportedException">Format of the path string is not supported.</exception>
 		/// <exception cref="System.UnauthorizedAccessException">The path indicates a directory. -or- The caller does not have the required permission to read the file.</exception>

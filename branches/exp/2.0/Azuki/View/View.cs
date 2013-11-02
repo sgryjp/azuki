@@ -239,7 +239,7 @@ namespace Sgry.Azuki
 
 		protected void UpdateMetrics( IGraphics g )
 		{
-			StringBuilder buf = new StringBuilder( 32 );
+			var buf = new StringBuilder( 32 );
 			_LastUsedLineNumberSample = _LineNumberSamples[0];
 
 			// calculate tab width in pixel
@@ -679,7 +679,7 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public void SetDesiredColumn()
 		{
-			using( IGraphics g = _UI.GetIGraphics() )
+			using( var g = _UI.GetIGraphics() )
 			{
 				SetDesiredColumn( g );
 			}
@@ -1264,16 +1264,15 @@ namespace Sgry.Azuki
 		/// </summary>
 		internal virtual void HandleDocumentChanged( Document prevDocument )
 		{
+			var doc = Document;
 			using( IGraphics g = _UI.GetIGraphics() )
 			{
 				// reset width of line number area
 				UpdateLineNumberWidth( g );
 
 				// re-calculate line index of caret and anchor
-				Document.ViewParam.PrevCaretLine
-					= Lines.AtOffset( Document.CaretIndex ).LineIndex;
-				Document.ViewParam.PrevAnchorLine
-					= Lines.AtOffset( Document.AnchorIndex ).LineIndex;
+				doc.ViewParam.PrevCaretLine = Lines.AtOffset( doc.CaretIndex ).LineIndex;
+				doc.ViewParam.PrevAnchorLine = Lines.AtOffset( doc.AnchorIndex ).LineIndex;
 
 				// reset desired column to current caret position
 				SetDesiredColumn( g );
@@ -1312,10 +1311,11 @@ namespace Sgry.Azuki
 		/// </summary>
 		protected void UpdateLineNumberWidth( IGraphics g )
 		{
-			DebugUtl.Assert( this.Document != null );
+			var doc = Document;
+			DebugUtl.Assert( doc != null );
 
 			// if current width of line number area is appropriate, do nothing
-			if( Document.Lines.Count <= Document.ViewParam.MaxLineNumber )
+			if( doc.Lines.Count <= doc.ViewParam.MaxLineNumber )
 			{
 				return;
 			}
@@ -1323,9 +1323,9 @@ namespace Sgry.Azuki
 			// find minimum value from samples for calculating width of line number area
 			for( int i=0; i<_LineNumberSamples.Length; i++ )
 			{
-				if( Document.Lines.Count <= _LineNumberSamples[i] )
+				if( doc.Lines.Count <= _LineNumberSamples[i] )
 				{
-					Document.ViewParam.MaxLineNumber = _LineNumberSamples[i];
+					doc.ViewParam.MaxLineNumber = _LineNumberSamples[i];
 					if( _LastUsedLineNumberSample != _LineNumberSamples[i] )
 					{
 						UpdateMetrics( g );

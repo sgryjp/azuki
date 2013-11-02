@@ -1,10 +1,6 @@
 ﻿// file: TextDataType.cs
 // brief: Enumeration type representing text data type.
-// author: YAMAMOTO Suguru
-// update: 2010-08-09
 //=========================================================
-using System;
-
 namespace Sgry.Azuki
 {
 	/// <summary>
