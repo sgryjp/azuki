@@ -557,45 +557,45 @@ namespace Sgry.Azuki
 		#region Highlighter
 		public void ExecHighlighter()
 		{
-			if( _UI.Document == null )
+			var param = View.PerDocParam;
+			var doc = Document;
+			if( doc == null )
 				return;
 
-			int dirtyBegin, dirtyEnd;
-			Document doc = _UI.Document;
-			ViewParam param = doc.ViewParam;
-
-			// do nothing unless the document needs to be highlighted
-			if( doc.ViewParam.H_IsInvalid == false )
+			// Do nothing unless the document needs to be highlighted
+			if( param.H_IsInvalid == false )
 			{
 				return;
 			}
 
-			// determine where to start and where to end highlighting
-			dirtyBegin = Math.Max( 0, param.H_InvalidRangeBegin );
-			dirtyEnd = Math.Min( Math.Max(dirtyBegin, param.H_InvalidRangeEnd),
-								 doc.Length );
+			// Determine where to start and where to end highlighting
+			var dirtyBegin = Math.Max( 0,
+									   param.H_InvalidRangeBegin );
+			var dirtyEnd = Math.Min( Math.Max(dirtyBegin,
+											  param.H_InvalidRangeEnd),
+									 doc.Length );
 			if( dirtyEnd <= dirtyBegin )
 			{
-				// If characters at the end of documents was removed, or if 
-				// highlighter executed while the document was completely new.
+				// Characters at the end of document was removed, or highlighter was executed for
+				// completely new document.
 				return;
 			}
 
-			// clear the invalid range
+			// Clear the invalid range
 			param.H_InvalidRangeBegin = Int32.MaxValue;
 			param.H_InvalidRangeEnd = 0;
 			param.H_IsInvalid = false;
 
-			// do nothing if no highlighter was set to the active document
+			// Do nothing if no highlighter was set to the active document
 			if( doc.Highlighter == null )
 			{
 				return;
 			}
 
-			// highlight
+			// Highlight
 			doc.Highlighter.Highlight( doc, ref dirtyBegin, ref dirtyEnd );
 
-			// remember highlighted range of text
+			// Remember highlighted range of text
 			param.H_ValidRangeBegin = dirtyBegin;
 			param.H_ValidRangeEnd = dirtyEnd;
 			//DO_NOT//param.H_InvalidRangeBegin = something;
@@ -729,7 +729,7 @@ namespace Sgry.Azuki
 			var doc = Document;
 			if( doc != null && doc.Highlighter != null )
 			{
-				var param = doc.ViewParam;
+				var param = View.PerDocParam;
 				var end = GetIndexOfLastVisibleCharacter();
 				if( param.H_ValidRangeEnd < end )
 				{
@@ -1202,6 +1202,7 @@ namespace Sgry.Azuki
 			doc.SelectionChanged += Doc_SelectionChanged;
 			doc.ContentChanged += Doc_ContentChanged;
 			doc.DirtyStateChanged += Doc_DirtyStateChanged;
+			doc.HighlighterChanged += Doc_HighlighterChanged;
 			_UI.LineDrawing += doc.WatchPatternMarker.UI_LineDrawing;
 		}
 
@@ -1211,6 +1212,7 @@ namespace Sgry.Azuki
 			doc.SelectionChanged -= Doc_SelectionChanged;
 			doc.ContentChanged -= Doc_ContentChanged;
 			doc.DirtyStateChanged -= Doc_DirtyStateChanged;
+			doc.HighlighterChanged -= Doc_HighlighterChanged;
 			_UI.LineDrawing -= doc.WatchPatternMarker.UI_LineDrawing;
 		}
 
@@ -1238,7 +1240,7 @@ namespace Sgry.Azuki
 		void Doc_ContentChanged( object sender, ContentChangedEventArgs e )
 		{
 			Debug.Assert( _IsDisposed == false );
-			var param = Document.ViewParam;
+			var param = View.PerDocParam;
 
 			// Delegate to marker objects
 			if( _Document.MarksUri )
@@ -1300,6 +1302,17 @@ namespace Sgry.Azuki
 			View.HandleDirtyStateChanged( sender, e );
 		}
 
+		void Doc_HighlighterChanged( object sender, EventArgs e )
+		{
+			var param = View.PerDocParam;
+			param.H_InvalidRangeBegin = Int32.MaxValue;
+			param.H_InvalidRangeEnd = 0;
+			param.H_ValidRangeBegin = 0;
+			param.H_ValidRangeEnd = 0;
+
+			View.Invalidate();
+		}
+
 		void UpdateMatchedBracketPosition()
 		{
 			UpdateMatchedBracketPosition( _Document.CaretIndex, true );
@@ -1311,7 +1324,7 @@ namespace Sgry.Azuki
 		{
 			Debug.Assert( 0 <= bracketIndex );
 			Debug.Assert( bracketIndex <= _Document.Length );
-			ViewParam param = _Document.ViewParam;
+			var param = View.PerDocParam;
 			int offset = afterCaret ? 0 : 2;
 
 			// Reset matched bracket positions

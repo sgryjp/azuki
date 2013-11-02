@@ -18,18 +18,18 @@ namespace Sgry.Azuki
 	public class Document : IEnumerable<char>
 	{
 		#region Fields
-		TextBuffer _Buffer = new TextBuffer( 4096, 1024 );
-		EditHistory _History = new EditHistory();
-		SelectionManager _SelMan;
+		static short _InstanceCounter;
+		readonly int _InstanceCount;
+		readonly TextBuffer _Buffer = new TextBuffer( 4096, 1024 );
+		readonly EditHistory _History = new EditHistory();
+		readonly SelectionManager _SelMan;
 		bool _IsRecordingHistory = true;
 		bool _IsSuppressingDirtyStateChangedEvent = false;
-		WatchPatternSet _WatchPatterns = new WatchPatternSet();
-		WatchPatternMarker _WatchPatternMarker;
+		readonly WatchPatternSet _WatchPatterns = new WatchPatternSet();
+		readonly WatchPatternMarker _WatchPatternMarker;
 		string _EolCode = "\r\n";
-		bool _IsReadOnly = false;
 		IHighlighter _Highlighter = null;
 		IWordProc _WordProc = new DefaultWordProc();
-		ViewParam _ViewParam = new ViewParam();
 		object _Tag = null;
 		static readonly char[] _PairBracketTable = new char[]{
 			'(', ')', '{', '}', '[', ']', '<', '>',
@@ -59,6 +59,15 @@ namespace Sgry.Azuki
 			MarksUri = false;
 			_SelMan = new SelectionManager( this );
 			_WatchPatternMarker = new WatchPatternMarker( this );
+			_InstanceCount = unchecked( ++_InstanceCounter );
+		}
+
+		///	<summary>
+		/// Gets hash code of this document.
+		///	</summary>
+		public override int GetHashCode()
+		{
+			return _InstanceCount;
 		}
 		#endregion
 
@@ -68,23 +77,12 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		///   <para>
-		///   This property will be true if there is any unsaved modifications.
-		///   Although Azuki maintains almost all modification history in itself,
-		///   it cannot detect when the content was saved
-		///   because saving content to file or other means is done outside of it;
-		///   done by the application using Azuki.
-		///   Because of this, application is responsible to set this property to False
-		///   on saving content manually.
-		///   </para>
-		///   <para>
-		///   Note that attempting to set this property True by application code
-		///   will raise an InvalidOperationException.
-		///   Because any document cannot be turned 'dirty' without modification,
-		///   and modification by Document.Replace automatically set this property True
-		///   so doing so in application code is not needed.
+		///   This property will be true if there is any unsaved modifications. Azuki never change
+		///   this property value to False by itself so applications must set this property to
+		///   False manually on saving document content.
 		///   </para>
 		/// </remarks>
-		/// <exception cref="System.InvalidOperationException">
+		/// <exception cref="InvalidOperationException">
 		///   True was set as a new value.
 		///   - OR -
 		///   Modified while grouping UNDO actions.
@@ -95,10 +93,12 @@ namespace Sgry.Azuki
 			set
 			{
 				if( value == true )
-					throw new InvalidOperationException( "Document.IsDirty must not be set True by application code." );
+					throw new InvalidOperationException( "Document.IsDirty must not be set True by"
+														 + " application code." );
 
 				if( _History.IsGroupingActions )
-					throw new InvalidOperationException( "dirty state must not be modified while grouping UNDO actions." );
+					throw new InvalidOperationException( "Dirty state must not be modified while"
+														 + " grouping UNDO actions." );
 
 				if( _History.IsSavedState != value )
 					return;
@@ -128,10 +128,13 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets or sets whether this document is read-only or not.
 		/// </summary>
+		/// <remarks>
+		/// While this property is true, no modification can be done through user interface. Note
+		/// that documents still can be modified programatically through API.
+		/// </remarks>
 		public bool IsReadOnly
 		{
-			get{ return _IsReadOnly; }
-			set{ _IsReadOnly = value; }
+			get; set;
 		}
 
 		/// <summary>
@@ -142,10 +145,10 @@ namespace Sgry.Azuki
 		///   This property gets whether one or more UNDOable action exists or not.
 		///   </para>
 		///   <para>
-		///   To execute UNDO, use <see cref="Sgry.Azuki.Document.Undo">Undo</see> method.
+		///   To execute UNDO, use <see cref="Document.Undo"/> method.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.Undo">Document.Undo method</seealso>
+		/// <seealso cref="Document.Undo"/>
 		public bool CanUndo
 		{
 			get{ return _History.CanUndo; }
@@ -162,7 +165,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets or sets the size of the internal buffer.
 		/// </summary>
-		/// <exception cref="System.OutOfMemoryException">There is no enough memory to expand buffer.</exception>
+		/// <exception cref="OutOfMemoryException"/>
 		public int Capacity
 		{
 			get{ return _Buffer.Capacity; }
@@ -192,21 +195,6 @@ namespace Sgry.Azuki
 		public WatchPatternSet WatchPatterns
 		{
 			get{ return _WatchPatterns; }
-		}
-
-		/// <summary>
-		/// Gets view specific parameters associated with this document.
-		/// </summary>
-		/// <remarks>
-		///   <para>
-		///   There are some parameters that are dependent on each document
-		///   but are not parameters about document content.
-		///   This property contains such parameters.
-		///   </para>
-		/// </remarks>
-		internal ViewParam ViewParam
-		{
-			get{ return _ViewParam; }
 		}
 		#endregion
 
@@ -1928,59 +1916,36 @@ namespace Sgry.Azuki
 
 		#region Highlighter and word processor
 		/// <summary>
-		/// Gets or sets highlighter object to highlight currently active document
-		/// or null to disable highlighting.
+		/// Gets or sets syntax highlighter for this document (setting null disables highlighting.)
 		/// </summary>
 		/// <remarks>
 		///   <para>
-		///   This property gets or sets highlighter for this document.
+		///   This property gets or sets a syntax highlighter object for this document. If null was
+		///   given, highlighting feature will be disabled.
 		///   </para>
 		///   <para>
-		///   Highlighter objects are used to highlight syntax of documents.
-		///   They implements
-		///   <see cref="Sgry.Azuki.Highlighter.IHighlighter">IHighlighter</see>
-		///   interface and called
-		///   <see cref="Sgry.Azuki.Highlighter.IHighlighter.Highlight(Sgry.Azuki.Document, ref int, ref int)">Highlight</see>
-		///   method every time slightly after user input stopped to execute own highlighting logic.
-		///   If null was set to this property, highlighting feature will be disabled.
+		///   Syntax highlighters are objects implementing <see cref="IHighlighter"/>. There are
+		///   some built-in syntax highlighters provided as members of <see cref="Highlighters"/>
+		///   class. If there isn't an appropriate built-in highlighter, you can create your own
+		///   syntax highlighter by implementing <see cref="IHighlighter"/>. Note that if it is a
+		///   keyword-based syntax highlighter, it is recommended to create a class which extends
+		///   <see cref="KeywordHighlighter"/> because it provides highlighting logic which
+		///   satisfies most needs.
 		///   </para>
 		///   <para>
-		///   Azuki provides some built-in highlighters. See
-		///   <see cref="Sgry.Azuki.Highlighter.Highlighters">Highlighter.Highlighters</see>
-		///   class members.
-		///   </para>
-		///   <para>
-		///   User can create and use custom highlighter object.
-		///   If you want to create a keyword-based highlighter,
-		///   you can extend
-		///   <see cref="Sgry.Azuki.Highlighter.KeywordHighlighter">KeywordHighlighter</see>.
-		///   If you want to create not a keyword based one,
-		///   create a class which implements
-		///   <see cref="Sgry.Azuki.Highlighter.IHighlighter">IHighlighter</see>
-		///   and write your own highlighting logic.
-		///   </para>
-		///   <para>
-		///   Note that setting new value to this property will not invalidate graphics.
-		///   To update graphic, set value via IUserInterface.Highlighter.
+		///   Azuki calls <see cref="IHighlighter.Highlight(Document, ref int, ref int)"/> every
+		///   time slightly after the user stops editing with a range of document which should be
+		///   highlighted. This means highlighting does not occur in realtime.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.IUserInterface.Highlighter">IUserInterface.Highlighter</seealso>
 		public IHighlighter Highlighter
 		{
 			get{ return _Highlighter; }
 			set
 			{
-				// clear all highlight information
 				_Buffer.ClearCharClasses();
-
-				// associate with new highlighter object
 				_Highlighter = value;
-
-				// clear highlighter related parameters
-				ViewParam.H_InvalidRangeBegin = Int32.MaxValue;
-				ViewParam.H_InvalidRangeEnd = 0;
-				ViewParam.H_ValidRangeBegin = 0;
-				ViewParam.H_ValidRangeEnd = 0;
+				InvokeHighlighterChanged();
 			}
 		}
 
@@ -2000,9 +1965,7 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public bool IsCDATA( int index )
 		{
-			CharClass klass;
-
-			klass = GetCharClass( index );
+			var klass = GetCharClass( index );
 			return ( klass == CharClass.AttributeValue
 					|| klass == CharClass.CDataSection
 					|| klass == CharClass.Character
@@ -2022,8 +1985,8 @@ namespace Sgry.Azuki
 		///   Please refer to the document of IWordProc interface for detail.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.IWordProc">IWordProc interface</seealso>
-		/// <seealso cref="Sgry.Azuki.DefaultWordProc">DefaultWordProc class</seealso>
+		/// <seealso cref="IWordProc"/>
+		/// <seealso cref="DefaultWordProc"/>
 		public IWordProc WordProc
 		{
 			get{ return _WordProc; }
@@ -2041,7 +2004,10 @@ namespace Sgry.Azuki
 		/// Occurs when the selection was changed.
 		/// </summary>
 		public event SelectionChangedEventHandler SelectionChanged;
-		internal void InvokeSelectionChanged( int oldAnchor, int oldCaret, int[] oldRectSelectRanges, bool byContentChanged )
+		internal void InvokeSelectionChanged( int oldAnchor,
+											  int oldCaret,
+											  int[] oldRectSelectRanges,
+											  bool byContentChanged )
 		{
 #			if DEBUG
 			Debug.Assert( 0 <= oldAnchor );
@@ -2054,10 +2020,11 @@ namespace Sgry.Azuki
 
 			if( SelectionChanged != null )
 			{
-				SelectionChanged(
-						this,
-						new SelectionChangedEventArgs(oldAnchor, oldCaret, oldRectSelectRanges, byContentChanged)
-					);
+				SelectionChanged( this,
+								  new SelectionChangedEventArgs(oldAnchor,
+																oldCaret,
+																oldRectSelectRanges,
+																byContentChanged) );
 			}
 		}
 
@@ -2082,6 +2049,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Occurs when the IsDirty property was changed.
 		/// </summary>
+		/// <seealso cref="Document.IsDirty"/>
 		public event EventHandler DirtyStateChanged;
 		void InvokeDirtyStateChanged()
 		{
@@ -2092,6 +2060,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Occurs when the selection mode was changed.
 		/// </summary>
+		/// <seealso cref="Document.SelectionMode"/>
 		public event EventHandler SelectionModeChanged;
 		internal void InvokeSelectionModeChanged()
 		{
@@ -2099,6 +2068,17 @@ namespace Sgry.Azuki
 			{
 				SelectionModeChanged( this, EventArgs.Empty );
 			}
+		}
+
+		/// <summary>
+		/// Occurs when the highlighter was changed.
+		/// </summary>
+		/// <seealso cref="Document.Highlighter"/>
+		public event EventHandler HighlighterChanged;
+		void InvokeHighlighterChanged()
+		{
+			if( HighlighterChanged != null )
+				HighlighterChanged( this, EventArgs.Empty );
 		}
 		#endregion
 
@@ -2288,21 +2268,6 @@ namespace Sgry.Azuki
 				return false;
 
 			return TextUtil.IsVariationSelector( this[index], this[index+1] );
-		}
-
-		/// <summary>
-		/// Returnes whether the index points to one of the paired matching bracket or not.
-		/// Note that matching bracket position is not maintaned by Document but by UiImpl.
-		/// </summary>
-		internal bool IsMatchedBracket( int index )
-		{
-			Debug.Assert( 0 <= index && index < Length );
-
-			if( 0 <= Array.IndexOf(ViewParam.MatchedBracketIndexes, index) )
-			{
-				return true;
-			}
-			return false;
 		}
 
 		internal void DeleteRectSelectText()

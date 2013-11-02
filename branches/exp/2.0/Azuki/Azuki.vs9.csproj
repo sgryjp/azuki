@@ -71,7 +71,6 @@
     <Compile Include="Document\TextBuffer.cs" />
     <Compile Include="Document\TextDataType.cs" />
     <Compile Include="Document\UriMarker.cs" />
-    <Compile Include="Document\ViewParam.cs" />
     <Compile Include="Document\WatchPattern.cs" />
     <Compile Include="Document\WatchPatternMarker.cs" />
     <Compile Include="Highlighter\BatchFileHighlighter.cs" />
@@ -115,6 +114,7 @@
     <Compile Include="View\IView.cs" />
     <Compile Include="View\IViewInternal.cs" />
     <Compile Include="View\MouseCursor.cs" />
+    <Compile Include="View\PerDocParam.cs" />
     <Compile Include="View\PropView.cs" />
     <Compile Include="View\PropWrapView.cs" />
     <Compile Include="View\TextDecoration.cs" />

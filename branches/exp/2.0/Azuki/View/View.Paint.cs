@@ -3,10 +3,9 @@
 //=========================================================
 //DEBUG//#define DRAW_SLOWLY
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using StringBuilder = System.Text.StringBuilder;
 using Debug = System.Diagnostics.Debug;
+using StringBuilder = System.Text.StringBuilder;
 
 namespace Sgry.Azuki
 {
@@ -188,7 +187,7 @@ namespace Sgry.Azuki
 			// matched bracket
 			else if( HighlightsMatchedBracket
 				&& doc.CaretIndex == doc.AnchorIndex // ensure nothing is selected
-				&& doc.IsMatchedBracket(tokenIndex) )
+				&& IsMatchedBracket(tokenIndex) )
 			{
 				Color fore = ColorScheme.MatchedBracketFore;
 				Color back = ColorScheme.MatchedBracketBack;
@@ -609,7 +608,7 @@ namespace Sgry.Azuki
 				}
 
 				// remember lastly drawn ruler bar position
-				Document.ViewParam.PrevHRulerVirX = caretPos.X - ScrXofTextArea + ScrollPosX;
+				PerDocParam.PrevHRulerVirX = caretPos.X - ScrXofTextArea + ScrollPosX;
 			}
 			else if( HRulerIndicatorType == HRulerIndicatorType.CharCount )
 			{
@@ -632,7 +631,7 @@ namespace Sgry.Azuki
 				}
 
 				// remember lastly filled ruler segmentr position
-				Document.ViewParam.PrevHRulerVirX = indicatorX - ScrXofTextArea + ScrollPosX;
+				PerDocParam.PrevHRulerVirX = indicatorX - ScrXofTextArea + ScrollPosX;
 			}
 			else// if( HRulerIndicatorType == HRulerIndicatorType.Segment )
 			{
@@ -655,7 +654,7 @@ namespace Sgry.Azuki
 				}
 
 				// remember lastly filled ruler segmentr position
-				Document.ViewParam.PrevHRulerVirX = indicatorPos.X - ScrXofTextArea + ScrollPosX;
+				PerDocParam.PrevHRulerVirX = indicatorPos.X - ScrXofTextArea + ScrollPosX;
 			}
 
 			g.RemoveClipRect();
@@ -730,7 +729,7 @@ namespace Sgry.Azuki
 				VirtualToScreen( ref newCaretScreenPos );
 
 				// get previous screen position of the caret
-				int oldCaretX = doc.ViewParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
+				int oldCaretX = PerDocParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
 				if( oldCaretX == newCaretScreenPos.X )
 				{
 					return; // horizontal poisition of the caret not changed
@@ -753,7 +752,7 @@ namespace Sgry.Azuki
 				var newSegmentX = (newCaretPos.Column * HRulerUnitWidth) + ScrXofTextArea - ScrollPosX;
 
 				// calculate previous segment of horizontal ruler
-				var oldSegmentX = doc.ViewParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
+				var oldSegmentX = PerDocParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
 				if( oldSegmentX == newSegmentX )
 				{
 					return; // horizontal poisition of the caret not changed
@@ -789,7 +788,7 @@ namespace Sgry.Azuki
 				}
 
 				// calculate previous segment of horizontal ruler
-				oldSegmentX = doc.ViewParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
+				oldSegmentX = PerDocParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
 				if( oldSegmentX == newSegmentX )
 				{
 					return; // segment was not changed
@@ -1073,7 +1072,7 @@ namespace Sgry.Azuki
 
 			// calculate how many chars should be drawn as one token
 			tokenEndLimit = CalcTokenEndAtMost( doc, index, nextLineHead, out out_inSelection );
-			if( doc.IsMatchedBracket(index) )
+			if( IsMatchedBracket(index) )
 			{
 				// if specified index is a bracket paired with a bracket at caret, paint this single char
 				out_klass = doc.GetCharClass( index );
@@ -1115,7 +1114,7 @@ namespace Sgry.Azuki
 					return index;
 				}
 				// or if this is matched bracket, stop seeking
-				else if( doc.IsMatchedBracket(index) )
+				else if( IsMatchedBracket(index) )
 				{
 					return index;
 				}
@@ -1227,6 +1226,20 @@ namespace Sgry.Azuki
 			{
 				return Math.Max( a, Math.Max(b, Math.Max(c,d) ) );
 			}
+		}
+
+		/// <summary>
+		/// Returnes whether the index points to one of the paired matching bracket or not.
+		/// </summary>
+		bool IsMatchedBracket( int index )
+		{
+			Debug.Assert( 0 <= index && index < Document.Length );
+
+			if( 0 <= Array.IndexOf(PerDocParam.MatchedBracketIndexes, index) )
+			{
+				return true;
+			}
+			return false;
 		}
 		#endregion
 	}

@@ -210,7 +210,7 @@ namespace Sgry.Azuki
 			var doc = Document;
 			int anchor = doc.AnchorIndex;
 			int caret = doc.CaretIndex;
-			int prevCaretLine = doc.ViewParam.PrevCaretLine;
+			int prevCaretLine = PerDocParam.PrevCaretLine;
 			IGraphics g = null;
 
 			// calculate line/column index of current anchor/caret
@@ -298,8 +298,8 @@ namespace Sgry.Azuki
 			finally
 			{
 				// remember last selection for next invalidation
-				doc.ViewParam.PrevCaretLine = caretPos.Line;
-				doc.ViewParam.PrevAnchorLine = anchorPos.Line;
+				PerDocParam.PrevCaretLine = caretPos.Line;
+				PerDocParam.PrevAnchorLine = anchorPos.Line;
 
 				// dispose graphics resource
 				if( g != null )
@@ -313,8 +313,8 @@ namespace Sgry.Azuki
 																int oldCaretLine,
 																int newCaretLine )
 		{
-			int prevAnchorLine = Document.ViewParam.PrevAnchorLine;
-			int prevCaretLine = Document.ViewParam.PrevCaretLine;
+			int prevAnchorLine = PerDocParam.PrevAnchorLine;
+			int prevCaretLine = PerDocParam.PrevCaretLine;
 
 			// invalidate old underline if it is still visible
 			if( prevCaretLine == prevAnchorLine && FirstVisibleLine <= prevCaretLine )
@@ -424,7 +424,7 @@ namespace Sgry.Azuki
 			if( e.OldCaret < doc.CaretIndex )
 			{
 				begin = e.OldCaret;
-				beginL = doc.ViewParam.PrevCaretLine;
+				beginL = PerDocParam.PrevCaretLine;
 				end = doc.CaretIndex;
 				endL = caretLine;
 			}
@@ -433,7 +433,7 @@ namespace Sgry.Azuki
 				begin = doc.CaretIndex;
 				beginL = caretLine;
 				end = e.OldCaret;
-				endL = doc.ViewParam.PrevCaretLine;
+				endL = PerDocParam.PrevCaretLine;
 			}
 			beginLineHead = Lines[ beginL ].Begin;
 			endLineHead = Lines[ endL ].Begin; // if old caret is the end pos and if the pos
@@ -451,8 +451,8 @@ namespace Sgry.Azuki
 			int beginLineHead, endLineHead;
 			int begin, beginL;
 			int end, endL;
-			int prevAnchorLine = doc.ViewParam.PrevAnchorLine;
-			int prevCaretLine = doc.ViewParam.PrevCaretLine;
+			int prevAnchorLine = PerDocParam.PrevAnchorLine;
+			int prevCaretLine = PerDocParam.PrevCaretLine;
 
 			// get old selection range
 			if( e.OldAnchor < e.OldCaret )
