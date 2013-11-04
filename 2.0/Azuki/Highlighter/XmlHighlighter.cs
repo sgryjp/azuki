@@ -1,9 +1,5 @@
-﻿// file: XmlHighlighter.cs
-// brief: Highlighter for XML.
-//=========================================================
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki.Highlighter
@@ -15,8 +11,10 @@ namespace Sgry.Azuki.Highlighter
 	{
 		#region Fields
 		static readonly string DefaultWordCharSet = null;
-		List<Enclosure> _Enclosures = new List<Enclosure>();
-		GapBuffer<int> _ReparsePoints = new GapBuffer<int>( 64 );
+		readonly List<Enclosure> _Enclosures = new List<Enclosure>();
+
+		readonly GapBuffer<int> _ReparsePoints = new GapBuffer<int>( 64 );
+		int _LastDocumentHash;
 		#endregion
 
 		#region Properties
@@ -31,7 +29,9 @@ namespace Sgry.Azuki.Highlighter
 		/// <summary>
 		/// Gets or sets highlighter hook procedure.
 		/// </summary>
-		/// <exception cref="System.NotSupportedException">This highlighter does not support hook procedure.</exception>
+		/// <exception cref="NotSupportedException">
+		///   This highlighter does not support hook procedure.
+		/// </exception>
 		public HighlightHook HookProc
 		{
 			get{ throw new NotSupportedException(); }
@@ -45,8 +45,8 @@ namespace Sgry.Azuki.Highlighter
 		/// </summary>
 		public XmlHighlighter()
 		{
-			bool MULTILINE = true;
-			bool CASE_SENSITIVE = false;
+			const bool MULTILINE = true;
+			const bool CASE_SENSITIVE = false;
 
 			Enclosure doubleQuote = new Enclosure( "\"",
 												   "\"",
@@ -83,42 +83,35 @@ namespace Sgry.Azuki.Highlighter
 		#endregion
 
 		#region Highlighting Logic
-		/// <summary>
-		/// Parse and highlight keywords.
-		/// </summary>
-		/// <param name="doc">Document to highlight.</param>
-		public void Highlight( Document doc )
+		public IRange Highlight( IRange dirtyRange )
 		{
-			int begin = 0;
-			int end = doc.Length;
-			Highlight( doc, ref begin, ref end );
-		}
+			var doc = dirtyRange.Document;
+			if( dirtyRange.Begin < 0 || doc.Length < dirtyRange.Begin )
+				throw new ArgumentOutOfRangeException( "dirtyRange", "Begin of 'dirtyRange' is out"
+																	 + " of valid range." );
+			if( dirtyRange.End < 0 || doc.Length < dirtyRange.End )
+				throw new ArgumentOutOfRangeException( "dirtyRange", "End of 'dirtyRange' is out"
+																	 + " of valid range." );
 
-		/// <summary>
-		/// Parse and highlight keywords.
-		/// </summary>
-		/// <param name="doc">Document to highlight.</param>
-		/// <param name="dirtyBegin">Index to start highlighting. On return, start index of the range to be invalidated.</param>
-		/// <param name="dirtyEnd">Index to end highlighting. On return, end index of the range to be invalidated.</param>
-		public void Highlight( Document doc, ref int dirtyBegin, ref int dirtyEnd )
-		{
-			if( dirtyBegin < 0 || doc.Length < dirtyBegin )
-				throw new ArgumentOutOfRangeException( "dirtyBegin" );
-			if( dirtyEnd < 0 || doc.Length < dirtyEnd )
-				throw new ArgumentOutOfRangeException( "dirtyEnd" );
+			// Refresh cache
+			if( _LastDocumentHash != doc.GetHashCode() )
+			{
+				_ReparsePoints.Clear();
+				_LastDocumentHash = doc.GetHashCode();
+			}
 
 			char nextCh;
 			int index, nextIndex;
 
 			// Determine range to highlight
-			dirtyBegin = Utl.FindReparsePoint( _ReparsePoints, dirtyBegin );
-			dirtyEnd = Utl.FindReparseEndPoint( doc, dirtyEnd );
+			dirtyRange.Begin = Utl.FindReparsePoint( _ReparsePoints, dirtyRange.Begin );
+			dirtyRange.End = Utl.FindReparseEndPoint( doc, dirtyRange.End );
 
 			// seek each tags
 			index = 0;
-			while( 0 <= index && index < dirtyEnd )
+			while( 0 <= index && index < dirtyRange.End )
 			{
-				if( Utl.TryHighlight(doc, _Enclosures, index, dirtyEnd, null, out nextIndex) )
+				if( Utl.TryHighlight(doc, _Enclosures, index, dirtyRange.End, null, out nextIndex) )
 				{
 					Utl.EntryReparsePoint( _ReparsePoints, index );
 					index = nextIndex;
@@ -130,9 +123,9 @@ namespace Sgry.Azuki.Highlighter
 					// set class for '<'
 					doc.SetCharClass( index, CharClass.Delimiter );
 					index++;
-					if( dirtyEnd <= index )
+					if( dirtyRange.End <= index )
 					{
-						return;
+						return dirtyRange;
 					}
 
 					// if next char is '?' or '/', highlight it too
@@ -141,8 +134,8 @@ namespace Sgry.Azuki.Highlighter
 					{
 						doc.SetCharClass( index, CharClass.Delimiter );
 						index++;
-						if( dirtyEnd <= index )
-							return;
+						if( dirtyRange.End <= index )
+							return dirtyRange;
 					}
 
 					// skip whitespaces
@@ -150,8 +143,8 @@ namespace Sgry.Azuki.Highlighter
 					{
 						doc.SetCharClass( index, CharClass.Normal );
 						index++;
-						if( dirtyEnd <= index )
-							return;
+						if( dirtyRange.End <= index )
+							return dirtyRange;
 					}
 
 					// highlight element name
@@ -163,10 +156,10 @@ namespace Sgry.Azuki.Highlighter
 					index = nextIndex;
 
 					// highlight attributes
-					while( index < dirtyEnd && doc[index] != '>' )
+					while( index < dirtyRange.End && doc[index] != '>' )
 					{
 						// highlight enclosing part if this token begins a part
-						if( Utl.TryHighlight(doc, _Enclosures, index, dirtyEnd, null, out nextIndex) )
+						if( Utl.TryHighlight(doc, _Enclosures, index, dirtyRange.End, null, out nextIndex) )
 						{
 							// successfully highlighted. skip to next.
 							index = nextIndex;
@@ -183,7 +176,7 @@ namespace Sgry.Azuki.Highlighter
 					}
 
 					// highlight '>'
-					if( index < dirtyEnd )
+					if( index < dirtyRange.End )
 					{
 						doc.SetCharClass( index, CharClass.Delimiter );
 						if( 1 <= index && doc[index-1] == '/' )
@@ -199,7 +192,7 @@ namespace Sgry.Azuki.Highlighter
 
 					// find end position of this token
 					FindEntityEnd( doc, index, out seekEndIndex, out wasEntity );
-					DebugUtl.Assert( 0 <= seekEndIndex && seekEndIndex <= doc.Length );
+					Debug.Assert( 0 <= seekEndIndex && seekEndIndex <= doc.Length );
 
 					// highlight this token
 					klass = wasEntity ? CharClass.Entity : CharClass.Normal;
@@ -216,12 +209,15 @@ namespace Sgry.Azuki.Highlighter
 					index++;
 				}
 			}
+
+			return dirtyRange;
 		}
 
-		static void FindEntityEnd( Document doc, int startIndex, out int endIndex, out bool wasEntity )
+		static void FindEntityEnd( Document doc, int startIndex,
+								   out int endIndex, out bool wasEntity )
 		{
-			DebugUtl.Assert( startIndex < doc.Length );
-			DebugUtl.Assert( doc[startIndex] == '&' );
+			Debug.Assert( startIndex < doc.Length );
+			Debug.Assert( doc[startIndex] == '&' );
 
 			endIndex = startIndex + 1;
 			while( endIndex < doc.Length )
@@ -250,7 +246,6 @@ namespace Sgry.Azuki.Highlighter
 			}
 
 			wasEntity = false;
-			return;
 		}
 		#endregion
 	}

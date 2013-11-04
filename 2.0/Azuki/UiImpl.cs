@@ -569,12 +569,13 @@ namespace Sgry.Azuki
 			}
 
 			// Determine where to start and where to end highlighting
-			var dirtyBegin = Math.Max( 0,
-									   param.H_InvalidRangeBegin );
-			var dirtyEnd = Math.Min( Math.Max(dirtyBegin,
-											  param.H_InvalidRangeEnd),
-									 doc.Length );
-			if( dirtyEnd <= dirtyBegin )
+			var dirtyRange = new Range( doc, 0, 0 );
+			dirtyRange.Begin = Math.Max( 0,
+										 param.H_InvalidRangeBegin );
+			dirtyRange.End = Math.Min( Math.Max(dirtyRange.Begin,
+												param.H_InvalidRangeEnd),
+									   doc.Length );
+			if( dirtyRange.End <= dirtyRange.Begin )
 			{
 				// Characters at the end of document was removed, or highlighter was executed for
 				// completely new document.
@@ -593,16 +594,16 @@ namespace Sgry.Azuki
 			}
 
 			// Highlight
-			doc.Highlighter.Highlight( doc, ref dirtyBegin, ref dirtyEnd );
+			var rangeHighlighted = doc.Highlighter.Highlight( dirtyRange.Clone() );
 
 			// Remember highlighted range of text
-			param.H_ValidRangeBegin = dirtyBegin;
-			param.H_ValidRangeEnd = dirtyEnd;
+			param.H_ValidRangeBegin = rangeHighlighted.Begin;
+			param.H_ValidRangeEnd = rangeHighlighted.End;
 			//DO_NOT//param.H_InvalidRangeBegin = something;
 			//DO_NOT//param.H_InvalidRangeEnd = something;
 
 			// then, refresh view
-			View.Invalidate( dirtyBegin, dirtyEnd );
+			View.Invalidate( rangeHighlighted );
 		}
 		#endregion
 

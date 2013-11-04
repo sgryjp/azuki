@@ -1,24 +1,13 @@
-﻿// file: CSharpHighlighter.cs
-// brief: C# highlighter.
-//=========================================================
-using System;
-using System.Text.RegularExpressions;
-using Color = System.Drawing.Color;
+﻿using System;
 
 namespace Sgry.Azuki.Highlighter
 {
-	/// <summary>
-	/// Highlighter for C# language based on keyword matching.
-	/// </summary>
 	class CSharpHighlighter : KeywordHighlighter
 	{
-		/// <summary>
-		/// Creates a new instance.
-		/// </summary>
 		public CSharpHighlighter()
 		{
 			// normal keywords
-			AddKeywordSet( new string[] {
+			AddKeywordSet( new[] {
 				"abstract", "as", "base", "bool",
 				"break", "byte", "case", "catch",
 				"char", "checked", "class", "const",
@@ -41,7 +30,7 @@ namespace Sgry.Azuki.Highlighter
 			}, CharClass.Keyword );
 
 			// Context sensitive keywords
-			AddKeywordSet( new string[] {
+			AddKeywordSet( new[] {
 				"add", "alias", "ascending", "async", "await", "by",
 				"descending", "dynamic", "equals", "from", "get", "global",
 				"group", "in", "into", "join", "let", "on", "orderby",
@@ -50,7 +39,7 @@ namespace Sgry.Azuki.Highlighter
 			}, CharClass.Keyword );
 
 			// Preprocessor macro
-			string[] words = new string[] {
+			var words = new[] {
 				"define", "elif", "else", "endif", "endregion", "error", "if",
 				"line", "pragma", "region", "undef", "warning"
 			};

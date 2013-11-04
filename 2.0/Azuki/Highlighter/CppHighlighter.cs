@@ -1,11 +1,4 @@
-﻿// file: CppHighlighter.cs
-// brief: C/C++ highlighter.
-// author: YAMAMOTO Suguru
-// update: 2011-02-19
-//=========================================================
-using System;
-using System.Collections.Generic;
-using Color = System.Drawing.Color;
+﻿using System.Collections.Generic;
 
 namespace Sgry.Azuki.Highlighter
 {
@@ -14,18 +7,15 @@ namespace Sgry.Azuki.Highlighter
 	/// </summary>
 	class CppHighlighter : KeywordHighlighter
 	{
-		static readonly List<string> MacroKeywords = new List<string>( new string[] {
+		static readonly List<string> MacroKeywords = new List<string>() {
 				"define", "elif", "else", "endif", "error",
 				"if", "ifdef", "ifndef", "import", "include",
 				"line", "pragma", "undef"
-			} );
+			};
 
-		/// <summary>
-		/// Creates a new instance.
-		/// </summary>
 		public CppHighlighter()
 		{
-			AddKeywordSet( new string[] {
+			AddKeywordSet( new[] {
 				"asm", "auto", "bool", "break", "case", "catch", "char",
 				"class", "const", "const_cast", "continue", "default",
 				"delete", "do", "double", "dynamic_cast", "else",
@@ -40,12 +30,12 @@ namespace Sgry.Azuki.Highlighter
 				"virtual", "void", "volatile", "while"
 			}, CharClass.Keyword );
 
-			AddKeywordSet( new string[] {
+			AddKeywordSet( new[] {
 				"__FILE__", "__LINE__", "NULL", "offsetof", "ptrdiff_t", "size_t",
 				"u_char", "u_int", "u_long", "u_short", "wchar_t"
 			}, CharClass.Keyword2 );
 
-			AddKeywordSet( new string[] {
+			AddKeywordSet( new[] {
 				"BOOL", "BYTE", "DWORD", "DWORD_PTR", "FALSE", "HANDLE", "HRESULT", "HWND",
 				"INT_PTR", "LONG_PTR", "LPARAM", "LRESULT", "NULL", "TCHAR", "TRUE",
 				"WORD", "WPARAM"
@@ -56,35 +46,31 @@ namespace Sgry.Azuki.Highlighter
 			AddEnclosure( "/*", "*/", CharClass.Comment, true );
 			AddLineHighlight( "//", CharClass.Comment );
 
-			base.HookProc = HighlightMacro;
+			HookProc = HighlightPreprocessorMacro;
 		}
 
-		bool HighlightMacro( Document doc, string token, int index, CharClass klass )
+		bool HighlightPreprocessorMacro( Document doc, string token, int index, CharClass klass )
 		{
-			int foundIndex;
-
-			// if one previous character is not a space or '#', ignore it
+			// If one previous character is not a space or '#', ignore it
 			if( index <= 0 || "# \t".IndexOf(doc[index-1]) < 0 )
 			{
 				return false;
 			}
 
-			// if this token is not a macro keyword, ignore it
-			foundIndex = MacroKeywords.BinarySearch( token );
-			if( foundIndex < 0 )
+			// If this token is not a macro keyword, ignore it
+			if( MacroKeywords.BinarySearch(token) < 0 )
 			{
 				return false;
 			}
 
-			// a suspicious token found.
-			// search for '#' for 32 characters back,
-			// and highlight it if found
+			// A suspicious token found.
+			// Search for '#' for 32 characters back, and highlight it if found
 			for( int i=index-1; 0<=i && index-32<=i; --i )
 			{
 				if( doc[i] == '#' )
 				{
-					// found a sharp.
-					// highlight from the sharp to the end of the keyword
+					// Found a sharp so this is a preprocessor macro.
+					// Now highlight from the sharp to the end of the keyword
 					for( int j=i; j<index+token.Length; j++ )
 					{
 						doc.SetCharClass( j, CharClass.Macro );
@@ -93,7 +79,7 @@ namespace Sgry.Azuki.Highlighter
 				}
 				else if( doc[i] != ' ' && doc[i] != '\t' )
 				{
-					// not a sharp nor a space found so this token is not a macro.
+					// No sharp characters nor spaces found so this token is not one
 					break;
 				}
 			}

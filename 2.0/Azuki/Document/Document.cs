@@ -2082,6 +2082,22 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
+		/// Gets a range object which covers the entire range of this document.
+		/// </summary>
+		public Range ToRange()
+		{
+			return new Range( this, 0, Length );
+		}
+
+		/// <summary>
+		/// Gets a range object which covers the entire range of this document.
+		/// </summary>
+		public static explicit operator Range( Document doc )
+		{
+			return doc.ToRange();
+		}
+
+		/// <summary>
 		/// Gets index of next grapheme cluster.
 		/// </summary>
 		/// <param name="index">The index to start the search from.</param>

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text.RegularExpressions;
-
-namespace Sgry.Azuki.Highlighter
+﻿namespace Sgry.Azuki.Highlighter
 {
 	class IniHighlighter : KeywordHighlighter
 	{
@@ -9,13 +6,13 @@ namespace Sgry.Azuki.Highlighter
 		{
 			AddRegex( @"^\s*(\[[^\]]+\])",
 					  false,
-					  new CharClass[]{ CharClass.Heading1 } );
+					  new[]{ CharClass.Heading1 } );
 			AddRegex( @"^\s*([^=]+)\s*[=:]",
 					  false,
-					  new CharClass[]{ CharClass.Property } );
+					  new[]{ CharClass.Property } );
 			AddRegex( @"^\s*([;#!].*)",
 					  false,
-					  new CharClass[]{ CharClass.Comment } );
+					  new[]{ CharClass.Comment } );
 			HighlightsNumericLiterals = false;
 		}
 	}
