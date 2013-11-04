@@ -182,19 +182,18 @@ namespace Sgry.Azuki.Highlighter
 #			endif
 		}
 
-		const string DefaultWordCharSet =
-			"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+		const string DefaultWordCharSet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+										  + "_abcdefghijklmnopqrstuvwxyz";
 		HighlightHook _HookProc = null;
 		bool _HighlightsNumericLiterals = true;
 		string _WordCharSet = null;
-		List<KeywordSet> _Keywords = new List<KeywordSet>( 8 );
-		List<Enclosure> _Enclosures = new List<Enclosure>( 8 );
-		List<Enclosure> _LineHighlights = new List<Enclosure>( 8 );
-		List<RegexPattern> _RegexPatterns = new List<RegexPattern>( 8 );
-#		if DEBUG
-		internal
-#		endif
-		GapBuffer<int> _ReparsePoints = new GapBuffer<int>( 64 );
+		readonly List<KeywordSet> _Keywords = new List<KeywordSet>( 8 );
+		readonly List<Enclosure> _Enclosures = new List<Enclosure>( 8 );
+		readonly List<Enclosure> _LineHighlights = new List<Enclosure>( 8 );
+		readonly List<RegexPattern> _RegexPatterns = new List<RegexPattern>( 8 );
+
+		readonly GapBuffer<int> _ReparsePoints = new GapBuffer<int>( 64 );
+		int _LastDocumentHash;
 		#endregion
 
 		#region Highlight Settings
@@ -209,12 +208,8 @@ namespace Sgry.Azuki.Highlighter
 		/// <summary>
 		/// Gets or sets highlighter hook procedure.
 		/// </summary>
-		/// <seealso cref="Sgry.Azuki.Highlighter.IHighlighter.CanUseHook">
-		/// IHighlighter.CanUseHook property
-		/// </seealso>
-		/// <seealso cref="Sgry.Azuki.Highlighter.HighlightHook">
-		/// HighlightHook delegate
-		/// </seealso>
+		/// <seealso cref="IHighlighter.CanUseHook"/>
+		/// <seealso cref="HighlightHook"/>
 		public HighlightHook HookProc
 		{
 			get{ return _HookProc; }
@@ -411,7 +406,7 @@ namespace Sgry.Azuki.Highlighter
 		/// The keywords will be matched case sensitively and supposed to be
 		/// consisted with only alphabets, numbers and underscore ('_'). If
 		/// other character must be considered as a part of keyword, use <see
-		/// cref="Sgry.Azuki.Highlighter.KeywordHighlighter.WordCharSet">
+		/// cref="KeywordHighlighter.WordCharSet">
 		/// WordCharSet</see> property.
 		/// </para>
 		/// </remarks>
@@ -459,7 +454,7 @@ namespace Sgry.Azuki.Highlighter
 		/// </para>
 		/// <para>
 		/// If other character must be considered as a part of keyword, use
-		/// <see cref="Sgry.Azuki.Highlighter.KeywordHighlighter.WordCharSet"
+		/// <see cref="KeywordHighlighter.WordCharSet"
 		/// >WordCharSet</see> property.
 		/// </para>
 		/// </remarks>
@@ -815,53 +810,43 @@ namespace Sgry.Azuki.Highlighter
 		#endregion
 
 		#region Highlighting Logic
-		/// <summary>
-		/// Parse and highlight keywords.
-		/// </summary>
-		/// <param name="doc">Document to highlight.</param>
-		public virtual void Highlight( Document doc )
+		public virtual IRange Highlight( IRange dirtyRange )
 		{
-			int begin = 0;
-			int end = doc.Length;
-			Highlight( doc, ref begin, ref end );
-		}
+			var doc = dirtyRange.Document;
+			if( doc == null )
+				throw new InvalidOperationException();
+			if( dirtyRange.Begin < 0 || doc.Length < dirtyRange.Begin )
+				throw new ArgumentOutOfRangeException( "dirtyRange", "Begin of 'dirtyRange' is out"
+																	 + " of valid range." );
+			if( dirtyRange.End < 0 || doc.Length < dirtyRange.End )
+				throw new ArgumentOutOfRangeException( "dirtyRange", "End of 'dirtyRange' is out"
+																	 + " of valid range." );
 
-		/// <summary>
-		/// Parse and highlight keywords.
-		/// </summary>
-		/// <param name="doc">Document to highlight.</param>
-		/// <param name="dirtyBegin">
-		/// Index to start highlighting.
-		/// On return, start index of the range to be invalidated.
-		/// </param>
-		/// <param name="dirtyEnd">
-		/// Index to end highlighting.
-		/// On return, end index of the range to be invalidated.
-		/// </param>
-		public virtual void Highlight( Document doc,
-									   ref int dirtyBegin,
-									   ref int dirtyEnd )
-		{
-			if( dirtyBegin < 0 || doc.Length < dirtyBegin )
-				throw new ArgumentOutOfRangeException( "dirtyBegin" );
-			if( dirtyEnd < 0 || doc.Length < dirtyEnd )
-				throw new ArgumentOutOfRangeException( "dirtyEnd" );
+			int index;
 
-			int index, nextIndex;
-			bool highlighted;
-			LineContentCache cache = new LineContentCache();
+			// Refresh cache
+			if( _LastDocumentHash != doc.GetHashCode() )
+			{
+				_ReparsePoints.Clear();
+				_LastDocumentHash = doc.GetHashCode();
+			}
+			var cache = new LineContentCache();
 
 			// Determine range to highlight
-			dirtyBegin = Utl.FindReparsePoint( _ReparsePoints, dirtyBegin );
-			dirtyEnd = Utl.FindReparseEndPoint( doc, dirtyEnd );
+			var range = new Range( dirtyRange.Document,
+								   Utl.FindReparsePoint(_ReparsePoints, dirtyRange.Begin),
+								   Utl.FindReparseEndPoint(doc, dirtyRange.End) );
 
 			// seek each chars and do pattern matching
-			index = dirtyBegin;
-			while( 0 <= index && index < dirtyEnd )
+			index = range.Begin;
+			while( 0 <= index && index < range.End )
 			{
+				int nextIndex;
+				bool highlighted;
+
 				// highlight line-comment if this token starts one
 				Utl.TryHighlight( doc, _LineHighlights,
-								  index, dirtyEnd,
+								  index, range.End,
 								  _HookProc, out nextIndex );
 				if( index < nextIndex )
 				{
@@ -873,7 +858,7 @@ namespace Sgry.Azuki.Highlighter
 
 				// highlight enclosing part if this token begins a part
 				Utl.TryHighlight( doc, _Enclosures,
-								  index, dirtyEnd,
+								  index, range.End,
 								  _HookProc, out nextIndex );
 				if( index < nextIndex )
 				{
@@ -885,7 +870,7 @@ namespace Sgry.Azuki.Highlighter
 
 				// highlight keyword if this token is a keyword
 				highlighted = TryHighlight( doc, _Keywords, _WordCharSet,
-											index, dirtyEnd, out nextIndex );
+											index, range.End, out nextIndex );
 				if( highlighted )
 				{
 					index = nextIndex;
@@ -895,8 +880,7 @@ namespace Sgry.Azuki.Highlighter
 				// highlight digit as number
 				if( _HighlightsNumericLiterals )
 				{
-					nextIndex = Utl.TryHighlightNumberToken( doc,
-															 index, dirtyEnd,
+					nextIndex = Utl.TryHighlightNumberToken( doc, index, range.End,
 															 _HookProc );
 					if( index < nextIndex )
 					{
@@ -907,7 +891,7 @@ namespace Sgry.Azuki.Highlighter
 
 				// highlight regular expressions
 				highlighted = TryHighlight( doc, _RegexPatterns, cache,
-											index, dirtyEnd, out nextIndex );
+											index, range.End, out nextIndex );
 				if( highlighted )
 				{
 					Utl.EntryReparsePoint( _ReparsePoints, index );
@@ -924,10 +908,12 @@ namespace Sgry.Azuki.Highlighter
 			}
 
 			// report lastly parsed position
-			if( dirtyEnd < index )
+			if( range.End < index )
 			{
-				dirtyEnd = index;
+				range.End = index;
 			}
+
+			return range;
 		}
 
 		/// <summary>
@@ -958,14 +944,9 @@ namespace Sgry.Azuki.Highlighter
 			return highlighted;
 		}
 
-		bool TryHighlight_OneKeyword(
-				Document doc, KeywordSet set, string wordCharSet,
-				int startIndex, int endIndex, out int nextSeekIndex
-			)
+		bool TryHighlight_OneKeyword( Document doc, KeywordSet set, string wordCharSet,
+									  int startIndex, int endIndex, out int nextSeekIndex )
 		{
-			CharTreeNode node;
-			int index;
-
 			// keyword char-tree made with "char", "if", "int", "interface",
 			// "long"looks like (where * means a node with null-character):
 			//
@@ -984,8 +965,8 @@ namespace Sgry.Azuki.Highlighter
 			//   root child node, root grandchild node and so on
 			// - if a node does not match, try next sibling
 			//   without advancing seek point of document
-			node = set.root.child;
-			index = startIndex;
+			var node = set.root.child;
+			var index = startIndex;
 			while( node != null && index < endIndex )
 			{
 				// is this node matched to the char?

@@ -1,24 +1,13 @@
-﻿// file: RubyHighlighter.cs
-// brief: Ruby highlighter.
-// author: YAMAMOTO Suguru
-// update: 2008-11-14
-//=========================================================
-using System;
-using Color = System.Drawing.Color;
-
-namespace Sgry.Azuki.Highlighter
+﻿namespace Sgry.Azuki.Highlighter
 {
 	/// <summary>
 	/// Highlighter for Ruby language based on keyword matching.
 	/// </summary>
 	class RubyHighlighter : KeywordHighlighter
 	{
-		/// <summary>
-		/// Creates a new instance.
-		/// </summary>
 		public RubyHighlighter()
 		{
-			AddKeywordSet( new string[] {
+			AddKeywordSet( new[] {
 				"alias", "and", "begin", "BEGIN", "break", "case", "class",
 				"def", "defined", "do", "else", "elsif", "end", "END", "ensure",
 				"false", "for", "if", "in", "module", "next", "nil", "not",

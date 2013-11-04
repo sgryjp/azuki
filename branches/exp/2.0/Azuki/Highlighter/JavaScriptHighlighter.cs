@@ -1,13 +1,10 @@
-﻿using System;
-using System.Text.RegularExpressions;
-
-namespace Sgry.Azuki.Highlighter
+﻿namespace Sgry.Azuki.Highlighter
 {
 	class JavaScriptHighlighter : KeywordHighlighter
 	{
 		public JavaScriptHighlighter()
 		{
-			AddKeywordSet( new string[] {
+			AddKeywordSet( new[] {
 				"break", "case", "catch", "class", "const", "continue",
 				"debugger", "default", "delete", "do", "else", "enum",
 				"export", "extends", "finally", "for", "function", "if",
@@ -17,7 +14,7 @@ namespace Sgry.Azuki.Highlighter
 				"try", "typeof", "var", "void", "while", "with"
 			}, CharClass.Keyword );
 
-			AddKeywordSet( new string[] {
+			AddKeywordSet( new[] {
 				"false", "null", "true", "undefined"
 			}, CharClass.Keyword2 );
 

@@ -1,108 +1,88 @@
 ﻿// file: IHighlighter.cs
-// brief: Interface of highlighter object for Azuki.
-// author: YAMAMOTO Suguru
-// update: 2011-02-19
+// brief: Interface of syntax highlighter objects for Azuki.
 //=========================================================
 using System;
-using System.Collections.Generic;
-using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki.Highlighter
 {
 	/// <summary>
-	/// Interface of highlighter object for Azuki.
+	/// Interface of syntax highlighter objects for Azuki.
 	/// </summary>
 	/// <remarks>
-	/// <para>
-	/// This interface is commonly used by highlighter objects
-	/// which are used to highlight syntax of documents.
-	/// </para>
-	/// <para>
-	/// If a highlighter object is set for a document,
-	/// <see cref="Sgry.Azuki.Highlighter.IHighlighter.Highlight(Sgry.Azuki.Document, ref int, ref int)"
-	/// >IHighlighter.Highlight</see>
-	/// method will be called
-	/// on every time slightly after the user stopped editing.
-	/// Since the method is called with parameters indicating
-	/// where to begin highlighting and where to end highlighting,
-	/// highlighting will not process entire document.
-	/// </para>
+	///   <para>
+	///   This interface is commonly used by syntax highlighter objects. If a highlighter object is
+	///   set for a document, <see cref="IHighlighter.Highlight"/> method will be called on every
+	///   time slightly after the user stopped editing. Since the method is called with parameters
+	///   indicating where to begin highlighting and where to end highlighting, highlighting will
+	///   not process entire document.
+	///   </para>
+	///   <para>
+	///   If you implement this interface, note that the document to be highlighted can be
+	///   retrieved through an IRange object which will be given to
+	///   <see cref="IHighlighter.Highlight"/> method.
+	///   </para>
 	/// </remarks>
 	public interface IHighlighter
 	{
 		/// <summary>
-		/// Highlights whole part of a document.
-		/// </summary>
-		/// <param name="doc">Document to highlight.</param>
-		void Highlight( Document doc );
-
-		/// <summary>
 		/// Highlights a part of a document.
 		/// </summary>
-		/// <param name="doc">Document to highlight.</param>
-		/// <param name="dirtyBegin">Index to start highlighting. On return, start index of the range to be invalidated.</param>
-		/// <param name="dirtyEnd">Index to end highlighting. On return, end index of the range to be invalidated.</param>
-		void Highlight( Document doc, ref int dirtyBegin, ref int dirtyEnd );
+		/// <returns>The range of text highlighted.</returns>
+		/// <exception cref="InvalidOperationException">
+		///   No valid object was set to Document property.
+		/// </exception>
+		IRange Highlight( IRange dirtyRange );
 
 		/// <summary>
-		/// Gets or sets whether the hook mechanism is supported or not.
+		/// Gets or sets whether this highlighter supports hook mechanism or not.
 		/// </summary>
 		/// <remarks>
-		/// <para>
-		/// This property gets or sets whether this highlighter object supports
-		/// hook mechanism or not.
-		/// Please refer to the document of
-		/// <see cref="Sgry.Azuki.Highlighter.IHighlighter.HookProc"
-		/// >HookProc property</see> about hook mechanism.
-		/// </para>
+		///   <para>
+		///   This property gets or sets whether this highlighter object supports hook mechanism or
+		///   not. If it is supported, hook procedure can be installed through 
+		///   <see cref="IHighlighter.HookProc"/> property.
+		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Highlighter.IHighlighter.HookProc">IHighlighter.HookProc property</seealso>
+		/// <seealso cref="IHighlighter.HookProc"/>
 		bool CanUseHook
 		{
 			get;
 		}
 
 		/// <summary>
-		/// Gets or sets highlighter hook procedure.
+		/// Gets or sets a hook procedure.
 		/// </summary>
 		/// <remarks>
-		/// <para>
-		/// This property gets or sets a hook procedure
-		/// to override highlight logic built into the highlighter object.
-		/// A delegate object set to this property will be called
-		/// when a token is highlighted
-		/// and if the delegate returns true,
-		/// the highlighter will skip highlighting the token;
-		/// so the delegate can highlight tokens differently.
-		/// </para>
-		/// <para>
-		/// It is not needed to implement highlight hook for all highlighters
-		/// so accessing this property may throw a NotSupportedException
-		/// depending on implementations.
-		/// If an implementation of IHighlighter does not provide hook mechanism,
-		/// its CanHook property SHOULD returns false
-		/// and accessing this property SHOULD throw a NotSupportedException.
-		/// </para>
-		/// <para>
-		/// One of the typical usage is
-		/// changing character class for specific keywords for application specific reason.
-		/// Another typical usage is
-		/// expanding logic of a keyword based highlighter
-		/// to consider language syntax a little more
-		/// (example of this usage is built-in C/C++ highlighter
-		/// which uses a hook procedure to expand logic for highlighting
-		/// preprocessor macros whose '#' and keyword parts are separated with spaces.)
-		/// Note that since this functionality is a hook,
-		/// a very little change can be applied to original behavior.
-		/// If needed highlighting result cannot be easily achieved with a hook,
-		/// consider implementing a new IHighlighter from a scratch.
-		/// </para>
+		///   <para>
+		///   This property gets or sets a hook procedure to override highlighting logic of this
+		///   syntax highlighter.
+		///   </para>
+		///   <para>
+		///   Hook mechanism is provided to override original syntax highlighter's behavior.
+		///   Technically, a hook is a delegate object of type <see cref="HighlightHook"/> and is
+		///   called each time before a token is highlighted by the syntax highlighter. If it
+		///   returns true, syntax highlighter will skip highlighting the token. This means that
+		///   hook procedures can highlight each token differently
+		///   </para>
+		///   <para>
+		///   One of the typical usage of hook mechanism is changing character class for specific
+		///   keywords to meet application specific needs. Another typical usage is to extend
+		///   highlighting logic of highlighters. For example, built-in C/C++ highlighter uses a
+		///   hook procedure to allow highlighting preprocessor macros whose '#' and keyword are
+		///   separated with spaces. Note that hooks are just hooks; it can change so little of
+		///   original behavior.
+		///   </para>
+		///   <para>
+		///   Hook mechanism is not required to be implemented. An IHighlighter implementation
+		///   which does not support it MUST throw a NotSupportedException on setting a value to
+		///   this property, and CanHook property MUST always be False.
+		///   </para>
 		/// </remarks>
-		/// <exception cref="System.NotSupportedException">
-		/// This highlighter does not support hook mechanism.
+		/// <exception cref="NotSupportedException">
+		///   This highlighter does not support hook mechanism.
 		/// </exception>
-		/// <seealso cref="Sgry.Azuki.Highlighter.IHighlighter.CanUseHook">IHighlighter.CanUseHook property</seealso>
-		/// <seealso cref="Sgry.Azuki.Highlighter.HighlightHook">HighlightHook delegate</seealso>
+		/// <seealso cref="IHighlighter.CanUseHook"/>
+		/// <seealso cref="HighlightHook"/>
 		HighlightHook HookProc
 		{
 			get; set;
@@ -110,24 +90,18 @@ namespace Sgry.Azuki.Highlighter
 	}
 
 	/// <summary>
-	/// The type of the hook to override
-	/// default procedure to highlight a token.
+	/// The type of the hook to override default procedure to highlight a token.
 	/// </summary>
 	/// <param name="doc">The document to be highlighted.</param>
 	/// <param name="token">The substring to be highlighted.</param>
 	/// <param name="index">The index of where the token is at.</param>
-	/// <param name="klass">The character class which the token is to be classified as, by the highlighter.</param>
+	/// <param name="klass">
+	///   The character class which the token is to be classified as, by the highlighter.
+	/// </param>
 	/// <returns>
-	/// Return true if default behavior of the highlighter should be suppressed,
-	/// otherwise return false.
+	///   Returns true if default behavior of the highlighter should be suppressed, otherwise
+	///   returns false.
 	/// </returns>
-	/// <remarks>
-	/// <para>
-	/// Please refer to the document of 
-	/// <see cref="Sgry.Azuki.Highlighter.IHighlighter.HookProc"
-	/// >IHighlighter.HookProc property</see> about hook mechanism.
-	/// </para>
-	/// </remarks>
-	/// <seealso cref="Sgry.Azuki.Highlighter.IHighlighter.HookProc">IHighlighter.HookProc property</seealso>
+	/// <seealso cref="IHighlighter.HookProc"/>
 	public delegate bool HighlightHook( Document doc, string token, int index, CharClass klass );
 }
