@@ -14,13 +14,21 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <exception cref="ArgumentNullException">Parameter <paramref name="buf"/> was null.
 		/// </exception>
-		internal TrackingRange( TextBuffer buf, int begin, int end, BoundaryTrackingMode mode )
-			: base( buf, begin, end )
+		internal TrackingRange( Document doc, int begin, int end, BoundaryTrackingMode mode )
+			: base( doc, begin, end )
 		{
-			if( buf == null )
-				throw new ArgumentNullException( "buf" );
+			if( doc == null )
+				throw new ArgumentNullException( "doc" );
 
 			BoundaryTrackingMode = mode;
+		}
+
+		/// <summary>
+		/// Creates a cloned copy of this TrackingRange object.
+		/// </summary>
+		public override IRange Clone()
+		{
+			return new TrackingRange( Document, Begin, End, BoundaryTrackingMode );
 		}
 		#endregion
 

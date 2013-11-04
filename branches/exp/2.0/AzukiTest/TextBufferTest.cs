@@ -14,7 +14,7 @@ namespace Sgry.Azuki.Test
 		{
 			// Single line
 			{
-				var buf = new TextBuffer( 256, 256 );
+				var buf = new Document().Buffer;
 
 				buf.Insert( 0, "_" );
 				Assert.AreEqual( 1, buf.Count );
@@ -25,7 +25,7 @@ namespace Sgry.Azuki.Test
 
 			// Multiple lines
 			{
-				var buf = new TextBuffer( 256, 256 );
+				var buf = new Document().Buffer;
 
 				buf.Insert( 0, "_\n_" );
 				Assert.AreEqual( 3, buf.Count );
@@ -36,7 +36,7 @@ namespace Sgry.Azuki.Test
 
 			// \n_ --> \r\n_
 			{
-				var buf = new TextBuffer( 256, 256 );
+				var buf = new Document().Buffer;
 
 				buf.Insert( 0, "\n_" );
 				buf.Insert( 0, "\r" );
@@ -48,7 +48,7 @@ namespace Sgry.Azuki.Test
 
 			// _\r --> _\r\n
 			{
-				var buf = new TextBuffer( 256, 256 );
+				var buf = new Document().Buffer;
 
 				buf.Insert( 0, "_\r" );
 				buf.Insert( 2, "\n" );
@@ -60,7 +60,7 @@ namespace Sgry.Azuki.Test
 
 			// _\r\n_ --> _\r_\n_
 			{
-				var buf = new TextBuffer( 256, 256 );
+				var buf = new Document().Buffer;
 
 				buf.Insert( 0, "_\r\n_" );
 				buf.Insert( 2, "_" );
@@ -76,7 +76,7 @@ namespace Sgry.Azuki.Test
 		{
 			// _\r\n_ --> \r\n_
 			{
-				var buf = new TextBuffer( 256, 256 );
+				var buf = new Document().Buffer;
 
 				buf.Insert( 0, "_\r\n_" );
 				buf.Remove( 0, 1 );
@@ -88,7 +88,7 @@ namespace Sgry.Azuki.Test
 
 			// _\r\n_ --> _\n_
 			{
-				var buf = new TextBuffer( 256, 256 );
+				var buf = new Document().Buffer;
 
 				buf.Insert( 0, "_\r\n_" );
 				buf.Remove( 1, 2 );
@@ -100,7 +100,7 @@ namespace Sgry.Azuki.Test
 
 			// _\r\n_ --> _\r_
 			{
-				var buf = new TextBuffer( 256, 256 );
+				var buf = new Document().Buffer;
 
 				buf.Insert( 0, "_\r\n_" );
 				buf.Remove( 2, 3 );
@@ -112,7 +112,7 @@ namespace Sgry.Azuki.Test
 
 			// _\r\n_ --> __
 			{
-				var buf = new TextBuffer( 256, 256 );
+				var buf = new Document().Buffer;
 
 				buf.Insert( 0, "_\r\n_" );
 				buf.Remove( 1, 3 );
@@ -124,7 +124,7 @@ namespace Sgry.Azuki.Test
 
 			// \r_\n --> \r\n
 			{
-				var buf = new TextBuffer( 256, 256 );
+				var buf = new Document().Buffer;
 
 				buf.Insert( 0, "\r_\n" );
 				buf.Remove( 1, 2 );
@@ -136,7 +136,7 @@ namespace Sgry.Azuki.Test
 
 			// \r_\n --> \r\n
 			{
-				var buf = new TextBuffer( 256, 256 );
+				var buf = new Document().Buffer;
 
 				buf.Insert( 0, "\r_\n" );
 				buf.Remove( 1, 2 );
@@ -148,7 +148,7 @@ namespace Sgry.Azuki.Test
 
 			// \r__\n --> \r_\n
 			{
-				var buf = new TextBuffer( 256, 256 );
+				var buf = new Document().Buffer;
 
 				buf.Insert( 0, "\r__\n" );
 				buf.Remove( 1, 2 );
@@ -162,47 +162,47 @@ namespace Sgry.Azuki.Test
 		[Test]
 		public void FindNext()
 		{
-			var doc = new Document();
-			doc.Replace( "aababcabcd" );
+			var buf = new Document().Buffer;
+			buf.Add( "aababcabcd" );
 
 			// black box test (interface test)
 			{
 				// null target
 				Assert.Throws<ArgumentNullException>( delegate {
-					doc.FindNext( (string)null, 0 );
+					buf.FindNext( (string)null, 0, buf.Count, true );
 				} );
 
 				// negative index
 				Assert.Throws<ArgumentOutOfRangeException>( delegate {
-					doc.FindNext( "a", -1 );
+					buf.FindNext( "a", -1, buf.Count, true );
 				} );
 
 				// end index at out of range
 				Assert.Throws<ArgumentOutOfRangeException>( delegate {
-					doc.FindNext( "a", 0, doc.Length+1, true );
+					buf.FindNext( "a", 0, buf.Count+1, true );
 				} );
 
 				// inverted range
 				Assert.Throws<ArgumentOutOfRangeException>( delegate {
-					doc.FindNext( "a", 1, 0, true );
+					buf.FindNext( "a", 1, 0, true );
 				} );
 
 				// empty range
-				Assert.AreEqual( null, doc.FindNext("a", 0, 0, true) );
+				Assert.AreEqual( null, buf.FindNext("a", 0, 0, true) );
 
 				// find in valid range
-				Assert.AreEqual( 0, doc.FindNext("a", 0, 1, true).Begin );
-				Assert.AreEqual( 1, doc.FindNext("ab", 0).Begin );
-				Assert.AreEqual( 3, doc.FindNext("abc", 0).Begin );
-				Assert.AreEqual( 6, doc.FindNext("abcd", 0).Begin );
-				Assert.AreEqual( null, doc.FindNext("abcde", 0) );
+				Assert.AreEqual( 0, buf.FindNext("a", 0, 1, true).Begin );
+				Assert.AreEqual( 1, buf.FindNext("ab", 0, buf.Count, true).Begin );
+				Assert.AreEqual( 3, buf.FindNext("abc", 0, buf.Count, true).Begin );
+				Assert.AreEqual( 6, buf.FindNext("abcd", 0, buf.Count, true).Begin );
+				Assert.AreEqual( null, buf.FindNext("abcde", 0, buf.Count, true) );
 
 				// empty pattern (returns begin index)
-				Assert.AreEqual( 1, doc.FindNext("", 1).Begin );
+				Assert.AreEqual( 1, buf.FindNext("", 1, buf.Count, true).Begin );
 
 				// comp. options
-				Assert.AreEqual( null, doc.FindNext("aBcD", 0, doc.Length, true) );
-				Assert.AreEqual(  6, doc.FindNext("aBcD", 0, doc.Length, false).Begin );
+				Assert.AreEqual( null, buf.FindNext("aBcD", 0, buf.Count, true) );
+				Assert.AreEqual(  6, buf.FindNext("aBcD", 0, buf.Count, false).Begin );
 			}
 
 			// white box test (test of the gap condition. test only result.)
@@ -210,52 +210,52 @@ namespace Sgry.Azuki.Test
 				// (buf: aaba......bcabcd)
 
 				// gap < begin
-				MoveGap( doc, 4 );
-				Assert.AreEqual( 6, doc.FindNext("ab", 5, doc.Length, true).Begin );
+				MoveGap( buf, 4 );
+				Assert.AreEqual( 6, buf.FindNext("ab", 5, buf.Count, true).Begin );
 
 				// gap == begin
-				MoveGap( doc, 4 );
-				Assert.AreEqual( 6, doc.FindNext("ab", 4, doc.Length, true).Begin );
+				MoveGap( buf, 4 );
+				Assert.AreEqual( 6, buf.FindNext("ab", 4, buf.Count, true).Begin );
 
 				// begin < gap < end
 				{
 					// word before the gap
-					MoveGap( doc, 4 );
-					Assert.AreEqual( 2, doc.FindNext("ba", 2, doc.Length, true).Begin );
+					MoveGap( buf, 4 );
+					Assert.AreEqual( 2, buf.FindNext("ba", 2, buf.Count, true).Begin );
 
 					// word crossing the gap
-					MoveGap( doc, 4 );
-					Assert.AreEqual( 3, doc.FindNext("ab", 2, doc.Length, true).Begin );
+					MoveGap( buf, 4 );
+					Assert.AreEqual( 3, buf.FindNext("ab", 2, buf.Count, true).Begin );
 
 					// word after the gap
-					MoveGap( doc, 4 );
-					Assert.AreEqual( 5, doc.FindNext("cab", 2, doc.Length, true).Begin );
+					MoveGap( buf, 4 );
+					Assert.AreEqual( 5, buf.FindNext("cab", 2, buf.Count, true).Begin );
 				}
 
 				// gap == end
 				{
-					MoveGap( doc, 4 );
-					Assert.AreEqual( 1, doc.FindNext("ab", 0, 4, true).Begin );
+					MoveGap( buf, 4 );
+					Assert.AreEqual( 1, buf.FindNext("ab", 0, 4, true).Begin );
 
 					// word at the end
-					MoveGap( doc, 4 );
-					Assert.AreEqual( 2, doc.FindNext("ba", 0, 4, true).Begin );
+					MoveGap( buf, 4 );
+					Assert.AreEqual( 2, buf.FindNext("ba", 0, 4, true).Begin );
 
 					// partially matched word but overruning boundary
-					MoveGap( doc, 4 );
-					Assert.AreEqual( null, doc.FindNext("abc", 0, 4, true) );
+					MoveGap( buf, 4 );
+					Assert.AreEqual( null, buf.FindNext("abc", 0, 4, true) );
 				}
 
 				// end <= gap
-				MoveGap( doc, 4 );
-				Assert.AreEqual( 1, doc.FindNext("ab", 0, 4, true).Begin );
+				MoveGap( buf, 4 );
+				Assert.AreEqual( 1, buf.FindNext("ab", 0, 4, true).Begin );
 			}
 		}
 
 		[Test]
 		public void FindPrev()
 		{
-			var buf = new TextBuffer( 128, 128 );
+			var buf = new Document().Buffer;
 			buf.Insert( 0, "abcdabcaba" );
 
 			// black box test (interface test)
@@ -348,73 +348,73 @@ namespace Sgry.Azuki.Test
 		[Test]
 		public void FindNextR()
 		{
-			var doc = new Document();
+			var buf = new Document().Buffer;
 			IRange result;
-			doc.Replace( "aababcabcd" );
+			buf.Add( "aababcabcd" );
 
 			// black box test
 			{
 				// null argument
 				Assert.Throws<ArgumentNullException>( delegate{
-					doc.FindNext( (Regex)null, 1, 2 );
+					buf.FindNext( (Regex)null, 1, 2 );
 				} );
 
 				// negative index
 				Assert.Throws<ArgumentOutOfRangeException>( delegate{
-					doc.FindNext( new Regex("a[^b]+"), -1, 2 );
+					buf.FindNext( new Regex("a[^b]+"), -1, 2 );
 				} );
 
 				// inverted range
 				Assert.Throws<ArgumentOutOfRangeException>( delegate{
-					doc.FindNext( new Regex("a[^b]+"), 2, 1 );
+					buf.FindNext( new Regex("a[^b]+"), 2, 1 );
 				} );
 
 				// empty range
-				result = doc.FindNext( new Regex("a[^b]+"), 0, 0 );
+				result = buf.FindNext( new Regex("a[^b]+"), 0, 0 );
 				Assert.AreEqual( null, result );
 
 				// range exceeding text length
 				Assert.Throws<ArgumentOutOfRangeException>( delegate{
-					doc.FindNext(new Regex("a[^b]+"), 1, 9999);
+					buf.FindNext(new Regex("a[^b]+"), 1, 9999);
 				} );
 
 				// invalid Regex option
 				Assert.Throws<ArgumentException>( delegate{
-					doc.FindNext(new Regex("a[^b]+", RegexOptions.RightToLeft), 1, 4);
+					buf.FindNext(new Regex("a[^b]+", RegexOptions.RightToLeft), 1, 4);
 				} );
 
 				// pattern ord at begin
-				result = doc.FindNext( new Regex("a[^b]+"), 0, 2 );
+				result = buf.FindNext( new Regex("a[^b]+"), 0, 2 );
 				Assert.AreEqual( 0, result.Begin );
 				Assert.AreEqual( 2, result.End );
 
 				// pattern in the range
-				result = doc.FindNext( new Regex("a[^a]+"), 0, 3 );
+				result = buf.FindNext( new Regex("a[^a]+"), 0, 3 );
 				Assert.AreEqual( 1, result.Begin );
 				Assert.AreEqual( 3, result.End );
 
 				// pattern which ends at end
-				result = doc.FindNext( new Regex("[ab]+"), 0, 5 );
+				result = buf.FindNext( new Regex("[ab]+"), 0, 5 );
 				Assert.AreEqual( 0, result.Begin );
 				Assert.AreEqual( 5, result.End );
 
 				// pattern... well, pretty hard to describe in English for me...
-				result = doc.FindNext( new Regex("[abc]+"), 0, 5 );
+				result = buf.FindNext( new Regex("[abc]+"), 0, 5 );
 				Assert.AreEqual( 0, result.Begin );
 				Assert.AreEqual( 5, result.End );
-				result = doc.FindNext( new Regex("[abc]+"), 0, 10 );
+				result = buf.FindNext( new Regex("[abc]+"), 0, 10 );
 				Assert.AreEqual( 0, result.Begin );
 				Assert.AreEqual( 9, result.End );
 
 				// empty pattern
-				result = doc.FindNext( new Regex(""), 0, 10 );
+				result = buf.FindNext( new Regex(""), 0, 10 );
 				Assert.AreEqual( 0, result.Begin );
 				Assert.AreEqual( 0, result.End );
 
 				// comp. options
-				result = doc.FindNext( new Regex("aBcD"), 0, doc.Length );
+				result = buf.FindNext( new Regex("aBcD"), 0, buf.Count );
 				Assert.AreEqual( null, result );
-				result = doc.FindNext( new Regex("aBcD", RegexOptions.IgnoreCase), 0, doc.Length );
+				result = buf.FindNext( new Regex("aBcD", RegexOptions.IgnoreCase), 0, buf.Count );
 				Assert.AreEqual(  6, result.Begin );
 				Assert.AreEqual( 10, result.End);
 			}
@@ -424,97 +424,97 @@ namespace Sgry.Azuki.Test
 				// (buf: aaba......bcabcd)
 
 				// gap < begin
-				MoveGap( doc, 4 );
-				Assert.AreEqual( 6, doc.FindNext(new Regex("ab"), 5, doc.Length).Begin );
+				MoveGap( buf, 4 );
+				Assert.AreEqual( 6, buf.FindNext(new Regex("ab"), 5, buf.Count).Begin );
 
 				// gap == begin
-				MoveGap( doc, 4 );
-				Assert.AreEqual( 6, doc.FindNext(new Regex("ab"), 4, doc.Length).Begin );
+				MoveGap( buf, 4 );
+				Assert.AreEqual( 6, buf.FindNext(new Regex("ab"), 4, buf.Count).Begin );
 
 				// begin < gap < end
 				{
 					// word before the gap
-					MoveGap( doc, 4 );
-					Assert.AreEqual( 2, doc.FindNext(new Regex("ba"), 2, doc.Length).Begin );
+					MoveGap( buf, 4 );
+					Assert.AreEqual( 2, buf.FindNext(new Regex("ba"), 2, buf.Count).Begin );
 
 					// word crossing the gap
-					MoveGap( doc, 4 );
-					Assert.AreEqual( 3, doc.FindNext(new Regex("ab"), 2, doc.Length).Begin );
+					MoveGap( buf, 4 );
+					Assert.AreEqual( 3, buf.FindNext(new Regex("ab"), 2, buf.Count).Begin );
 
 					// word after the gap
-					MoveGap( doc, 4 );
-					Assert.AreEqual( 5, doc.FindNext(new Regex("cab"), 2, doc.Length).Begin );
+					MoveGap( buf, 4 );
+					Assert.AreEqual( 5, buf.FindNext(new Regex("cab"), 2, buf.Count).Begin );
 				}
 
 				// gap == end
 				{
-					MoveGap( doc, 4 );
-					Assert.AreEqual( 1, doc.FindNext(new Regex("ab"), 0, 4).Begin );
+					MoveGap( buf, 4 );
+					Assert.AreEqual( 1, buf.FindNext(new Regex("ab"), 0, 4).Begin );
 
 					// word at the end
-					MoveGap( doc, 4 );
-					Assert.AreEqual( 2, doc.FindNext(new Regex("ba"), 0, 4).Begin );
+					MoveGap( buf, 4 );
+					Assert.AreEqual( 2, buf.FindNext(new Regex("ba"), 0, 4).Begin );
 
 					// partially matched word but overruning boundary
-					MoveGap( doc, 4 );
-					Assert.AreEqual( null, doc.FindNext(new Regex("abc"), 0, 4) );
+					MoveGap( buf, 4 );
+					Assert.AreEqual( null, buf.FindNext(new Regex("abc"), 0, 4) );
 				}
 
 				// end <= gap
-				MoveGap( doc, 4 );
-				Assert.AreEqual( 1, doc.FindNext(new Regex("ab"), 0, 4).Begin );
+				MoveGap( buf, 4 );
+				Assert.AreEqual( 1, buf.FindNext(new Regex("ab"), 0, 4).Begin );
 			}
 		}
 
 		[Test]
 		public void FindPrevR()
 		{
-			var doc = new Document();
-			doc.Replace( "abcdabcaba" );
+			var buf = new Document().Buffer;
+			buf.Add( "abcdabcaba" );
 
 			// black box test (interface test)
 			{
 				// null target
 				Assert.Throws<ArgumentNullException>( delegate {
-					doc.FindPrev( (Regex)null, 0, 10 );
+					buf.FindPrev( (Regex)null, 0, 10 );
 				} );
 
 				// negative index
 				Assert.Throws<ArgumentOutOfRangeException>( delegate {
-					doc.FindPrev( new Regex("a", RegexOptions.RightToLeft), -1, 10 );
+					buf.FindPrev( new Regex("a", RegexOptions.RightToLeft), -1, 10 );
 				} );
 
 				// invalid regex option
 				Assert.Throws<ArgumentException>( delegate {
-					doc.FindPrev( new Regex("a", RegexOptions.None), 0, doc.Length );
+					buf.FindPrev( new Regex("a", RegexOptions.None), 0, buf.Count );
 				} );
 
 				// end index at out of range
 				Assert.Throws<ArgumentOutOfRangeException>( delegate {
-					doc.FindPrev( new Regex("a", RegexOptions.RightToLeft), 0, doc.Length+1 );
+					buf.FindPrev( new Regex("a", RegexOptions.RightToLeft), 0, buf.Count+1 );
 				} );
 
 				// inverted range
 				Assert.Throws<ArgumentOutOfRangeException>( delegate {
-					doc.FindPrev( new Regex("a", RegexOptions.RightToLeft), 1, 0 );
+					buf.FindPrev( new Regex("a", RegexOptions.RightToLeft), 1, 0 );
 				} );
 
 				// empty range
-				Assert.AreEqual( null, doc.FindPrev(new Regex("a", RegexOptions.RightToLeft), 0, 0) );
+				Assert.AreEqual( null, buf.FindPrev(new Regex("a", RegexOptions.RightToLeft), 0, 0) );
 
 				// find in valid range
-				Assert.AreEqual( 9, doc.FindPrev(new Regex(   "a", RegexOptions.RightToLeft), 0, 10).Begin );
-				Assert.AreEqual( 7, doc.FindPrev(new Regex(  "ab", RegexOptions.RightToLeft), 0, 10).Begin );
-				Assert.AreEqual( 4, doc.FindPrev(new Regex( "abc", RegexOptions.RightToLeft), 0, 10).Begin );
-				Assert.AreEqual( 0, doc.FindPrev(new Regex("abcd", RegexOptions.RightToLeft), 0, 10).Begin );
-				Assert.AreEqual( null, doc.FindPrev(new Regex("abcde", RegexOptions.RightToLeft), 0, 10) );
+				Assert.AreEqual( 9, buf.FindPrev(new Regex(   "a", RegexOptions.RightToLeft), 0, 10).Begin );
+				Assert.AreEqual( 7, buf.FindPrev(new Regex(  "ab", RegexOptions.RightToLeft), 0, 10).Begin );
+				Assert.AreEqual( 4, buf.FindPrev(new Regex( "abc", RegexOptions.RightToLeft), 0, 10).Begin );
+				Assert.AreEqual( 0, buf.FindPrev(new Regex("abcd", RegexOptions.RightToLeft), 0, 10).Begin );
+				Assert.AreEqual( null, buf.FindPrev(new Regex("abcde", RegexOptions.RightToLeft), 0, 10) );
 
 				// empty pattern (returns end index)
-				Assert.AreEqual( 10, doc.FindPrev(new Regex("", RegexOptions.RightToLeft), 0, 10).Begin );
+				Assert.AreEqual( 10, buf.FindPrev(new Regex("", RegexOptions.RightToLeft), 0, 10).Begin );
 
 				// comp. options
-				Assert.AreEqual( null, doc.FindPrev(new Regex("aBcD", RegexOptions.RightToLeft), 0, 10) );
-				Assert.AreEqual(  0, doc.FindPrev(new Regex("aBcD", RegexOptions.RightToLeft|RegexOptions.IgnoreCase), 0, 10).Begin );
+				Assert.AreEqual( null, buf.FindPrev(new Regex("aBcD", RegexOptions.RightToLeft), 0, 10) );
+				Assert.AreEqual(  0, buf.FindPrev(new Regex("aBcD", RegexOptions.RightToLeft|RegexOptions.IgnoreCase), 0, 10).Begin );
 			}
 
 			// white box test (test of the gap condition. test only result.)
@@ -522,45 +522,45 @@ namespace Sgry.Azuki.Test
 				// (buf: abcda......bcaba)
 
 				// gap < begin
-				MoveGap( doc, 5 );
-				Assert.AreEqual( 7, doc.FindPrev(new Regex("ab", RegexOptions.RightToLeft), 7, 10).Begin );
+				MoveGap( buf, 5 );
+				Assert.AreEqual( 7, buf.FindPrev(new Regex("ab", RegexOptions.RightToLeft), 7, 10).Begin );
 
 				// gap == begin
 				{
-					MoveGap( doc, 5 );
-					Assert.AreEqual( 7, doc.FindPrev(new Regex("ab", RegexOptions.RightToLeft), 5, 10).Begin );
+					MoveGap( buf, 5 );
+					Assert.AreEqual( 7, buf.FindPrev(new Regex("ab", RegexOptions.RightToLeft), 5, 10).Begin );
 
 					// word at the begin
-					MoveGap( doc, 5 );
-					Assert.AreEqual( 5, doc.FindPrev(new Regex("bc", RegexOptions.RightToLeft), 5, 10).Begin );
+					MoveGap( buf, 5 );
+					Assert.AreEqual( 5, buf.FindPrev(new Regex("bc", RegexOptions.RightToLeft), 5, 10).Begin );
 
 					// partially matched word but overruning boundary
-					MoveGap( doc, 5 );
-					Assert.AreEqual( null, doc.FindPrev(new Regex("abca", RegexOptions.RightToLeft), 5, 10) );
+					MoveGap( buf, 5 );
+					Assert.AreEqual( null, buf.FindPrev(new Regex("abca", RegexOptions.RightToLeft), 5, 10) );
 				}
 
 				// begin < gap < end
 				{
 					// word before the gap
-					MoveGap( doc, 5 );
-					Assert.AreEqual( 3, doc.FindPrev(new Regex("da", RegexOptions.RightToLeft), 0, 10).Begin );
+					MoveGap( buf, 5 );
+					Assert.AreEqual( 3, buf.FindPrev(new Regex("da", RegexOptions.RightToLeft), 0, 10).Begin );
 
 					// word crossing the gap
-					MoveGap( doc, 5 );
-					Assert.AreEqual( 4, doc.FindPrev(new Regex("abc", RegexOptions.RightToLeft), 0, 10).Begin );
+					MoveGap( buf, 5 );
+					Assert.AreEqual( 4, buf.FindPrev(new Regex("abc", RegexOptions.RightToLeft), 0, 10).Begin );
 
 					// word after the gap
-					MoveGap( doc, 5 );
-					Assert.AreEqual( 5, doc.FindPrev(new Regex("bca", RegexOptions.RightToLeft), 0, 10).Begin );
+					MoveGap( buf, 5 );
+					Assert.AreEqual( 5, buf.FindPrev(new Regex("bca", RegexOptions.RightToLeft), 0, 10).Begin );
 				}
 
 				// gap == end
-				MoveGap( doc, 5 );
-				Assert.AreEqual( 0, doc.FindPrev(new Regex("ab", RegexOptions.RightToLeft), 0, 5).Begin );
+				MoveGap( buf, 5 );
+				Assert.AreEqual( 0, buf.FindPrev(new Regex("ab", RegexOptions.RightToLeft), 0, 5).Begin );
 
 				// end <= gap
-				MoveGap( doc, 5 );
-				Assert.AreEqual( 0, doc.FindPrev(new Regex("ab", RegexOptions.RightToLeft), 0, 4).Begin );
+				MoveGap( buf, 5 );
+				Assert.AreEqual( 0, buf.FindPrev(new Regex("ab", RegexOptions.RightToLeft), 0, 4).Begin );
 			}
 		}
 
@@ -569,7 +569,7 @@ namespace Sgry.Azuki.Test
 		{
 			// Insertion before the range
 			{
-				var buf = new TextBuffer( 256, 256 ){ "abcd" };
+				var buf = new Document().Buffer; buf.Add( "abcd" );
 				var rangeB = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Backward );
 				var rangeF = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Forward );
 				var rangeI = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Inward );
@@ -583,7 +583,7 @@ namespace Sgry.Azuki.Test
 
 			// Insertion at beginning index
 			{
-				var buf = new TextBuffer( 256, 256 ){ "abcd" };
+				var buf = new Document().Buffer; buf.Add( "abcd" );
 				var rangeB = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Backward );
 				var rangeF = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Forward );
 				var rangeI = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Inward );
@@ -597,7 +597,7 @@ namespace Sgry.Azuki.Test
 
 			// Insertion at ending index
 			{
-				var buf = new TextBuffer( 256, 256 ){ "abcd" };
+				var buf = new Document().Buffer; buf.Add( "abcd" );
 				var rangeB = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Backward );
 				var rangeF = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Forward );
 				var rangeI = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Inward );
@@ -611,7 +611,7 @@ namespace Sgry.Azuki.Test
 
 			// Insertion after the range
 			{
-				var buf = new TextBuffer( 256, 256 ){ "abcd" };
+				var buf = new Document().Buffer; buf.Add( "abcd" );
 				var rangeB = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Backward );
 				var rangeF = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Forward );
 				var rangeI = buf.CreateTrackingRange( 1, 2, BoundaryTrackingMode.Inward );
@@ -625,7 +625,7 @@ namespace Sgry.Azuki.Test
 
 			// Removal before the range
 			{
-				var buf = new TextBuffer( 256, 256 ){ "abcde" };
+				var buf = new Document().Buffer; buf.Add( "abcd" );
 				var rangeB = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Backward );
 				var rangeF = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Forward );
 				var rangeI = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Inward );
@@ -639,7 +639,7 @@ namespace Sgry.Azuki.Test
 
 			// Removal - a range to be removed covers a tracking range's beginning
 			{
-				var buf = new TextBuffer( 256, 256 ){ "abcde" };
+				var buf = new Document().Buffer; buf.Add( "abcd" );
 				var rangeB = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Backward );
 				var rangeF = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Forward );
 				var rangeI = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Inward );
@@ -653,7 +653,7 @@ namespace Sgry.Azuki.Test
 
 			// Removal at beginning index
 			{
-				var buf = new TextBuffer( 256, 256 ){ "abcde" };
+				var buf = new Document().Buffer; buf.Add( "abcd" );
 				var rangeB = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Backward );
 				var rangeF = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Forward );
 				var rangeI = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Inward );
@@ -667,7 +667,7 @@ namespace Sgry.Azuki.Test
 
 			// Removal - a range to be removed ends at the same position
 			{
-				var buf = new TextBuffer( 256, 256 ){ "abcde" };
+				var buf = new Document().Buffer; buf.Add( "abcd" );
 				var rangeB = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Backward );
 				var rangeF = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Forward );
 				var rangeI = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Inward );
@@ -681,16 +681,16 @@ namespace Sgry.Azuki.Test
 
 			// Removal after the range
 			{
-				var buf = new TextBuffer( 256, 256 ){ "abcde" };
-				var rangeB = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Backward );
-				var rangeF = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Forward );
-				var rangeI = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Inward );
-				var rangeO = buf.CreateTrackingRange( 1, 4, BoundaryTrackingMode.Outward );
-				buf.Remove( 4, 5 );
-				Assert.AreEqual( "[1, 4)", rangeB.ToString() );
-				Assert.AreEqual( "[1, 4)", rangeF.ToString() );
-				Assert.AreEqual( "[1, 4)", rangeI.ToString() );
-				Assert.AreEqual( "[1, 4)", rangeO.ToString() );
+				var buf = new Document().Buffer; buf.Add( "abcd" );
+				var rangeB = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Backward );
+				var rangeF = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Forward );
+				var rangeI = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Inward );
+				var rangeO = buf.CreateTrackingRange( 1, 3, BoundaryTrackingMode.Outward );
+				buf.Remove( 3, 4 );
+				Assert.AreEqual( "[1, 3)", rangeB.ToString() );
+				Assert.AreEqual( "[1, 3)", rangeF.ToString() );
+				Assert.AreEqual( "[1, 3)", rangeI.ToString() );
+				Assert.AreEqual( "[1, 3)", rangeO.ToString() );
 			}
 		}
 
@@ -703,16 +703,16 @@ namespace Sgry.Azuki.Test
 				var doc = new Document(); doc.Replace( "aa\x0300a" );
 
 				Assert.Throws<ArgumentOutOfRangeException>( delegate{
-					range = new Range( doc.Buffer, -1, 0 );
+					range = new Range( doc, -1, 0 );
 				} );
 				Assert.Throws<ArgumentOutOfRangeException>( delegate{
-					range = new Range( doc.Buffer, 0, -1 );
+					range = new Range( doc, 0, -1 );
 				} );
 				Assert.Throws<ArgumentException>( delegate{
-					range = new Range( doc.Buffer, 1, 0 );
+					range = new Range( doc, 1, 0 );
 				} );
 
-				range = new Range( doc.Buffer, 0, 0 );
+				range = new Range( doc, 0, 0 );
 				Assert.AreEqual( true, range.IsEmpty );
 				Assert.AreEqual( 0, range.Begin );
 				Assert.AreEqual( 0, range.End );
@@ -721,7 +721,7 @@ namespace Sgry.Azuki.Test
 				iter = range.Chars.GetEnumerator();
 				Assert.AreEqual( false, iter.MoveNext() );
 
-				range = new Range( doc.Buffer, 1, 4 );
+				range = new Range( doc, 1, 4 );
 				Assert.AreEqual( false, range.IsEmpty );
 				Assert.AreEqual( 1, range.Begin );
 				Assert.AreEqual( 4, range.End );

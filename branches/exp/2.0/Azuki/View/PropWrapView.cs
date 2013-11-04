@@ -905,7 +905,7 @@ namespace Sgry.Azuki
 
 					var buf = _View.Document.Buffer;
 					var range = TextUtil.GetLineRange( buf, _View.SLHI, lineIndex, false );
-					return new LineRange( _View.Document.Buffer,
+					return new LineRange( _View.Document,
 										  range.Begin, range.End, lineIndex );
 				}
 			}
@@ -955,7 +955,7 @@ namespace Sgry.Azuki
 
 					var buf = _View.Document.Buffer;
 					var range = TextUtil.GetLineRange( buf, _View.SLHI, lineIndex, true );
-					return new LineRange( _View.Document.Buffer,
+					return new LineRange( _View.Document,
 										  range.Begin, range.End, lineIndex );
 				}
 			}

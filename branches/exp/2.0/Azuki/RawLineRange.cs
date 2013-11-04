@@ -7,8 +7,8 @@ namespace Sgry.Azuki
 	/// </summary>
 	internal class RawLineRange : LineRange
 	{
-		public RawLineRange( TextBuffer buf, int begin, int end, int lineIndex )
-			: base( buf, begin, end, lineIndex )
+		public RawLineRange( Document doc, int begin, int end, int lineIndex )
+			: base( doc, begin, end, lineIndex )
 		{}
 
 		/// <summary>
@@ -26,14 +26,14 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				if( 0 < End && TextBuffer[End-1] == '\n' )
+				if( 0 < End && Document[End-1] == '\n' )
 				{
-					if( 1 < End && TextBuffer[End-2] == '\r' )
+					if( 1 < End && Document[End-2] == '\r' )
 						return "\r\n";
 					else
 						return "\n";
 				}
-				else if( 0 < End && TextBuffer[End-1] == '\r' )
+				else if( 0 < End && Document[End-1] == '\r' )
 				{
 					return "\r";
 				}
