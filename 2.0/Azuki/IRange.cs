@@ -6,8 +6,25 @@ namespace Sgry.Azuki
 	/// <summary>
 	/// Represents a range to describe where a portion of text begins from and where it ends.
 	/// </summary>
-	public interface IRange
+	/// <remarks>
+	///   <para>
+	///   A range is a pair of positions one of which indicates a beginning point of the range and
+	///   the other indicates an ending point. A range is denoted as
+	///   <code>&quot;[X, Y)&quot;</code> where X is index of the starting position of the range,
+	///   and Y is index of the ending. Range includes the character at the beginning position and
+	///   DOES NOT include the character at the ending position. For example, let a document's
+	///   content is &quot;foobar&quot; and there is a range <code>[3, 5)</code>, the range
+	///   includes <code>ba</code>. Note that length of a range can be calculated by subtracting
+	///   the beginning index from the ending index.
+	/// </para>
+	/// </remarks>
+	public interface IRange : ICloneable
 	{
+		/// <summary>
+		/// Gets the document which is associated with this range.
+		/// </summary>
+		Document Document { get; }
+
 		/// <summary>
 		/// Gets or sets beginning position of this range.
 		/// </summary>
@@ -63,6 +80,9 @@ namespace Sgry.Azuki
 		/// </remarks>
 		/// <seealso cref="CharData"/>
 		/// <exception cref="ArgumentOutOfRangeException"/>
+		/// <exception cref="InvalidOperationException">
+		///   The range is not associatd with a specific text buffer.
+		/// </exception>
 		CharData this[ int index ] { get; }
 
 		/// <summary>
@@ -83,8 +103,8 @@ namespace Sgry.Azuki
 		/// foreach( var line in document.Lines )
 		///     foreach( var ch in line.Chars )
 		///         if( 1 &lt; ch.Length )
-		///             MessageBox.Show( "Found a character which is expressed with multiple UTF-16"
-		///                              + " characters: [" + ch.ToString() + "]" );
+		///             MessageBox.Show( "Found a character which is expressed with multiple"
+		///                              + " UTF-16 characters: [" + ch.ToString() + "]" );
 		/// </code>
 		/// </example>
 		/// <seealso cref="CharData"/>

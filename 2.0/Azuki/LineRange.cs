@@ -8,24 +8,34 @@ namespace Sgry.Azuki
 	/// </summary>
 	internal class LineRange : Range, ILineRange
 	{
+		#region Init / Dispose
 		/// <exception cref="ArgumentException"/>
 		/// <exception cref="ArgumentNullException"/>
 		/// <exception cref="ArgumentOutOfRangeException"/>
-		internal LineRange( TextBuffer buf, int begin, int end, int lineIndex )
-			: base( buf, begin, end )
+		internal LineRange( Document doc, int begin, int end, int lineIndex )
+			: base( doc, begin, end )
 		{
-			if( buf == null )
-				throw new ArgumentNullException( "buf" );
+			if( doc == null )
+				throw new ArgumentNullException( "doc" );
 			if( lineIndex < 0 )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Parameter 'lineIndex' must"
 													  + " not be null." );
-			if( buf.Lines.Count <= lineIndex )
+			if( doc.Lines.Count <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Parameter 'lineIndex' was"
 													   + " too large. (lineIndex:" + lineIndex
-													   + ", LineCount:" + buf.Lines.Count + ")" );
+													   + ", LineCount:" + doc.Lines.Count + ")" );
 
 			LineIndex = lineIndex;
 		}
+
+		/// <summary>
+		/// Creates a cloned copy of this LineRange object.
+		/// </summary>
+		public override IRange Clone()
+		{
+			return new LineRange( Document, Begin, End, LineIndex );
+		}
+		#endregion
 
 		public int LineIndex
 		{
@@ -37,12 +47,12 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				Debug.Assert( TextBuffer != null );
+				Debug.Assert( Document != null );
 
-				var buf = TextBuffer;
+				var buf = Document;
 				var begin = End;
 				var end = (LineIndex+1 < buf.Lines.Count) ? buf.Lines[LineIndex+1].Begin
-														  : buf.Count;
+														  : buf.Length;
 				return buf.GetText( new Range(begin, end) );
 			}
 		}
@@ -51,20 +61,21 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				Debug.Assert( TextBuffer != null );
+				Debug.Assert( Document != null );
 
-				var buf = TextBuffer;
+				var buf = Document.Buffer;
 				return (LineIndex < buf.LDS.Count) ? buf.LDS[ LineIndex ]
 												   : DirtyState.Clean;
 			}
 			set
 			{
-				Debug.Assert( TextBuffer != null );
+				Debug.Assert( Document != null );
 				Debug.Assert( 0 <= LineIndex );
-				Debug.Assert( LineIndex <= TextBuffer.LDS.Count );
+				Debug.Assert( LineIndex <= Document.Buffer.LDS.Count );
 
-				if( LineIndex < TextBuffer.LDS.Count )
-					TextBuffer.LDS[LineIndex] = value;
+				var lds = Document.Buffer.LDS;
+				if( LineIndex < lds.Count )
+					lds[LineIndex] = value;
 			}
 		}
 	}

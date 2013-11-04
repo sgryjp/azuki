@@ -4,26 +4,40 @@ using System.Collections.Generic;
 namespace Sgry.Azuki
 {
 	/// <summary>
-	/// Basic range.
+	/// Basic implementation of IRange.
 	/// </summary>
+	/// <remarks>
+	///   <para>
+	///   Note that Range is not a struct but a class so copying a variable of this type does not
+	///   copy its values. To copy values, use <see cref="Range.Clone"/> method.
+	///   </para>
+	/// </remarks>
 	public class Range : IRange
 	{
-		readonly TextBuffer _Buffer;
+		readonly Document _Document;
 		protected DateTime _CacheTimestamp = DateTime.MinValue;
 		protected string _CachedText;
 
 		#region Init / Dispose
+		/// <summary>
+		/// Creates an empty range.
+		/// </summary>
 		public Range()
 			: this(null, 0, 0)
 		{}
 
+		/// <summary>
+		/// Creates an object describing a specific range.
+		/// </summary>
+		/// <param name="begin">The index of starting position of the range.</param>
+		/// <param name="end">The index of ending position of the range.</param>
 		public Range( int begin, int end )
 			: this(null, begin, end)
 		{}
 
 		/// <exception cref="ArgumentException"/>
 		/// <exception cref="ArgumentOutOfRangeException"/>
-		internal Range( TextBuffer buf, int begin, int end )
+		internal Range( Document doc, int begin, int end )
 		{
 			if( begin < 0 )
 				throw new ArgumentOutOfRangeException( "begin" );
@@ -32,15 +46,31 @@ namespace Sgry.Azuki
 			if( end < begin )
 				throw new ArgumentException();
 
-			_Buffer = buf;
+			_Document = doc;
 			Begin = begin;
 			End = end;
 		}
+
+		/// <summary>
+		/// Creates a cloned copy of this Range object.
+		/// </summary>
+		public virtual IRange Clone()
+		{
+			return new Range( Document, Begin, End );
+		}
+
+		/// <summary>
+		/// Creates a cloned copy of this object.
+		/// </summary>
+		object ICloneable.Clone()
+		{
+			return Clone();
+		}
 		#endregion
 
-		internal TextBuffer TextBuffer
+		public Document Document
 		{
-			get{ return _Buffer; }
+			get{ return _Document; }
 		}
 
 		public virtual int Begin
@@ -63,14 +93,15 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				if( _Buffer == null )
+				var doc = Document;
+				if( doc == null )
 					throw new InvalidOperationException( "No text buffer was associated with this"
 														 + " range object." );
 
-				if( _CacheTimestamp < _Buffer.LastModifiedTime )
+				if( _CacheTimestamp < doc.LastModifiedTime )
 				{
-					_CachedText = _Buffer.GetText( this );
-					_CacheTimestamp = _Buffer.LastModifiedTime;
+					_CachedText = doc.GetText( this );
+					_CacheTimestamp = doc.LastModifiedTime;
 				}
 
 				return _CachedText;
@@ -111,13 +142,14 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				if( _Buffer == null )
+				var doc = Document;
+				if( doc == null )
 					throw new InvalidOperationException( "No text buffer was associated with this"
 														 + " range object." );
-				if( index < 0 || _Buffer.Count <= Begin + index )
+				if( index < 0 || doc.Length <= Begin + index )
 					throw new ArgumentOutOfRangeException();
 
-				return new CharData( _Buffer, Begin + index );
+				return new CharData( doc.Buffer, Begin + index );
 			}
 		}
 
@@ -126,11 +158,11 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				if( _Buffer == null )
+				if( Document == null )
 					throw new InvalidOperationException( "No text buffer was associated with this"
 														 + " range object." );
 
-				return new CharDataList( _Buffer, this );
+				return new CharDataList( Document.Buffer, this );
 			}
 		}
 
@@ -139,11 +171,11 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				if( _Buffer == null )
+				if( Document == null )
 					throw new InvalidOperationException( "No text buffer was associated with this"
 														 + " range object." );
 
-				return new RawCharDataList( _Buffer, this );
+				return new RawCharDataList( Document.Buffer, this );
 			}
 		}
 
@@ -157,7 +189,7 @@ namespace Sgry.Azuki
 			var another = obj as IRange;
 
 			if( another is Range
-				&& _Buffer != (another as Range)._Buffer )
+				&& Document != (another as Range).Document )
 				return false;
 
 			return (another != null) && (another.Begin == Begin && another.End == End);
@@ -165,7 +197,7 @@ namespace Sgry.Azuki
 
 		public override int GetHashCode()
 		{
-			var codeOfBuf = (_Buffer != null) ? _Buffer.GetHashCode() : 0;
+			var codeOfBuf = (_Document != null) ? _Document.GetHashCode() : 0;
 			return codeOfBuf + Begin + (End << 5);
 		}
 

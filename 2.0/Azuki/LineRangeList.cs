@@ -6,22 +6,22 @@ namespace Sgry.Azuki
 {
 	internal class LineRangeList : ILineRangeList
 	{
-		protected readonly TextBuffer _Buffer;
+		protected readonly Document _Document;
 
-		internal LineRangeList( TextBuffer buf )
+		internal LineRangeList( Document buf )
 		{
-			_Buffer = buf;
+			_Document = buf;
 		}
 
 		/// <exception cref="ArgumentOutOfRangeException"/>
 		public ILineRange AtOffset( int charIndex )
 		{
-			if( charIndex < 0 || _Buffer.Count < charIndex )
+			if( charIndex < 0 || _Document.Length < charIndex )
 				throw new ArgumentOutOfRangeException( "charIndex", charIndex, "Invalid index was"
 													   + " given. (charIndex:" + charIndex
 													   + ", Count:" + Count + ")." );
 
-			return this[ _Buffer.GetTextPosition(charIndex).Line ];
+			return this[ _Document.GetTextPosition(charIndex).Line ];
 		}
 
 		/// <exception cref="ArgumentOutOfRangeException"/>
@@ -29,20 +29,20 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				if( lineIndex < 0 || _Buffer.Lines.Count < lineIndex )
+				if( lineIndex < 0 || _Document.Lines.Count < lineIndex )
 					throw new ArgumentOutOfRangeException();
 
-				var range = _Buffer.GetLineRange( lineIndex, false );
-				Debug.Assert( range.End == _Buffer.Count
-							  || _Buffer[range.End] == '\r'
-							  || _Buffer[range.End] == '\n' );
-				return new LineRange( _Buffer, range.Begin, range.End, lineIndex );
+				var range = _Document.GetLineRange( lineIndex, false );
+				Debug.Assert( range.End == _Document.Length
+							  || _Document[range.End] == '\r'
+							  || _Document[range.End] == '\n' );
+				return new LineRange( _Document, range.Begin, range.End, lineIndex );
 			}
 		}
 
 		public int Count
 		{
-			get{ return _Buffer.LHI.Count; }
+			get{ return _Document.Buffer.LHI.Count; }
 		}
 
 		#region IEnumerable

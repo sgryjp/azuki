@@ -18,9 +18,9 @@ namespace Sgry.Azuki
 	public class Document : IEnumerable<char>
 	{
 		#region Fields
-		static short _InstanceCounter;
+		static int _InstanceCounter;
 		readonly int _InstanceCount;
-		readonly TextBuffer _Buffer = new TextBuffer( 4096, 1024 );
+		readonly TextBuffer _Buffer;
 		readonly EditHistory _History = new EditHistory();
 		readonly SelectionManager _SelMan;
 		bool _IsRecordingHistory = true;
@@ -57,9 +57,12 @@ namespace Sgry.Azuki
 		public Document()
 		{
 			MarksUri = false;
+			_Buffer = new TextBuffer( this, 4096, 1024 );
 			_SelMan = new SelectionManager( this );
 			_WatchPatternMarker = new WatchPatternMarker( this );
-			_InstanceCount = unchecked( ++_InstanceCounter );
+			if( unchecked(++_InstanceCounter) != 0 )
+				_InstanceCounter = unchecked(_InstanceCounter + 1);
+			_InstanceCount = _InstanceCounter;
 		}
 
 		///	<summary>

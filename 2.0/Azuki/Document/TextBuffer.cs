@@ -14,6 +14,7 @@ namespace Sgry.Azuki
 	public class TextBuffer : IList<char>
 	{
 		#region Fields
+		readonly Document _Document;
 		readonly GapCharBuffer _Chars;
 		readonly GapBuffer<CharClass> _Classes;
 		internal readonly GapBuffer<int> _LHI; // line head indexes
@@ -28,8 +29,16 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
-		public TextBuffer( int initGapSize, int growSize )
+		public TextBuffer( Document doc )
+			: this( doc, 1024, 1024 )
+		{}
+
+		/// <summary>
+		/// Creates a new instance.
+		/// </summary>
+		public TextBuffer( Document doc, int initGapSize, int growSize )
 		{
+			_Document = doc;
 			_Chars = new GapCharBuffer( initGapSize, growSize );
 			_Classes = new GapBuffer<CharClass>( initGapSize, growSize );
 			_LHI = new GapBuffer<int>( 64 ) {
@@ -39,8 +48,8 @@ namespace Sgry.Azuki
 				DirtyState.Clean
 			};
 			_MarkingBitMasks = new RleArray<uint>();
-			_LineRangeList = new LineRangeList( this );
-			_RawLineRangeList = new RawLineRangeList( this );
+			_LineRangeList = new LineRangeList( _Document );
+			_RawLineRangeList = new RawLineRangeList( _Document );
 			LastModifiedTime = DateTime.Now;
 		}
 		#endregion
@@ -562,7 +571,7 @@ namespace Sgry.Azuki
 			int foundBegin, foundEnd;
 			_Chars.FindNext( value, begin, end, matchCase, out foundBegin, out foundEnd );
 			return (foundBegin < 0) ? null
-									: new Range( this, foundBegin, foundEnd );
+									: new Range( _Document, foundBegin, foundEnd );
 		}
 
 		/// <summary>
@@ -589,7 +598,7 @@ namespace Sgry.Azuki
 			int foundBegin, foundEnd;
 			_Chars.FindPrev( value, begin, end, matchCase, out foundBegin, out foundEnd );
 			return (foundBegin < 0) ? null
-									: new Range( this, foundBegin, foundEnd );
+									: new Range( _Document, foundBegin, foundEnd );
 		}
 
 		/// <summary>
@@ -618,7 +627,7 @@ namespace Sgry.Azuki
 			int foundBegin, foundEnd;
 			_Chars.FindNext( regex, begin, end, out foundBegin, out foundEnd );
 			return (foundBegin < 0) ? null
-									: new Range( this, foundBegin, foundEnd );
+									: new Range( _Document, foundBegin, foundEnd );
 		}
 
 		/// <summary>
@@ -647,7 +656,7 @@ namespace Sgry.Azuki
 			int foundBegin, foundEnd;
 			_Chars.FindPrev( regex, begin, end, out foundBegin, out foundEnd );
 			return (foundBegin < 0) ? null
-									: new Range( this, foundBegin, foundEnd );
+									: new Range( _Document, foundBegin, foundEnd );
 		}
 		#endregion
 
@@ -719,7 +728,7 @@ namespace Sgry.Azuki
 
 		public TrackingRange CreateTrackingRange( int begin, int end, BoundaryTrackingMode mode )
 		{
-			var range = new TrackingRange( this, begin, end, mode );
+			var range = new TrackingRange( _Document, begin, end, mode );
 			_TrackingRanges.Add( new WeakReference(range) );
 			return range;
 		}

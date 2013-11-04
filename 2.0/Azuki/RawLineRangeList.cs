@@ -5,22 +5,22 @@ namespace Sgry.Azuki
 {
 	internal class RawLineRangeList : LineRangeList
 	{
-		internal RawLineRangeList( TextBuffer buf )
-			: base( buf )
+		internal RawLineRangeList( Document doc )
+			: base( doc )
 		{}
 
 		public override ILineRange this[ int lineIndex ]
 		{
 			get
 			{
-				if( lineIndex < 0 || _Buffer.Lines.Count < lineIndex )
+				if( lineIndex < 0 || _Document.Lines.Count < lineIndex )
 					throw new ArgumentOutOfRangeException();
 
-				var range = _Buffer.GetLineRange( lineIndex, true );
-				Debug.Assert( range.End == _Buffer.Count
-							  || (0 < range.End && _Buffer[range.End-1] == '\r')
-							  || (0 < range.End && _Buffer[range.End-1] == '\n') );
-				return new RawLineRange( _Buffer, range.Begin, range.End, lineIndex );
+				var range = _Document.GetLineRange( lineIndex, true );
+				Debug.Assert( range.End == _Document.Length
+							  || (0 < range.End && _Document[range.End-1] == '\r')
+							  || (0 < range.End && _Document[range.End-1] == '\n') );
+				return new RawLineRange( _Document, range.Begin, range.End, lineIndex );
 			}
 		}
 	}
