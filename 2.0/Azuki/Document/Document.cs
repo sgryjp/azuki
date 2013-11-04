@@ -30,7 +30,6 @@ namespace Sgry.Azuki
 		string _EolCode = "\r\n";
 		IHighlighter _Highlighter = null;
 		IWordProc _WordProc = new DefaultWordProc();
-		object _Tag = null;
 		static readonly char[] _PairBracketTable = new char[]{
 			'(', ')', '{', '}', '[', ']', '<', '>',
 			'\xff08', '\xff09', // full-width parenthesis
@@ -186,15 +185,8 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets the list of watching patterns.
 		/// </summary>
-		/// <remarks>
-		///   <para>
-		///   Please refer to the
-		///   <see cref="Sgry.Azuki.WatchPattern">document of WatchPattern class</see>
-		///   for details.
-		///   </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.WatchPattern">WatchPattern class</seealso>
-		/// <seealso cref="Sgry.Azuki.WatchPatternSet">WatchPatternSet class</seealso>
+		/// <seealso cref="WatchPattern"/>
+		/// <seealso cref="WatchPatternSet"/>
 		public WatchPatternSet WatchPatterns
 		{
 			get{ return _WatchPatterns; }
@@ -215,11 +207,11 @@ namespace Sgry.Azuki
 		///   </para>
 		///   <para>
 		///   To set value of anchor or caret, use
-		///   <see cref="Sgry.Azuki.Document.SetSelection(int, int)">Document.SetSelection</see> method.
+		///   <see cref="Document.SetSelection(int, int)"/> method.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.AnchorIndex">Document.AnchorIndex Property</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.SetSelection(int, int)">Document.SetSelection Method</seealso>
+		/// <seealso cref="Document.AnchorIndex"/>
+		/// <seealso cref="Document.SetSelection(int, int)"/>
 		public int CaretIndex
 		{
 			get
@@ -242,11 +234,11 @@ namespace Sgry.Azuki
 		///   </para>
 		///   <para>
 		///   To set value of anchor or caret, use
-		///   <see cref="Sgry.Azuki.Document.SetSelection(int, int)">Document.SetSelection</see> method.
+		///   <see cref="Document.SetSelection(int, int)"/> method.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.CaretIndex">Document.CaretIndex Property</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.SetSelection(int, int)">Document.SetSelection Method</seealso>
+		/// <seealso cref="Document.CaretIndex"/>
+		/// <seealso cref="Document.SetSelection(int, int)"/>
 		public int AnchorIndex
 		{
 			get
@@ -301,19 +293,19 @@ namespace Sgry.Azuki
 		/// <remarks>
 		///   <para>
 		///   This method sets selection range and invokes
-		///   <see cref="Sgry.Azuki.Document.SelectionChanged">Document.SelectionChanged</see> event.
+		///   <see cref="Document.SelectionChanged">Document.SelectionChanged</see> event.
 		///   If given index is at middle of an undividable character sequence such as surrogate pair,
 		///   selection range will be automatically expanded to avoid dividing the it.
 		///   </para>
 		///   <para>
 		///   This method always selects text as a sequence of character.
 		///   To select text by lines or by rectangle, use
-		///   <see cref="Sgry.Azuki.Document.SetSelection(int, int, IView)">other overload</see>
+		///   <see cref="Document.SetSelection(int, int, IView)">other overload</see>
 		///   method instead.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.SelectionChanged">Document.SelectionChanged event</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.SetSelection(int, int, IView)">Document.SetSelection method (another overloaded method)</seealso>
+		/// <seealso cref="Document.SelectionChanged"/>
+		/// <seealso cref="Document.SetSelection(int, int, IView)"/>
 		public void SetSelection( int anchor, int caret )
 		{
 			SelectionMode = TextDataType.Normal;
@@ -331,11 +323,11 @@ namespace Sgry.Azuki
 		/// <remarks>
 		///   <para>
 		///   This method sets selection range and invokes
-		///   <see cref="Sgry.Azuki.Document.SelectionChanged">Document.SelectionChanged</see> event.
+		///   <see cref="Document.SelectionChanged">Document.SelectionChanged</see> event.
 		///   </para>
 		///   <para>
 		///   How text will be selected depends on the value of current
-		///   <see cref="Sgry.Azuki.Document.SelectionMode">SelectionMode</see> as below.
+		///   <see cref="Document.SelectionMode">SelectionMode</see> as below.
 		///   </para>
 		///   <list type="bullet">
 		///	    <item>
@@ -371,9 +363,9 @@ namespace Sgry.Azuki
 		///	    </item>
 		///   </list>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.SelectionChanged">Document.SelectionChanged event</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.SelectionMode">Document.SelectionMode property</seealso>
-		/// <seealso cref="Sgry.Azuki.TextDataType">TextDataType enum</seealso>
+		/// <seealso cref="Document.SelectionChanged"/>
+		/// <seealso cref="Document.SelectionMode"/>
+		/// <seealso cref="TextDataType"/>
 		public void SetSelection( int anchor, int caret, IView view )
 		{
 			if( anchor < 0 || _Buffer.Count < anchor )
@@ -844,11 +836,11 @@ namespace Sgry.Azuki
 		///   </para>
 		///	  <para>
 		///	  For detail of marking feature, please refer to the document of
-		///	  <see cref="Sgry.Azuki.Marking"/> class.
+		///	  <see cref="Marking"/> class.
 		///	  </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.Unmark">Document.Unmark method</seealso>
-		/// <seealso cref="Sgry.Azuki.Marking">Marking class</seealso>
+		/// <seealso cref="Document.Unmark"/>
+		/// <seealso cref="Marking"/>
 		public bool Mark( int begin, int end, int markingID )
 		{
 			if( begin < 0 || _Buffer.Count < begin )
@@ -908,11 +900,11 @@ namespace Sgry.Azuki
 		///	  </para>
 		///	  <para>
 		///	  For detail of marking feature, please refer to the document of
-		///	  <see cref="Sgry.Azuki.Marking"/> class.
+		///	  <see cref="Marking"/> class.
 		///	  </para>
 		///	</remarks>
-		/// <seealso cref="Sgry.Azuki.Marking">Marking class</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.Mark">Document.Mark method</seealso>
+		/// <seealso cref="Marking"/>
+		/// <seealso cref="Document.Mark"/>
 		public bool Unmark( int begin, int end, int markingID )
 		{
 			if( begin < 0 || _Buffer.Count < begin )
@@ -963,14 +955,14 @@ namespace Sgry.Azuki
 		///   Range of the text part if specified index was marked with the ID.
 		///   Otherwise returns an empty range.
 		/// </returns>
-		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <exception cref="ArgumentOutOfRangeException">
 		///   Parameter <paramref name="index"/> is out of valid range.
 		///   - OR - Parameter <paramref name="markingID"/> is out of valid range.
 		/// </exception>
-		/// <exception cref="System.ArgumentException">
+		/// <exception cref="ArgumentException">
 		///   Parameter <paramref name="markingID"/> is not registered in Marking class.
 		/// </exception>
-		/// <seealso cref="Sgry.Azuki.Marking">Marking class</seealso>
+		/// <seealso cref="Marking"/>
 		public IRange GetMarkedRange( int index, int markingID )
 		{
 			if( index < 0 || _Buffer.Count <= index )
@@ -1093,8 +1085,8 @@ namespace Sgry.Azuki
 		///   (index equal to length of document) was specified.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Marking">Marking class</seealso>
-		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <seealso cref="Marking">Marking class</seealso>
+		/// <exception cref="ArgumentOutOfRangeException">
 		///   Parameter <paramref name="index"/> is out of valid range.
 		/// </exception>
 		public int[] GetMarkingsAt( int index )
@@ -1143,12 +1135,12 @@ namespace Sgry.Azuki
 		///   </para>
 		///	  <para>
 		///	  For detail of marking feature, please refer to the document of
-		///	  <see cref="Sgry.Azuki.Marking"/> class.
+		///	  <see cref="Marking"/> class.
 		///	  </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Marking">Marking class</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.GetMarkingsAt">Document.GetMarkingsAt method</seealso>
-		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <seealso cref="Marking"/>
+		/// <seealso cref="Document.GetMarkingsAt"/>
+		/// <exception cref="ArgumentOutOfRangeException">
 		///   Parameter <paramref name="index"/> is out of valid range.
 		/// </exception>
 		public uint GetMarkingBitMaskAt( int index )
@@ -1174,7 +1166,7 @@ namespace Sgry.Azuki
 		///   programmer must implement such action as a part of
 		///   event handler of standard mouse event or keyboard event.
 		///   Please refer to the
-		///   <see cref="Sgry.Azuki.Marking">document of marking feature</see> for details.
+		///   <see cref="Marking">document of marking feature</see> for details.
 		///   </para>
 		/// </remarks>
 		public bool MarksUri
@@ -1196,7 +1188,7 @@ namespace Sgry.Azuki
 		///   <para>
 		///   Call of this method creates a new group of actions in UNDO history
 		///   and collect modification to this document until call of
-		///   <see cref="Sgry.Azuki.Document.EndUndo">EndUndo method</see>.
+		///   <see cref="Document.EndUndo">EndUndo method</see>.
 		///   </para>
 		///   <para>
 		///   If no actions has been executed between call of BeginUndo and EndUndo,
@@ -1205,7 +1197,7 @@ namespace Sgry.Azuki
 		///   so calling this method multiple times in a row happens nothing.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.EndUndo">Document.EndUndo method</seealso>
+		/// <seealso cref="Document.EndUndo"/>
 		public void BeginUndo()
 		{
 			_History.BeginUndo();
@@ -1219,11 +1211,11 @@ namespace Sgry.Azuki
 		///   Call of this method stops grouping up editing actions.
 		///   After call of this method,
 		///   this method does nothing until
-		///   <see cref="Sgry.Azuki.Document.BeginUndo">BeginUndo</see>.
+		///   <see cref="Document.BeginUndo">BeginUndo</see>.
 		///   method was called.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.BeginUndo">Document.BeginUndo method</seealso>
+		/// <seealso cref="Document.BeginUndo"/>
 		public void EndUndo()
 		{
 			_History.EndUndo();
@@ -1239,10 +1231,10 @@ namespace Sgry.Azuki
 		///   </para>
 		///   <para>
 		///   To get whether any UNDOable action exists or not,
-		///   use <see cref="Sgry.Azuki.Document.CanUndo">CanUndo</see> property.
+		///   use <see cref="Document.CanUndo">CanUndo</see> property.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.CanUndo">Document.CanUndo property</seealso>
+		/// <seealso cref="Document.CanUndo"/>
 		public void Undo()
 		{
 			// first of all, stop grouping actions
@@ -1292,7 +1284,7 @@ namespace Sgry.Azuki
 		///   To update graphic, use IUserInterface.ClearHistory or update manually.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.IUserInterface.ClearHistory">IUserInterface.ClearHistory method</seealso>
+		/// <seealso cref="IUserInterface.ClearHistory"/>
 		public void ClearHistory()
 		{
 			_History.Clear();
@@ -1402,11 +1394,6 @@ namespace Sgry.Azuki
 			return _Buffer.GetCharIndex( position );
 		}
 		#endregion
-
-		public IRange GetTextRange( TextPoint beginPos, TextPoint endPos )
-		{
-			return _Buffer.GetTextRange( beginPos, endPos );
-		}
 
 		#region Text Search
 		/// <summary>
@@ -2091,8 +2078,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public object Tag
 		{
-			get{ return _Tag; }
-			set{ _Tag = value; }
+			get; set;
 		}
 
 		/// <summary>
@@ -2123,8 +2109,8 @@ namespace Sgry.Azuki
 		///     <item>Variation sequence (including IVS)</item>
 		///   </list>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.PrevGraphemeClusterIndex">Document.PrevGraphemeClusterIndex method</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.IsNotDividableIndex(int)">Document.IsNotDividableIndex method</seealso>
+		/// <seealso cref="Document.PrevGraphemeClusterIndex"/>
+		/// <seealso cref="Document.IsNotDividableIndex(int)"/>
 		public int NextGraphemeClusterIndex( int index )
 		{
 			if( index < 0 || Length < index )
@@ -2161,8 +2147,8 @@ namespace Sgry.Azuki
 		///     <item>Variation sequence (including IVS)</item>
 		///   </list>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.PrevGraphemeClusterIndex">Document.PrevGraphemeClusterIndex method</seealso>
-		/// <seealso cref="Sgry.Azuki.Document.IsNotDividableIndex(int)">Document.IsNotDividableIndex method</seealso>
+		/// <seealso cref="Document.PrevGraphemeClusterIndex"/>
+		/// <seealso cref="Document.IsNotDividableIndex(int)"/>
 		public int PrevGraphemeClusterIndex( int index )
 		{
 			if( index < 0 || Length < index )
@@ -2216,9 +2202,9 @@ namespace Sgry.Azuki
 		///   <para>
 		///   This method determines whether text can not be divided at given index or not. To seek
 		///   document through grapheme cluster by grapheme cluster, please consider to use
-		///   <see cref="Sgry.Azuki.Document.NextGraphemeClusterIndex">
+		///   <see cref="Document.NextGraphemeClusterIndex">
 		///   Document.NextGraphemeClusterIndex method</see> or
-		///   <see cref="Sgry.Azuki.Document.PrevGraphemeClusterIndex">
+		///   <see cref="Document.PrevGraphemeClusterIndex">
 		///   Document.PrevGraphemeClusterIndex method</see>.
 		///   </para>
 		///   <para>
