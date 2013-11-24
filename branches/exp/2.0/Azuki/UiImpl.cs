@@ -388,12 +388,6 @@ namespace Sgry.Azuki
 			}
 		}
 
-		internal bool IsKeyBindDefined( uint keyCode )
-		{
-			Debug.Assert( _IsDisposed == false );
-			return _KeyMap.ContainsKey( keyCode );
-		}
-
 		public void ClearKeyBind()
 		{
 			Debug.Assert( _IsDisposed == false );

@@ -2549,7 +2549,7 @@ namespace Sgry.Azuki.WinForms
 		protected override bool IsInputKey( Keys keyData )
 		{
 			// is there an action associted with that key?
-			if( _Impl.IsKeyBindDefined((uint)keyData) )
+			if( _Impl.GetKeyBind((uint)keyData) != null )
 			{
 				return true;
 			}
