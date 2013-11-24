@@ -98,7 +98,7 @@ namespace Sgry.Ann
 		/// </summary>
 		public void ActivateSearchPanel()
 		{
-			_SearchPanel.Activate( _Azuki.CaretIndex );
+			_SearchPanel.Activate( _Azuki.Document.CaretIndex );
 		}
 
 		/// <summary>
@@ -549,12 +549,12 @@ namespace Sgry.Ann
 			}
 
 			// Display caret position on status bar
-			var caretPos = _Azuki.GetTextPosition( _Azuki.CaretIndex );
-			columnInHRuler = _Azuki.View.GetVirtualPos( _Azuki.CaretIndex ).X
+			var caretPos = _Azuki.GetTextPosition( _Azuki.Document.CaretIndex );
+			columnInHRuler = _Azuki.View.GetVirtualPos( _Azuki.Document.CaretIndex ).X
 				/ _Azuki.View.HRulerUnitWidth;
 			_Status_CaretPos.Text = String.Format( StatusMsg_CaretPos,
 					caretPos.Line+1, columnInHRuler+1, caretPos.Column+1,
-					_Azuki.CaretIndex
+					_Azuki.Document.CaretIndex
 				);
 
 			// expand status bar width if its text cannot be displayed

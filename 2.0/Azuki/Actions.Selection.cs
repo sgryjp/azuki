@@ -302,7 +302,7 @@ namespace Sgry.Azuki
 			int pairIndex;
 
 			// find pair and go there
-			caretIndex = ui.CaretIndex;
+			caretIndex = ui.Document.CaretIndex;
 			pairIndex = ui.Document.FindMatchedBracket( caretIndex );
 			if( pairIndex != -1 )
 			{
