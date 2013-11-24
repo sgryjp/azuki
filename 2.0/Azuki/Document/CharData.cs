@@ -109,8 +109,23 @@ namespace Sgry.Azuki
 		#endregion
 	}
 
+	/// <summary>
+	/// Represents a list of CharData.
+	/// </summary>
+	public interface ICharDataList : IEnumerable<CharData>
+	{
+		/// <summary>
+		/// Gets an item at the specified index.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		CharData this[ int index ]
+		{
+			get;
+		}
+	}
+
 	#region Utilities
-	class CharDataList : IEnumerable<CharData>
+	class CharDataList : ICharDataList
 	{
 		readonly TextBuffer _Buffer;
 		readonly IRange _Range;
@@ -137,9 +152,19 @@ namespace Sgry.Azuki
 		{
 			return GetEnumerator();
 		}
+
+		public CharData this[ int index ]
+		{
+			get
+			{
+				if( index < 0 || _Buffer.Count <= index )
+					throw new ArgumentOutOfRangeException();
+				return new CharData(_Buffer, index);
+			}
+		}
 	}
 
-	class RawCharDataList : IEnumerable<CharData>
+	class RawCharDataList : ICharDataList
 	{
 		readonly TextBuffer _Buffer;
 		readonly IRange _Range;
@@ -161,6 +186,16 @@ namespace Sgry.Azuki
 		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
+		}
+
+		public CharData this[ int index ]
+		{
+			get
+			{
+				if( index < 0 || _Buffer.Count <= index )
+					throw new ArgumentOutOfRangeException();
+				return new CharData(_Buffer, index);
+			}
 		}
 	}
 	#endregion
