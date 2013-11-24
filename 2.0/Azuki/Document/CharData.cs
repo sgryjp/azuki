@@ -117,6 +117,8 @@ namespace Sgry.Azuki
 
 		public CharDataList( TextBuffer buffer, IRange range )
 		{
+			Debug.Assert( buffer != null );
+			Debug.Assert( range != null );
 			_Buffer = buffer;
 			_Range = range;
 		}
@@ -144,6 +146,8 @@ namespace Sgry.Azuki
 
 		public RawCharDataList( TextBuffer buffer, IRange range )
 		{
+			Debug.Assert( buffer != null );
+			Debug.Assert( range != null );
 			_Buffer = buffer;
 			_Range = range;
 		}
@@ -151,9 +155,7 @@ namespace Sgry.Azuki
 		public IEnumerator<CharData> GetEnumerator()
 		{
 			for( int i=_Range.Begin; i<_Range.End; i++ )
-			{
 				yield return new CharData( _Buffer, i );
-			}
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
