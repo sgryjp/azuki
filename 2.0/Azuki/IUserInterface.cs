@@ -598,21 +598,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Sets selection range and update the desired column.
-		/// </summary>
-		/// <param name="anchor">the position where the selection begins</param>
-		/// <param name="caret">the position where the caret is</param>
-		void SetSelection( int anchor, int caret );
-
-		/// <summary>
-		/// Gets range of current selection.
-		/// Note that this method does not return [anchor, caret) pair but [begin, end) pair.
-		/// </summary>
-		/// <param name="begin">index of where the selection begins.</param>
-		/// <param name="end">index of where the selection ends (selection do not includes the char at this index).</param>
-		void GetSelection( out int begin, out int end );
-
-		/// <summary>
 		/// Selects all text.
 		/// </summary>
 		void SelectAll();

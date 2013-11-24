@@ -549,7 +549,7 @@ namespace Sgry.Ann
 			ActiveDocument = doc;
 			SetFileType( doc, FileType.GetFileTypeByFileName(filePath) );
 			doc.SetCaretIndex( initialLine, initialColumn );
-			MainForm.Azuki.SetSelection( doc.CaretIndex, doc.CaretIndex ); // set desired column
+			MainForm.Azuki.View.SetDesiredColumn();
 			MainForm.Azuki.ScrollToCaret();
 		}
 
