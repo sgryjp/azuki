@@ -1182,41 +1182,32 @@ namespace Sgry.Azuki
 
 		#region Editing Behavior
 		/// <summary>
-		/// Begins grouping up editing actions into a single UNDO action.
+		/// Begins grouping up editing actions into a single undo action.
 		/// </summary>
 		/// <remarks>
 		///   <para>
-		///   Call of this method creates a new group of actions in UNDO history
-		///   and collect modification to this document until call of
-		///   <see cref="Document.EndUndo">EndUndo method</see>.
+		///   Creates an undo context and starts to collect modifications to this document into a
+		///   single undoable action until the context was closed.
 		///   </para>
 		///   <para>
-		///   If no actions has been executed between call of BeginUndo and EndUndo,
-		///   an UNDO action which do nothing will be stored in UNDO history.
-		///   After call of this method, this method does nothing until EndUndo method was called
-		///   so calling this method multiple times in a row happens nothing.
+		///   If no actions were collected in an undo context, closing the context creates an empty
+		///   undo action. Undoing an empty undo action do nothing.
+		///   </para>
+		///   <para>
+		///   Undo contexts can be stacked. If you call this method multiple times and get multiple
+		///   context objects, the undo context will be closed when every context object was
+		///   disposed. Internally, the number of undo contexts are counted.
 		///   </para>
 		/// </remarks>
-		/// <seealso cref="Document.EndUndo"/>
-		public void BeginUndo()
+		/// <seealso cref="Document.Undo"/>
+		/// <seealso cref="Document.CanUndo"/>
+		public IDisposable BeginUndo()
 		{
 			_History.BeginUndo();
+			return new UndoContext( this );
 		}
 
-		/// <summary>
-		/// Ends grouping up editing actions.
-		/// </summary>
-		/// <remarks>
-		///   <para>
-		///   Call of this method stops grouping up editing actions.
-		///   After call of this method,
-		///   this method does nothing until
-		///   <see cref="Document.BeginUndo">BeginUndo</see>.
-		///   method was called.
-		///   </para>
-		/// </remarks>
-		/// <seealso cref="Document.BeginUndo"/>
-		public void EndUndo()
+		internal void EndUndo()
 		{
 			_History.EndUndo();
 		}
@@ -1226,45 +1217,39 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		///   <para>
-		///   This method reverses the effect of lastly done modification to this document.
-		///   If there is no UNDOable action, this method will do nothing.
+		///   This method reverses the effect of a modification lastly done to this document. If
+		///   there was no executable undo action, this method does nothing.
 		///   </para>
 		///   <para>
-		///   To get whether any UNDOable action exists or not,
-		///   use <see cref="Document.CanUndo">CanUndo</see> property.
+		///   To get whether any undoable action exists or not, use <see cref="Document.CanUndo"/>
+		///   property.
 		///   </para>
 		/// </remarks>
+		/// <seealso cref="Document.BeginUndo"/>
 		/// <seealso cref="Document.CanUndo"/>
 		public void Undo()
 		{
-			// first of all, stop grouping actions
+			// First of all, stop grouping actions
 			if( _History.IsGroupingActions )
 				EndUndo();
 
 			if( CanUndo == false )
 				return;
 
-			bool wasSavedState = _History.IsSavedState;
+			var wasSavedState = _History.IsSavedState;
 
 			// Get the action to be undone.
-			EditAction action = _History.GetUndoAction();
+			var action = _History.GetUndoAction();
 			Debug.Assert( action != null );
 
-			// Undo the action.
-			// Note that an UNDO may includes multiple actions
-			// so executing it may call Document.Replace multiple times.
-			// Because Document.Replace also invokes DirtyStateChanged event by itself,
-			// designing to make sure Document.Replace called in UNDO is rather complex.
-			// So here I use a special flag to supress invoking event in Document.Replace
-			// ... to make sure unnecessary events will never be invoked.
-			_IsSuppressingDirtyStateChangedEvent = true;
-			{
+			// Undo the action
+			_IsSuppressingDirtyStateChangedEvent = true;	// To prevent fireing DirtyStateChanged
+			{												// event multiple times
 				action.Undo();
 			}
 			_IsSuppressingDirtyStateChangedEvent = false;
 
-			// Invoke event if this operation
-			// changes dirty state of this document
+			// Invoke event if this operation changes dirty state of this document
 			if( _History.IsSavedState != wasSavedState )
 			{
 				InvokeDirtyStateChanged();
@@ -1298,8 +1283,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		///   <para>
-		///   This method 'replays' the lastly UNDOed action if available.
-		///   If there is no REDOable action, this method will do nothing.
+		///   This method executes the undo action which was lastly executed. If there is no
+		///   redo-able action, this method will do nothing.
 		///   </para>
 		/// </remarks>
 		public void Redo()

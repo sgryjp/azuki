@@ -447,13 +447,10 @@ namespace Sgry.Azuki
 				return;
 			}
 
+			using( g = _UI.GetIGraphics() )
+			using( doc.BeginUndo() )
 			try
 			{
-				g = _UI.GetIGraphics();
-
-				// begin grouping UNDO action
-				doc.BeginUndo();
-
 				// clear rectangle selection
 				if( doc.RectSelectRanges != null )
 				{
@@ -538,12 +535,7 @@ namespace Sgry.Azuki
 			}
 			finally
 			{
-				doc.EndUndo();
 				input.Length = 0;
-				if( g != null )
-				{
-					g.Dispose();
-				}
 			}
 		}
 		#endregion
@@ -805,8 +797,7 @@ namespace Sgry.Azuki
 			targetIndex = View.GetCharIndex( pos );
 
 			// move text
-			Document.BeginUndo();
-			try
+			using( Document.BeginUndo() )
 			{
 				int begin, end;
 				string selText;
@@ -827,10 +818,6 @@ namespace Sgry.Azuki
 				// insert new text
 				Document.Replace( selText, targetIndex, targetIndex );
 				Document.SetSelection( targetIndex, targetIndex + selText.Length );
-			}
-			finally
-			{
-				Document.EndUndo();
 			}
 		}
 

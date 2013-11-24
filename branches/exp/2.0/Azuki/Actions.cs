@@ -38,9 +38,8 @@ namespace Sgry.Azuki
 			if( doc.RectSelectRanges != null )
 			{
 				//--- case of rectangle selection ---
-				doc.BeginUndo();
-				doc.DeleteRectSelectText();
-				doc.EndUndo();
+				using( doc.BeginUndo() )
+					doc.DeleteRectSelectText();
 				ui.View.Invalidate();
 			}
 			else if( doc.AnchorIndex != doc.CaretIndex )
@@ -107,9 +106,8 @@ namespace Sgry.Azuki
 			if( doc.RectSelectRanges != null )
 			{
 				//--- case of rectangle selection ---
-				doc.BeginUndo();
-				doc.DeleteRectSelectText();
-				doc.EndUndo();
+				using( doc.BeginUndo() )
+					doc.DeleteRectSelectText();
 				ui.View.Invalidate();
 			}
 			else if( doc.AnchorIndex != doc.CaretIndex )
@@ -160,9 +158,8 @@ namespace Sgry.Azuki
 			if( doc.RectSelectRanges != null )
 			{
 				//--- case of rectangle selection ---
-				doc.BeginUndo();
-				doc.DeleteRectSelectText();
-				doc.EndUndo();
+				using( doc.BeginUndo() )
+					doc.DeleteRectSelectText();
 				ui.View.Invalidate();
 			}
 			else if( doc.AnchorIndex != doc.CaretIndex )
@@ -221,9 +218,8 @@ namespace Sgry.Azuki
 			if( doc.RectSelectRanges != null )
 			{
 				//--- case of rectangle selection ---
-				doc.BeginUndo();
-				doc.DeleteRectSelectText();
-				doc.EndUndo();
+				using( doc.BeginUndo() )
+					doc.DeleteRectSelectText();
 				ui.View.Invalidate();
 			}
 			else if( doc.AnchorIndex != doc.CaretIndex )
@@ -289,9 +285,8 @@ namespace Sgry.Azuki
 				// delete selected text
 				if( doc.RectSelectRanges != null )
 				{
-					doc.BeginUndo();
-					doc.DeleteRectSelectText();
-					doc.EndUndo();
+					using( doc.BeginUndo() )
+						doc.DeleteRectSelectText();
 					Plat.Inst.SetClipboardText( text, TextDataType.Rectangle );
 				}
 				else
@@ -404,88 +399,85 @@ namespace Sgry.Azuki
 				}
 			}
 			
-			// begin grouping edit action
-			doc.BeginUndo();
-
-			// delete currently selected text before insertion
-			doc.GetSelection( out begin, out end );
-			if( doc.RectSelectRanges != null )
+			using( doc.BeginUndo() )
 			{
-				//--- case of rectangle selection ---
-				// delete selected text
-				doc.DeleteRectSelectText();
-				ui.View.Invalidate();
-			}
-			else if( begin != end )
-			{
-				//--- case of normal selection ---
-				// delete selected text
-				doc.Replace( "" );
-			}
-
-			// paste according type of the text data
-			if( dataType == TextDataType.Rectangle )
-			{
-				//--- rectangle text data ---
-				Point insertPos;
-				int rowBegin;
-				int rowEnd;
-				string rowText;
-				string padding;
-
-				// Insert every row at same column position
-				insertPos = ui.View.GetVirtualPos( doc.CaretIndex );
-				rowBegin = 0;
-				rowEnd = TextUtil.NextLineHead( clipboardText, rowBegin );
-				while( 0 <= rowEnd )
+				// delete currently selected text before insertion
+				doc.GetSelection( out begin, out end );
+				if( doc.RectSelectRanges != null )
 				{
-					// get this row content
-					if( clipboardText[rowEnd-1] == '\n' )
-					{
-						if( clipboardText[rowEnd-2] == '\r' )
-							rowText = clipboardText.Substring( rowBegin, rowEnd-rowBegin-2 );
-						else
-							rowText = clipboardText.Substring( rowBegin, rowEnd-rowBegin-1 );
-					}
-					else if( clipboardText[rowEnd-1] == '\r' )
-					{
-						rowText = clipboardText.Substring( rowBegin, rowEnd-rowBegin-1 );
-					}
-					else
-					{
-						rowText = clipboardText.Substring( rowBegin, rowEnd-rowBegin );
-					}
+					//--- case of rectangle selection ---
+					// delete selected text
+					doc.DeleteRectSelectText();
+					ui.View.Invalidate();
+				}
+				else if( begin != end )
+				{
+					//--- case of normal selection ---
+					// delete selected text
+					doc.Replace( "" );
+				}
 
-					// pad tabs if needed
-					padding = UiImpl.GetNeededPaddingChars( ui, insertPos, false );
+				// paste according type of the text data
+				if( dataType == TextDataType.Rectangle )
+				{
+					//--- rectangle text data ---
+					Point insertPos;
+					int rowBegin;
+					int rowEnd;
+					string rowText;
+					string padding;
 
-					// insert this row
-					insertIndex = ui.View.GetCharIndex( insertPos );
-					doc.Replace( padding.ToString() + rowText, insertIndex, insertIndex );
-
-					// goto next line
-					insertPos.Y += ui.LineSpacing;
-					rowBegin = rowEnd;
+					// Insert every row at same column position
+					insertPos = ui.View.GetVirtualPos( doc.CaretIndex );
+					rowBegin = 0;
 					rowEnd = TextUtil.NextLineHead( clipboardText, rowBegin );
+					while( 0 <= rowEnd )
+					{
+						// get this row content
+						if( clipboardText[rowEnd-1] == '\n' )
+						{
+							if( clipboardText[rowEnd-2] == '\r' )
+								rowText = clipboardText.Substring( rowBegin, rowEnd-rowBegin-2 );
+							else
+								rowText = clipboardText.Substring( rowBegin, rowEnd-rowBegin-1 );
+						}
+						else if( clipboardText[rowEnd-1] == '\r' )
+						{
+							rowText = clipboardText.Substring( rowBegin, rowEnd-rowBegin-1 );
+						}
+						else
+						{
+							rowText = clipboardText.Substring( rowBegin, rowEnd-rowBegin );
+						}
+
+						// pad tabs if needed
+						padding = UiImpl.GetNeededPaddingChars( ui, insertPos, false );
+
+						// insert this row
+						insertIndex = ui.View.GetCharIndex( insertPos );
+						doc.Replace( padding.ToString() + rowText, insertIndex, insertIndex );
+
+						// goto next line
+						insertPos.Y += ui.LineSpacing;
+						rowBegin = rowEnd;
+						rowEnd = TextUtil.NextLineHead( clipboardText, rowBegin );
+					}
 				}
-			}
-			else
-			{
-				//--- normal or line text data ---
-				// calculate insertion index
-				insertIndex = begin;
-				if( dataType == TextDataType.Line )
+				else
 				{
-					// make the insertion point to caret line head if it is line data type
-					insertIndex = doc.Lines.AtOffset( begin ).Begin;
+					//--- normal or line text data ---
+					// calculate insertion index
+					insertIndex = begin;
+					if( dataType == TextDataType.Line )
+					{
+						// make the insertion point to caret line head if it is line data type
+						insertIndex = doc.Lines.AtOffset( begin ).Begin;
+					}
+
+					// insert
+					doc.Replace( clipboardText, insertIndex, insertIndex );
 				}
-
-				// insert
-				doc.Replace( clipboardText, insertIndex, insertIndex );
 			}
-
-			// end grouping UNDO action
-			doc.EndUndo();
 
 			// move caret
 			if( ui.UsesStickyCaret == false )
@@ -677,14 +669,15 @@ namespace Sgry.Azuki
 			}
 
 			// indent each lines
-			doc.BeginUndo();
-			for( int i=beginL; i<endL; i++ )
+			using( doc.BeginUndo() )
 			{
-				var line = doc.Lines[i];
-				if( 0 < line.Length )
-					doc.Replace( indentChars, line.Begin, line.Begin );
+				for( int i=beginL; i<endL; i++ )
+				{
+					var line = doc.Lines[i];
+					if( 0 < line.Length )
+						doc.Replace( indentChars, line.Begin, line.Begin );
+				}
 			}
-			doc.EndUndo();
 
 			// select whole range
 			doc.SetSelection( doc.Lines[beginL].Begin,
@@ -709,34 +702,35 @@ namespace Sgry.Azuki
 			doc.GetSelectedLineRange( out beginL, out endL );
 
 			// unindent each lines
-			doc.BeginUndo();
-			for( int i=beginL; i<endL; i++ )
+			using( doc.BeginUndo() )
 			{
-				int lineHead = doc.Lines[i].Begin;
-				if( doc.Length <= lineHead )
+				for( int i=beginL; i<endL; i++ )
 				{
-					// no more chars available. exit.
-					break;
-				}
-				else if( doc[lineHead] == '\t' )
-				{
-					// there is a tab. remove it
-					doc.Replace( String.Empty, lineHead, lineHead+1 );
-				}
-				else if( doc[lineHead] == ' ' )
-				{
-					// there is a space.
-					// remove them until the count reaches to the tab-width
-					int n = 0;
-					while( doc[lineHead] == ' ' && n < ui.View.TabWidth )
+					int lineHead = doc.Lines[i].Begin;
+					if( doc.Length <= lineHead )
 					{
+						// no more chars available. exit.
+						break;
+					}
+					else if( doc[lineHead] == '\t' )
+					{
+						// there is a tab. remove it
 						doc.Replace( String.Empty, lineHead, lineHead+1 );
+					}
+					else if( doc[lineHead] == ' ' )
+					{
+						// there is a space.
+						// remove them until the count reaches to the tab-width
+						int n = 0;
+						while( doc[lineHead] == ' ' && n < ui.View.TabWidth )
+						{
+							doc.Replace( String.Empty, lineHead, lineHead+1 );
 
-						n++;
+							n++;
+						}
 					}
 				}
 			}
-			doc.EndUndo();
 
 			// select whole range
 			doc.SetSelection( doc.Lines[beginL].Begin,
@@ -760,21 +754,22 @@ namespace Sgry.Azuki
 			doc.GetSelectedLineRange( out beginL, out endL );
 
 			// Trim
-			doc.BeginUndo();
-			for( int i=beginL; i<endL; i++ )
+			using( doc.BeginUndo() )
 			{
-				IRange line = doc.Lines[i];
-				int index = line.End;
-				while( line.Begin <= index-1 && Char.IsWhiteSpace(doc[index-1]) )
+				for( int i=beginL; i<endL; i++ )
 				{
-					index--;
-				}
-				if( index < line.End )
-				{
-					doc.Replace( "", index, line.End );
+					IRange line = doc.Lines[i];
+					int index = line.End;
+					while( line.Begin <= index-1 && Char.IsWhiteSpace(doc[index-1]) )
+					{
+						index--;
+					}
+					if( index < line.End )
+					{
+						doc.Replace( "", index, line.End );
+					}
 				}
 			}
-			doc.EndUndo();
 		}
 
 		/// <summary>
@@ -792,21 +787,22 @@ namespace Sgry.Azuki
 			doc.GetSelectedLineRange( out beginL, out endL );
 
 			// Trim
-			doc.BeginUndo();
-			for( int i=beginL; i<endL; i++ )
+			using( doc.BeginUndo() )
 			{
-				IRange line = doc.Lines[i];
-				int index = line.Begin;
-				while( index < line.End && Char.IsWhiteSpace(doc[index]) )
+				for( int i=beginL; i<endL; i++ )
 				{
-					index++;
-				}
-				if( line.Begin < index )
-				{
-					doc.Replace( "", line.Begin, index );
+					IRange line = doc.Lines[i];
+					int index = line.Begin;
+					while( index < line.End && Char.IsWhiteSpace(doc[index]) )
+					{
+						index++;
+					}
+					if( line.Begin < index )
+					{
+						doc.Replace( "", line.Begin, index );
+					}
 				}
 			}
-			doc.EndUndo();
 		}
 
 		/// <summary>
@@ -920,14 +916,15 @@ namespace Sgry.Azuki
 
 			if( doc.RectSelectRanges != null )
 			{
-				doc.BeginUndo();
-				for( int i=0; i<doc.RectSelectRanges.Length; i+=2 )
+				using( doc.BeginUndo() )
 				{
-					begin = doc.RectSelectRanges[i] + delta;
-					end = doc.RectSelectRanges[i+1] + delta;
-					predicate( ui, begin, end, ref delta );
+					for( int i=0; i<doc.RectSelectRanges.Length; i+=2 )
+					{
+						begin = doc.RectSelectRanges[i] + delta;
+						end = doc.RectSelectRanges[i+1] + delta;
+						predicate( ui, begin, end, ref delta );
+					}
 				}
-				doc.EndUndo();
 
 				int lastIndex = doc.RectSelectRanges.Length - 1;
 				doc.SelectionMode = TextDataType.Rectangle;
