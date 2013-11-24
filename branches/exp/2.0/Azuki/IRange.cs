@@ -78,7 +78,7 @@ namespace Sgry.Azuki
 		///     <item>If something was inserted after its position, it will be unchanged.</item>
 		///   </list>
 		/// </remarks>
-		BoundaryTrackingMode AutoUpdateMode { get; set; }
+		AutoUpdateMode AutoUpdateMode { get; set; }
 
 		/// <summary>
 		/// Calculates intersection of another range and this range.

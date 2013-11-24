@@ -35,10 +35,10 @@ namespace Sgry.Azuki.Test
 			var range2 = new Range( doc, 1, 3 );
 
 			Assert.Throws<InvalidOperationException>( delegate{
-				range1.AutoUpdateMode = BoundaryTrackingMode.Backward;
+				range1.AutoUpdateMode = AutoUpdateMode.Backward;
 			} );
 			Assert.DoesNotThrow( delegate{
-				range2.AutoUpdateMode = BoundaryTrackingMode.Backward;
+				range2.AutoUpdateMode = AutoUpdateMode.Backward;
 			} );
 
 			Assert.Throws<InvalidOperationException>( delegate{
@@ -128,10 +128,10 @@ namespace Sgry.Azuki.Test
 			// O    ~~~~               ~~~~
 			{
 				doc.Text = "abcd";
-				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Backward };
-				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Forward };
-				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Inward };
-				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Outward };
+				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Backward };
+				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Forward };
+				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Inward };
+				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Outward };
 				doc.Replace( "X", 0, 0 );
 				Assert.AreEqual( "[2, 4)", rangeB.ToString() );
 				Assert.AreEqual( "[2, 4)", rangeF.ToString() );
@@ -140,7 +140,7 @@ namespace Sgry.Azuki.Test
 				rangeB.AutoUpdateMode
 					= rangeF.AutoUpdateMode
 					= rangeI.AutoUpdateMode
-					= rangeO.AutoUpdateMode = BoundaryTrackingMode.None;
+					= rangeO.AutoUpdateMode = AutoUpdateMode.None;
 			}
 
 			//    a b c d    ==>   a X b c d
@@ -150,10 +150,10 @@ namespace Sgry.Azuki.Test
 			// O    ~~~~             ~~~~~~
 			{
 				doc.Text = "abcd";
-				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Backward };
-				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Forward };
-				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Inward };
-				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Outward };
+				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Backward };
+				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Forward };
+				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Inward };
+				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Outward };
 				doc.Replace( "X", 1, 1 );
 				Assert.AreEqual( "[1, 4)", rangeB.ToString() );
 				Assert.AreEqual( "[2, 4)", rangeF.ToString() );
@@ -162,7 +162,7 @@ namespace Sgry.Azuki.Test
 				rangeB.AutoUpdateMode
 					= rangeF.AutoUpdateMode
 					= rangeI.AutoUpdateMode
-					= rangeO.AutoUpdateMode = BoundaryTrackingMode.None;
+					= rangeO.AutoUpdateMode = AutoUpdateMode.None;
 			}
 
 			//    a b c d    ==>   a b X c d
@@ -172,10 +172,10 @@ namespace Sgry.Azuki.Test
 			// O    ~~~~             ~~~~~~
 			{
 				doc.Text = "abcd";
-				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Backward };
-				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Forward };
-				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Inward };
-				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Outward };
+				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Backward };
+				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Forward };
+				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Inward };
+				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Outward };
 				doc.Replace( "X", 2, 2 );
 				Assert.AreEqual( "[1, 4)", rangeB.ToString() );
 				Assert.AreEqual( "[1, 4)", rangeF.ToString() );
@@ -184,7 +184,7 @@ namespace Sgry.Azuki.Test
 				rangeB.AutoUpdateMode
 					= rangeF.AutoUpdateMode
 					= rangeI.AutoUpdateMode
-					= rangeO.AutoUpdateMode = BoundaryTrackingMode.None;
+					= rangeO.AutoUpdateMode = AutoUpdateMode.None;
 			}
 
 			//    a b c d    ==>   a b c X d
@@ -194,10 +194,10 @@ namespace Sgry.Azuki.Test
 			// O    ~~~~             ~~~~~~
 			{
 				doc.Text = "abcd";
-				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Backward };
-				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Forward };
-				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Inward };
-				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Outward };
+				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Backward };
+				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Forward };
+				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Inward };
+				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Outward };
 				doc.Replace( "X", 3, 3 );
 				Assert.AreEqual( "[1, 3)", rangeB.ToString() );
 				Assert.AreEqual( "[1, 4)", rangeF.ToString() );
@@ -206,7 +206,7 @@ namespace Sgry.Azuki.Test
 				rangeB.AutoUpdateMode
 					= rangeF.AutoUpdateMode
 					= rangeI.AutoUpdateMode
-					= rangeO.AutoUpdateMode = BoundaryTrackingMode.None;
+					= rangeO.AutoUpdateMode = AutoUpdateMode.None;
 			}
 
 			//    a b c d    ==>   a b c d X
@@ -216,10 +216,10 @@ namespace Sgry.Azuki.Test
 			// O    ~~~~             ~~~~
 			{
 				doc.Text = "abcd";
-				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Backward };
-				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Forward };
-				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Inward };
-				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Outward };
+				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Backward };
+				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Forward };
+				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Inward };
+				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Outward };
 				doc.Replace( "X", 4, 4 );
 				Assert.AreEqual( "[1, 3)", rangeB.ToString() );
 				Assert.AreEqual( "[1, 3)", rangeF.ToString() );
@@ -228,7 +228,7 @@ namespace Sgry.Azuki.Test
 				rangeB.AutoUpdateMode
 					= rangeF.AutoUpdateMode
 					= rangeI.AutoUpdateMode
-					= rangeO.AutoUpdateMode = BoundaryTrackingMode.None;
+					= rangeO.AutoUpdateMode = AutoUpdateMode.None;
 			}
 
 			//    a b c d    ==>   b c d
@@ -238,10 +238,10 @@ namespace Sgry.Azuki.Test
 			// O    ~~~~           ~~~~
 			{
 				doc.Text = "abcd";
-				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Backward };
-				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Forward };
-				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Inward };
-				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Outward };
+				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Backward };
+				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Forward };
+				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Inward };
+				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Outward };
 				doc.Replace( "", 0, 1 );
 				Assert.AreEqual( "[0, 2)", rangeB.ToString() );
 				Assert.AreEqual( "[0, 2)", rangeF.ToString() );
@@ -250,7 +250,7 @@ namespace Sgry.Azuki.Test
 				rangeB.AutoUpdateMode
 					= rangeF.AutoUpdateMode
 					= rangeI.AutoUpdateMode
-					= rangeO.AutoUpdateMode = BoundaryTrackingMode.None;
+					= rangeO.AutoUpdateMode = AutoUpdateMode.None;
 			}
 
 			//    a b c d    ==>   c d
@@ -260,10 +260,10 @@ namespace Sgry.Azuki.Test
 			// O    ~~~~           ~~
 			{
 				doc.Text = "abcd";
-				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Backward };
-				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Forward };
-				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Inward };
-				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Outward };
+				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Backward };
+				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Forward };
+				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Inward };
+				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Outward };
 				doc.Replace( "", 0, 2 );
 				Assert.AreEqual( "[0, 1)", rangeB.ToString() );
 				Assert.AreEqual( "[0, 1)", rangeF.ToString() );
@@ -272,7 +272,7 @@ namespace Sgry.Azuki.Test
 				rangeB.AutoUpdateMode
 					= rangeF.AutoUpdateMode
 					= rangeI.AutoUpdateMode
-					= rangeO.AutoUpdateMode = BoundaryTrackingMode.None;
+					= rangeO.AutoUpdateMode = AutoUpdateMode.None;
 			}
 
 			//    a b c d    ==>   a c d
@@ -282,10 +282,10 @@ namespace Sgry.Azuki.Test
 			// O    ~~~~             ~~
 			{
 				doc.Text = "abcd";
-				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Backward };
-				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Forward };
-				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Inward };
-				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Outward };
+				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Backward };
+				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Forward };
+				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Inward };
+				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Outward };
 				doc.Replace( "", 1, 2 );
 				Assert.AreEqual( "[1, 2)", rangeB.ToString() );
 				Assert.AreEqual( "[1, 2)", rangeF.ToString() );
@@ -294,7 +294,7 @@ namespace Sgry.Azuki.Test
 				rangeB.AutoUpdateMode
 					= rangeF.AutoUpdateMode
 					= rangeI.AutoUpdateMode
-					= rangeO.AutoUpdateMode = BoundaryTrackingMode.None;
+					= rangeO.AutoUpdateMode = AutoUpdateMode.None;
 			}
 
 			//    a b c d    ==>   a b d
@@ -304,10 +304,10 @@ namespace Sgry.Azuki.Test
 			// O    ~~~~             ~~
 			{
 				doc.Text = "abcd";
-				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Backward };
-				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Forward };
-				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Inward };
-				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Outward };
+				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Backward };
+				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Forward };
+				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Inward };
+				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Outward };
 				doc.Replace( "", 2, 3 );
 				Assert.AreEqual( "[1, 2)", rangeB.ToString() );
 				Assert.AreEqual( "[1, 2)", rangeF.ToString() );
@@ -316,7 +316,7 @@ namespace Sgry.Azuki.Test
 				rangeB.AutoUpdateMode
 					= rangeF.AutoUpdateMode
 					= rangeI.AutoUpdateMode
-					= rangeO.AutoUpdateMode = BoundaryTrackingMode.None;
+					= rangeO.AutoUpdateMode = AutoUpdateMode.None;
 			}
 
 			//    a b c d    ==>   a b c
@@ -326,10 +326,10 @@ namespace Sgry.Azuki.Test
 			// O    ~~~~             ~~~~
 			{
 				doc.Text = "abcd";
-				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Backward };
-				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Forward };
-				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Inward };
-				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = BoundaryTrackingMode.Outward };
+				var rangeB = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Backward };
+				var rangeF = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Forward };
+				var rangeI = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Inward };
+				var rangeO = new Range( doc, 1, 3 ) { AutoUpdateMode = AutoUpdateMode.Outward };
 				doc.Replace( "", 3, 4 );
 				Assert.AreEqual( "[1, 3)", rangeB.ToString() );
 				Assert.AreEqual( "[1, 3)", rangeF.ToString() );
@@ -338,7 +338,7 @@ namespace Sgry.Azuki.Test
 				rangeB.AutoUpdateMode
 					= rangeF.AutoUpdateMode
 					= rangeI.AutoUpdateMode
-					= rangeO.AutoUpdateMode = BoundaryTrackingMode.None;
+					= rangeO.AutoUpdateMode = AutoUpdateMode.None;
 			}
 
 			//    a b c d    ==>   a X b c d
@@ -348,10 +348,10 @@ namespace Sgry.Azuki.Test
 			// O   |                  |
 			{
 				doc.Text = "abcd";
-				var rangeB = new Range( doc, 1, 1 ) { AutoUpdateMode = BoundaryTrackingMode.Backward };
-				var rangeF = new Range( doc, 1, 1 ) { AutoUpdateMode = BoundaryTrackingMode.Forward };
-				var rangeI = new Range( doc, 1, 1 ) { AutoUpdateMode = BoundaryTrackingMode.Inward };
-				var rangeO = new Range( doc, 1, 1 ) { AutoUpdateMode = BoundaryTrackingMode.Outward };
+				var rangeB = new Range( doc, 1, 1 ) { AutoUpdateMode = AutoUpdateMode.Backward };
+				var rangeF = new Range( doc, 1, 1 ) { AutoUpdateMode = AutoUpdateMode.Forward };
+				var rangeI = new Range( doc, 1, 1 ) { AutoUpdateMode = AutoUpdateMode.Inward };
+				var rangeO = new Range( doc, 1, 1 ) { AutoUpdateMode = AutoUpdateMode.Outward };
 				doc.Replace( "X", 1, 1 );
 				Assert.AreEqual( "[2, 2)", rangeB.ToString() );
 				Assert.AreEqual( "[2, 2)", rangeF.ToString() );
@@ -360,7 +360,7 @@ namespace Sgry.Azuki.Test
 				rangeB.AutoUpdateMode
 					= rangeF.AutoUpdateMode
 					= rangeI.AutoUpdateMode
-					= rangeO.AutoUpdateMode = BoundaryTrackingMode.None;
+					= rangeO.AutoUpdateMode = AutoUpdateMode.None;
 			}
 
 			//    a b c d    ==>   a b X c d
@@ -370,10 +370,10 @@ namespace Sgry.Azuki.Test
 			// O   |                |
 			{
 				doc.Text = "abcd";
-				var rangeB = new Range( doc, 1, 1 ) { AutoUpdateMode = BoundaryTrackingMode.Backward };
-				var rangeF = new Range( doc, 1, 1 ) { AutoUpdateMode = BoundaryTrackingMode.Forward };
-				var rangeI = new Range( doc, 1, 1 ) { AutoUpdateMode = BoundaryTrackingMode.Inward };
-				var rangeO = new Range( doc, 1, 1 ) { AutoUpdateMode = BoundaryTrackingMode.Outward };
+				var rangeB = new Range( doc, 1, 1 ) { AutoUpdateMode = AutoUpdateMode.Backward };
+				var rangeF = new Range( doc, 1, 1 ) { AutoUpdateMode = AutoUpdateMode.Forward };
+				var rangeI = new Range( doc, 1, 1 ) { AutoUpdateMode = AutoUpdateMode.Inward };
+				var rangeO = new Range( doc, 1, 1 ) { AutoUpdateMode = AutoUpdateMode.Outward };
 				doc.Replace( "X", 2, 2 );
 				Assert.AreEqual( "[1, 1)", rangeB.ToString() );
 				Assert.AreEqual( "[1, 1)", rangeF.ToString() );
@@ -382,7 +382,7 @@ namespace Sgry.Azuki.Test
 				rangeB.AutoUpdateMode
 					= rangeF.AutoUpdateMode
 					= rangeI.AutoUpdateMode
-					= rangeO.AutoUpdateMode = BoundaryTrackingMode.None;
+					= rangeO.AutoUpdateMode = AutoUpdateMode.None;
 			}
 		}
 	}
