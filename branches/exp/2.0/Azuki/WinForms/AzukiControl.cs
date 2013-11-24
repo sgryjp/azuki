@@ -1541,16 +1541,6 @@ namespace Sgry.Azuki.WinForms
 		{
 			return Document.GetLineRange( lineIndex ).Length;
 		}
-
-		/// <summary>
-		/// Gets the number of lines currently inputted.
-		/// </summary>
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-		public int LineCount
-		{
-			get{ return Document.Lines.Count; }
-		}
 		#endregion
 
 		#region IUserInterface - Position / Index Conversion
@@ -1824,7 +1814,7 @@ namespace Sgry.Azuki.WinForms
 			// calculate vertical range and page size
 			visibleLineCount = View.VisibleSize.Height / View.LineSpacing;
 			vPageSize = Math.Max( 0, visibleLineCount-1 );
-			vMax = View.LineCount - 1;
+			vMax = View.Lines.Count - 1;
 			if( ScrollsBeyondLastLine )
 			{
 				vMax += vPageSize - 1;
@@ -2081,7 +2071,7 @@ namespace Sgry.Azuki.WinForms
 			else if( scrollType == WinApi.SB_TOP )
 				newPos = 0;
 			else if( scrollType == WinApi.SB_BOTTOM )
-				newPos = View.LineCount - 1;
+				newPos = View.Lines.Count - 1;
 			else if( scrollType == WinApi.SB_THUMBPOSITION
 				|| scrollType == WinApi.SB_THUMBTRACK )
 				newPos = WinApi.GetScrollTrackPos( Handle, false );

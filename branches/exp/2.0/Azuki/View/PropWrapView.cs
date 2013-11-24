@@ -48,14 +48,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets the number of the screen lines.
-		/// </summary>
-		public override int LineCount
-		{
-			get{ return SLHI.Count; }
-		}
-
-		/// <summary>
 		/// Gets or sets width of the virtual text area (line number area is not included).
 		/// </summary>
 		public override int TextAreaWidth
@@ -239,10 +231,10 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
 		public override int GetCharIndex( TextPoint position )
 		{
-			if( position.Line < 0 || LineCount < position.Line || position.Column < 0 )
+			if( position.Line < 0 || Lines.Count < position.Line || position.Column < 0 )
 				throw new ArgumentOutOfRangeException( "position", "Invalid index was given"
-													   + " (position:" + position + ", LineCount:"
-													   + LineCount + ")." );
+													   + " (position:" + position + ", line count:"
+													   + Lines.Count + ")." );
 
 			return TextUtil.GetCharIndex( Document.Buffer, SLHI, position );
 		}
@@ -283,7 +275,7 @@ namespace Sgry.Azuki
 				}
 
 				// update screen line head indexes
-				prevLineCount = LineCount;
+				prevLineCount = Lines.Count;
 				UpdateSLHI( g, e.Index, e.OldText, e.NewText );
 #				if SLHI_DEBUG
 				{
@@ -623,7 +615,7 @@ namespace Sgry.Azuki
 
 			// draw all lines
 			pos.Y = ScrYofTextArea;
-			for( int i=FirstVisibleLine; i<LineCount; i++ )
+			for( int i=FirstVisibleLine; i<Lines.Count; i++ )
 			{
 				if( pos.Y < clipRect.Bottom && clipRect.Top <= pos.Y+LineSpacing )
 				{

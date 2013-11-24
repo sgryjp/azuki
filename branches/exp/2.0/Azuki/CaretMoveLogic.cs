@@ -307,7 +307,7 @@ namespace Sgry.Azuki
 			int offset = -1;
 
 			var pos = view.GetTextPosition( doc.CaretIndex );
-			if( view.LineCount <= pos.Line+1 )
+			if( view.Lines.Count <= pos.Line+1 )
 			{
 				return doc.Length;
 			}

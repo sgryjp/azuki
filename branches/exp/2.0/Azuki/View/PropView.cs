@@ -67,14 +67,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets the number of the screen lines.
-		/// </summary>
-		public override int LineCount
-		{
-			get{ return base.Document.Lines.Count; }
-		}
-
-		/// <summary>
 		/// Re-calculates and updates x-coordinate of the right end of the virtual text area.
 		/// </summary>
 		/// <param name="desiredX">X-coordinate of scroll destination desired.</param>
@@ -95,10 +87,10 @@ namespace Sgry.Azuki
 		public override Point GetVirtualPos( IGraphics g, int lineIndex, int columnIndex )
 		{
 			Debug.Assert( g != null );
-			if( lineIndex < 0 || LineCount <= lineIndex )
+			if( lineIndex < 0 || Lines.Count <= lineIndex )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Specified index is out of"
 													   + " range. (value:" + lineIndex
-													   + ", line count:" + LineCount + ")" );
+													   + ", line count:" + Lines.Count + ")" );
 			if( columnIndex < 0 )
 				throw new ArgumentOutOfRangeException( "columnIndex", "Specified index is out of"
 													   + " range. (value:" + columnIndex + ")" );
@@ -367,7 +359,7 @@ namespace Sgry.Azuki
 		void HandleSelectionChanged_OnExpandSelInLine( IGraphics g, SelectionChangedEventArgs e,
 													   int begin, int end, int beginL )
 		{
-			DebugUtl.Assert( beginL < LineCount );
+			DebugUtl.Assert( beginL < Lines.Count );
 			Document doc = Document;
 			Rectangle rect = new Rectangle();
 			int beginLineHead;
@@ -625,8 +617,8 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( end <= Document.Length, "cond: end(" + end + ") <= Document.Length("
 							 + Document.Length + ")" );
 			DebugUtl.Assert( 0 <= beginL, "cond: 0 <= beginL(" + beginL + ")" );
-			DebugUtl.Assert( beginL <= LineCount, "cond: beginL(" + beginL
-							 + ") <= IView.LineCount(" + LineCount + ")" );
+			DebugUtl.Assert( beginL <= Lines.Count, "cond: beginL(" + beginL
+							 + ") <= Lines.Count(" + Lines.Count + ")" );
 			DebugUtl.Assert( beginLineHead <= begin, "cond: beginLineHead(" + beginLineHead
 							 + ") <= begin(" + begin + ")" );
 			if( begin == end )
@@ -663,8 +655,8 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( 0 <= beginLine, "cond: 0 <= beginLine(" + beginLine + ")" );
 			DebugUtl.Assert( beginLine < endLine, "cond: beginLine(" + beginLine + ") < endLine("
 							 + endLine + ")" );
-			DebugUtl.Assert( endLine <= LineCount, "cond: endLine(" + endLine + ") <= IView"
-							 + ".LineCount(" + LineCount + ")" );
+			DebugUtl.Assert( endLine <= Lines.Count, "cond: endLine(" + endLine + ") <= "
+							 + "Lines.Count(" + Lines.Count + ")" );
 			DebugUtl.Assert( beginLineHead <= begin, "cond: beginLineHead(" + beginLineHead
 							 + ") <= begin(" + begin + ")" );
 			DebugUtl.Assert( beginLineHead < endLineHead, "cond: beginLineHead(" + beginLineHead
@@ -765,7 +757,7 @@ namespace Sgry.Azuki
 			g.SetClipRect( clipRect );
 			pos.X = -(ScrollPosX - ScrXofTextArea);
 			pos.Y = ScrYofTextArea;
-			for( int i=FirstVisibleLine; i<LineCount; i++ )
+			for( int i=FirstVisibleLine; i<Lines.Count; i++ )
 			{
 				if( pos.Y < clipRect.Bottom && clipRect.Top <= pos.Y+LineSpacing )
 				{

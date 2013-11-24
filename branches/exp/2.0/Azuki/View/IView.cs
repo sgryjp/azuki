@@ -21,23 +21,6 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Gets the number of the screen lines.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// Through this property, number of the screen lines in this document can be retrieved.
-		/// "Screen line" here means a text line drawn as a graphc and is different from "logical
-		/// line," which is a string simply separated by EOL codes. To retrieve count of logical
-		/// lines, use Document.Lines.Count instead.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.Lines"/>
-		int LineCount
-		{
-			get;
-		}
-
-		/// <summary>
 		/// Gets collection of screen line ranges, which does not include EOL codes.
 		/// </summary>
 		ILineRangeList Lines

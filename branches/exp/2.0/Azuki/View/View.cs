@@ -136,14 +136,6 @@ namespace Sgry.Azuki
 			get{ return _UI.Document; }
 		}
 
-		/// <summary>
-		/// Gets the number of the screen lines.
-		/// </summary>
-		public abstract int LineCount
-		{
-			get;
-		}
-
 		public abstract ILineRangeList Lines
 		{
 			get;
@@ -920,8 +912,8 @@ namespace Sgry.Azuki
 		{
 			Point virPos;
 
-			if( lineIndex < 0 || LineCount <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "Specified index is out of range. (value:"+lineIndex+", line count:"+LineCount+")" );
+			if( lineIndex < 0 || Lines.Count <= lineIndex )
+				throw new ArgumentOutOfRangeException( "lineIndex", "Specified index is out of range. (value:"+lineIndex+", line count:"+Lines.Count+")" );
 			if( columnIndex < 0 )
 				throw new ArgumentOutOfRangeException( "columnIndex", "Specified index is out of range. (value:"+columnIndex+")" );
 
@@ -1046,12 +1038,12 @@ namespace Sgry.Azuki
 			destLineIndex = FirstVisibleLine + lineDelta;
 			if( ScrollsBeyondLastLine )
 			{
-				maxLineIndex = LineCount - 1;
+				maxLineIndex = Lines.Count - 1;
 			}
 			else
 			{
 				visibleLineCount = VisibleSize.Height / LineSpacing;
-				maxLineIndex = Math.Max( 0, LineCount-visibleLineCount+1 );
+				maxLineIndex = Math.Max( 0, Lines.Count-visibleLineCount+1 );
 			}
 
 			// calculate scroll distance
