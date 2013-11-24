@@ -111,6 +111,7 @@
     <Compile Include="TextUtil.cs" />
     <Compile Include="Platform.cs" />
     <Compile Include="UiImpl.cs" />
+    <Compile Include="UndoContext.cs" />
     <Compile Include="View\ColorScheme.cs" />
     <Compile Include="View\DrawingOption.cs" />
     <Compile Include="View\HRulerIndicatorType.cs" />
