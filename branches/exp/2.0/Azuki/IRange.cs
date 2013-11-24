@@ -130,7 +130,7 @@ namespace Sgry.Azuki
 		/// <exception cref="InvalidOperationException">
 		/// The range is not associatd with a specific text buffer.
 		/// </exception>
-		IEnumerable<CharData> Chars { get; }
+		ICharDataList Chars { get; }
 
 		/// <summary>
 		/// Gets a collection of UTF-16 characters in this range.
@@ -158,6 +158,6 @@ namespace Sgry.Azuki
 		/// <exception cref="InvalidOperationException">
 		/// The range is not associatd with a specific text buffer.
 		/// </exception>
-		IEnumerable<CharData> RawChars { get; }
+		ICharDataList RawChars { get; }
 	}
 }

@@ -179,7 +179,7 @@ namespace Sgry.Azuki
 		}
 
 		/// <exception cref="InvalidOperationException"/>
-		public IEnumerable<CharData> Chars
+		public ICharDataList Chars
 		{
 			get
 			{
@@ -192,7 +192,7 @@ namespace Sgry.Azuki
 		}
 
 		/// <exception cref="InvalidOperationException"/>
-		public IEnumerable<CharData> RawChars
+		public ICharDataList RawChars
 		{
 			get
 			{
