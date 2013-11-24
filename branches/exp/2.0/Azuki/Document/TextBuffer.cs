@@ -22,7 +22,7 @@ namespace Sgry.Azuki
 		readonly RleArray<uint> _MarkingBitMasks;
 		readonly LineRangeList _LineRangeList;
 		readonly RawLineRangeList _RawLineRangeList;
-		readonly IList<WeakReference> _TrackingRanges = new GapBuffer<WeakReference>( 32 );
+		readonly IList<WeakReference> _AutoUpdateTargets = new GapBuffer<WeakReference>( 32 );
 		#endregion
 
 		#region Init / Dispose
@@ -669,32 +669,117 @@ namespace Sgry.Azuki
 			Debug.Assert( oldText != null );
 			Debug.Assert( newText != null );
 
-			// Fire events for each living tracking ranges
-			var zombies =  new List<int>( _TrackingRanges.Count );
-			for( int i=0; i<_TrackingRanges.Count; i++ )
-			{
-				var ptr = _TrackingRanges[i];
-				if( ptr.IsAlive )
-				{
-					var range = (TrackingRange)ptr.Target;
-					range.OnContentChanged( this,
-											new ContentChangedEventArgs(index,
-																		oldText,
-																		newText) );
-				}
-				else
-				{
-					zombies.Add( i );
-				}
-			}
-
-			// Remove zombie references
-			for( int i=zombies.Count-1; 0<=i; i-- )
-				_TrackingRanges.RemoveAt( zombies[i] );
+			DoAutoUpdate( index, oldText, newText );
 
 			// Fire events for every normal listeners
 			if( ContentChanged != null )
 				ContentChanged( this, new ContentChangedEventArgs(index, oldText, newText) );
+		}
+		#endregion
+
+		#region AutoUpdate
+		internal void RemoveAutoUpdateTarget( IRange range )
+		{
+			for( int i=0; i<_AutoUpdateTargets.Count; i++ )
+			{
+				var wr = _AutoUpdateTargets[i];
+				if( ReferenceEquals(range, wr.Target) )
+				{
+					_AutoUpdateTargets.RemoveAt( i );
+					return;
+				}
+			}
+		}
+
+		internal void AddAutoUpdateTarget( IRange range )
+		{
+			Debug.Assert( range != null );
+
+			foreach( var wr in _AutoUpdateTargets )
+				if( wr.IsAlive && ReferenceEquals(range, wr.Target) )
+					return;
+			_AutoUpdateTargets.Add( new WeakReference(range) );
+		}
+
+		void DoAutoUpdate( int index, string oldText, string newText )
+		{
+			Debug.Assert( 0 <= index );
+			Debug.Assert( index <= Count );
+			Debug.Assert( oldText != null );
+			Debug.Assert( newText != null );
+
+			var deadRanges = new Stack<int>();
+			for( int i=0; i<_AutoUpdateTargets.Count; i++ )
+			{
+				var r = _AutoUpdateTargets[i];
+				if( r.IsAlive )
+					DoAutoUpdate( (IRange)r.Target, index, oldText, newText );
+				else
+					deadRanges.Push( i );
+			}
+			while( 0 < deadRanges.Count )
+			{
+				_AutoUpdateTargets.RemoveAt( deadRanges.Pop() );
+			}
+		}
+
+		void DoAutoUpdate( IRange range, int index, string oldText, string newText )
+		{
+			Debug.Assert( range.Begin <= range.End );
+
+			// Removal
+			if( 0 < oldText.Length )
+			{
+				if( index < range.Begin )
+				{
+					if( index + oldText.Length <= range.Begin )
+						range.Begin -= oldText.Length;
+					else
+						range.Begin -= range.Begin - index;
+				}
+				if( index <= range.End )
+				{
+					if( index + oldText.Length <= range.End )
+						range.End -= oldText.Length;
+					else
+						range.End -= range.End - index;
+				}
+			}
+
+			// Insertion
+			var diff = newText.Length;
+			if( 0 < diff )
+			{
+				if( range.IsEmpty )
+				{
+					if( index <= range.Begin )
+					{
+						range.Begin += diff;
+						range.End += diff;
+					}
+				}
+				else if( index < range.Begin )
+				{
+					range.Begin += diff;
+					range.End += diff;
+				}
+				else if( index == range.Begin )
+				{
+					if( index == range.Begin
+						&& ((int)range.AutoUpdateMode & 0x10) != 0 )
+						range.Begin += newText.Length;
+					range.End += diff;
+				}
+				else if( index < range.End )
+				{
+					range.End += newText.Length;
+				}
+				else if( range.End == index )
+				{
+					if( ((int)range.AutoUpdateMode & 0x20) != 0 )
+						range.End += newText.Length;
+				}
+			}
 		}
 		#endregion
 
@@ -724,13 +809,6 @@ namespace Sgry.Azuki
 		public string this[Range range]
 		{
 			get{ return GetText(range); }
-		}
-
-		public TrackingRange CreateTrackingRange( int begin, int end, BoundaryTrackingMode mode )
-		{
-			var range = new TrackingRange( _Document, begin, end, mode );
-			_TrackingRanges.Add( new WeakReference(range) );
-			return range;
 		}
 
 #		if DEBUG

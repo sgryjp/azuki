@@ -68,6 +68,7 @@
     <Compile Include="GapBufferTest.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="RangeTest.cs" />
     <Compile Include="RleArrayTest.cs">
       <SubType>Code</SubType>
     </Compile>
