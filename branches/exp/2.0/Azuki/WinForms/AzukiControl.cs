@@ -394,9 +394,9 @@ namespace Sgry.Azuki.WinForms
 			using( IGraphics g = GetIGraphics() )
 			{
 				_CaretSize.Height = View.LineHeight;
-				_CaretSize.Width = Utl.CalcOverwriteCaretWidth(
-						g, Document, _Impl.View, CaretIndex, IsOverwriteMode
-					);
+				_CaretSize.Width = Utl.CalcOverwriteCaretWidth( g, Document, _Impl.View,
+																Document.CaretIndex,
+																IsOverwriteMode );
 			}
 
 			// update graphic
@@ -1420,15 +1420,6 @@ namespace Sgry.Azuki.WinForms
 		#endregion
 
 		#region IUserInterface - Selection
-		/// <summary>
-		/// Gets the index of where the caret is at (in char-index).
-		/// </summary>
-		[Browsable(false)]
-		public int CaretIndex
-		{
-			get{ return Document.CaretIndex; }
-		}
-
 		/// <summary>
 		/// Selects all text.
 		/// </summary>

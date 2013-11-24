@@ -6,8 +6,7 @@ using System.Drawing;
 
 namespace Sgry.Azuki
 {
-	using IHighlighter = Highlighter.IHighlighter;
-	
+
 	/// <summary>
 	/// Interface of user interface module.
 	/// </summary>
@@ -589,14 +588,6 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Selection
-		/// <summary>
-		/// Gets the index of where the caret is at (in char-index).
-		/// </summary>
-		int CaretIndex
-		{
-			get;
-		}
-
 		/// <summary>
 		/// Selects all text.
 		/// </summary>
