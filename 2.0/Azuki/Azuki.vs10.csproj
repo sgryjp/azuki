@@ -57,7 +57,7 @@
     <Compile Include="Actions.Selection.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="AutoIndentHooks.cs" />
-    <Compile Include="BoundaryTrackingMode.cs" />
+    <Compile Include="AutoUpdateMode.cs" />
     <Compile Include="CaretMoveLogic.cs" />
     <Compile Include="DebugUtl.cs" />
     <Compile Include="DefaultWordProc.cs" />

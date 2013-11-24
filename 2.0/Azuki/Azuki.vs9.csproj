@@ -53,7 +53,7 @@
     <Compile Include="Actions.Selection.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="AutoIndentHooks.cs" />
-    <Compile Include="BoundaryTrackingMode.cs" />
+    <Compile Include="AutoUpdateMode.cs" />
     <Compile Include="CaretMoveLogic.cs" />
     <Compile Include="DebugUtl.cs" />
     <Compile Include="DefaultWordProc.cs" />
@@ -106,8 +106,8 @@
     <Compile Include="TextPoint.cs" />
     <Compile Include="TextUtil.cs" />
     <Compile Include="Platform.cs" />
-    <Compile Include="TrackingRange.cs" />
     <Compile Include="UiImpl.cs" />
+    <Compile Include="UndoContext.cs" />
     <Compile Include="View\ColorScheme.cs" />
     <Compile Include="View\DrawingOption.cs" />
     <Compile Include="View\HRulerIndicatorType.cs" />

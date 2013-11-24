@@ -1,6 +1,6 @@
 ﻿namespace Sgry.Azuki
 {
-	public enum BoundaryTrackingMode
+	public enum AutoUpdateMode
 	{
 		None		= 0x00,
 
