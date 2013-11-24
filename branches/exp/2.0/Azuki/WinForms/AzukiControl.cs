@@ -1430,39 +1430,6 @@ namespace Sgry.Azuki.WinForms
 		}
 
 		/// <summary>
-		/// Sets selection range and update the desired column.
-		/// </summary>
-		/// <param name="anchor">the position where the selection begins</param>
-		/// <param name="caret">the position where the caret is</param>
-		/// <remarks>
-		/// <para>
-		/// This method sets the selection range and also updates
-		/// the desired column.
-		/// </para>
-		/// <para>
-		/// Normally the caret tries to keep its x-coordinate
-		/// on moving line to line unless user explicitly changes x-coordinate of it.
-		/// The term 'Desired Column' means this x-coordinate which the caret tries to stick close to.
-		/// </para>
-		/// </remarks>
-		public void SetSelection( int anchor, int caret )
-		{
-			Document.SetSelection( anchor, caret );
-			View.SetDesiredColumn();
-		}
-
-		/// <summary>
-		/// Gets range of current selection.
-		/// Note that this method does not return [anchor, caret) pair but [begin, end) pair.
-		/// </summary>
-		/// <param name="begin">index of where the selection begins.</param>
-		/// <param name="end">index of where the selection ends (selection do not includes the char at this index).</param>
-		public void GetSelection( out int begin, out int end )
-		{
-			Document.GetSelection( out begin, out end );
-		}
-
-		/// <summary>
 		/// Selects all text.
 		/// </summary>
 		public void SelectAll()
