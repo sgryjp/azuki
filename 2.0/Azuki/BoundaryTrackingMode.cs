@@ -2,12 +2,14 @@
 {
 	public enum BoundaryTrackingMode
 	{
-		Backward	= 0x00,
+		None		= 0x00,
 
-		Inward		= 0x01,
+		Backward	= 0x01,
 
-		Outward		= 0x02,
+		Inward		= 0x11,
 
-		Forward		= 0x03
+		Outward		= 0x21,
+
+		Forward		= 0x31
 	}
 }

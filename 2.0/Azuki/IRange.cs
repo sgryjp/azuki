@@ -63,6 +63,24 @@ namespace Sgry.Azuki
 		bool IsEmpty { get; }
 
 		/// <summary>
+		/// Gets or sets how to update this range automatically.
+		/// </summary>
+		/// <remarks>
+		///   <para>
+		///   Note that an empty and auto-update enabled range will be updated differently from
+		///   ranges which are not empty. An empty range will be updated regardless of its
+		///   AutoUpdateMode as next:
+		///   </para>
+		///   <list type="bullet">
+		///     <item>
+		///     If something was inserted before its position, it will be shift forward.
+		///     </item>
+		///     <item>If something was inserted after its position, it will be unchanged.</item>
+		///   </list>
+		/// </remarks>
+		BoundaryTrackingMode AutoUpdateMode { get; set; }
+
+		/// <summary>
 		/// Calculates intersection of another range and this range.
 		/// </summary>
 		/// <exception cref="ArgumentNullException"/>

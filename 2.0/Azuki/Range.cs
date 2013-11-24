@@ -17,6 +17,7 @@ namespace Sgry.Azuki
 		readonly Document _Document;
 		protected DateTime _CacheTimestamp = DateTime.MinValue;
 		protected string _CachedText;
+		BoundaryTrackingMode _AutoUpdateMode;
 
 		#region Init / Dispose
 		/// <summary>
@@ -49,6 +50,12 @@ namespace Sgry.Azuki
 			_Document = doc;
 			Begin = begin;
 			End = end;
+		}
+
+		~Range()
+		{
+			if( _Document != null )
+				AutoUpdateMode = BoundaryTrackingMode.None;
 		}
 
 		/// <summary>
@@ -111,6 +118,24 @@ namespace Sgry.Azuki
 		public virtual bool IsEmpty
 		{
 			get{ return (Begin == End); }
+		}
+
+		/// <exception cref="InvalidOperationException"/>
+		public BoundaryTrackingMode AutoUpdateMode
+		{
+			get{ return _AutoUpdateMode; }
+			set
+			{
+				if( Document == null )
+					throw new InvalidOperationException( "No text buffer was associated with this"
+														 + " range object." );
+				var buf = Document.Buffer;
+				if( value == BoundaryTrackingMode.None )
+					buf.RemoveAutoUpdateTarget( this );
+				else
+					buf.AddAutoUpdateTarget( this );
+				_AutoUpdateMode = value;
+			}
 		}
 
 		/// <exception cref="ArgumentNullException"/>
