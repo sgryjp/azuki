@@ -674,14 +674,6 @@ namespace Sgry.Azuki
 		/// <returns>Length of the specified line in character count.</returns>
 		/// <exception cref="System.ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
 		int GetLineLength( int lineIndex );
-
-		/// <summary>
-		/// Gets the number of lines currently inputted.
-		/// </summary>
-		int LineCount
-		{
-			get;
-		}
 		#endregion
 
 		#region Position / Index Conversion

@@ -1353,9 +1353,9 @@ namespace Sgry.Azuki
 			// calculate line-index of last visible line
 			int visibleLineCount = View.VisibleSize.Height / View.LineSpacing;
 			int lastDrawnLineIndex = View.FirstVisibleLine + visibleLineCount + 1;
-			if( View.LineCount <= lastDrawnLineIndex )
+			if( View.Lines.Count <= lastDrawnLineIndex )
 			{
-				lastDrawnLineIndex = View.LineCount - 1;
+				lastDrawnLineIndex = View.Lines.Count - 1;
 			}
 
 			// calculate end index of the line
