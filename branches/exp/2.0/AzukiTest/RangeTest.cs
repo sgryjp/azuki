@@ -100,19 +100,45 @@ namespace Sgry.Azuki.Test
 		public void Iteration()
 		{
 			var doc = new Document(){ Text = "\x61\x61\x300\xe0" }; // aàà
+
 			var range = new Range( doc, 0, 0 );
 			var iter = range.Chars.GetEnumerator();
 			Assert.AreEqual( false, iter.MoveNext() );
 
 			range = new Range( doc, 0, 4 );
+			iter = range.RawChars.GetEnumerator();
+			Assert.AreEqual( true, iter.MoveNext() );
+			Assert.AreEqual( '\x61', iter.Current.ToChar() );
+			Assert.AreEqual( "\x61", iter.Current.ToString() );
+			Assert.AreEqual( 1, iter.Current.Length );
+			Assert.AreEqual( true, iter.MoveNext() );
+			Assert.AreEqual( '\x61', iter.Current.ToChar() );
+			Assert.AreEqual( "\x61\x300", iter.Current.ToString() );
+			Assert.AreEqual( 2, iter.Current.Length );
+			Assert.AreEqual( true, iter.MoveNext() );
+			Assert.AreEqual( '\x300', iter.Current.ToChar() );
+			Assert.AreEqual( "\x300", iter.Current.ToString() );
+			Assert.AreEqual( 1, iter.Current.Length );
+			Assert.AreEqual( true, iter.MoveNext() );
+			Assert.AreEqual( '\xe0', iter.Current.ToChar() );
+			Assert.AreEqual( "\xe0", iter.Current.ToString() );
+			Assert.AreEqual( 1, iter.Current.Length );
+			Assert.AreEqual( false, iter.MoveNext() );
+
+			range = new Range( doc, 0, 4 );
 			iter = range.Chars.GetEnumerator();
 			Assert.AreEqual( true, iter.MoveNext() );
-			Assert.AreEqual( '\x61', (char)iter.Current );
+			Assert.AreEqual( '\x61', iter.Current.ToChar() );
+			Assert.AreEqual( "\x61", iter.Current.ToString() );
+			Assert.AreEqual( 1, iter.Current.Length );
 			Assert.AreEqual( true, iter.MoveNext() );
-			Assert.AreEqual( '\x61', (char)iter.Current );
-			Assert.AreEqual( "\x61\x300", (string)iter.Current );
+			Assert.AreEqual( '\x61', iter.Current.ToChar() );
+			Assert.AreEqual( "\x61\x300", iter.Current.ToString() );
+			Assert.AreEqual( 2, iter.Current.Length );
 			Assert.AreEqual( true, iter.MoveNext() );
-			Assert.AreEqual( '\xe0', (char)iter.Current );
+			Assert.AreEqual( '\xe0', iter.Current.ToChar() );
+			Assert.AreEqual( "\xe0", iter.Current.ToString() );
+			Assert.AreEqual( 1, iter.Current.Length );
 			Assert.AreEqual( false, iter.MoveNext() );
 		}
 
