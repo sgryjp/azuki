@@ -9,7 +9,7 @@ namespace Sgry.Azuki
 	/// <summary>
 	/// Represents position of a character in a text buffer and its related information.
 	/// </summary>
-	public struct CharData
+	public struct CharData : ICloneable
 	{
 		readonly TextBuffer _Buffer;
 		int _Index;
@@ -28,6 +28,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets or sets the index of the character's position in a text buffer.
 		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public int Index
 		{
 			get{ return _Index; }
@@ -42,17 +43,31 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets number of UTF-16 characters consisting with the character (grapheme cluster.)
 		/// </summary>
+		/// <exception cref="InvalidOperationException"/>
 		public int Length
 		{
-			get{ return TextUtil.NextGraphemeClusterIndex(_Buffer, Index) - Index; }
+			get
+			{
+				if( _Buffer == null )
+					throw new InvalidOperationException();
+				return (Index < _Buffer.Count)
+					? TextUtil.NextGraphemeClusterIndex(_Buffer, Index) - Index
+					: 0;
+			}
 		}
 
 		/// <summary>
 		/// Gets classification of the character at the position.
 		/// </summary>
+		/// <exception cref="InvalidOperationException"/>
 		public CharClass Class
 		{
-			get{ return _Buffer.GetCharClassAt(Index); }
+			get
+			{
+				if( _Buffer == null )
+					throw new InvalidOperationException();
+				return _Buffer.GetCharClassAt(Index);
+			}
 		}
 		#endregion
 
@@ -60,9 +75,13 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets an UTF-16 character value at the position.
 		/// </summary>
+		/// <exception cref="InvalidOperationException"/>
 		public char ToChar()
 		{
-			return _Buffer[Index];
+			if( _Buffer == null )
+				throw new InvalidOperationException();
+			return (Index < _Buffer.Count) ? _Buffer[Index]
+										   : '\0';
 		}
 
 		/// <summary>
@@ -75,11 +94,15 @@ namespace Sgry.Azuki
 		/// in a middle of a grapheme cluster. If it was not, the result might be invalid.
 		/// </para>
 		/// </remarks>
+		/// <exception cref="InvalidOperationException"/>
 		public override string ToString()
 		{
+			if( _Buffer == null )
+				throw new InvalidOperationException();
+
 			var buf = new StringBuilder(4);
 			var length = Length;
-			for( int i=0; i<length; i++ )
+			for( int i=0; i<length && i<_Buffer.Count; i++ )
 			{
 				buf.Append( _Buffer[_Index + i] );
 			}
@@ -87,11 +110,44 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
+		#region Iteration
+		public static CharData operator ++( CharData cd )
+		{
+			do
+			{
+				cd.Index++;
+			}
+			while( TextUtil.IsNotDividableIndex(cd._Buffer, cd.Index) );
+			return cd;
+		}
+
+		public static CharData operator --( CharData cd )
+		{
+			do
+			{
+				cd.Index--;
+			}
+			while( TextUtil.IsNotDividableIndex(cd._Buffer, cd.Index) );
+			return cd;
+		}
+		#endregion
+
 		#region Behavior as an object
+		public CharData Clone()
+		{
+			return new CharData( _Buffer, _Index );
+		}
+
+		object ICloneable.Clone()
+		{
+			return Clone();
+		}
+
 		/// <summary>
 		/// Gets an UTF-16 value at the position. This is a synonym of ToChar() method.
 		/// </summary>
 		/// <seealso cref="ToChar"/>
+		/// <exception cref="InvalidOperationException"/>
 		public static explicit operator Char( CharData cd )
 		{
 			return cd.ToChar();
@@ -102,6 +158,7 @@ namespace Sgry.Azuki
 		/// This is a synonym of ToString() method.
 		/// </summary>
 		/// <seealso cref="ToString"/>
+		/// <exception cref="InvalidOperationException"/>
 		public static explicit operator String( CharData cd )
 		{
 			return cd.ToString();
@@ -140,12 +197,9 @@ namespace Sgry.Azuki
 
 		public IEnumerator<CharData> GetEnumerator()
 		{
-			CharData cd;
-			for( int i=_Range.Begin; i<_Range.End; i+=cd.Length )
-			{
-				cd = new CharData( _Buffer, i );
-				yield return cd;
-			}
+			var cd = new CharData( _Buffer, _Range.Begin );
+			while( cd.Index < _Range.End )
+				yield return (cd++).Clone();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
@@ -153,6 +207,7 @@ namespace Sgry.Azuki
 			return GetEnumerator();
 		}
 
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public CharData this[ int index ]
 		{
 			get
@@ -188,6 +243,7 @@ namespace Sgry.Azuki
 			return GetEnumerator();
 		}
 
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		public CharData this[ int index ]
 		{
 			get
