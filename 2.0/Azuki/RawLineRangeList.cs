@@ -16,7 +16,7 @@ namespace Sgry.Azuki
 				if( lineIndex < 0 || _Document.Lines.Count < lineIndex )
 					throw new ArgumentOutOfRangeException();
 
-				var range = _Document.GetLineRange( lineIndex, true );
+				var range = _Document.Buffer.GetLineRange( lineIndex, true );
 				Debug.Assert( range.End == _Document.Length
 							  || (0 < range.End && _Document[range.End-1] == '\r')
 							  || (0 < range.End && _Document[range.End-1] == '\n') );

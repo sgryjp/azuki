@@ -1539,7 +1539,7 @@ namespace Sgry.Azuki.WinForms
 		/// <exception cref="System.ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
 		public int GetLineLength( int lineIndex )
 		{
-			return Document.GetLineRange( lineIndex ).Length;
+			return Document.Lines[lineIndex].Length;
 		}
 		#endregion
 

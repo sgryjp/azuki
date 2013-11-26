@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
@@ -19,7 +18,7 @@ namespace Sgry.Azuki.Test
 				buf.Insert( 0, "_" );
 				Assert.AreEqual( 1, buf.Count );
 				Assert.AreEqual( "_", buf.GetText(new Range(0, buf.Count)) );
-				Assert.AreEqual( 1, buf.Lines.Count );
+				Assert.AreEqual( 1, buf.GetLineCount() );
 				Assert.AreEqual( "D", MakeLdsText(buf) );
 			}
 
@@ -30,7 +29,7 @@ namespace Sgry.Azuki.Test
 				buf.Insert( 0, "_\n_" );
 				Assert.AreEqual( 3, buf.Count );
 				Assert.AreEqual( "_\n_", buf.GetText(new Range(0, buf.Count)) );
-				Assert.AreEqual( 2, buf.Lines.Count );
+				Assert.AreEqual( 2, buf.GetLineCount() );
 				Assert.AreEqual( "DD", MakeLdsText(buf) );
 			}
 
@@ -42,7 +41,7 @@ namespace Sgry.Azuki.Test
 				buf.Insert( 0, "\r" );
 				Assert.AreEqual( 3, buf.Count );
 				Assert.AreEqual( "\r\n_", buf.GetText(new Range(0, buf.Count)) );
-				Assert.AreEqual( 2, buf.Lines.Count );
+				Assert.AreEqual( 2, buf.GetLineCount() );
 				Assert.AreEqual( "DD", MakeLdsText(buf) );
 			}
 
@@ -54,7 +53,7 @@ namespace Sgry.Azuki.Test
 				buf.Insert( 2, "\n" );
 				Assert.AreEqual( 3, buf.Count );
 				Assert.AreEqual( "_\r\n", buf.GetText(new Range(0, buf.Count)) );
-				Assert.AreEqual( 2, buf.Lines.Count );
+				Assert.AreEqual( 2, buf.GetLineCount() );
 				Assert.AreEqual( "DD", MakeLdsText(buf) );
 			}
 
@@ -66,7 +65,7 @@ namespace Sgry.Azuki.Test
 				buf.Insert( 2, "_" );
 				Assert.AreEqual( 5, buf.Count );
 				Assert.AreEqual( "_\r_\n_", buf.GetText(new Range(0, buf.Count)) );
-				Assert.AreEqual( 3, buf.Lines.Count );
+				Assert.AreEqual( 3, buf.GetLineCount() );
 				Assert.AreEqual( "DDD", MakeLdsText(buf) );
 			}
 		}
@@ -82,7 +81,7 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 0, 1 );
 				Assert.AreEqual( 3, buf.Count );
 				Assert.AreEqual( "\r\n_", buf.GetText(new Range(0, buf.Count)) );
-				Assert.AreEqual( 2, buf.Lines.Count );
+				Assert.AreEqual( 2, buf.GetLineCount() );
 				Assert.AreEqual( "DD", MakeLdsText(buf) );
 			}
 
@@ -94,7 +93,7 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 1, 2 );
 				Assert.AreEqual( 3, buf.Count );
 				Assert.AreEqual( "_\n_", buf.GetText(new Range(0, buf.Count)) );
-				Assert.AreEqual( 2, buf.Lines.Count );
+				Assert.AreEqual( 2, buf.GetLineCount() );
 				Assert.AreEqual( "DD", MakeLdsText(buf) );
 			}
 
@@ -106,7 +105,7 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 2, 3 );
 				Assert.AreEqual( 3, buf.Count );
 				Assert.AreEqual( "_\r_", buf.GetText(new Range(0, buf.Count)) );
-				Assert.AreEqual( 2, buf.Lines.Count );
+				Assert.AreEqual( 2, buf.GetLineCount() );
 				Assert.AreEqual( "DD", MakeLdsText(buf) );
 			}
 
@@ -118,7 +117,7 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 1, 3 );
 				Assert.AreEqual( 2, buf.Count );
 				Assert.AreEqual( "__", buf.GetText(new Range(0, buf.Count)) );
-				Assert.AreEqual( 1, buf.Lines.Count );
+				Assert.AreEqual( 1, buf.GetLineCount() );
 				Assert.AreEqual( "D", MakeLdsText(buf) );
 			}
 
@@ -130,7 +129,7 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 1, 2 );
 				Assert.AreEqual( 2, buf.Count );
 				Assert.AreEqual( "\r\n", buf.GetText(new Range(0, buf.Count)) );
-				Assert.AreEqual( 2, buf.Lines.Count );
+				Assert.AreEqual( 2, buf.GetLineCount() );
 				Assert.AreEqual( "DD", MakeLdsText(buf) );
 			}
 
@@ -142,7 +141,7 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 1, 2 );
 				Assert.AreEqual( 2, buf.Count );
 				Assert.AreEqual( "\r\n", buf.GetText(new Range(0, buf.Count)) );
-				Assert.AreEqual( 2, buf.Lines.Count );
+				Assert.AreEqual( 2, buf.GetLineCount() );
 				Assert.AreEqual( "DD", MakeLdsText(buf) );
 			}
 
@@ -154,9 +153,34 @@ namespace Sgry.Azuki.Test
 				buf.Remove( 1, 2 );
 				Assert.AreEqual( 3, buf.Count );
 				Assert.AreEqual( "\r_\n", buf.GetText(new Range(0, buf.Count)) );
-				Assert.AreEqual( 3, buf.Lines.Count );
+				Assert.AreEqual( 3, buf.GetLineCount() );
 				Assert.AreEqual( "DDD", MakeLdsText(buf) );
 			}
+		}
+
+		[Test]
+		public void GetLineLength()
+		{
+			// 0 keep it\r
+			// 1 \r
+			// 2 as simple as possible\r\n
+			// 3 \n
+			// 4 but\n
+			// 5 \r\n
+			// 6 not simpler.
+			var buf = new Document().Buffer;
+			buf.Add( "keep it\r\ras simple as possible\r\n\nbut\n\r\nnot simpler." );
+
+			Assert.AreEqual( 7, buf.GetLineRange(0, false).Length );
+			Assert.AreEqual( 0, buf.GetLineRange(1, false).Length );
+			Assert.AreEqual( 21, buf.GetLineRange(2, false).Length );
+			Assert.AreEqual( 0, buf.GetLineRange(3, false).Length );
+			Assert.AreEqual( 3, buf.GetLineRange(4, false).Length );
+			Assert.AreEqual( 0, buf.GetLineRange(5, false).Length );
+			Assert.AreEqual( 12, buf.GetLineRange(6, false).Length );
+			Assert.Throws<ArgumentOutOfRangeException>( delegate{
+				buf.GetLineRange( 7, false );
+			} );
 		}
 
 		[Test]
@@ -569,11 +593,11 @@ namespace Sgry.Azuki.Test
 		{
 			var buf = new StringBuilder( 32 );
 
-			for( int i=0; i<text.Lines.Count; i++ )
+			for( int i=0; i<text.GetLineCount(); i++ )
 			{
 				char ch = '#';
 
-				switch( text.Lines[i].DirtyState )
+				switch( text.GetLineRange(i).DirtyState )
 				{
 					case DirtyState.Clean:	ch = 'C';	break;
 					case DirtyState.Dirty:	ch = 'D';	break;

@@ -11,7 +11,7 @@ namespace Sgry.Azuki
 	/// <summary>
 	/// A buffer object maintaining characters, lines, and other meta data.
 	/// </summary>
-	public class TextBuffer : IList<char>
+	internal class TextBuffer : IList<char>
 	{
 		#region Fields
 		readonly Document _Document;
@@ -20,23 +20,14 @@ namespace Sgry.Azuki
 		internal readonly GapBuffer<int> _LHI; // line head indexes
 		readonly GapBuffer<DirtyState> _LDS; // line dirty states
 		readonly RleArray<uint> _MarkingBitMasks;
-		readonly LineRangeList _LineRangeList;
-		readonly RawLineRangeList _RawLineRangeList;
 		readonly IList<WeakReference> _AutoUpdateTargets = new GapBuffer<WeakReference>( 32 );
 		#endregion
 
 		#region Init / Dispose
 		/// <summary>
-		/// Creates a new instance.
+		/// Creates a new instance. This must be called by Document.ctor.
 		/// </summary>
-		public TextBuffer( Document doc )
-			: this( doc, 1024, 1024 )
-		{}
-
-		/// <summary>
-		/// Creates a new instance.
-		/// </summary>
-		public TextBuffer( Document doc, int initGapSize, int growSize )
+		internal TextBuffer( Document doc, int initGapSize, int growSize )
 		{
 			_Document = doc;
 			_Chars = new GapCharBuffer( initGapSize, growSize );
@@ -48,16 +39,10 @@ namespace Sgry.Azuki
 				DirtyState.Clean
 			};
 			_MarkingBitMasks = new RleArray<uint>();
-			_LineRangeList = new LineRangeList( _Document );
-			_RawLineRangeList = new RawLineRangeList( _Document );
 			LastModifiedTime = DateTime.Now;
 		}
 		#endregion
 
-		internal GapBuffer<int> LHI
-		{
-			get{ return _LHI; }
-		}
 		internal GapBuffer<DirtyState> LDS
 		{
 			get{ return _LDS; }
@@ -114,7 +99,7 @@ namespace Sgry.Azuki
 		public int GetCharIndex( TextPoint position )
 		{
 			Debug.Assert( 0 <= position.Line );
-			Debug.Assert( position.Line < Lines.Count );
+			Debug.Assert( position.Line < _LHI.Count );
 			Debug.Assert( 0 <= position.Column );
 
 			return TextUtil.GetCharIndex( _Chars, _LHI, position );
@@ -132,10 +117,10 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException"/>
 		public IRange GetTextRange( TextPoint beginPos, TextPoint endPos )
 		{
-			if( endPos.Line < 0 || Lines.Count <= endPos.Line )
+			if( endPos.Line < 0 || _LHI.Count <= endPos.Line )
 				throw new ArgumentOutOfRangeException( "endPos", endPos, "Specified line index is"
 													   + " out of valid range. (endPos:" + endPos
-													   + ", Lines.Count:" + Lines.Count + ")" );
+													   + ", line count:" + _LHI.Count + ")" );
 			if( beginPos.Line < 0 || endPos.Line < beginPos.Line )
 				throw new ArgumentOutOfRangeException( "beginPos", beginPos, "Specified line index"
 													   + " is out of valid range. (beginPos:"
@@ -161,7 +146,7 @@ namespace Sgry.Azuki
 				throw new ArgumentOutOfRangeException( "beginPos", beginPos, "'beginPos' is out of"
 													   + " valid range. (beginPos:" + beginPos
 													   + ", Lines[" + beginPos.Line + "].Length:"
-													   + Lines[beginPos.Line].Length + ")." );
+													   + GetLineRange(beginPos.Line).Length+")." );
 			}
 			if( Count < begin )
 			{
@@ -169,7 +154,7 @@ namespace Sgry.Azuki
 													   + " valid range. (calculated begin:" + begin
 													   + ", Count:" + Count
 													   + ", Lines[" + beginPos.Line + "].Length:"
-													   + Lines[beginPos.Line].Length + ")." );
+													   + GetLineRange(beginPos.Line).Length+")." );
 			}
 
 			// Calculate ending position
@@ -179,7 +164,7 @@ namespace Sgry.Azuki
 				throw new ArgumentOutOfRangeException( "endPos", endPos, "'endPos' is out of valid"
 													   + " range. (endPos:" + endPos + ", Lines["
 													   + endPos.Line + "].Length:"
-													   + Lines[endPos.Line].Length + ")." );
+													   + GetLineRange(endPos.Line).Length+")." );
 			}
 			if( Count < end )
 			{
@@ -187,7 +172,7 @@ namespace Sgry.Azuki
 													   + " range. (calculated end:" + end
 													   + ", Count:" + Count
 													   + ", Lines[" + endPos.Line + "].Length:"
-													   + Lines[endPos.Line].Length + ")." );
+													   + GetLineRange(endPos.Line).Length+")." );
 			}
 			Debug.Assert( begin <= end );
 
@@ -359,34 +344,38 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Content Access
-		public ILineRangeList Lines
+		public int GetLineCount()
 		{
-			get{ return _LineRangeList; }
-		}
-
-		public ILineRangeList RawLines
-		{
-			get{ return _RawLineRangeList; }
+			Debug.Assert( _LHI.Count == _LDS.Count );
+			return _LHI.Count;
 		}
 
 		/// <exception cref="ArgumentOutOfRangeException"/>
-		public Range GetLineRange( int lineIndex, bool includesEolCode )
+		public ILineRange GetLineRange( int lineIndex )
 		{
-			if( lineIndex < 0 || Lines.Count <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", lineIndex, "Invalid line index"
-													   + " was given (lineIndex:" + lineIndex
-													   + ", Lines.Count:" + Lines.Count + ")." );
-
-			return TextUtil.GetLineRange( _Chars, _LHI, lineIndex, includesEolCode );
+			return GetLineRange( lineIndex, false );
 		}
 
-		public Range GetLineRangeFromCharIndex( int charIndex, bool includesEolCode )
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public ILineRange GetLineRange( int lineIndex, bool includesEolCode )
+		{
+			if( lineIndex < 0 || _LHI.Count <= lineIndex )
+				throw new ArgumentOutOfRangeException( "lineIndex", lineIndex, "Invalid line index"
+													   + " was given (lineIndex:" + lineIndex
+													   + ", line count:" + _LHI.Count + ")." );
+
+			var range = TextUtil.GetLineRange( _Chars, _LHI, lineIndex, includesEolCode );
+			return new LineRange( _Document, range.Begin, range.End, lineIndex );
+		}
+
+		public ILineRange GetLineRangeFromCharIndex( int charIndex, bool includesEolCode )
 		{
 			Debug.Assert( 0 <= charIndex );
 			Debug.Assert( charIndex <= _Chars.Count );
 
 			var lineIndex = TextUtil.GetLineIndexFromCharIndex( _LHI, charIndex );
-			return TextUtil.GetLineRange( _Chars, _LHI, lineIndex, includesEolCode );
+			var range = TextUtil.GetLineRange( _Chars, _LHI, lineIndex, includesEolCode );
+			return new LineRange( _Document, range.Begin, range.End, lineIndex );;
 		}
 
 		public string GetText()
@@ -711,9 +700,9 @@ namespace Sgry.Azuki
 			var deadRanges = new Stack<int>();
 			for( int i=0; i<_AutoUpdateTargets.Count; i++ )
 			{
-				var r = _AutoUpdateTargets[i];
-				if( r.IsAlive )
-					DoAutoUpdate( (IRange)r.Target, index, oldText, newText );
+				var range = _AutoUpdateTargets[i];
+				if( range.IsAlive )
+					DoAutoUpdate( (IRange)range.Target, index, oldText, newText );
 				else
 					deadRanges.Push( i );
 			}
