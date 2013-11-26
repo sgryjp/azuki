@@ -112,7 +112,7 @@ namespace Sgry.Azuki.Test
 		[Test]
 		public void GetLineRange()
 		{
-			Range range;
+			IRange range;
 			IList<char> text;
 			GapBuffer<int> lhi;
 			MakeTestData( out text, out lhi );

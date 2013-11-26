@@ -139,9 +139,9 @@ namespace Sgry.Azuki
 			// if the location is not the head of the line, calculate x-coord.
 			if( 0 < columnIndex )
 			{
-				// get partial content of the line which exists before the caret
-				Range r = TextUtil.GetLineRange( Document.Buffer, SLHI, lineIndex, true );
-				string leftPart = Document.GetText( r.Begin, r.Begin + columnIndex );
+				// Get partial content of the line which exists before the caret
+				var line = RawLines[lineIndex];
+				var leftPart = Document.GetText( line.Begin, line.Begin + columnIndex );
 
 				// measure the characters
 				pos.X = MeasureTokenEndX( g, leftPart, pos.X );
@@ -173,28 +173,27 @@ namespace Sgry.Azuki
 			columnIndex = 0;
 			if( 0 < pos.X )
 			{
-				string line;
 				bool isWrapLine = false;
 
 				// get content of the line
-				Range range = TextUtil.GetLineRange( Document.Buffer, SLHI, lineIndex, false );
-				line = Document.GetText( range.Begin, range.End );
-				if( range.End+1 < Document.Length
-					&& !TextUtil.IsEolChar(Document[range.End]) )
+				var line = RawLines[lineIndex];
+				if( line.End+1 < Document.Length
+					&& !TextUtil.IsEolChar(Document[line.End]) )
 				{
 					isWrapLine = true;
 				}
 
 				// calc maximum length of chars in line
 				int rightLimitX = pos.X;
-				int leftPartWidth = MeasureTokenEndX( g, line, 0, rightLimitX, out drawableTextLen );
+				int leftPartWidth = MeasureTokenEndX( g, line.Text, 0, rightLimitX,
+													  out drawableTextLen );
 				columnIndex = drawableTextLen;
 
 				// if the location is nearer to the NEXT of that char,
 				// we should return the index of next one.
-				if( drawableTextLen < line.Length )
+				if( drawableTextLen < line.Text.Length )
 				{
-					string nextChar = line[drawableTextLen].ToString();
+					string nextChar = line.Text[drawableTextLen].ToString();
 					int nextCharWidth = MeasureTokenEndX( g, nextChar, leftPartWidth ) - leftPartWidth;
 					if( leftPartWidth + nextCharWidth/2 < pos.X ) // == "x of middle of next char" < "x of click in virtual text area"
 					{
@@ -895,10 +894,10 @@ namespace Sgry.Azuki
 					if( lineIndex < 0 || _View.SLHI.Count < lineIndex )
 						throw new ArgumentOutOfRangeException();
 
+					// Do not use "IView.Lines" here...
 					var buf = _View.Document.Buffer;
 					var range = TextUtil.GetLineRange( buf, _View.SLHI, lineIndex, false );
-					return new LineRange( _View.Document,
-										  range.Begin, range.End, lineIndex );
+					return new LineRange( _View.Document, range.Begin, range.End, lineIndex );
 				}
 			}
 
@@ -945,10 +944,10 @@ namespace Sgry.Azuki
 					if( lineIndex < 0 || _View.SLHI.Count < lineIndex )
 						throw new ArgumentOutOfRangeException();
 
+					// Do not use "IView.RawLines" here...
 					var buf = _View.Document.Buffer;
 					var range = TextUtil.GetLineRange( buf, _View.SLHI, lineIndex, true );
-					return new LineRange( _View.Document,
-										  range.Begin, range.End, lineIndex );
+					return new LineRange( _View.Document, range.Begin, range.End, lineIndex );
 				}
 			}
 		}

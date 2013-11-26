@@ -730,7 +730,7 @@ namespace Sgry.Ann
 
 				// restore caret position and scroll to it
 				line = Math.Min( line, doc.Lines.Count-1 );
-				column = Math.Min( column, doc.GetLineRange(line).Length );
+				column = Math.Min( column, doc.Lines[line].Length );
 				doc.SetCaretIndex( line, column );
 
 				_MainForm.UpdateUI();

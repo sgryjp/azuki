@@ -536,31 +536,6 @@ namespace Sgry.Azuki.Test
 		}
 
 		[Test]
-		public void GetLineLength()
-		{
-			// 0 keep it\r
-			// 1 \r
-			// 2 as simple as possible\r\n
-			// 3 \n
-			// 4 but\n
-			// 5 \r\n
-			// 6 not simpler.
-			Document doc = new Document();
-			doc.Text = "keep it\r\ras simple as possible\r\n\nbut\n\r\nnot simpler.";
-
-			Assert.AreEqual( 7, doc.GetLineRange(0).Length );
-			Assert.AreEqual( 0, doc.GetLineRange(1).Length );
-			Assert.AreEqual( 21, doc.GetLineRange(2).Length );
-			Assert.AreEqual( 0, doc.GetLineRange(3).Length );
-			Assert.AreEqual( 3, doc.GetLineRange(4).Length );
-			Assert.AreEqual( 0, doc.GetLineRange(5).Length );
-			Assert.AreEqual( 12, doc.GetLineRange(6).Length );
-			Assert.Throws<ArgumentOutOfRangeException>( delegate{
-				doc.GetLineRange( 7 );
-			} );
-		}
-
-		[Test]
 		public void Selection()
 		{
 			Document doc = new Document();

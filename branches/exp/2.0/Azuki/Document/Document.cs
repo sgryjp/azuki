@@ -27,6 +27,8 @@ namespace Sgry.Azuki
 		bool _IsSuppressingDirtyStateChangedEvent = false;
 		readonly WatchPatternSet _WatchPatterns = new WatchPatternSet();
 		readonly WatchPatternMarker _WatchPatternMarker;
+		readonly LineRangeList _LineRangeList;
+		readonly RawLineRangeList _RawLineRangeList;
 		string _EolCode = "\r\n";
 		IHighlighter _Highlighter = null;
 		IWordProc _WordProc = new DefaultWordProc();
@@ -59,6 +61,8 @@ namespace Sgry.Azuki
 			_Buffer = new TextBuffer( this, 4096, 1024 );
 			_SelMan = new SelectionManager( this );
 			_WatchPatternMarker = new WatchPatternMarker( this );
+			_LineRangeList = new LineRangeList( this );
+			_RawLineRangeList = new RawLineRangeList( this );
 			if( unchecked(++_InstanceCounter) != 0 )
 				_InstanceCounter = unchecked(_InstanceCounter + 1);
 			_InstanceCount = _InstanceCounter;
@@ -107,8 +111,8 @@ namespace Sgry.Azuki
 
 				// clean up dirty state of all modified lines
 				for( int i=0; i<Lines.Count; i++ )
-					if( _Buffer.Lines[i].DirtyState == DirtyState.Dirty )
-						_Buffer.Lines[i].DirtyState = DirtyState.Saved;
+					if( Lines[i].DirtyState == DirtyState.Dirty )
+						Lines[i].DirtyState = DirtyState.Saved;
 
 				// remember current state as lastly saved state
 				_History.SetSavedState();
@@ -435,7 +439,7 @@ namespace Sgry.Azuki
 		/// <seealso cref="Document.RawLines"/>
 		public ILineRangeList Lines
 		{
-			get{ return _Buffer.Lines; }
+			get{ return _LineRangeList; }
 		}
 
 		/// <summary>
@@ -444,7 +448,7 @@ namespace Sgry.Azuki
 		/// <seealso cref="Document.Lines"/>
 		public ILineRangeList RawLines
 		{
-			get{ return _Buffer.RawLines; }
+			get{ return _RawLineRangeList; }
 		}
 
 		/// <summary>
@@ -535,29 +539,6 @@ namespace Sgry.Azuki
 		public int Length
 		{
 			get{ return _Buffer.Count; }
-		}
-
-		/// <summary>
-		/// Gets range of a specified logical line, excluding EOL code.
-		/// </summary>
-		/// <param name="lineIndex">Index of the line of which to get the length.</param>
-		/// <returns>Length of the specified line in character count.</returns>
-		/// <exception cref="ArgumentOutOfRangeException"/>
-		public Range GetLineRange( int lineIndex )
-		{
-			return GetLineRange( lineIndex, false );
-		}
-
-		/// <summary>
-		/// Gets range of a specified logical line.
-		/// </summary>
-		/// <param name="lineIndex">Index of the line of which to get its range.</param>
-		/// <param name="includesEolCode">Whether EOL codes should be included or not.</param>
-		/// <returns>Range of a specified line.</returns>
-		/// <exception cref="ArgumentOutOfRangeException"/>
-		public Range GetLineRange( int lineIndex, bool includesEolCode )
-		{
-			return _Buffer.GetLineRange( lineIndex, includesEolCode );
 		}
 
 		/// <summary>
@@ -720,7 +701,7 @@ namespace Sgry.Azuki
 				ldsUndoInfo.DeletedStates = new DirtyState[ affectedLineCount ];
 				for( int i=0; i<affectedLineCount; i++ )
 				{
-					ldsUndoInfo.DeletedStates[i] = _Buffer.Lines[ affectedBeginLI + i ]
+					ldsUndoInfo.DeletedStates[i] = _Buffer.GetLineRange( affectedBeginLI + i )
 														  .DirtyState;
 				}
 			}
@@ -1275,7 +1256,7 @@ namespace Sgry.Azuki
 			_History.Clear();
 			_History.SetSavedState();
 			for( int i=0; i<Lines.Count; i++ )
-				_Buffer.Lines[i].DirtyState = DirtyState.Clean;
+				_Buffer.GetLineRange(i).DirtyState = DirtyState.Clean;
 		}
 
 		/// <summary>

@@ -83,9 +83,9 @@ namespace Sgry.Azuki
 		}
 
 		public static Range GetLineRange( IList<char> text,
-										 IList<int> lhi,
-										 int lineIndex,
-										 bool includesEolCode )
+										  IList<int> lhi,
+										  int lineIndex,
+										  bool includesEolCode )
 		{
 			DebugUtl.Assert( text != null );
 			DebugUtl.Assert( lhi != null );
@@ -93,40 +93,40 @@ namespace Sgry.Azuki
 							 "argument out of range; given lineIndex is "
 							 + lineIndex + " but lhi.Count is " + lhi.Count );
 
-			Range range = new Range();
+			int begin, end;
 
 			// Get range of the specified line
-			range.Begin = lhi[lineIndex];
+			begin = lhi[lineIndex];
 			if( lineIndex+1 < lhi.Count )
 			{
-				range.End = lhi[lineIndex + 1];
+				end = lhi[lineIndex + 1];
 			}
 			else
 			{
-				range.End = text.Count;
+				end = text.Count;
 			}
-			DebugUtl.Assert( 0 <= range.Begin && range.Begin <= range.End );
-			//DO_NOT//DebugUtl.Assert( range.End <= text.Count );
+			DebugUtl.Assert( 0 <= begin && begin <= end );
+			//DO_NOT//DebugUtl.Assert( end <= text.Count );
 
 			// Subtract length of the trailing EOL code
 			if( includesEolCode == false )
 			{
-				int length = range.End - range.Begin;
-				if( 1 <= length && text[range.End-1] == '\n' )
+				int length = end - begin;
+				if( 1 <= length && text[end-1] == '\n' )
 				{
-					if( 2 <= length && text[range.End-2] == '\r' )
-						range.End -= 2;
+					if( 2 <= length && text[end-2] == '\r' )
+						end -= 2;
 					else
-						range.End--;
+						end--;
 				}
-				else if( 1 <= length && text[range.End-1] == '\r' )
+				else if( 1 <= length && text[end-1] == '\r' )
 				{
-					range.End--;
+					end--;
 				}
 			}
 
-			Debug.Assert( range.Begin <= range.End );
-			return range;
+			Debug.Assert( begin <= end );
+			return new Range( begin, end );
 		}
 
 		public static int GetLineLengthByCharIndex( IList<char> text,
