@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Sgry.Azuki
 {
@@ -130,7 +129,7 @@ namespace Sgry.Azuki
 					throw new InvalidOperationException( "No text buffer was associated with this"
 														 + " range object." );
 				var buf = Document.Buffer;
-				if( value == Azuki.AutoUpdateMode.None )
+				if( value == AutoUpdateMode.None )
 					buf.RemoveAutoUpdateTarget( this );
 				else
 					buf.AddAutoUpdateTarget( this );

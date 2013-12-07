@@ -6,7 +6,6 @@ using System.Drawing;
 
 namespace Sgry.Azuki
 {
-
 	/// <summary>
 	/// Interface of user interface module.
 	/// </summary>
@@ -286,6 +285,29 @@ namespace Sgry.Azuki
 		/// IUserInterface.OverwriteModeChanged event
 		/// </seealso>
 		bool IsOverwriteMode
+		{
+			get; set;
+		}
+
+		/// <summary>
+		/// Gets or sets hook delegate to execute auto-indentation.
+		/// </summary>
+		/// <remarks>
+		///   <para>
+		///   This property gets or sets a delegate object to execute auto-indentation. If this
+		///   property was null, no auto-indentation will be executed.
+		///   </para>
+		///   <para>
+		///   There are some built-in auto-indentation hook delegates declared as members of
+		///   <see cref="AutoIndentHooks"/> class. You can use one of them, or create your own
+		///   logic. For detail of the hook mechanism, see the document of
+		///   <see cref="AutoIndentHook"/>.
+		///   </para>
+		/// </remarks>
+		/// <seealso cref="AutoIndentHook"/>
+		/// <seealso cref="AutoIndentHooks"/>
+		/// <seealso cref="WinForms.AzukiControl.AutoIndentHook"/>
+		AutoIndentHook AutoIndentHook
 		{
 			get; set;
 		}
