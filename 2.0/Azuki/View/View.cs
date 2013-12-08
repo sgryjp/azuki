@@ -1513,7 +1513,7 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Utilities
-		internal int NextTabStopX( int virX )
+		public int NextTabStopX( int virX )
 		{
 			virX += TabWidthInPx;
 			virX -= (virX % TabWidthInPx);
@@ -1523,12 +1523,12 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets Y coordinate in client area of specified line.
 		/// </summary>
-		internal int YofLine( int lineIndex )
+		protected int YofLine( int lineIndex )
 		{
 			return (  (lineIndex - FirstVisibleLine) * LineSpacing  ) + ScrYofTextArea;
 		}
 
-		internal int EolCodeWidthInPx
+		int EolCodeWidthInPx
 		{
 			get{ return (_LineHeight >> 1) + (_LineHeight >> 2); }
 		}
