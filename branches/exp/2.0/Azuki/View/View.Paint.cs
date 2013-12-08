@@ -114,8 +114,7 @@ namespace Sgry.Azuki
 				int fgBottom = textPos.Y + (_LineHeight * 2 / 3);
 
 				// calc next tab stop (calc in virtual space and convert it to screen coordinate)
-				Point tokenVirPos = tokenPos;
-				ScreenToVirtual( ref tokenVirPos );
+				Point tokenVirPos = ScreenToVirtual( tokenPos );
 				bgRight = Utl.CalcNextTabStop( tokenVirPos.X, TabWidthInPx );
 				bgRight -= ScrollPosX - ScrXofTextArea;
 				
@@ -593,8 +592,7 @@ namespace Sgry.Azuki
 				int indicatorWidth = 2;
 
 				// calculate indicator region
-				Point caretPos = GetVirtualPos( g, Document.CaretIndex );
-				VirtualToScreen( ref caretPos );
+				Point caretPos = VirtualToScreen( GetVirtualPos(g, Document.CaretIndex) );
 				if( caretPos.X < ScrXofTextArea )
 				{
 					indicatorWidth -= ScrXofTextArea - caretPos.X;
@@ -639,7 +637,7 @@ namespace Sgry.Azuki
 				int indicatorWidth = HRulerUnitWidth - 1;
 				Point indicatorPos = GetVirtualPos( g, Document.CaretIndex );
 				indicatorPos.X -= (indicatorPos.X % HRulerUnitWidth);
-				VirtualToScreen( ref indicatorPos );
+				indicatorPos = VirtualToScreen( indicatorPos );
 				if( indicatorPos.X < ScrXofTextArea )
 				{
 					indicatorWidth -= ScrXofTextArea - indicatorPos.X;
@@ -725,8 +723,7 @@ namespace Sgry.Azuki
 			if( HRulerIndicatorType == HRulerIndicatorType.Position )
 			{
 				// get virtual position of the new caret
-				Point newCaretScreenPos = GetVirtualPos( g, doc.CaretIndex );
-				VirtualToScreen( ref newCaretScreenPos );
+				Point newCaretScreenPos = VirtualToScreen( GetVirtualPos(g, doc.CaretIndex) );
 
 				// get previous screen position of the caret
 				int oldCaretX = PerDocParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
@@ -773,8 +770,7 @@ namespace Sgry.Azuki
 				int oldSegmentX, newSegmentX;
 
 				// get virtual position of the new caret
-				Point newCaretScreenPos = GetVirtualPos( g, doc.CaretIndex );
-				VirtualToScreen( ref newCaretScreenPos );
+				Point newCaretScreenPos = VirtualToScreen( GetVirtualPos(g, doc.CaretIndex) );
 
 				// calculate new segment of horizontal rulse
 				int leftMostRulerIndex = ScrollPosX / HRulerUnitWidth;

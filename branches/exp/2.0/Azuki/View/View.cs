@@ -750,28 +750,29 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Converts a coordinate in virtual space to a coordinate in client area.
 		/// </summary>
-		public void VirtualToScreen( ref Point pt )
+		public Point VirtualToScreen( Point pt )
 		{
-			pt.X = (pt.X - ScrollPosX) + ScrXofTextArea;
-			pt.Y = (pt.Y - FirstVisibleLine * LineSpacing) + ScrYofTextArea;
+			return new Point( (pt.X - ScrollPosX) + ScrXofTextArea,
+							  (pt.Y - FirstVisibleLine * LineSpacing) + ScrYofTextArea );
 		}
 
 		/// <summary>
 		/// Converts a coordinate in virtual space to a coordinate in client area.
 		/// </summary>
-		public void VirtualToScreen( ref Rectangle rect )
+		public Rectangle VirtualToScreen( Rectangle rect )
 		{
-			rect.X = (rect.X - ScrollPosX) + ScrXofTextArea;
-			rect.Y = (rect.Y - FirstVisibleLine * LineSpacing) + ScrYofTextArea;
+			return new Rectangle( (rect.X - ScrollPosX) + ScrXofTextArea,
+								  (rect.Y - FirstVisibleLine * LineSpacing) + ScrYofTextArea,
+								  rect.Width, rect.Height );
 		}
 
 		/// <summary>
 		/// Converts a coordinate in client area to a coordinate in virtual text area.
 		/// </summary>
-		public void ScreenToVirtual( ref Point pt )
+		public Point ScreenToVirtual( Point pt )
 		{
-			pt.X = (pt.X + ScrollPosX) - ScrXofTextArea;
-			pt.Y = (pt.Y + FirstVisibleLine * LineSpacing) - ScrYofTextArea;
+			return new Point( (pt.X + ScrollPosX) - ScrXofTextArea,
+							  (pt.Y + FirstVisibleLine * LineSpacing) - ScrYofTextArea );
 		}
 
 		/// <summary>

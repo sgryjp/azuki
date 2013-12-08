@@ -344,8 +344,8 @@ namespace Sgry.Azuki
 			lastEndPos.Y -= (LinePadding >> 1);
 
 			// convert it to screen screen coordinate
-			VirtualToScreen( ref firstBeginPos );
-			VirtualToScreen( ref lastEndPos );
+			firstBeginPos = VirtualToScreen( firstBeginPos );
+			lastEndPos = VirtualToScreen( lastEndPos );
 
 			// then, invalidate that rectangle
 			// (triple of line-spacing: a line above, the line, and a line below)
@@ -514,8 +514,7 @@ namespace Sgry.Azuki
 				}
 
 				// get graphical position of the place
-				invalidStartPos = GetVirtualPos( g, invalidStartIndex );
-				VirtualToScreen( ref invalidStartPos );
+				invalidStartPos = VirtualToScreen( GetVirtualPos(g, invalidStartIndex) );
 
 				// update indicator graphic on horizontal ruler
 				UpdateHRuler( g );
@@ -937,8 +936,7 @@ namespace Sgry.Azuki
 
 			// if this line is wider than the width of virtual space, calculate full width of this
 			// line and make it the width of virtual space.
-			Point virPos = pos;
-			ScreenToVirtual( ref virPos );
+			Point virPos = ScreenToVirtual( pos );
 			if( TextAreaWidth < virPos.X + (VisibleSize.Width >> 3) )
 			{
 				string lineContent;

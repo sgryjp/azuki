@@ -772,8 +772,7 @@ namespace Sgry.Azuki
 					// mouse button was raised before entering drag-editing mode.
 					// just set caret where the cursor is at
 					_MouseDragEditDelayTimer.Dispose();
-					View.ScreenToVirtual( ref pos );
-					int targetIndex = View.GetCharIndex( pos );
+					int targetIndex = View.GetCharIndex( View.ScreenToVirtual(pos) );
 					Document.SetSelection( targetIndex, targetIndex );
 				}
 			}
@@ -793,8 +792,7 @@ namespace Sgry.Azuki
 			}
 
 			// calculate target position where the selected text is moved to
-			View.ScreenToVirtual( ref pos );
-			targetIndex = View.GetCharIndex( pos );
+			targetIndex = View.GetCharIndex( View.ScreenToVirtual(pos) );
 
 			// move text
 			using( Document.BeginUndo() )
@@ -844,7 +842,7 @@ namespace Sgry.Azuki
 				}
 
 				// remember mouse down screen position and convert it to virtual view's coordinate
-				View.ScreenToVirtual( ref pos );
+				pos= View.ScreenToVirtual( pos );
 				_MouseDownVirPos = pos;
 
 				if( e.ButtonIndex == 0 ) // left click
@@ -939,9 +937,8 @@ namespace Sgry.Azuki
 			if( _View.TextAreaRect.Contains(_MouseDownVirPos) )
 			{
 				int clickedIndex;
-				Point pos = e.Location;
+				Point pos = View.ScreenToVirtual( e.Location );
 
-				View.ScreenToVirtual( ref pos );
 				clickedIndex = View.GetCharIndex( pos );
 				_UI.SelectionMode = TextDataType.Words;
 				Document.SetSelection( clickedIndex, clickedIndex, View );
@@ -963,7 +960,7 @@ namespace Sgry.Azuki
 			{
 				return;
 			}
-			View.ScreenToVirtual( ref pos );
+			pos = View.ScreenToVirtual( pos );
 
 			// if it was slight movement, ignore
 			if( _MouseDragging == false )
@@ -992,8 +989,7 @@ namespace Sgry.Azuki
 
 						// calculate position of the char below the mouse cursor
 						index = View.GetCharIndex( pos );
-						alignedPos = View.GetVirtualPos( index );
-						View.VirtualToScreen( ref alignedPos );
+						alignedPos = View.VirtualToScreen( View.GetVirtualPos(index) );
 
 						// display caret graphic at where
 						// if text was droped in current state
@@ -1114,8 +1110,7 @@ namespace Sgry.Azuki
 				}
 				else if( Document.RectSelectRanges == null )
 				{
-					Point virPos = cursorScreenPos.Value;
-					View.ScreenToVirtual( ref virPos );
+					Point virPos = View.ScreenToVirtual( cursorScreenPos.Value );
 					index = View.GetCharIndex( virPos );
 
 					onSelectedText = Document.SelectionManager.IsInSelection( index );
