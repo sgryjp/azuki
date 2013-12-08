@@ -281,8 +281,8 @@ namespace Sgry.Azuki
 		/// a coordinate in virtual coordinate system.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.IView.ScreenToVirtual">ScreenToVirtual property</seealso>
-		void VirtualToScreen( ref Point pt );
+		/// <seealso cref="ScreenToVirtual"/>
+		Point VirtualToScreen( Point pt );
 
 		/// <summary>
 		/// Converts a coordinate in client area to a coordinate in virtual space.
@@ -307,8 +307,8 @@ namespace Sgry.Azuki
 		/// a coordinate in client coordinate system.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.IView.VirtualToScreen">VirtualToScreen property</seealso>
-		void ScreenToVirtual( ref Point pt );
+		/// <seealso cref="VirtualToScreen"/>
+		Point ScreenToVirtual( Point pt );
 		#endregion
 
 		#region Line and column

@@ -307,7 +307,7 @@ namespace Sgry.Azuki
 				invalidRect1.Y = oldCaretVirPos.Y - (LinePadding >> 1);
 				invalidRect1.Width = VisibleSize.Width - invalidRect1.X;
 				invalidRect1.Height = LineSpacing;
-				VirtualToScreen( ref invalidRect1 );
+				invalidRect1 = VirtualToScreen( invalidRect1 );
 
 				// invalidate all lines below caret
 				// if old text or new text contains multiple lines
@@ -329,8 +329,7 @@ namespace Sgry.Azuki
 
 					// get position of the char at the end of the logical line
 					logLineEnd = doc.Lines.AtOffset( e.Index ).End;
-					logLineEndPos = GetVirtualPos( g, logLineEnd );
-					VirtualToScreen( ref logLineEndPos );
+					logLineEndPos = VirtualToScreen( GetVirtualPos(g, logLineEnd) );
 					logLineBottom = logLineEndPos.Y - (LinePadding >> 1);
 
 					// make a rectangle that covers the logical line area
@@ -371,10 +370,8 @@ namespace Sgry.Azuki
 			logLine = doc.Lines[ logLineIndex ];
 
 			// get the screen position of both beginning and ending character
-			top = GetVirtualPos( g, logLine.Begin );
-			bottom = GetVirtualPos( g, logLine.End );
-			VirtualToScreen( ref top );
-			VirtualToScreen( ref bottom );
+			top = VirtualToScreen( GetVirtualPos(g, logLine.Begin) );
+			bottom = VirtualToScreen( GetVirtualPos(g, logLine.End) );
 			if( bottom.Y < ScrYofTextArea )
 			{
 				return;
@@ -846,8 +843,7 @@ namespace Sgry.Azuki
 			int bottom = lineTopY + LineHeight + (LinePadding >> 1);
 
 			// draw underline
-			Point rightEnd = new Point( TextAreaWidth, 0 );
-			VirtualToScreen( ref rightEnd );
+			Point rightEnd = VirtualToScreen( new Point(TextAreaWidth, 0) );
 			g.ForeColor = color;
 			g.DrawLine( ScrXofTextArea, bottom, rightEnd.X-1, bottom );
 		}

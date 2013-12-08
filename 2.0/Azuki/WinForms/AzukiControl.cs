@@ -1551,9 +1551,7 @@ namespace Sgry.Azuki.WinForms
 		/// <exception cref="ArgumentOutOfRangeException">Invalid index was given.</exception>
 		public Point GetPositionFromIndex( int index )
 		{
-			Point virPos = View.GetVirtualPos( index );
-			View.VirtualToScreen( ref virPos );
-			return virPos;
+			return View.VirtualToScreen( View.GetVirtualPos(index) );
 		}
 
 		/// <summary>
@@ -1563,9 +1561,7 @@ namespace Sgry.Azuki.WinForms
 		/// <exception cref="ArgumentOutOfRangeException">Invalid index was given.</exception>
 		public Point GetPositionFromIndex( int lineIndex, int columnIndex )
 		{
-			Point vPos = View.GetVirtualPos( lineIndex, columnIndex );
-			View.VirtualToScreen( ref vPos );
-			return vPos;
+			return View.VirtualToScreen( View.GetVirtualPos(lineIndex, columnIndex) );
 		}
 
 		/// <summary>
@@ -1574,8 +1570,7 @@ namespace Sgry.Azuki.WinForms
 		/// <returns>The index of the character at specified location.</returns>
 		public int GetIndexFromPosition( Point pt )
 		{
-			View.ScreenToVirtual( ref pt );
-			return View.GetCharIndex( pt );
+			return View.GetCharIndex( View.ScreenToVirtual(pt) );
 		}
 
 		/// <summary>
@@ -2732,8 +2727,7 @@ namespace Sgry.Azuki.WinForms
 
 			public static WinFormsMouseEventArgs CreateWinFormsMouseEventArgs( IView view, MouseEventArgs e )
 			{
-				Point pt = new Point( e.X, e.Y );
-				view.ScreenToVirtual( ref pt );
+				Point pt = view.ScreenToVirtual( new Point(e.X, e.Y) );
 				int index = view.GetCharIndex( pt );
 
 				int clicks = 1;
