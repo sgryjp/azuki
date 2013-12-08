@@ -13,15 +13,16 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveRight( IUserInterface ui )
 		{
-			IView view = ui.View;
+			var view = ui.View;
+			var doc = ui.Document;
 			int selBegin, selEnd;
 
 			// if there are something selected,
 			// release selection and set caret at where the selection ends
-			view.Document.GetSelection( out selBegin, out selEnd );
+			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				view.Document.SetSelection( selEnd, selEnd );
+				doc.SetSelection( selEnd, selEnd );
 				view.ScrollToCaret();
 			}
 			// otherwise, move caret right
@@ -39,15 +40,16 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveLeft( IUserInterface ui )
 		{
-			IView view = ui.View;
+			var view = ui.View;
+			var doc = ui.Document;
 			int selBegin, selEnd;
 
 			// if there are something selected,
 			// release selection and set caret at where the selection starts
-			view.Document.GetSelection( out selBegin, out selEnd );
+			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				view.Document.SetSelection( selBegin, selBegin );
+				doc.SetSelection( selBegin, selBegin );
 				view.ScrollToCaret();
 			}
 			// otherwise, move caret left
@@ -83,7 +85,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveToNextWord( IUserInterface ui )
 		{
-			Document doc = ui.View.Document;
+			var view = ui.View;
+			var doc = ui.Document;
 			int selBegin, selEnd;
 
 			// if there are something selected, release selection
@@ -97,7 +100,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_NextWord, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			view.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -105,7 +108,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveToPrevWord( IUserInterface ui )
 		{
-			Document doc = ui.View.Document;
+			var view = ui.View;
+			var doc = ui.Document;
 			int selBegin, selEnd;
 
 			// if there are something selected, release selection
@@ -119,7 +123,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_PrevWord, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			view.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -127,7 +131,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveToLineHead( IUserInterface ui )
 		{
-			Document doc = ui.View.Document;
+			var view = ui.View;
+			var doc = ui.Document;
 			int selBegin, selEnd;
 
 			// if there are something selected, release selection
@@ -141,7 +146,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_LineHead, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			view.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -149,7 +154,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveToLineHeadSmart( IUserInterface ui )
 		{
-			Document doc = ui.View.Document;
+			var view = ui.View;
+			var doc = ui.Document;
 			int selBegin, selEnd;
 
 			// if there are something selected, release selection
@@ -163,7 +169,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_LineHeadSmart, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			view.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -171,7 +177,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveToLineEnd( IUserInterface ui )
 		{
-			Document doc = ui.Document;
+			var view = ui.View;
+			var doc = ui.Document;
 			int selBegin, selEnd;
 
 			// if there are something selected, release selection
@@ -185,7 +192,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_LineEnd, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			view.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -193,15 +200,13 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MovePageDown( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			IView view = ui.View;
-			Point pt;
-			int nextIndex;
+			var view = ui.View;
+			var doc = ui.Document;
 			int diff = (view.VisibleSize.Height / view.LineSpacing);
 
 			// get current virtual coordinate of the caret
-			pt = view.GetVirtualPos( doc.CaretIndex );
-			
+			var pt = view.GetVirtualPos( doc.CaretIndex );
+
 			// calc new virtual coordinate of the caret
 			pt.Y += diff * view.LineSpacing;
 			/*NOT_NEEDED
@@ -211,7 +216,7 @@ namespace Sgry.Azuki
 			}*/
 
 			// calc index from the coord
-			nextIndex = view.GetCharIndex( pt );
+			var nextIndex = view.GetCharIndex( pt );
 
 			// move caret and scroll
 			doc.SetSelection( nextIndex, nextIndex );
@@ -224,15 +229,13 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MovePageUp( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			IView view = ui.View;
-			Point pt;
-			int nextIndex;
+			var view = ui.View;
+			var doc = ui.Document;
 			int diff = (view.VisibleSize.Height / view.LineSpacing);
 
 			// get current virtual coordinate of the caret
-			pt = view.GetVirtualPos( doc.CaretIndex );
-			
+			var pt = view.GetVirtualPos( doc.CaretIndex );
+
 			// calc new virtual coordinate of the caret
 			pt.Y -= diff * view.LineSpacing;
 			if( pt.Y < 0 )
@@ -241,7 +244,7 @@ namespace Sgry.Azuki
 			}
 
 			// calc index from the coord
-			nextIndex = view.GetCharIndex( pt );
+			var nextIndex = view.GetCharIndex( pt );
 
 			// move caret and scroll
 			doc.SetSelection( nextIndex, nextIndex );
@@ -254,7 +257,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveToFileHead( IUserInterface ui )
 		{
-			Document doc = ui.Document;
+			var view = ui.View;
+			var doc = ui.Document;
 			int selBegin, selEnd;
 
 			// if there are something selected, release selection
@@ -268,7 +272,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_FileHead, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			view.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -276,7 +280,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveToFileEnd( IUserInterface ui )
 		{
-			Document doc = ui.Document;
+			var view = ui.View;
+			var doc = ui.Document;
 			int selBegin, selEnd;
 
 			// if there are something selected, release selection
@@ -290,7 +295,7 @@ namespace Sgry.Azuki
 			CaretMoveLogic.MoveCaret( CaretMoveLogic.Calc_FileEnd, ui );
 
 			// update desired column
-			ui.View.SetDesiredColumn();
+			view.SetDesiredColumn();
 		}
 
 		/// <summary>
@@ -298,17 +303,19 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void GoToMatchedBracket( IUserInterface ui )
 		{
+			var view = ui.View;
+			var doc = ui.Document;
 			int caretIndex;
 			int pairIndex;
 
 			// find pair and go there
-			caretIndex = ui.Document.CaretIndex;
-			pairIndex = ui.Document.FindMatchedBracket( caretIndex );
+			caretIndex = doc.CaretIndex;
+			pairIndex = doc.FindMatchedBracket( caretIndex );
 			if( pairIndex != -1 )
 			{
 				// found.
-				ui.Document.SetSelection( pairIndex, pairIndex );
-				ui.View.SetDesiredColumn();
+				doc.SetSelection( pairIndex, pairIndex );
+				view.SetDesiredColumn();
 				ui.ScrollToCaret();
 				return;
 			}
@@ -318,17 +325,17 @@ namespace Sgry.Azuki
 			// then we try again for the char at CaretIndex-1 (at left of the caret.)
 			if( 1 <= caretIndex )
 			{
-				char ch = ui.Document[ caretIndex-1 ];
+				char ch = doc[ caretIndex-1 ];
 				if( ch != '(' && ch != ')'
 					|| ch != '{' && ch != '}'
 					|| ch != '[' && ch != ']' )
 				{
-					pairIndex = ui.Document.FindMatchedBracket( caretIndex-1 );
+					pairIndex = doc.FindMatchedBracket( caretIndex-1 );
 					if( pairIndex != -1 )
 					{
 						// found.
-						ui.Document.SetSelection( pairIndex, pairIndex );
-						ui.View.SetDesiredColumn();
+						doc.SetSelection( pairIndex, pairIndex );
+						view.SetDesiredColumn();
 						ui.ScrollToCaret();
 						return;
 					}
@@ -337,7 +344,6 @@ namespace Sgry.Azuki
 
 			// not found.
 			Plat.Inst.MessageBeep();
-			return;
 		}
 		#endregion
 
@@ -347,10 +353,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectToRight( IUserInterface ui )
 		{
-			// change selection
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_Right, ui );
-
-			// update desired column
 			ui.View.SetDesiredColumn();
 		}
 
@@ -359,10 +362,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectToLeft( IUserInterface ui )
 		{
-			// change selection
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_Left, ui );
-
-			// update desired column
 			ui.View.SetDesiredColumn();
 		}
 
@@ -371,7 +371,6 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectToDown( IUserInterface ui )
 		{
-			// change selection
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_Down, ui );
 		}
 
@@ -380,7 +379,6 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectToUp( IUserInterface ui )
 		{
-			// change selection
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_Up, ui );
 		}
 
@@ -389,10 +387,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectToNextWord( IUserInterface ui )
 		{
-			// change selection
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_NextWord, ui );
-
-			// update desired column
 			ui.View.SetDesiredColumn();
 		}
 
@@ -401,10 +396,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectToPrevWord( IUserInterface ui )
 		{
-			// change selection
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_PrevWord, ui );
-
-			// update desired column
 			ui.View.SetDesiredColumn();
 		}
 
@@ -413,10 +405,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectToLineHead( IUserInterface ui )
 		{
-			// change selection
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_LineHead, ui );
-
-			// update desired column
 			ui.View.SetDesiredColumn();
 		}
 
@@ -425,10 +414,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectToLineHeadSmart( IUserInterface ui )
 		{
-			// change selection
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_LineHeadSmart, ui );
-
-			// update desired column
 			ui.View.SetDesiredColumn();
 		}
 
@@ -437,10 +423,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectToLineEnd( IUserInterface ui )
 		{
-			// change selection
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_LineEnd, ui );
-
-			// update desired column
 			ui.View.SetDesiredColumn();
 		}
 
@@ -449,8 +432,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectToPageDown( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			IView view = ui.View;
+			var view = ui.View;
+			var doc = ui.Document;
 			Point pt;
 			int nextIndex;
 			int diff = (view.VisibleSize.Height / view.LineSpacing);
@@ -479,15 +462,13 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectToPageUp( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			IView view = ui.View;
-			Point pt;
-			int nextIndex;
+			var view = ui.View;
+			var doc = ui.Document;
 			int diff = (view.VisibleSize.Height / view.LineSpacing);
 
 			// get current virtual coordinate of the caret
-			pt = view.GetVirtualPos( doc.CaretIndex );
-			
+			var pt = view.GetVirtualPos( doc.CaretIndex );
+
 			// calc new virtual coordinate of the caret
 			pt.Y -= diff * view.LineSpacing;
 			if( pt.Y < 0 )
@@ -496,7 +477,7 @@ namespace Sgry.Azuki
 			}
 
 			// calc index from the coord
-			nextIndex = view.GetCharIndex( pt );
+			var nextIndex = view.GetCharIndex( pt );
 
 			// move caret and scroll
 			doc.SetSelection( doc.AnchorIndex, nextIndex );
@@ -508,10 +489,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectToFileHead( IUserInterface ui )
 		{
-			// change selection
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_FileHead, ui );
-
-			// update desired column
 			ui.View.SetDesiredColumn();
 		}
 
@@ -520,10 +498,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectToFileEnd( IUserInterface ui )
 		{
-			// change selection
 			CaretMoveLogic.SelectTo( CaretMoveLogic.Calc_FileEnd, ui );
-
-			// update desired column
 			ui.View.SetDesiredColumn();
 		}
 		#endregion
@@ -541,10 +516,7 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public static void RectSelectToRight( IUserInterface ui )
 		{
-			// force to enable rectangle selection
 			ui.SelectionMode = TextDataType.Rectangle;
-
-			// expand selection
 			SelectToRight( ui );
 		}
 
@@ -560,10 +532,7 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public static void RectSelectToLeft( IUserInterface ui )
 		{
-			// force to enable rectangle selection
 			ui.SelectionMode = TextDataType.Rectangle;
-
-			// expand selection
 			SelectToLeft( ui );
 		}
 
@@ -579,10 +548,7 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public static void RectSelectToDown( IUserInterface ui )
 		{
-			// force to enable rectangle selection
 			ui.SelectionMode = TextDataType.Rectangle;
-
-			// expand selection
 			SelectToDown( ui );
 		}
 
@@ -598,10 +564,7 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public static void RectSelectToUp( IUserInterface ui )
 		{
-			// force to enable rectangle selection
 			ui.SelectionMode = TextDataType.Rectangle;
-
-			// expand selection
 			SelectToUp( ui );
 		}
 		#endregion
@@ -640,9 +603,9 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectAll( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			IView view = ui.View;
-			
+			var view = ui.View;
+			var doc = ui.Document;
+
 			// set parameters
 			doc.SetSelection( 0, doc.Length );
 

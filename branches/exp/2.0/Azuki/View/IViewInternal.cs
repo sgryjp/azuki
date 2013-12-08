@@ -11,5 +11,6 @@
 		int ScrYofTextArea{ get; }
 
 		bool IsLineHead( int index );
+		int NextTabStopX( int virX );
 	}
 }

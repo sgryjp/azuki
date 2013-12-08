@@ -24,8 +24,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void BackSpace( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			IView view = ui.View;
+			var view = ui.View;
+			var doc = ui.Document;
 
 			// do nothing if the document is read-only
 			if( doc.IsReadOnly )
@@ -40,7 +40,7 @@ namespace Sgry.Azuki
 				//--- case of rectangle selection ---
 				using( doc.BeginUndo() )
 					doc.DeleteRectSelectText();
-				ui.View.Invalidate();
+				view.Invalidate();
 			}
 			else if( doc.AnchorIndex != doc.CaretIndex )
 			{
@@ -92,8 +92,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void BackSpaceWord( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			IView view = ui.View;
+			var view = ui.View;
+			var doc = ui.Document;
 
 			// do nothing if the document is read-only
 			if( doc.IsReadOnly )
@@ -108,7 +108,7 @@ namespace Sgry.Azuki
 				//--- case of rectangle selection ---
 				using( doc.BeginUndo() )
 					doc.DeleteRectSelectText();
-				ui.View.Invalidate();
+				view.Invalidate();
 			}
 			else if( doc.AnchorIndex != doc.CaretIndex )
 			{
@@ -144,8 +144,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void Delete( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			IView view = ui.View;
+			var view = ui.View;
+			var doc = ui.Document;
 
 			// do nothing if the document is read-only
 			if( doc.IsReadOnly )
@@ -160,7 +160,7 @@ namespace Sgry.Azuki
 				//--- case of rectangle selection ---
 				using( doc.BeginUndo() )
 					doc.DeleteRectSelectText();
-				ui.View.Invalidate();
+				view.Invalidate();
 			}
 			else if( doc.AnchorIndex != doc.CaretIndex )
 			{
@@ -183,9 +183,7 @@ namespace Sgry.Azuki
 				// avoid dividing a CR-LF, a surrogate pair,
 				// or a combining character sequence
 				while( doc.IsNotDividableIndex(end) )
-				{
 					end++;
-				}
 
 				// delete char(s).
 				doc.Replace( String.Empty, begin, end );
@@ -204,8 +202,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void DeleteWord( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			IView view = ui.View;
+			var view = ui.View;
+			var doc = ui.Document;
 
 			// do nothing if the document is read-only
 			if( doc.IsReadOnly )
@@ -220,7 +218,7 @@ namespace Sgry.Azuki
 				//--- case of rectangle selection ---
 				using( doc.BeginUndo() )
 					doc.DeleteRectSelectText();
-				ui.View.Invalidate();
+				view.Invalidate();
 			}
 			else if( doc.AnchorIndex != doc.CaretIndex )
 			{
@@ -266,7 +264,7 @@ namespace Sgry.Azuki
 		/// <seealso cref="IUserInterface.CopyLineWhenNoSelection"/>
 		public static void Cut( IUserInterface ui )
 		{
-			Document doc = ui.Document;
+			var doc = ui.Document;
 			string text;
 
 			// do nothing if the document is read-only
@@ -331,7 +329,7 @@ namespace Sgry.Azuki
 		/// <seealso cref="IUserInterface.CopyLineWhenNoSelection"/>
 		public static void Copy( IUserInterface ui )
 		{
-			Document doc = ui.Document;
+			var doc = ui.Document;
 			string text;
 			
 			// is there any selection?
@@ -369,7 +367,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void Paste( IUserInterface ui )
 		{
-			Document doc = ui.Document;
+			var view = ui.View;
+			var doc = ui.Document;
 			string clipboardText;
 			int begin, end;
 			int insertIndex;
@@ -392,7 +391,7 @@ namespace Sgry.Azuki
 			// limit the content in a single line if it's in single line mode
 			if( ui.IsSingleLineMode )
 			{
-				int eolIndex = clipboardText.IndexOfAny( new char[]{'\r', '\n'} );
+				int eolIndex = clipboardText.IndexOfAny( "\r\n".ToCharArray() );
 				if( 0 <= eolIndex )
 				{
 					clipboardText = clipboardText.Remove( eolIndex, clipboardText.Length-eolIndex );
@@ -408,7 +407,7 @@ namespace Sgry.Azuki
 					//--- case of rectangle selection ---
 					// delete selected text
 					doc.DeleteRectSelectText();
-					ui.View.Invalidate();
+					view.Invalidate();
 				}
 				else if( begin != end )
 				{
@@ -428,7 +427,7 @@ namespace Sgry.Azuki
 					string padding;
 
 					// Insert every row at same column position
-					insertPos = ui.View.GetVirtualPos( doc.CaretIndex );
+					insertPos = view.GetVirtualPos( doc.CaretIndex );
 					rowBegin = 0;
 					rowEnd = TextUtil.NextLineHead( clipboardText, rowBegin );
 					while( 0 <= rowEnd )
@@ -454,8 +453,8 @@ namespace Sgry.Azuki
 						padding = UiImpl.GetNeededPaddingChars( ui, insertPos, false );
 
 						// insert this row
-						insertIndex = ui.View.GetCharIndex( insertPos );
-						doc.Replace( padding.ToString() + rowText, insertIndex, insertIndex );
+						insertIndex = view.GetCharIndex( insertPos );
+						doc.Replace( padding + rowText, insertIndex, insertIndex );
 
 						// goto next line
 						insertPos.Y += ui.LineSpacing;
@@ -482,7 +481,7 @@ namespace Sgry.Azuki
 			// move caret
 			if( ui.UsesStickyCaret == false )
 			{
-				ui.View.SetDesiredColumn();
+				view.SetDesiredColumn();
 			}
 			ui.ScrollToCaret();
 		}
@@ -494,7 +493,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void Undo( IUserInterface ui )
 		{
-			IViewInternal view = (IViewInternal)ui.View;
+			var view = (IViewInternal)ui.View;
 			if( view.Document.CanUndo == false
 				|| view.Document.IsReadOnly )
 			{
@@ -512,7 +511,7 @@ namespace Sgry.Azuki
 			// redraw graphic of dirt-bar
 			if( ui.ShowsDirtBar )
 			{
-				ui.View.Invalidate( view.DirtBarRect );
+				view.Invalidate( view.DirtBarRect );
 			}
 		}
 
@@ -521,15 +520,16 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void Redo( IUserInterface ui )
 		{
-			IView view = ui.View;
-			if( view.Document.CanRedo == false
-				|| view.Document.IsReadOnly )
+			var view = ui.View;
+			var doc = ui.Document;
+			if( doc.CanRedo == false
+				|| doc.IsReadOnly )
 			{
 				return;
 			}
 
 			// redo
-			view.Document.Redo();
+			doc.Redo();
 			if( ui.UsesStickyCaret == false )
 			{
 				view.SetDesiredColumn();
@@ -589,8 +589,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void BreakPreviousLine( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			IView view = ui.View;
+			var view = ui.View;
+			var doc = ui.Document;
 
 			if( doc.IsReadOnly || ui.IsSingleLineMode )
 				return;
@@ -609,8 +609,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void BreakNextLine( IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			IView view = ui.View;
+			var view = ui.View;
+			var doc = ui.Document;
 
 			if( doc.IsReadOnly || ui.IsSingleLineMode )
 				return;
@@ -645,7 +645,7 @@ namespace Sgry.Azuki
 		/// </seealso>
 		public static void BlockIndent( IUserInterface ui )
 		{
-			Document doc = ui.Document;
+			var doc = ui.Document;
 			string indentChars;
 			int beginL, endL;
 
@@ -689,7 +689,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void BlockUnIndent( IUserInterface ui )
 		{
-			Document doc = ui.Document;
+			var view = ui.View;
+			var doc = ui.Document;
 			int beginL, endL;
 
 			// if read-only document, do nothing
@@ -722,10 +723,9 @@ namespace Sgry.Azuki
 						// there is a space.
 						// remove them until the count reaches to the tab-width
 						int n = 0;
-						while( doc[lineHead] == ' ' && n < ui.View.TabWidth )
+						while( doc[lineHead] == ' ' && n < view.TabWidth )
 						{
 							doc.Replace( String.Empty, lineHead, lineHead+1 );
-
 							n++;
 						}
 					}
@@ -748,7 +748,7 @@ namespace Sgry.Azuki
 			Debug.Assert( ui.Document != null );
 
 			int beginL, endL;
-			Document doc = ui.Document;
+			var doc = ui.Document;
 
 			// Determine target lines
 			doc.GetSelectedLineRange( out beginL, out endL );
@@ -758,7 +758,7 @@ namespace Sgry.Azuki
 			{
 				for( int i=beginL; i<endL; i++ )
 				{
-					IRange line = doc.Lines[i];
+					var line = doc.Lines[i];
 					int index = line.End;
 					while( line.Begin <= index-1 && Char.IsWhiteSpace(doc[index-1]) )
 					{
@@ -781,7 +781,7 @@ namespace Sgry.Azuki
 			Debug.Assert( ui.Document != null );
 
 			int beginL, endL;
-			Document doc = ui.Document;
+			var doc = ui.Document;
 
 			// Determine target lines
 			doc.GetSelectedLineRange( out beginL, out endL );
@@ -791,7 +791,7 @@ namespace Sgry.Azuki
 			{
 				for( int i=beginL; i<endL; i++ )
 				{
-					IRange line = doc.Lines[i];
+					var line = doc.Lines[i];
 					int index = line.Begin;
 					while( index < line.End && Char.IsWhiteSpace(doc[index]) )
 					{
@@ -817,15 +817,15 @@ namespace Sgry.Azuki
 										 int begin, int end, ref int delta )
 		{
 			int tabCount = 0;
-			Document doc = ui.Document;
-			StringBuilder text = new StringBuilder( 1024 );
+			var doc = ui.Document;
+			var text = new StringBuilder( 1024 );
 
 			for( int i=begin; i<end; i++ )
 			{
 				if( doc[i] == '\t' )
 				{
 					tabCount++;
-					string spaces = UiImpl.GetTabEquivalentSpaces( ui, i );
+					var spaces = UiImpl.GetTabEquivalentSpaces( ui, i );
 					text.Append( spaces );
 				}
 				else
@@ -859,9 +859,9 @@ namespace Sgry.Azuki
 										 int begin, int end,
 										 ref int indexDelta )
 		{
-			Document doc = ui.Document;
-			View view = (View)ui.View;
-			StringBuilder text = new StringBuilder( 1024 );
+			var view = (IViewInternal)ui.View;
+			var doc = ui.Document;
+			var text = new StringBuilder( 1024 );
 			int cvtCount = 0;
 
 			for( int i=begin; i<end; i++ )
@@ -910,7 +910,7 @@ namespace Sgry.Azuki
 			Debug.Assert( ui != null );
 			Debug.Assert( ui.Document != null );
 
-			Document doc = ui.Document;
+			var doc = ui.Document;
 			int delta = 0;
 			int begin, end;
 
