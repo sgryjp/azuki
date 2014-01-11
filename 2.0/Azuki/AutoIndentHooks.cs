@@ -44,34 +44,30 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public static readonly AutoIndentHook GenericHook = delegate( IUserInterface ui, char ch )
 		{
-			Document doc = ui.Document;
-			StringBuilder str = new StringBuilder();
-			int lineHead;
-			int newCaretIndex;
-
-			// do nothing if Azuki is in single line mode
+			// Do nothing if Azuki is in single line mode
 			if( ui.IsSingleLineMode )
-			{
 				return false;
-			}
 
-			// if EOL code was detected, perform indentation
+			var doc = ui.Document;
+
+			// Perform indentation if an EOL code was inserted
 			if( TextUtil.IsEolChar(ch) )
 			{
-				str.Append( doc.EolCode );
+				var str = new StringBuilder( doc.EolCode );
 
-				// get indent chars
-				lineHead = doc.Lines.AtOffset( doc.CaretIndex ).Begin;
+				// Get indent chars
+				var lineHead = doc.Lines.AtOffset( doc.CaretIndex ).Begin;
 				for( int i=lineHead; i<doc.CaretIndex; i++ )
 				{
-					if( doc[i] == ' ' || doc[i] == '\t' || doc[i] == '\x3000' )
-						str.Append( doc[i] );
+					var c = doc[i];
+					if( c == ' ' || c == '\t' || c == '\x3000' )
+						str.Append( c );
 					else
 						break;
 				}
 
-				// replace selection
-				newCaretIndex = Math.Min( doc.AnchorIndex, doc.CaretIndex ) + str.Length;
+				// Replace selection
+				var newCaretIndex = Math.Min( doc.AnchorIndex, doc.CaretIndex ) + str.Length;
 				doc.Replace( str.ToString() );
 				doc.SetSelection( newCaretIndex, newCaretIndex );
 
@@ -110,36 +106,28 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public static readonly AutoIndentHook CHook = delegate( IUserInterface ui, char ch )
 		{
-			Document doc = ui.Document;
-			StringBuilder indentChars = new StringBuilder( 64 );
-			int newCaretIndex;
+			// Do nothing if it's in single line mode
+			if( ui.IsSingleLineMode )
+				return false;
+
+			var view = ui.View;
+			var doc = ui.Document;
 			int selBegin, selEnd;
-			
+
 			doc.GetSelection( out selBegin, out selEnd );
 			var line = doc.Lines.AtOffset( selBegin );
 
-			// user hit Enter key?
-			if( TextUtil.IsEolChar(ch) )
+			if( TextUtil.IsEolChar(ch) ) // Enter key
 			{
-				int i;
 				bool extraPaddingNeeded = false;
+				var indentChars = new StringBuilder( doc.EolCode, 64 );
 
-				// do nothing if it's in single line mode
-				if( ui.IsSingleLineMode )
-				{
-					return false;
-				}
-
-				indentChars.Append( doc.EolCode );
-
-				// if the line is empty, do nothing
+				// If the line is empty, do nothing
 				if( line.IsEmpty )
-				{
 					return false;
-				}
 
-				// get indent chars
-				for( i=line.Begin; i<selBegin; i++ )
+				// Get indent chars
+				for( int i=line.Begin; i<selBegin; i++ )
 				{
 					if( doc[i] == ' ' || doc[i] == '\t' )
 						indentChars.Append( doc[i] );
@@ -147,8 +135,8 @@ namespace Sgry.Azuki
 						break;
 				}
 
-				// if there are following white spaces, remove them
-				for( i=selEnd; i<line.End; i++ )
+				// Expand target range to include trailing whitespaces
+				for( int i=selEnd; i<line.End; i++ )
 				{
 					if( doc[i] == ' ' || doc[i] == '\t' || doc[i] == '\x3000' )
 						selEnd++;
@@ -156,60 +144,53 @@ namespace Sgry.Azuki
 						break;
 				}
 
-				// determine whether extra padding is needed or not
-				// (because replacement changes line end index
-				// determination after replacement will be much harder)
-				if( Utl.FindPairedBracket_Backward(doc, selBegin, line.Begin, '}', '{') != -1
-					&& Utl.IndexOf(doc, '}', selBegin, line.End) == -1 )
+				// Determine whether extra padding is needed?
+				if( FindPairedBracket_Backward(doc, selBegin, line.Begin, '}', '{') != -1
+					&& IndexOf(doc, '}', selBegin, line.End) == -1 )
 				{
 					extraPaddingNeeded = true;
 				}
 
-				// replace selection
-				newCaretIndex = Math.Min( doc.AnchorIndex, selBegin ) + indentChars.Length;
+				// Replace selection
+				var newCaretIndex = Math.Min( doc.AnchorIndex, selBegin ) + indentChars.Length;
 				doc.Replace( indentChars.ToString(), selBegin, selEnd );
 
-				// if there is a '{' without pair before caret
-				// and is no '}' after caret, add indentation
+				// Insert extra indentation if there is an '{' without pair before caret and is no
+				// '}' after caret
 				if( extraPaddingNeeded )
 				{
-					// make indentation characters
-					string extraPadding;
-					var pos = ui.View.GetVirtualPos( newCaretIndex );
-					pos.X += ui.View.TabWidthInPx;
-					extraPadding = UiImpl.GetNeededPaddingChars( ui, pos, true );
+					var pos = view.GetVirtualPos( newCaretIndex );
+					pos.X += view.TabWidthInPx;
+					var extraPadding = UiImpl.GetNeededPaddingChars( ui, pos, true );
 					doc.Replace( extraPadding, newCaretIndex, newCaretIndex );
 					newCaretIndex += extraPadding.Length;
 				}
 
+				// Set new caret position
 				doc.SetSelection( newCaretIndex, newCaretIndex );
 
 				return true;
 			}
-			// user hit '}'?
 			else if( ch == '}' )
 			{
-				// ensure this line contains only white spaces
+				// Ensure this line contains white spaces only
 				for( int i=line.Begin; i<line.End; i++ )
 				{
 					if( TextUtil.IsEolChar(doc[i]) )
-					{
 						break;
-					}
 					else if( doc[i] != ' ' && doc[i] != '\t' )
-					{
-						return false; // this line contains a non white space char
-					}
+						return false;
 				}
 
-				// find the paired open bracket
-				var pairIndex = Utl.FindPairedBracket_Backward( doc, selBegin, 0, '}', '{' );
+				// Find the paired open bracket
+				var pairIndex = FindPairedBracket_Backward( doc, selBegin, 0, '}', '{' );
 				if( pairIndex == -1 )
 				{
 					return false; // no pair exists. nothing to do
 				}
 
 				// Get indent chars from a line containing the pair
+				var indentChars = new StringBuilder( 64 );
 				var pairedLine = doc.Lines.AtOffset( pairIndex );
 				for( int i=pairedLine.Begin; i<pairedLine.End; i++ )
 				{
@@ -219,7 +200,7 @@ namespace Sgry.Azuki
 						break;
 				}
 
-				// replace indent chars of current line
+				// Replace indent chars of current line
 				indentChars.Append( '}' );
 				doc.Replace( indentChars.ToString(), line.Begin, selBegin );
 
@@ -230,61 +211,35 @@ namespace Sgry.Azuki
 		};
 
 		#region Utilities
-		static class Utl
+		static int IndexOf( Document doc, char value, int startIndex, int endIndex )
 		{
-			public static int IndexOf( Document doc, char value, int startIndex, int endIndex )
-			{
-				for( int i=startIndex; i<endIndex; i++ )
-				{
-					if( doc[i] == value )
-					{
-						return i;
-					}
-				}
+			for( int i=startIndex; i<endIndex; i++ )
+				if( doc[i] == value )
+					return i;
+			return -1;
+		}
 
-				return -1;
+		static int FindPairedBracket_Backward( Document doc, int startIndex, int endIndex,
+											   char bracket, char pairBracket )
+		{
+			int depth = 1;
+
+			// Seek backward until paired bracket was found
+			for( int i=startIndex-1; endIndex<=i; i-- )
+			{
+				if( doc[i] == bracket && doc.IsCDATA(i) == false )
+				{
+					depth++;
+				}
+				else if( doc[i] == pairBracket && doc.IsCDATA(i) == false )
+				{
+					depth--;
+					if( depth == 0 )
+						return i; // Found
+				}
 			}
 
-			public static int LastIndexOf( Document doc, char value, int startIndex, int endIndex )
-			{
-				for( int i=startIndex-1; endIndex<=i; --i )
-				{
-					if( doc[i] == value )
-						return i;
-				}
-
-				return -1;
-			}
-
-			public static int FindPairedBracket_Backward( Document doc, int startIndex, int endIndex, char bracket, char pairBracket )
-			{
-				int depth = 1;
-
-				// seek backward until paired bracket was found
-				for( int i=startIndex-1; endIndex<=i; i-- )
-				{
-					if( doc[i] == bracket && doc.IsCDATA(i) == false )
-					{
-						// a bracket was found.
-						// increase depth count
-						depth++;
-					}
-					else if( doc[i] == pairBracket && doc.IsCDATA(i) == false )
-					{
-						// a paired bracket was found.
-						// decrease count and if the count fell down to zero,
-						// return the position.
-						depth--;
-						if( depth == 0 )
-						{
-							return i; // found the pair
-						}
-					}
-				}
-
-				// not found
-				return -1;
-			}
+			return -1; // Not found
 		}
 		#endregion
 	}

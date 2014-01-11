@@ -16,27 +16,20 @@ namespace Sgry.Azuki.WinForms
 	/// <remarks>
 	/// <para>
 	/// AzukiControl class is a GUI component class provided for Windows.Forms framework.
-	/// In programming of Windows.Forms framework,
-	/// this class will be the most important class
-	/// and thus very basic operations in Azuki can be done through this class.
 	/// </para>
 	/// <para>
-	/// AzukiControl class is designed to cooperate with Microsoft Visual Studio
-	/// so that it can be added to toolbox of visual designer.
-	/// Once AzukiControl was added to toolbox,
-	/// it can be used like standard GUI components such as System.Windows.Forms.Button;
-	/// placing and layout with drag&amp;drop or resizing by dragging edge of component and so on.
+	/// AzukiControl class is designed to cooperate with Microsoft Visual Studio so that it can be
+	/// added to toolbox of visual designer. Once added, it can be used like standard GUI
+	/// components such as System.Windows.Forms.Button; placing and layout with drag&amp;drop
+	/// or resizing by dragging edge of component and so on.
 	/// </para>
 	/// <para>
-	/// AzukiControl is an implementation of IUserInterface
-	/// which expresses the user interface
-	/// (front-end which directly interact with user action)
-	/// of Azuki engine.
-	/// Although currently there is no other implementation for other framework or platform,
-	/// If programmer want to make platform independent program,
-	/// using AzukiControl through IUserInterface will be much appropriate.
+	/// AzukiControl is an implementation of IUserInterface which handles user interaction.
+	/// If you don't like dependency to any platform, consider using AzukiControl through
+	/// IUserInterface.
 	/// </para>
 	/// </remarks>
+	/// <seealso cref="IUserInterface"/>
 	public class AzukiControl : Control, IUserInterfaceInternal
 	{
 		#region Types, Constants and Fields
@@ -119,17 +112,15 @@ namespace Sgry.Azuki.WinForms
 			WinApi.SetScrollRange( Handle, true, 0, 1, 1 );
 			
 			base.Cursor = Cursors.IBeam;
-			this.Font = base.Font;
-			this.BorderStyle = _BorderStyle;
+			Font = base.Font;
+			BorderStyle = _BorderStyle;
 
 			WinApi.CreateCaret( Handle, _CaretSize );
 			WinApi.SetCaretPos( 0, 0 );
 
 			// calculate scrollbar width
-			using( ScrollBar sb = new VScrollBar() )
-			{
+			using( var sb = new VScrollBar() )
 				_ScrollBarWidth = sb.Width;
-			}
 		}
 
 		/// <summary>
@@ -138,8 +129,6 @@ namespace Sgry.Azuki.WinForms
 		protected override void OnHandleDestroyed( EventArgs e )
 		{
 			base.OnHandleDestroyed( e );
-
-			// destroy caret
 			WinApi.DestroyCaret();
 		}
 		#endregion
@@ -155,36 +144,30 @@ namespace Sgry.Azuki.WinForms
 			get
 			{
 				if( _Impl == null )
-				{
 					return null;
-				}
-				else
-				{
-					return _Impl.Document;
-				}
+
+				return _Impl.Document;
 			}
 			set
 			{
 				if( value == null )
 					throw new ArgumentNullException();
 
-				// uninstall event handler
+				// Uninstall event handler
 				if( _Impl.Document != null )
-				{
 					_Impl.Document.ContentChanged -= Document_ContentChanged;
-				}
 
-				// switch to the new document
+				// Switch to the new document
 				_Impl.Document = value;
 
-				// install event handler
+				// Install event handler
 				_Impl.Document.ContentChanged += Document_ContentChanged;
 			}
 		}
 
 		void Document_ContentChanged( object sender, ContentChangedEventArgs e )
 		{
-			// just invoke TextChanged event of this Control.
+			// Just invoke TextChanged event of this Control.
 			base.OnTextChanged( e );
 		}
 
@@ -390,19 +373,17 @@ namespace Sgry.Azuki.WinForms
 				return;
 			
 			// calculate caret size for current caret position
-			Point pos = GetPositionFromIndex( Document.CaretIndex );
-			using( IGraphics g = GetIGraphics() )
+			var pos = GetPositionFromIndex( Document.CaretIndex );
+			using( var g = GetIGraphics() )
 			{
 				_CaretSize.Height = View.LineHeight;
-				_CaretSize.Width = Utl.CalcOverwriteCaretWidth( g, Document, _Impl.View,
-																Document.CaretIndex,
-																IsOverwriteMode );
+				_CaretSize.Width = CalcOverwriteCaretWidth( g, Document, _Impl.View,
+															Document.CaretIndex,
+															IsOverwriteMode );
 			}
 
 			// update graphic
-			UpdateCaretGraphic(
-					new Rectangle(pos.X, pos.Y, _CaretSize.Width, _CaretSize.Height)
-				);
+			UpdateCaretGraphic( new Rectangle(pos.X, pos.Y, _CaretSize.Width, _CaretSize.Height) );
 		}
 
 		/// <summary>
@@ -457,18 +438,10 @@ namespace Sgry.Azuki.WinForms
 		{
 			switch( cursorType )
 			{
-				case MouseCursor.DragAndDrop:
-					this.Cursor = Cursors.UpArrow;
-					break;
-				case MouseCursor.Hand:
-					this.Cursor = Cursors.Hand;
-					break;
-				case MouseCursor.IBeam:
-					this.Cursor = Cursors.IBeam;
-					break;
-				default:
-					this.Cursor = Cursors.Arrow;
-					break;
+				case MouseCursor.DragAndDrop:	Cursor = Cursors.UpArrow;	break;
+				case MouseCursor.Hand:			Cursor = Cursors.Hand;		break;
+				case MouseCursor.IBeam:			Cursor = Cursors.IBeam;		break;
+				default:						Cursor = Cursors.Arrow;		break;
 			}
 		}
 
@@ -1681,9 +1654,7 @@ namespace Sgry.Azuki.WinForms
 		public void InvokeCaretMoved()
 		{
 			if( CaretMoved != null )
-			{
 				CaretMoved( this, EventArgs.Empty );
-			}
 		}
 
 		/// <summary>
@@ -1698,9 +1669,7 @@ namespace Sgry.Azuki.WinForms
 		public void InvokeOverwriteModeChanged()
 		{
 			if( OverwriteModeChanged != null )
-			{
 				OverwriteModeChanged( this, EventArgs.Empty );
-			}
 		}
 
 		/// <summary>
@@ -1799,36 +1768,32 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		public void UpdateScrollBarRange()
 		{
-			int vMax, hMax;
-			int vPageSize, hPageSize;
-			int visibleLineCount;
-
 			if( Document == null )
 				return;
 
-			// calculate vertical range and page size
-			visibleLineCount = View.VisibleSize.Height / View.LineSpacing;
-			vPageSize = Math.Max( 0, visibleLineCount-1 );
-			vMax = View.Lines.Count - 1;
+			// Calculate vertical range and page size
+			int visibleLineCount = View.VisibleSize.Height / View.LineSpacing;
+			int vPageSize = Math.Max( 0, visibleLineCount-1 );
+			int vMax = View.Lines.Count - 1;
 			if( ScrollsBeyondLastLine )
 			{
 				vMax += vPageSize - 1;
 			}
 
-			// calculate horizontal range and page size
-			hMax = View.TextAreaWidth;
-			hPageSize = Math.Max( 0, View.VisibleTextAreaSize.Width );
+			// Calculate horizontal range and page size
+			int hMax = View.TextAreaWidth;
+			int hPageSize = Math.Max( 0, View.VisibleTextAreaSize.Width );
 
-			// update the range of vertical scrollbar
+			// Update the range of vertical scrollbar
 			WinApi.SetScrollRange( Handle, false, 0, vMax, vPageSize );
 			
-			// update the range of horizontal scrollbar
+			// Update the range of horizontal scrollbar
 			if( ShowsHScrollBar == false || ViewType == ViewType.WrappedProportional )
 				WinApi.SetScrollRange( Handle, true, 0, 0, hPageSize ); // bar will be hidden
 			else
 				WinApi.SetScrollRange( Handle, true, 0, hMax, hPageSize );
 
-			// then, update scroll position and caret graphic
+			// Then, update scroll position and caret graphic
 			WinApi.SetScrollPos( Handle, false, _Impl.View.FirstVisibleLine );
 			WinApi.SetScrollPos( Handle, true, _Impl.View.ScrollPosX );
 		}
@@ -1880,36 +1845,29 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		protected override void OnMouseDown( MouseEventArgs e )
 		{
-			// set focus manually (this is needed to get focus by mouse click)
-			this.Focus();
+			// Set focus manually (this is needed to get focus by mouse click)
+			Focus();
 
-			// store information
+			// Store information
 			_LastMouseDownPos = new Point( e.X, e.Y );
 
-			// invoke event
-			WinFormsMouseEventArgs amea = Utl.CreateWinFormsMouseEventArgs( View, e );
+			// Invoke event
+			var amea = CreateWinFormsMouseEventArgs( View, e );
 			base.OnMouseDown( amea );
 			if( amea.Handled )
-			{
 				return;
-			}
 			if( _Impl == null )
-			{
 				return;
-			}
 
-			// do built-in action
+			// Do built-in action
 			_Impl.HandleMouseDown( amea );
 
-			// do Windows specific special actions
+			// Do Windows specific special actions
 			if( amea.Alt )
 			{
-				// set flag to prevent opening menu
-				// by Alt key for rectangular selection mode
+				// Set flag to prevent opening menu by Alt key for rectangular selection mode
 				if( IsRectSelectMode )
-				{
 					_LastAltWasForRectSelect = true;
-				}
 			}
 		}
 
@@ -1919,14 +1877,12 @@ namespace Sgry.Azuki.WinForms
 		protected override void OnMouseUp( MouseEventArgs e )
 		{
 			// invoke event
-			WinFormsMouseEventArgs amea = Utl.CreateWinFormsMouseEventArgs( View, e );
+			var amea = CreateWinFormsMouseEventArgs( View, e );
 			base.OnMouseUp( amea );
 			if( amea.Handled )
-			{
 				return;
-			}
 
-			// do built-in action
+			// Do built-in action
 			_Impl.HandleMouseUp( amea );
 		}
 
@@ -1935,13 +1891,13 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		protected override void OnMouseClick( MouseEventArgs e )
 		{
-			Point currentPos = PointToClient( Control.MousePosition );
-			if( Utl.IsClick(currentPos, _LastMouseDownPos) )
+			var currentPos = PointToClient( MousePosition );
+			if( IsClick(currentPos, _LastMouseDownPos) )
 			{
 				return;
 			}
 
-			WinFormsMouseEventArgs amea = Utl.CreateWinFormsMouseEventArgs( View, e );
+			var amea = CreateWinFormsMouseEventArgs( View, e );
 			base.OnMouseClick( amea );
 		}
 
@@ -1950,13 +1906,13 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		protected override void OnMouseDoubleClick( MouseEventArgs e )
 		{
-			Point currentPos = PointToClient( Control.MousePosition );
-			if( Utl.IsClick(currentPos, _LastMouseDownPos) )
+			var currentPos = PointToClient( MousePosition );
+			if( IsClick(currentPos, _LastMouseDownPos) )
 			{
 				return;
 			}
 
-			WinFormsMouseEventArgs amea = Utl.CreateWinFormsMouseEventArgs( View, e );
+			var amea = CreateWinFormsMouseEventArgs( View, e );
 			base.OnMouseDoubleClick( amea );
 		}
 
@@ -1965,19 +1921,15 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		protected override void OnClick( EventArgs e )
 		{
-			Point currentPos = PointToClient( Control.MousePosition );
-			if( Utl.IsClick(currentPos, _LastMouseDownPos) )
+			var currentPos = PointToClient( MousePosition );
+			if( IsClick(currentPos, _LastMouseDownPos) )
 			{
 				return;
 			}
 
-			// gather information about the event
-			MouseEventArgs mea = new MouseEventArgs(
-					MouseButtons.Left, 2, currentPos.X, currentPos.Y, 0
-				);
-
-			// invoke event
-			WinFormsMouseEventArgs amea = Utl.CreateWinFormsMouseEventArgs( View, mea );
+			// Invoke event
+			var mea = new MouseEventArgs( MouseButtons.Left, 2, currentPos.X, currentPos.Y, 0 );
+			var amea = CreateWinFormsMouseEventArgs( View, mea );
 			base.OnClick( amea );
 		}
 
@@ -1986,26 +1938,22 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		protected override void OnDoubleClick( EventArgs e )
 		{
-			Point currentPos = PointToClient( Control.MousePosition );
-			if( Utl.IsClick(currentPos, _LastMouseDownPos) )
+			var currentPos = PointToClient( MousePosition );
+			if( IsClick(currentPos, _LastMouseDownPos) )
 			{
 				return;
 			}
 
-			// gather information about the event
-			MouseEventArgs mea = new MouseEventArgs(
-					MouseButtons.Left, 2, currentPos.X, currentPos.Y, 0
-				);
-
-			// invoke event
-			WinFormsMouseEventArgs amea = Utl.CreateWinFormsMouseEventArgs( View, mea );
+			// Invoke event
+			var mea = new MouseEventArgs( MouseButtons.Left, 2, currentPos.X, currentPos.Y, 0 );
+			var amea = CreateWinFormsMouseEventArgs( View, mea );
 			base.OnDoubleClick( amea );
 			if( amea.Handled )
 			{
 				return;
 			}
 
-			// do built-in action
+			// Do built-in action
 			_Impl.HandleDoubleClick( amea );
 		}
 
@@ -2014,29 +1962,30 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		protected override void OnMouseMove( MouseEventArgs e )
 		{
-			// invoke event
-			WinFormsMouseEventArgs amea = Utl.CreateWinFormsMouseEventArgs( View, e );
+			// Invoke event
+			var amea = CreateWinFormsMouseEventArgs( View, e );
 			base.OnMouseMove( amea );
 			if( amea.Handled || _Impl == null )
 			{
 				return;
 			}
 			
-			// do built-in action
+			// Do built-in action
 			_Impl.HandleMouseMove( amea );
 		}
 
 		void HandleWheelEvent( int scrollOffset )
 		{
-			// get modifier key state
-			bool shift = WinApi.IsKeyDown( Keys.ShiftKey );
-			bool control = WinApi.IsKeyDown( Keys.ControlKey );
-			bool alt = WinApi.IsKeyDown( Keys.Menu );
+			// Get modifier key state
+			var shift = WinApi.IsKeyDown( Keys.ShiftKey );
+			var control = WinApi.IsKeyDown( Keys.ControlKey );
+			var alt = WinApi.IsKeyDown( Keys.Menu );
 
-			// dispatch mouse event
+			// Dispatch mouse event
 			if( !control && !alt && shift )
 			{
-				int type = (scrollOffset < 0) ? WinApi.SB_LINEUP : WinApi.SB_LINEDOWN;
+				int type = (scrollOffset < 0) ? WinApi.SB_LINEUP
+											  : WinApi.SB_LINEDOWN;
 				HandleHScrollEvent( type );
 			}
 			else if( control && !alt && !shift )
@@ -2154,13 +2103,9 @@ namespace Sgry.Azuki.WinForms
 		{
 			base.OnKeyDown( e );
 			if( e.Handled )
-			{
 				return;
-			}
 			if( _Impl == null )
-			{
 				return;
-			}
 
 			_Impl.HandleKeyDown( (uint)e.KeyData );
 		}
@@ -2172,13 +2117,9 @@ namespace Sgry.Azuki.WinForms
 		{
 			base.OnKeyPress( e );
 			if( e.Handled )
-			{
 				return;
-			}
 			if( _Impl == null )
-			{
 				return;
-			}
 
 			// TranslateMessage API (I think) treats some key combination specially
 			// (Ctrl+I as an a HT(HorizontalTab), Ctrl+M as a LF(LineFeed) for example).
@@ -2234,9 +2175,7 @@ namespace Sgry.Azuki.WinForms
 		{
 			base.OnResize( e );
 			if( _Impl == null )
-			{
 				return;
-			}
 
 			if( _Impl.View != null )
 			{
@@ -2274,130 +2213,129 @@ namespace Sgry.Azuki.WinForms
 			 * set structure members and return non-zero value (meaning OK).
 			 * Then, IME will execute reconversion.
 			 */
-			const int MaxRangeLength = 40;
-			int		rc;
-			int		selBegin, selEnd;
-			string	stringBody;
-			int		stringBodyIndex;
-			IntPtr	ime;
-			char*	strPos;
-			int		infoBufSize;
+			var		ime = IntPtr.Zero;
 
-			// determine string body
-			Document.GetSelection( out selBegin, out selEnd );
-			if( selBegin != selEnd )
+			try
 			{
-				// something selected.
-				// set them as string body, composition string, and target string.
-				int end;
+				const int MaxRangeLength = 40;
+				int		rc;
+				int		selBegin, selEnd;
+				string	stringBody;
+				int		stringBodyIndex;
+				char*	strPos;
+				int		infoBufSize;
 
-				// shrink range if it is unreasonably big
-				end = selEnd;
-				if( MaxRangeLength < end - selBegin )
+				// determine string body
+				Document.GetSelection( out selBegin, out selEnd );
+				if( selBegin != selEnd )
 				{
-					end = selBegin + MaxRangeLength;
-					while( Document.IsNotDividableIndex(end) )
+					// Set selected text as, string body, composition string, and target string.
+
+					// Shrink range if it is unreasonably big
+					var end = selEnd;
+					if( MaxRangeLength < end - selBegin )
 					{
-						end++;
+						end = selBegin + MaxRangeLength;
+						while( Document.IsNotDividableIndex(end) )
+							end++;
 					}
+
+					// Get selected text
+					stringBody = Document.GetText( selBegin, end );
+					stringBodyIndex = selBegin;
+				}
+				else
+				{
+					// Set current line as string body,
+					// and let IME to determine composition string and target string.
+
+					// Get current line range
+					var line = Document.Lines.AtOffset( selBegin );
+					int begin = Math.Max( line.Begin, selBegin - (MaxRangeLength / 2) );
+					int end = Math.Min( selBegin + (MaxRangeLength / 2), line.End );
+
+					// Get current line content
+					stringBody = Document.GetText( begin, end );
+					stringBodyIndex = begin;
 				}
 
-				// get selected text
-				stringBody = Document.GetText( selBegin, end );
-				stringBodyIndex = selBegin;
-			}
-			else
-			{
-				// nothing selected.
-				// set current line as string body
-				// and let IME to determine composition string and target string.
-				int begin, end;
+				// Calculate size of information buffer to communicate with IME
+				infoBufSize = sizeof(WinApi.RECONVERTSTRING)
+							  + Encoding.Unicode.GetByteCount( stringBody )
+							  + 1;
+				if( reconv == null )
+				{
+					// This is the first call for re-conversion. Just inform IME the size of
+					// information buffer.
+					return infoBufSize;
+				}
 
-				// get current line range
-				IRange line = Document.Lines.AtOffset( selBegin );
-				begin = Math.Max( line.Begin, selBegin - (MaxRangeLength / 2) );
-				end = Math.Min( selBegin + (MaxRangeLength / 2), line.End );
-
-				// get current line content
-				stringBody = Document.GetText( begin, end );
-				stringBodyIndex = begin;
-			}
-
-			// calculate size of information buffer to communicate with IME
-			infoBufSize = sizeof(WinApi.RECONVERTSTRING)
-					+ Encoding.Unicode.GetByteCount(stringBody) + 1;
-			if( reconv == null )
-			{
-				// this is the first call for re-conversion.
-				// just inform IME the size of information buffer this time.
-				return infoBufSize;
-			}
-
-			// validate parameters
-			if( reconv->dwSize != (UInt32)infoBufSize
-				|| reconv->dwVersion != 0 )
-			{
-				return 0;
-			}
-
-			// get IME context
-			ime = WinApi.ImmGetContext( this.Handle );
-			if( ime == IntPtr.Zero )
-			{
-				return 0;
-			}
-
-			// copy string body
-			reconv->dwStrLen = (UInt32)stringBody.Length;
-			reconv->dwStrOffset = (UInt32)sizeof(WinApi.RECONVERTSTRING);
-			strPos = (char*)( (byte*)reconv + reconv->dwStrOffset );
-			for( int i=0; i<stringBody.Length; i++ )
-			{
-				strPos[i] = stringBody[i];
-			}
-			strPos[stringBody.Length] = '\0';
-
-			// calculate range of composition string and target string
-			if( selBegin != selEnd )
-			{
-				// set selected range as reconversion target
-				reconv->dwCompStrLen = (UInt32)( stringBody.Length );
-				reconv->dwCompStrOffset = 0;
-				reconv->dwTargetStrLen = reconv->dwCompStrLen;
-				reconv->dwTargetStrOffset = reconv->dwCompStrOffset;
-			}
-			else
-			{
-				// let IME adjust RECONVERTSTRING parameters
-				reconv->dwCompStrLen = 0;
-				reconv->dwCompStrOffset = (UInt32)( (selBegin - stringBodyIndex) * 2);
-				reconv->dwTargetStrLen = 0;
-				reconv->dwTargetStrOffset = reconv->dwCompStrOffset;
-				rc = WinApi.ImmSetCompositionStringW(
-						ime,
-						WinApi.SCS_QUERYRECONVERTSTRING,
-						reconv, (uint)infoBufSize, null, 0
-					);
-				if( rc == 0 )
+				// Validate parameters
+				if( reconv->dwSize != (UInt32)infoBufSize
+					|| reconv->dwVersion != 0 )
 				{
 					return 0;
 				}
+
+				// get IME context
+				ime = WinApi.ImmGetContext( Handle );
+				if( ime == IntPtr.Zero )
+				{
+					return 0;
+				}
+
+				// Copy string body
+				reconv->dwStrLen = (UInt32)stringBody.Length;
+				reconv->dwStrOffset = (UInt32)sizeof(WinApi.RECONVERTSTRING);
+				strPos = (char*)( (byte*)reconv + reconv->dwStrOffset );
+				for( int i=0; i<stringBody.Length; i++ )
+				{
+					strPos[i] = stringBody[i];
+				}
+				strPos[stringBody.Length] = '\0';
+
+				// calculate range of composition string and target string
+				if( selBegin != selEnd )
+				{
+					// set selected range as reconversion target
+					reconv->dwCompStrLen = (UInt32)( stringBody.Length );
+					reconv->dwCompStrOffset = 0;
+					reconv->dwTargetStrLen = reconv->dwCompStrLen;
+					reconv->dwTargetStrOffset = reconv->dwCompStrOffset;
+				}
+				else
+				{
+					// let IME adjust RECONVERTSTRING parameters
+					reconv->dwCompStrLen = 0;
+					reconv->dwCompStrOffset = (UInt32)( (selBegin - stringBodyIndex) * 2);
+					reconv->dwTargetStrLen = 0;
+					reconv->dwTargetStrOffset = reconv->dwCompStrOffset;
+					rc = WinApi.ImmSetCompositionStringW( ime,
+														  WinApi.SCS_QUERYRECONVERTSTRING,
+														  reconv, (uint)infoBufSize, null, 0 );
+					if( rc == 0 )
+					{
+						return 0;
+					}
+				}
+
+				// Select target string to make it being replaced by reconverted new string
+				selBegin = stringBodyIndex + (int)(reconv->dwTargetStrOffset / 2);
+				selEnd = selBegin + (int)reconv->dwTargetStrLen;
+				Document.SetSelection( selBegin, selEnd );
+
+				// Adjust position of IME composition window
+				WinApi.SetImeWindowPos( Handle,
+										GetPositionFromIndex(selBegin) );
+
+				return infoBufSize;
+			}
+			finally
+			{
+				if( ime != IntPtr.Zero )
+					WinApi.ImmReleaseContext( Handle, ime );
 			}
 
-			// select target string to make it being replaced by reconverted new string
-			selBegin = stringBodyIndex + (int)(reconv->dwTargetStrOffset / 2);
-			selEnd = selBegin + (int)reconv->dwTargetStrLen;
-			Document.SetSelection( selBegin, selEnd );
-
-			// adjust position of IME composition window
-			WinApi.SetImeWindowPos( this.Handle,
-					GetPositionFromIndex(selBegin)
-				);
-
-			// release context object
-			WinApi.ImmReleaseContext( this.Handle, ime );
-
-			return infoBufSize;
 		}
 		#endregion
 
@@ -2406,12 +2344,10 @@ namespace Sgry.Azuki.WinForms
 		/// Gets or sets default text color.
 		/// </summary>
 		/// <remarks>
-		/// This property gets or sets default foreground color.
-		/// Note that this is a synonym of
-		/// <see cref="Sgry.Azuki.WinForms.AzukiControl.ColorScheme">AzukiControl.ColorScheme</see>.BackColor
-		/// .
+		/// This property gets or sets default foreground color. Note that this is a synonym of
+		/// ColorScheme.BackColor.
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.ColorScheme">AzukiControl.ColorScheme</seealso>
+		/// <seealso cref="AzukiControl.ColorScheme"/>
 		[DefaultValue(0xff000000)]
 		public override Color ForeColor
 		{
@@ -2435,12 +2371,10 @@ namespace Sgry.Azuki.WinForms
 		/// Gets or sets default background color.
 		/// </summary>
 		/// <remarks>
-		/// This property gets or sets default background color.
-		/// Note that this is a synonym of
-		/// <see cref="Sgry.Azuki.WinForms.AzukiControl.ColorScheme">AzukiControl.ColorScheme</see>.BackColor
-		/// .
+		/// This property gets or sets default background color. Note that this is a synonym of
+		/// ColorScheme.BackColor.
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.ColorScheme">AzukiControl.ColorScheme</seealso>
+		/// <seealso cref="AzukiControl.ColorScheme"/>
 		[DefaultValue(0xfffffaf0)]
 		public override Color BackColor
 		{
@@ -2469,7 +2403,8 @@ namespace Sgry.Azuki.WinForms
 		/// </remarks>
 		[Category("Behavior")]
 		[DefaultValue(true)]
-		[Description("Whether this control uses Ctrl+Tab and Ctrl+Shift+Tab for moving focus to other controls in a dialog.")]
+		[Description("Whether this control uses Ctrl+Tab and Ctrl+Shift+Tab for moving focus to"
+					 + " other controls in a dialog.")]
 		public bool UseCtrlTabToMoveFocus
 		{
 			get{ return _UseCtrlTabToMoveFocus; }
@@ -2478,7 +2413,8 @@ namespace Sgry.Azuki.WinForms
 
 		/// <summary>
 		/// This defines the characters which must be treated as input for this control.
-		/// This affects mnemonic key event in a dialog and does not affect to KeyPress (WM_CHAR) event.
+		/// This affects mnemonic key event in a dialog and does not affect to KeyPress
+		/// (WM_CHAR) event.
 		/// </summary>
 		protected override bool IsInputChar( char charCode )
 		{
@@ -2487,7 +2423,8 @@ namespace Sgry.Azuki.WinForms
 		
 		/// <summary>
 		/// This defines the keys which must be treated as input for this control.
-		/// This affects mnemonic key event in a dialog and does not affect to KeyPress (WM_CHAR) event.
+		/// This affects mnemonic key event in a dialog and does not affect to KeyPress
+		/// (WM_CHAR) event.
 		/// </summary>
 		protected override bool IsInputKey( Keys keyData )
 		{
@@ -2575,25 +2512,31 @@ namespace Sgry.Azuki.WinForms
 		{
 			if( message == WinApi.WM_PAINT )
 			{
-				WinApi.PAINTSTRUCT ps;
-
-				// .NET's Paint event does not inform invalidated region when double buffering was disabled.
-				// In addition to this, Control.SetStyle is not supported in Compact Framework
-				// and thus enabling double buffering seems impossible.
+				// .NET's Paint event does not inform invalidated region when double buffering was
+				//  disabled. In addition to this, Control.SetStyle is not supported in Compact
+				// Framework and thus enabling double buffering seems impossible.
 				// Therefore painting logic is called here.
 				unsafe
 				{
-					WinApi.BeginPaint( window, &ps );
-
-					Rectangle rect = new Rectangle( ps.paint.left, ps.paint.top, ps.paint.right-ps.paint.left, ps.paint.bottom-ps.paint.top );
-					_Impl.HandlePaint( rect );
-
-					WinApi.EndPaint( window, &ps );
+					WinApi.PAINTSTRUCT ps;
+					try
+					{
+						WinApi.BeginPaint( window, &ps );
+						var rect = new Rectangle( ps.paint.left,
+												  ps.paint.top,
+												  ps.paint.right - ps.paint.left,
+												  ps.paint.bottom - ps.paint.top );
+						_Impl.HandlePaint( rect );
+					}
+					finally
+					{
+						WinApi.EndPaint( window, &ps );
+					}
 				}
 
-				// return zero here to prevent executing original painting logic of Control class.
-				// (if the original logic runs,
-				// we will get invalid(?) update region from BeginPaint API in Windows XP or former.)
+				// Return zero here to prevent executing original painting logic of Control class.
+				// (if the original logic runs, we will get invalid(?) update region from
+				// BeginPaint API in Windows XP or former.)
 				return IntPtr.Zero;
 			}
 			else if( DesignMode )
@@ -2617,19 +2560,16 @@ namespace Sgry.Azuki.WinForms
 				// so we should get extract 3rd and 4th byte and make it 16-bit int
 
 				const int threashold = 120;
-				int linesPerWheel;
-				Int16 wheelDelta;
-				int scrollCount;
 
-				// get line count to scroll on each wheel event
-				linesPerWheel = SystemInformation.MouseWheelScrollLines;
+				// Get line count to scroll on each wheel event
+				var linesPerWheel = SystemInformation.MouseWheelScrollLines;
 
-				// calculate wheel position
-				wheelDelta = (Int16)( wParam.ToInt64() << 32 >> 48 ); // [*]
+				// Calculate wheel position
+				var wheelDelta = (Int16)( wParam.ToInt64() << 32 >> 48 ); // [*]
 				_WheelPos += wheelDelta;
 
-				// do scroll when the scroll position exceeds threashould
-				scrollCount = _WheelPos / threashold;
+				// Do scroll when the scroll position exceeds threashould
+				int scrollCount = _WheelPos / threashold;
 				_WheelPos = _WheelPos % threashold;
 				if( 0 != scrollCount )
 				{
@@ -2650,18 +2590,25 @@ namespace Sgry.Azuki.WinForms
 
 					unsafe
 					{
-						IntPtr ime;
-						int len;
-
-						ime = WinApi.ImmGetContext( Handle );
-						len = WinApi.ImmGetCompositionStringW( ime, WinApi.GCS_RESULTSTR, null, 0 );
-						fixed( char* buf = new char[len+1] )
+						var ime = IntPtr.Zero;
+						try
 						{
-							WinApi.ImmGetCompositionStringW( ime, WinApi.GCS_RESULTSTR, (void*)buf, (uint)len );
-							buf[len] = '\0';
-							text = new String( buf );
+							ime = WinApi.ImmGetContext( Handle );
+							var len = WinApi.ImmGetCompositionStringW( ime, WinApi.GCS_RESULTSTR,
+																	   null, 0 );
+							fixed( char* buf = new char[len+1] )
+							{
+								WinApi.ImmGetCompositionStringW( ime, WinApi.GCS_RESULTSTR,
+																 (void*)buf, (uint)len );
+								buf[len] = '\0';
+								text = new String( buf );
+							}
 						}
-						WinApi.ImmReleaseContext( Handle, ime );
+						finally
+						{
+							if( ime != IntPtr.Zero )
+								WinApi.ImmReleaseContext( Handle, ime );
+						}
 					}
 
 					_Impl.HandleTextInput( text );
@@ -2712,70 +2659,63 @@ namespace Sgry.Azuki.WinForms
 		#endregion
 
 		#region Utilities
-		static class Utl
+		static bool IsClick( Point lastMouseUpPos, Point lastMouseDownPos )
 		{
-			public static bool IsClick( Point lastMouseUpPos, Point lastMouseDownPos )
+			if( Math.Abs(lastMouseUpPos.X - lastMouseDownPos.X) <= Plat.Inst.DragSize.Width
+				&& Math.Abs(lastMouseUpPos.Y - lastMouseDownPos.Y) <= Plat.Inst.DragSize.Height )
 			{
-				if( Math.Abs(lastMouseUpPos.X - lastMouseDownPos.X) <= Plat.Inst.DragSize.Width
-					&& Math.Abs(lastMouseUpPos.Y - lastMouseDownPos.Y) <= Plat.Inst.DragSize.Height )
-				{
-					return false;
-				}
+				return false;
+			}
+			return true;
+		}
 
-				return true;
+		static WinFormsMouseEventArgs CreateWinFormsMouseEventArgs( IView view, MouseEventArgs e )
+		{
+			var pt = view.ScreenToVirtual( new Point(e.X, e.Y) );
+			int index = view.GetCharIndex( pt );
+			int clicks = e.Clicks;
+			bool shift = WinApi.IsKeyDown( Keys.ShiftKey );
+			bool ctrl = WinApi.IsKeyDown( Keys.ControlKey );
+			bool alt = WinApi.IsKeyDown( Keys.Menu );
+			bool special = ( WinApi.IsKeyDown(Keys.LWin) || WinApi.IsKeyDown(Keys.RWin) );
+
+			return new WinFormsMouseEventArgs( e, index, clicks, shift, ctrl, alt, special );
+		}
+
+		static int CalcOverwriteCaretWidth( IGraphics g, Document doc, View view, int caretIndex,
+											bool isOverwriteMode )
+		{
+			int begin, end;
+
+			// If it's no in overwrite mode, return default width
+			if( !isOverwriteMode )
+			{
+				return UiImpl.DefaultCaretWidth;
 			}
 
-			public static WinFormsMouseEventArgs CreateWinFormsMouseEventArgs( IView view, MouseEventArgs e )
+			// If something selected, return default width
+			doc.GetSelection( out begin, out end );
+			if( begin != end || doc.Length <= end )
 			{
-				Point pt = view.ScreenToVirtual( new Point(e.X, e.Y) );
-				int index = view.GetCharIndex( pt );
-
-				int clicks = 1;
-				clicks = e.Clicks;
-
-				bool shift = WinApi.IsKeyDown( Keys.ShiftKey );
-				bool ctrl = WinApi.IsKeyDown( Keys.ControlKey );
-				bool alt = WinApi.IsKeyDown( Keys.Menu );
-				bool special = ( WinApi.IsKeyDown(Keys.LWin) || WinApi.IsKeyDown(Keys.RWin) );
-
-				return new WinFormsMouseEventArgs( e, index, clicks, shift, ctrl, alt, special );
+				return UiImpl.DefaultCaretWidth;
 			}
 
-			public static int CalcOverwriteCaretWidth( IGraphics g, Document doc, View view, int caretIndex, bool isOverwriteMode )
+			// Calculate and return width
+			char ch = doc[ begin ];
+			if( ch != '\t' )
 			{
-				int begin, end;
-				char ch;
-
-				// if it's no in overwrite mode, return default width
-				if( !isOverwriteMode )
-				{
-					return UiImpl.DefaultCaretWidth;
-				}
-
-				// if something selected, return default width
-				doc.GetSelection( out begin, out end );
-				if( begin != end || doc.Length <= end )
-				{
-					return UiImpl.DefaultCaretWidth;
-				}
-
-				// calculate and return width
-				ch = doc[ begin ];
-				if( ch != '\t' )
-				{
-					// this is not a tab so return width of this char
-					return view.MeasureTokenEndX( g, ch.ToString(), 0 );
-				}
-				else
-				{
-					// this is a tab so calculate distance
-					// from current position to next tab-stop and return it
-					int lineHead = view.Lines.AtOffset( caretIndex ).Begin;
-					string leftPart = doc.GetText( lineHead, caretIndex );
-					int currentX = view.MeasureTokenEndX( g, leftPart, 0 );
-					int nextTabStopX = view.MeasureTokenEndX( g, leftPart+'\t', 0 );
-					return nextTabStopX - currentX;
-				}
+				// This is not a tab so return width of this char
+				return view.MeasureTokenEndX( g, ch.ToString(), 0 );
+			}
+			else
+			{
+				// This is a tab so calculate distance
+				// from current position to next tab-stop and return it
+				int lineHead = view.Lines.AtOffset( caretIndex ).Begin;
+				string leftPart = doc.GetText( lineHead, caretIndex );
+				int currentX = view.MeasureTokenEndX( g, leftPart, 0 );
+				int nextTabStopX = view.MeasureTokenEndX( g, leftPart+'\t', 0 );
+				return nextTabStopX - currentX;
 			}
 		}
 		#endregion

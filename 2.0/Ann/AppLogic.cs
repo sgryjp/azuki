@@ -513,7 +513,7 @@ namespace Sgry.Ann
 			int initialLine=0, initialColumn=0;
 
 			// if specified file was already opened, just return the document
-			foreach( Document d in Documents )
+			foreach( var d in Documents )
 			{
 				if( String.Compare(d.FilePath, filePath, true) == 0 )
 				{
@@ -546,11 +546,12 @@ namespace Sgry.Ann
 			AppConfig.MruFiles.Put( filePath );
 
 			// activate it
+			var azuki = MainForm.Azuki;
 			ActiveDocument = doc;
 			SetFileType( doc, FileType.GetFileTypeByFileName(filePath) );
 			doc.SetCaretIndex( initialLine, initialColumn );
-			MainForm.Azuki.View.SetDesiredColumn();
-			MainForm.Azuki.ScrollToCaret();
+			azuki.View.SetDesiredColumn();
+			azuki.ScrollToCaret();
 		}
 
 		/// <summary>
@@ -616,10 +617,10 @@ namespace Sgry.Ann
 				}
 
 				// write file bytes
-				using( FileStream file = File.Open(doc.FilePath,
-										 FileMode.OpenOrCreate,
-										 FileAccess.ReadWrite,
-										 FileShare.ReadWrite) )
+				using( var file = File.Open(doc.FilePath,
+											FileMode.OpenOrCreate,
+											FileAccess.ReadWrite,
+											FileShare.ReadWrite) )
 				{
 					file.SetLength( 0 );
 					file.Write( bomBytes, 0, bomBytes.Length );
@@ -653,18 +654,16 @@ namespace Sgry.Ann
 		public void SaveDocumentAs( Document doc )
 		{
 			Debug.Assert( doc != null );
-			SaveFileDialog dialog = null;
-			DialogResult result;
 			string fileName;
 			
-			using( dialog = new SaveFileDialog() )
+			using( var dialog = new SaveFileDialog() )
 			{
 				// setup dialog
 				if( doc.FilePath != null )
 				{
 					// set initial directory to that containing currently active file if exists
-					string dirPath = Path.GetDirectoryName( doc.FilePath );
-					if( Directory.Exists(dirPath) )
+					var dirPath = Path.GetDirectoryName( doc.FilePath );
+					if( dirPath != null && Directory.Exists(dirPath) )
 					{
 						dialog.InitialDirectory = dirPath;
 					}
@@ -675,7 +674,7 @@ namespace Sgry.Ann
 				dialog.Filter = SaveFileFilter;
 
 				// show dialog
-				result = dialog.ShowDialog();
+				var result = dialog.ShowDialog();
 				if( result != DialogResult.OK )
 				{
 					return;
@@ -712,23 +711,20 @@ namespace Sgry.Ann
 
 			try
 			{
-				IHighlighter highlighter;
 				int line, column;
 
-				// remember caret position
+				// Remember caret position
 				doc.GetCaretIndex( out line, out column );
 
-				// detach highlighter temporarily
-				highlighter = doc.Highlighter;
+				// Detach highlighter temporarily to prevent unnecessary highlighting
+				var h = doc.Highlighter;
 				doc.Highlighter = null;
 
-				// reload content
+				// Then, reload the document and re-attach the highlighter again
 				LoadFileContentToDocument( doc, doc.FilePath, encoding, withBom );
+				doc.Highlighter = h;
 
-				// attach the highlighter again
-				doc.Highlighter = highlighter;
-
-				// restore caret position and scroll to it
+				// Restore caret position and scroll position
 				line = Math.Min( line, doc.Lines.Count-1 );
 				column = Math.Min( column, doc.Lines[line].Length );
 				doc.SetCaretIndex( line, column );
@@ -758,12 +754,10 @@ namespace Sgry.Ann
 		/// </summary>
 		public void CloseDocument( Document doc )
 		{
-			DialogResult result;
-
 			// confirm to discard modification
 			if( doc.IsDirty )
 			{
-				result = AlertBeforeSave( doc );
+				var result = AlertBeforeSave( doc );
 				if( result == DialogResult.Yes )
 				{
 					SaveDocument( doc );
@@ -802,47 +796,36 @@ namespace Sgry.Ann
 			Debug.Assert( doc != null );
 			Debug.Assert( filePath != null );
 
-			// analyze encoding
+			// Analyze encoding
 			if( encoding == null )
-			{
-				Utl.AnalyzeEncoding( filePath, out encoding, out withBom );
-			}
+				AnalyzeEncoding( filePath, out encoding, out withBom );
 			doc.Encoding = encoding;
 			doc.WithBom = withBom;
 
-			// load file content
+			// Load file content
 			try
 			{
-				char[] buf = null;
-				int readCount = 0;
+				char[] buf;
 
-				// open the file
+				// Open the file
 				stream = File.Open( filePath, FileMode.Open,
 									FileAccess.Read, FileShare.ReadWrite );
 				file = new StreamReader( stream, encoding );
 
-				// make the document content empty first
+				// Make the document empty
 				doc.Replace( "", 0, doc.Length );
 
-				// expand internal buffer size before loading file
-				// (estimating needed buffer size by a half of byte-count of file)
+				// Prepare buffer for loading
 				doc.Capacity = (int)( file.BaseStream.Length / 2 );
-
-				// prepare load buffer
-				// (if the file is larger than 1MB, separate by 10 and load for each)
 				if( file.BaseStream.Length < 1024*1024 )
-				{
 					buf = new char[ file.BaseStream.Length ];
-				}
 				else
-				{
 					buf = new char[ (file.BaseStream.Length+10) / 10 ];
-				}
 
-				// read
+				// Read the file
 				while( !file.EndOfStream )
 				{
-					readCount = file.Read( buf, 0, buf.Length );
+					var readCount = file.Read( buf, 0, buf.Length );
 					doc.Replace( new String(buf, 0, readCount), doc.Length, doc.Length );
 				}
 			}
@@ -854,10 +837,10 @@ namespace Sgry.Ann
 					stream.Dispose();
 			}
 
-			// set document properties
+			// Set document properties
 			doc.ClearHistory();
 			doc.FilePath = filePath;
-			doc.EolCode = Utl.AnalyzeEolCode( doc );
+			doc.EolCode = AnalyzeEolCode( doc );
 			doc.LastSavedTime = File.GetLastWriteTime( filePath );
 			if( (new FileInfo(filePath).Attributes & FileAttributes.ReadOnly) != 0 )
 			{
@@ -875,30 +858,25 @@ namespace Sgry.Ann
 			}
 			else
 			{
-				ActiveDocument.SearchingPattern = new Regex(
-						Regex.Escape(_SearchContext.TextPattern),
-						_SearchContext.MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase
-					);
+				ActiveDocument.SearchingPattern
+					= new Regex( Regex.Escape(_SearchContext.TextPattern),
+								 _SearchContext.MatchCase ? RegexOptions.None
+														  : RegexOptions.IgnoreCase );
 			}
 		}
 
 		void OnSearchContextFixed()
 		{
-			// set text pattern to emphasize
 			UpdateWatchPatternForTextSearch();
-
-			// deactivate search panel
 			MainForm.DeactivateSearchPanel();
 		}
 
 		void OnSearchContextChanged( bool forward )
 		{
 			if( _MainForm.SearchPanel.Enabled == false )
-			{
 				return;
-			}
 
-			// search incrementally
+			// Search forward incrementally
 			if( forward )
 				FindNext();
 			else
@@ -907,31 +885,24 @@ namespace Sgry.Ann
 
 		public void FindNext()
 		{
-			AzukiDocument doc = ActiveDocument;
-			int startIndex;
-			IRange result;
-			Regex regex;
+			var doc = ActiveDocument;
+			IRange result = null;
 
-			// determine where to start text search
-			if( 0 <= _SearchContext.AnchorIndex )
-				startIndex = _SearchContext.AnchorIndex;
-			else
-				startIndex = Math.Max( doc.CaretIndex, doc.AnchorIndex );
+			// Determine where to start text search
+			var startIndex = (0 <= _SearchContext.AnchorIndex) ? _SearchContext.AnchorIndex
+															   : Math.Max( doc.CaretIndex,
+																		   doc.AnchorIndex );
 
-			// find
+			// Find
 			if( _SearchContext.UseRegex )
 			{
-				// Regular expression search.
-				// get regex object from context
-				regex = _SearchContext.Regex;
+				// Get regex object from context
+				var regex = _SearchContext.Regex;
 				if( regex == null )
-				{
-					// current text pattern was invalid as a regular expression.
-					return;
-				}
+					return; // Text pattern is invalid as a regular expression.
 
-				// ensure that "RightToLeft" option of the regex object is NOT set
-				RegexOptions opt = regex.Options;
+				// Ensure no "RightToLeft" option is set to the Regex object
+				var opt = regex.Options;
 				if( (opt & RegexOptions.RightToLeft) != 0 )
 				{
 					opt &= ~( RegexOptions.RightToLeft );
@@ -942,11 +913,11 @@ namespace Sgry.Ann
 			}
 			else
 			{
-				// normal text pattern matching.
-				result = doc.FindNext( _SearchContext.TextPattern, startIndex, doc.Length, _SearchContext.MatchCase );
+				result = doc.FindNext( _SearchContext.TextPattern, startIndex, doc.Length,
+									   _SearchContext.MatchCase );
 			}
 
-			// select the result
+			// Select the result
 			if( result != null )
 			{
 				MainForm.Azuki.Document.SetSelection( result.Begin, result.End );
@@ -957,31 +928,24 @@ namespace Sgry.Ann
 
 		public void FindPrev()
 		{
-			AzukiDocument doc = ActiveDocument;
-			int startIndex;
+			var doc = ActiveDocument;
 			IRange result;
-			Regex regex;
 
-			// determine where to start text search
-			if( 0 <= _SearchContext.AnchorIndex )
-				startIndex = _SearchContext.AnchorIndex;
-			else
-				startIndex = Math.Min( doc.CaretIndex, doc.AnchorIndex );
+			// Determine where to start text search
+			var startIndex = (0 <= _SearchContext.AnchorIndex) ? _SearchContext.AnchorIndex
+															   : Math.Min( doc.CaretIndex,
+																		   doc.AnchorIndex );
 
-			// find
+			// Find
 			if( _SearchContext.UseRegex )
 			{
-				// Regular expression search.
-				// get regex object from context
-				regex = _SearchContext.Regex;
+				// Get regex object from context
+				var regex = _SearchContext.Regex;
 				if( regex == null )
-				{
-					// current text pattern was invalid as a regular expression.
-					return;
-				}
+					return; // Text pattern is invalid as a regular expression.
 
-				// ensure that "RightToLeft" option of the regex object is set
-				RegexOptions opt = _SearchContext.Regex.Options;
+				// Ensure no "RightToLeft" option is set to the Regex object
+				var opt = _SearchContext.Regex.Options;
 				if( (opt & RegexOptions.RightToLeft) == 0 )
 				{
 					opt |= RegexOptions.RightToLeft;
@@ -991,11 +955,11 @@ namespace Sgry.Ann
 			}
 			else
 			{
-				// normal text pattern matching.
-				result = doc.FindPrev( _SearchContext.TextPattern, 0, startIndex, _SearchContext.MatchCase );
+				result = doc.FindPrev( _SearchContext.TextPattern, 0, startIndex,
+									   _SearchContext.MatchCase );
 			}
 
-			// select the result
+			// Select the result
 			if( result != null )
 			{
 				MainForm.Azuki.Document.SetSelection( result.End, result.Begin );
@@ -1008,13 +972,10 @@ namespace Sgry.Ann
 		#region Config
 		public void LoadConfig( bool includeWindowConfig )
 		{
-			// load config file
+			// Load config
 			AppConfig.Load();
-
-			// apply config
 			MainForm.Azuki.FontInfo					= AppConfig.FontInfo;
 			MainForm.TabPanelEnabled				= AppConfig.TabPanelEnabled;
-
 			MainForm.Azuki.DrawsEolCode				= AppConfig.DrawsEolCode;
 			MainForm.Azuki.DrawsFullWidthSpace		= AppConfig.DrawsFullWidthSpace;
 			MainForm.Azuki.DrawsSpace				= AppConfig.DrawsSpace;
@@ -1036,8 +997,6 @@ namespace Sgry.Ann
 			MainForm.Azuki.ScrollsBeyondLastLine	= AppConfig.ScrollsBeyondLastLine;
 			MainForm.Azuki.CopyLineWhenNoSelection	= AppConfig.CopyLineWhenNoSelection;
 			MainForm.Azuki.AutoScrollMargin			= AppConfig.AutoScrollMargin;
-
-			// apply window config
 			if( includeWindowConfig )
 			{
 				MainForm.ClientSize = AppConfig.WindowSize;
@@ -1047,13 +1006,13 @@ namespace Sgry.Ann
 				}
 			}
 
-			// update UI
+			// Update UI
 			MainForm.UpdateUI();
 		}
 
 		public void SaveConfig()
 		{
-			// update config fields
+			// Update config object
 			AppConfig.FontInfo				= MainForm.Azuki.FontInfo;
 			AppConfig.WindowMaximized		= (MainForm.WindowState == FormWindowState.Maximized);
 			if( MainForm.WindowState == FormWindowState.Normal )
@@ -1061,7 +1020,6 @@ namespace Sgry.Ann
 				AppConfig.WindowSize = MainForm.ClientSize;
 			}
 			AppConfig.TabPanelEnabled			= MainForm.TabPanelEnabled;
-
 			AppConfig.DrawsEolCode				= MainForm.Azuki.DrawsEolCode;
 			AppConfig.DrawsFullWidthSpace		= MainForm.Azuki.DrawsFullWidthSpace;
 			AppConfig.DrawsSpace				= MainForm.Azuki.DrawsSpace;
@@ -1084,7 +1042,7 @@ namespace Sgry.Ann
 			AppConfig.CopyLineWhenNoSelection	= MainForm.Azuki.CopyLineWhenNoSelection;
 			AppConfig.AutoScrollMargin			= MainForm.Azuki.AutoScrollMargin;
 
-			// save to file
+			// Save it
 			AppConfig.Save();
 		}
 		#endregion
@@ -1095,58 +1053,50 @@ namespace Sgry.Ann
 			if( _InitOpenFilePaths == null || _InitOpenFilePaths.Length < 1 )
 				return;
 
-			Document prevActiveDoc;
-
-			// try to open the first file
-			prevActiveDoc = ActiveDocument;
+			// Try to open the first file
+			var prevActiveDoc = ActiveDocument;
 			OpenDocument( _InitOpenFilePaths[0] );
 
-			// close default empty document if successfully opened
+			// Close default empty document if successfully opened
 			if( prevActiveDoc != ActiveDocument )
-			{
 				CloseDocument( prevActiveDoc );
-			}
 
-			// open second or later files
+			// Open second or later files
 			for( int i=1; i<_InitOpenFilePaths.Length; i++ )
-			{
 				OpenDocument( _InitOpenFilePaths[i] );
-			}
 		}
 
 		void MainForm_Closing( object sender, CancelEventArgs e )
 		{
-			DialogResult result;
-			Document activeDoc = ActiveDocument;
+			var activeDoc = ActiveDocument;
 
-			// confirm all document's discard
-			foreach( Document doc in Documents )
+			// Confirm every document is okay to be discarded
+			foreach( var doc in Documents )
 			{
-				// if it's modified, ask to save the document
-				if( doc.IsDirty )
-				{
-					// before showing dialog, activate the document
-					this.ActiveDocument = doc;
+				if( !doc.IsDirty )
+					continue;
 
-					// then, show dialog
-					result = AlertBeforeSave( doc );
-					if( result == DialogResult.Yes )
+				// Activate the document before showing a dialog
+				ActiveDocument = doc;
+
+				// Show dialog to ask user whether it can be discarded
+				var result = AlertBeforeSave( doc );
+				if( result == DialogResult.Yes )
+				{
+					SaveDocument( doc );
+					if( doc.IsDirty )
 					{
-						SaveDocument( doc );
-						if( doc.IsDirty )
-						{
-							// canceled or failed. cancel closing
-							e.Cancel = true;
-							ActiveDocument = activeDoc;
-							return;
-						}
-					}
-					else if( result == DialogResult.Cancel )
-					{
+						// Canceled or failed. Do not close.
 						e.Cancel = true;
 						ActiveDocument = activeDoc;
 						return;
 					}
+				}
+				else if( result == DialogResult.Cancel )
+				{
+					e.Cancel = true;
+					ActiveDocument = activeDoc;
+					return;
 				}
 			}
 		}
@@ -1154,7 +1104,7 @@ namespace Sgry.Ann
 		void MainForm_Closed( object sender, EventArgs e )
 		{
 			// Record current editing state
-			foreach( Document doc in Documents )
+			foreach( var doc in Documents )
 			{
 				var caretPos = doc.GetTextPosition( doc.CaretIndex );
 				AppConfig.MruFiles.Put( doc.FilePath, caretPos.Line, caretPos.Column );
@@ -1166,14 +1116,11 @@ namespace Sgry.Ann
 
 		internal void MainForm_DelayedActivated()
 		{
-			List<Document> docsToBeReloaded;
-			DialogResult result;
-
 			if( InterlockedSetFlag(ref _AskingUserToReloadOrNot, true) == false )
 			{
-				// list up documents to be reloaded
-				docsToBeReloaded = new List<Document>( Documents.Count );
-				foreach( Document doc in Documents )
+				// List up documents to be reloaded
+				var docsToBeReloaded = new List<Document>( Documents.Count );
+				foreach( var doc in Documents )
 				{
 					if( File.Exists(doc.FilePath)
 						&& doc.LastSavedTime != File.GetLastWriteTime(doc.FilePath) )
@@ -1182,33 +1129,31 @@ namespace Sgry.Ann
 					}
 				}
 
-				// ask user to reload each document
-				result = DialogResult.OK;
-				foreach( Document doc in docsToBeReloaded )
+				// Ask user whether to reload for each document
+				var result = DialogResult.OK;
+				foreach( var doc in docsToBeReloaded )
 				{
-					// once user canceled reloading,
-					// silently ignore the update of last documents
+					// Once user canceled reloading, silently ignore the update of last documents
 					if( result == DialogResult.Cancel )
 					{
-						doc.LastSavedTime = File.GetLastWriteTime(doc.FilePath);
+						doc.LastSavedTime = File.GetLastWriteTime( doc.FilePath );
 						continue;
 					}
 
-					// activate the document
+					// Activate the document
 					ActiveDocument = doc;
 
-					// ask user whether to reload it or not
-					result = Alert(
-						""+doc.FilePath+" was updated by other program. Do you want to reload?",
-						MessageBoxButtons.YesNoCancel, MessageBoxIcon.Asterisk
-					);
+					// Ask user whether to reload it or not
+					result = Alert( doc.FilePath + " was updated by other program. Do you want to"
+									+ " reload?",
+									MessageBoxButtons.YesNoCancel, MessageBoxIcon.Asterisk );
 					if( result != DialogResult.Yes )
 					{
-						doc.LastSavedTime = File.GetLastWriteTime(doc.FilePath);
+						doc.LastSavedTime = File.GetLastWriteTime( doc.FilePath );
 						continue;
 					}
 
-					// reload it
+					// Reload it
 					ReloadDocument( doc );
 				}
 
@@ -1249,52 +1194,44 @@ namespace Sgry.Ann
 
 		void Azuki_Click( object sender, EventArgs e )
 		{
-			AzukiControl azuki = MainForm.Azuki;
-			AzukiDocument doc = azuki.Document;
-			IMouseEventArgs mea = (IMouseEventArgs)e;
+			var azuki = MainForm.Azuki;
+			var doc = azuki.Document;
+			var mea = (IMouseEventArgs)e;
 
+			// Toggle selection of an URI if there is one under the mouse cursor
 			if( mea.Index < doc.Length
 				&& doc.IsMarked(mea.Index, Marking.Uri)
 				&& azuki.View.TextAreaRect.Contains(mea.Location) )
 			{
-				// select entire URI if not selected, or deselect if selected.
 				var urlRange = doc.GetMarkedRange( mea.Index, Marking.Uri );
 				var selRange = doc.GetSelection();
 				if( urlRange.Equals(selRange) == false )
-				{
 					doc.SetSelection( urlRange.Begin, urlRange.End );
-				}
 				else
-				{
 					doc.SetSelection( mea.Index, mea.Index );
-				}
 				mea.Handled = true;
 			}
 		}
 
 		void Azuki_DoubleClick( object sender, EventArgs e )
 		{
-			AzukiControl azuki = MainForm.Azuki;
-			AzukiDocument doc = azuki.Document;
-			IMouseEventArgs mea = (IMouseEventArgs)e;
+			var azuki = MainForm.Azuki;
+			var doc = azuki.Document;
+			var mea = (IMouseEventArgs)e;
 
+			// Open an URI if there is one under the mouse cursor
 			if( mea.Index < doc.Length
 				&& doc.IsMarked(mea.Index, Marking.Uri) )
 			{
-				string uriString;
-				DialogResult result;
-
 				// ask user to jump to the URI
-				uriString = azuki.Document.GetMarkedText( mea.Index, Marking.Uri );
+				var uriString = azuki.Document.GetMarkedText( mea.Index, Marking.Uri );
 				if( uriString != null )
 				{
-					result = MessageBox.Show(
-							"Opening the URL. Do you wish to continue?\n" + uriString + "",
-							"Ann",
-							MessageBoxButtons.OKCancel,
-							MessageBoxIcon.Question,
-							MessageBoxDefaultButton.Button1
-						);
+					var result = MessageBox.Show( "Opening the URL. Do you wish to continue?\n"
+												  + uriString + "", "Ann",
+												  MessageBoxButtons.OKCancel,
+												  MessageBoxIcon.Question,
+												  MessageBoxDefaultButton.Button1 );
 					if( result == DialogResult.OK )
 					{
 						try
@@ -1315,57 +1252,51 @@ namespace Sgry.Ann
 		#region Monitoring
 		void MonitorThreadProc()
 		{
-			DateTime timestamp = DateTime.MinValue;
+			var timestamp = DateTime.MinValue;
 
 			_IpcPipe.Create( IpcFilePath );
-
 			while( _MonitorThreadCanContinue )
 			{
 				Thread.CurrentThread.Join( 250 );
 
-				// if IPC file was updated, parse it
+				// If IPC file was updated, parse it
 				if( timestamp < _IpcPipe.GetLastWriteTime() )
 				{
-					// parse and do actions
 					ParseIpcFile();
-
-					// remember new timestamp
 					timestamp = File.GetLastWriteTime( IpcFilePath );
 				}
 				if( _ShouldUpdateTextAreaWidth )
 				{
 					_ShouldUpdateTextAreaWidth = false;
-					MainForm.Invoke(
-						new ThreadStart(ApplyNewTextAreaWidth)
-					);
+					MainForm.Invoke( new ThreadStart(ApplyNewTextAreaWidth) );
 				}
 			}
 		}
 
 		public void ApplyNewTextAreaWidth()
 		{
-			AzukiControl azuki = MainForm.Azuki;
+			var azuki = MainForm.Azuki;
 			azuki.ViewWidth = azuki.ClientSize.Width - azuki.View.HRulerUnitWidth * 2;
 		}
 
 		void ParseIpcFile()
 		{
-			Regex activateCmd = new Regex( @"Activate\d" );
-			Regex openCmd = new Regex( @"OpenDocument\s+(.+)" );
+			var activateCmd = new Regex( @"Activate\d" );
+			var openCmd = new Regex( @"OpenDocument\s+(.+)" );
 
-			// read lines and parse them
+			// Read lines and parse them
 			try
 			{
-				foreach( string line in _IpcPipe.ReadLines(10000) )
+				foreach( var line in _IpcPipe.ReadLines(10000) )
 				{
-					// parse this line
+					// Parse this line
 					if( activateCmd.IsMatch(line) )
 					{
 						_MainForm.Invoke( new ThreadStart(_MainForm.Activate) );
 						break;
 					}
 
-					Match m = openCmd.Match( line );
+					var m = openCmd.Match( line );
 					if( m.Success && 0 < m.Groups[1].Value.Length )
 					{
 						_MainForm.Invoke( new Action<string>(OpenDocument),
@@ -1375,7 +1306,7 @@ namespace Sgry.Ann
 			}
 			catch( TimeoutException )
 			{
-				// Here we should show a message to user and ask whether to retry.
+				// Here we should show a message to user and ask whether to retry?
 			}
 		}
 		#endregion
@@ -1401,12 +1332,10 @@ namespace Sgry.Ann
 
 		public DialogResult AlertBeforeSave( Document doc )
 		{
-			return Alert(
-					doc.DisplayName + " is modified but not saved. Save changes?",
-					MessageBoxButtons.YesNoCancel,
-					MessageBoxIcon.Exclamation,
-					MessageBoxDefaultButton.Button2
-				);
+			return Alert( doc.DisplayName + " is modified but not saved. Save changes?",
+						  MessageBoxButtons.YesNoCancel,
+						  MessageBoxIcon.Exclamation,
+						  MessageBoxDefaultButton.Button2 );
 		}
 
 		public DialogResult AskUserToUnifyExistingEolOrNot( string newEolCode )
@@ -1418,15 +1347,13 @@ namespace Sgry.Ann
 				case "\r\n":	eolCodeName = "CR+LF";	break;
 				case "\n":		eolCodeName = "LF";		break;
 				case "\r":		eolCodeName = "CR";		break;
-				default:		throw new ArgumentException("EOL code must be one of CR+LF, LF, CR.", "newEolCode");
+				default:		throw new ArgumentException( "EOL code must be one of CR+LF, LF,"
+															 + " CR.", "newEolCode");
 			}
 
-			return Alert(
-					"Do you also want to change all existing line end code to "+eolCodeName+"?",
-					MessageBoxButtons.YesNo,
-					MessageBoxIcon.Question,
-					MessageBoxDefaultButton.Button2
-				);
+			return Alert( "Do you also want to change all existing line end code to "
+						  + eolCodeName + "?", MessageBoxButtons.YesNo,
+						  MessageBoxIcon.Question, MessageBoxDefaultButton.Button2 );
 		}
 
 		void Alert( Exception ex )
@@ -1452,83 +1379,75 @@ namespace Sgry.Ann
 									buttons,
 									icon,
 									defaultButton );
-	}
+		}
 
-		static class Utl
+		/// <summary>
+		/// Analyzes encoding.
+		/// </summary>
+		static void AnalyzeEncoding( string filePath, out Encoding encoding, out bool withBom )
 		{
-			/// <summary>
-			/// Analyzes encoding.
-			/// </summary>
-			public static void AnalyzeEncoding( string filePath, out Encoding encoding, out bool withBom )
+			Debug.Assert( filePath != null );
+
+			const int maxSize = 100 * 1024;
+
+			try
 			{
-				Debug.Assert( filePath != null );
-
-				const int MaxSize = 50 * 1024;
-				Stream file = null;
-				byte[] data;
-				int dataSize;
-
-				try
+				using( var file = File.Open(filePath, FileMode.Open, FileAccess.Read,
+											FileShare.ReadWrite) )
 				{
-					using( file = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite) )
+					// prepare buffer
+					int dataSize;
+					if( maxSize < file.Length )
+						dataSize = maxSize;
+					else
+						dataSize = (int)file.Length;
+					var data = new byte[ dataSize ];
+
+					// read data at maximum 50KB
+					file.Read( data, 0, dataSize );
+					encoding = EncodingAnalyzer.Analyze( data, out withBom );
+					if( encoding == null )
 					{
-						// prepare buffer
-						if( MaxSize < file.Length )
-							dataSize = MaxSize;
-						else
-							dataSize = (int)file.Length;
-						data = new byte[ dataSize ];
-
-						// read data at maximum 50KB
-						file.Read( data, 0, dataSize );
-						encoding = EncodingAnalyzer.Analyze( data, out withBom );
-						if( encoding == null )
-						{
-							encoding = Encoding.Default;
-							withBom = false;
-						}
-
-						return;
+						encoding = Encoding.Default;
+						withBom = false;
 					}
-				}
-				catch( ArgumentException )
-				{}
-				catch( NotSupportedException )
-				{}
-				catch( UnauthorizedAccessException )
-				{}
-				catch( IOException )
-				{}
-				catch( System.Security.SecurityException )
-				{}
-				catch( OutOfMemoryException )
-				{}
-				encoding = Encoding.Default;
-				withBom = false;
-			}
 
-			public static string AnalyzeEolCode( Document doc )
+					return;
+				}
+			}
+			catch( ArgumentException )
+			{}
+			catch( NotSupportedException )
+			{}
+			catch( UnauthorizedAccessException )
+			{}
+			catch( IOException )
+			{}
+			catch( System.Security.SecurityException )
+			{}
+			catch( OutOfMemoryException )
+			{}
+			encoding = Encoding.Default;
+			withBom = false;
+		}
+
+		static string AnalyzeEolCode( Document doc )
+		{
+			Debug.Assert( doc != null );
+
+			for( int i=0; i<doc.Length-1; i++ )
 			{
-				for( int i=0; i<doc.Length-1; i++ )
+				if( doc[i] == '\r' )
 				{
-					if( doc[i] == '\r' )
-					{
-						if( doc[i+1] == '\n' )
-						{
-							return "\r\n";
-						}
-						else
-						{
-							return "\r";
-						}
-					}
-					else if( doc[i] == '\n' )
-					{
-						return "\n";
-					}
+					return (doc[i+1] == '\n') ? "\r\n"
+											  : "\r";
 				}
-				return "\r\n";
+				else if( doc[i] == '\n' )
+				{
+					return "\n";
+				}
 			}
+			return "\r\n";
 		}
 		#endregion
 	}

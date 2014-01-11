@@ -16,8 +16,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void MoveCaret( CalcMethod calculator, IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			IViewInternal view = (IViewInternal)ui.View;
+			var doc = ui.Document;
+			var view = (IViewInternal)ui.View;
 
 			int nextIndex = calculator( view );
 			if( nextIndex == doc.CaretIndex )
@@ -40,8 +40,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectTo( CalcMethod calculator, IUserInterface ui )
 		{
-			Document doc = ui.Document;
-			IViewInternal view = (IViewInternal)ui.View;
+			var doc = ui.Document;
+			var view = (IViewInternal)ui.View;
 			int nextIndex;
 
 			// calculate where to expand selection
@@ -65,12 +65,12 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static int Calc_Right( IView view )
 		{
-			Document doc = view.Document;
+			var doc = view.Document;
 			if( doc.Length < doc.CaretIndex+1 )
 			{
 				return doc.Length;
 			}
-			
+
 			// Avoid placing caret at middle of an undividable character sequences.
 			int newCaretIndex = doc.CaretIndex + 1;
 			while( doc.IsNotDividableIndex(newCaretIndex) )
@@ -87,7 +87,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static int Calc_Left( IView view )
 		{
-			Document doc = view.Document;
+			var doc = view.Document;
 			if( doc.CaretIndex-1 < 0 )
 			{
 				return 0;
@@ -109,36 +109,30 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static int Calc_Down( IViewInternal view )
 		{
-			Point pt;
-			int newIndex;
-			Document doc = view.Document;
+			var doc = view.Document;
 
-			// get screen location of the caret
-			pt = view.GetVirtualPos( doc.CaretIndex );
+			// Get screen location of the caret
+			var pt = view.GetVirtualPos( doc.CaretIndex );
 
-			// calculate next location
+			// Calculate next location
 			pt.X = view.GetDesiredColumn();
 			pt.Y += view.LineSpacing;
-			/* NOT NEEDED because View.GetCharIndex handles this case.
-			if( view.Height - view.LineSpacing < pt.Y )
-			{
-				return doc.CaretIndex; // no lines below. don't move.
-			}*/
-			newIndex = view.GetCharIndex( pt );
+			/* because View.GetCharIndex handles this case.
+			if( view.VisibleSize.Height - view.LineSpacing < pt.Y )
+				return doc.CaretIndex; // No lines' below. Don't move.
+			*/
+			var newIndex = view.GetCharIndex( pt );
 
-			// In line selection mode,
-			// moving caret across the line which contains the anchor position
-			// should select the line and a line below.
-			// To select a line below, calculate index of the char at one more line below.
+			// In line selection mode, moving caret across the line containing the anchor position
+			// should select the line and a line below. To select a line below, calculate index of
+			// the char at one more line below.
 			if( doc.SelectionMode == TextDataType.Line
 				&& view.IsLineHead(newIndex) )
 			{
-				Point pt2 = new Point( pt.X, pt.Y+view.LineSpacing );
+				var pt2 = new Point( pt.X, pt.Y+view.LineSpacing );
 				int skippedNewIndex = view.GetCharIndex( pt2 );
 				if( skippedNewIndex == doc.AnchorIndex )
-				{
 					newIndex = skippedNewIndex;
-				}
 			}
 
 			return newIndex;
@@ -152,24 +146,23 @@ namespace Sgry.Azuki
 		{
 			Point pt;
 			int newIndex;
-			Document doc = view.Document;
+			var doc = view.Document;
 
-			// get screen location of the caret
+			// Get screen location of the caret
 			pt = view.GetVirtualPos( doc.CaretIndex );
 
-			// calculate next location
+			// Calculate next location
 			pt.X = view.GetDesiredColumn();
 			pt.Y -= view.LineSpacing;
 			newIndex = view.GetCharIndex( pt );
 			if( newIndex < 0 )
 			{
-				return doc.CaretIndex; // don't move
+				return doc.CaretIndex; // Don't move
 			}
 
-			// In line selection mode,
-			// moving caret across the line which contains the anchor position
-			// should select the line and a line above.
-			// To select a line above, calculate index of the char at one more line above.
+			// In line selection mode, moving caret across the line containing the anchor position
+			// should select the line and a line above. To select a line above, calculate index of
+			// the char at one more line above.
 			if( doc.SelectionMode == TextDataType.Line
 				&& newIndex == doc.AnchorIndex
 				&& view.IsLineHead(newIndex) )
@@ -190,29 +183,23 @@ namespace Sgry.Azuki
 		public static int Calc_NextWord( IView view )
 		{
 			int index;
-			Document doc = view.Document;
+			var doc = view.Document;
 
-			// if EOL code comes, return just after them
+			// Stop just after an EOL code
 			if( Utl.IsEol(doc, doc.CaretIndex) )
-			{
 				return Utl.SkipOneEol( doc, doc.CaretIndex );
-			}
 
-			// if the caret is at the end of document, return end of document
+			// Stay in valid range
 			index = doc.CaretIndex + 1;
 			if( doc.Length <= index )
-			{
 				return doc.Length;
-			}
 
-			// seek to next word starting position
+			// Seek to next word starting position
 			index = doc.WordProc.NextWordStart( doc, index );
 
-			// skip trailling whitespace
+			// Skip trailling whitespace
 			if( Utl.IsWhiteSpace(doc, index) )
-			{
 				index = doc.WordProc.NextWordStart( doc, index+1 );
-			}
 
 			return index;
 		}
@@ -224,16 +211,14 @@ namespace Sgry.Azuki
 		{
 			int index;
 			int startIndex;
-			Document doc = view.Document;
+			var doc = view.Document;
 
-			// if the caret is at the head of document, return head of document
+			// Stay in valid range
 			index = doc.CaretIndex - 1;
 			if( index <= 0 )
-			{
 				return 0;
-			}
 
-			// skip whitespace
+			// Skip whitespaces
 			startIndex = index;
 			if( Utl.IsWhiteSpace(doc, index) )
 			{
@@ -243,13 +228,12 @@ namespace Sgry.Azuki
 			}
 			DebugUtl.Assert( 0 <= index && index <= doc.Length );
 
-			// if EOL code comes, return just before them
+			// Stop just before an EOL code
 			if( Utl.IsEol(doc, index) )
 			{
 				if( startIndex != index )
 				{
-					// do not skip this EOL code
-					// if this was detected after skipping whitespaces
+					// Do not skip this EOL code if this was detected after skipping whitespaces
 					return index + 1;
 				}
 				else if( doc[index] == '\r' )
@@ -266,7 +250,7 @@ namespace Sgry.Azuki
 				}
 			}
 
-			// seek to previous word starting position
+			// Seek to previous word starting position
 			index = doc.WordProc.PrevWordStart( doc, index );
 
 			return index;
@@ -285,7 +269,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static int Calc_LineHeadSmart( IView view )
 		{
-			Document doc = view.Document;
+			var doc = view.Document;
 
 			int lineHeadIndex = view.Lines.AtOffset( doc.CaretIndex ).Begin;
 			int firstNonSpaceIndex = lineHeadIndex;
@@ -295,7 +279,8 @@ namespace Sgry.Azuki
 				firstNonSpaceIndex++;
 			}
 
-			return (firstNonSpaceIndex == doc.CaretIndex) ? lineHeadIndex : firstNonSpaceIndex;
+			return (firstNonSpaceIndex == doc.CaretIndex) ? lineHeadIndex
+														  : firstNonSpaceIndex;
 		}
 
 		/// <summary>
@@ -303,14 +288,12 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static int Calc_LineEnd( IView view )
 		{
-			Document doc = view.Document;
+			var doc = view.Document;
 			int offset = -1;
 
 			var pos = view.GetTextPosition( doc.CaretIndex );
 			if( view.Lines.Count <= pos.Line+1 )
-			{
 				return doc.Length;
-			}
 
 			int nextIndex = view.GetCharIndex( new TextPoint(pos.Line+1, 0) );
 			if( 0 <= nextIndex-1 && doc[nextIndex-1] == '\n'
@@ -347,10 +330,9 @@ namespace Sgry.Azuki
 				if( doc.Length <= index )
 					return false;
 
-				return ( doc[index] == ' '
+				return (doc[index] == ' '
 						|| doc[index] == '\t'
-						|| doc[index] == '\x3000'
-					);
+						|| doc[index] == '\x3000');
 			}
 
 			public static bool IsEol( Document doc, int index )

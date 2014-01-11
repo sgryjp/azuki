@@ -19,7 +19,7 @@ namespace Sgry.Azuki
 		const int DefaultTabWidth = 8;
 		const int MinimumFontSize = 1;
 		const int LineNumberAreaPadding = 2;
-		static readonly int[] _LineNumberSamples = new int[] {
+		static readonly int[] _LineNumberSamples = {
 			9999,
 			99999,
 			999999,
@@ -52,14 +52,13 @@ namespace Sgry.Azuki
 		FontInfo _HRulerFont;
 		int _TopMargin = 1;
 		int _LeftMargin = 1;
-		DrawingOption _DrawingOption
-			= DrawingOption.DrawsTab
-			| DrawingOption.DrawsFullWidthSpace
-			| DrawingOption.DrawsEol
-			| DrawingOption.HighlightCurrentLine
-			| DrawingOption.ShowsLineNumber
-			| DrawingOption.ShowsDirtBar
-			| DrawingOption.HighlightsMatchedBracket;
+		DrawingOption _DrawingOption = DrawingOption.DrawsTab
+									   | DrawingOption.DrawsFullWidthSpace
+									   | DrawingOption.DrawsEol
+									   | DrawingOption.HighlightCurrentLine
+									   | DrawingOption.ShowsLineNumber
+									   | DrawingOption.ShowsDirtBar
+									   | DrawingOption.HighlightsMatchedBracket;
 		bool _ScrollsBeyondLastLine = true;
 		#endregion
 
@@ -83,31 +82,31 @@ namespace Sgry.Azuki
 			Debug.Assert( other != null );
 
 			// inherit reference to the UI module
-			this._UI = other._UI;
+			_UI = other._UI;
 
 			// inherit other parameters
 			if( other != null )
 			{
-				this._ColorScheme = new ColorScheme( other._ColorScheme );
-				this._DrawingOption = other._DrawingOption;
-				//DO_NOT//this._DirtBarWidth = other._DirtBarWidth;
-				//DO_NOT//this._HRulerFont = other._HRulerFont;
-				//DO_NOT//this._LCharWidth = other._LCharWidth;
-				//DO_NOT//this._LineHeight = other._LineHeight;
-				//DO_NOT//this._LineNumAreaWidth = other._LineNumAreaWidth;
-				//DO_NOT//this._SpaceWidth = other._SpaceWidth;
-				this._TabWidth = other._TabWidth;
-				this._LinePadding = other._LinePadding;
-				this._LeftMargin = other._LeftMargin;
-				this._TopMargin = other.TopMargin;
-				//DO_NOT//this._TabWidthInPx = other._TabWidthInPx;
-				this._TextAreaWidth = other._TextAreaWidth;
-				//DO_NOT//this._UI = other._UI;
-				this._VisibleSize = other._VisibleSize;
+				_ColorScheme = new ColorScheme( other._ColorScheme );
+				_DrawingOption = other._DrawingOption;
+				//DO_NOT//_DirtBarWidth = other._DirtBarWidth;
+				//DO_NOT//_HRulerFont = other._HRulerFont;
+				//DO_NOT//_LCharWidth = other._LCharWidth;
+				//DO_NOT//_LineHeight = other._LineHeight;
+				//DO_NOT//_LineNumAreaWidth = other._LineNumAreaWidth;
+				//DO_NOT//_SpaceWidth = other._SpaceWidth;
+				_TabWidth = other._TabWidth;
+				_LinePadding = other._LinePadding;
+				_LeftMargin = other._LeftMargin;
+				_TopMargin = other.TopMargin;
+				//DO_NOT//_TabWidthInPx = other._TabWidthInPx;
+				_TextAreaWidth = other._TextAreaWidth;
+				//DO_NOT//_UI = other._UI;
+				_VisibleSize = other._VisibleSize;
 
 				// set Font through property
 				if( other.FontInfo != null )
-					this.FontInfo = other.FontInfo;
+					FontInfo = other.FontInfo;
 
 				// re-calculate graphic metrics
 				// (because there is a metric which needs a reference to Document to be calculated
@@ -185,7 +184,7 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				Size size = _VisibleSize;
+				var size = _VisibleSize;
 				size.Width -= ScrXofTextArea;
 				size.Height -= ScrYofTextArea;
 				return size;
@@ -220,10 +219,8 @@ namespace Sgry.Azuki
 											FontStyle.Regular );
 
 				// Update font metrics and graphic
-				using( IGraphics g = _UI.GetIGraphics() )
-				{
+				using( var g = _UI.GetIGraphics() )
 					UpdateMetrics( g );
-				}
 				Invalidate();
 				_UI.UpdateCaretGraphic();
 			}
@@ -234,19 +231,19 @@ namespace Sgry.Azuki
 			var buf = new StringBuilder( 32 );
 			_LastUsedLineNumberSample = _LineNumberSamples[0];
 
-			// calculate tab width in pixel
+			// Calculate tab width in pixel
 			for( int i=0; i<_TabWidth; i++ )
 			{
 				buf.Append( ' ' );
 			}
 			_TabWidthInPx = g.MeasureText( buf.ToString() ).Width;
 
-			// update other metrics
+			// Update other metrics
 			_SpaceWidth = g.MeasureText( " " ).Width;
 			_XCharWidth = g.MeasureText( "x" ).Width;
 			_FullSpaceWidth = g.MeasureText( "\x3000" ).Width;
 			_LineHeight = g.MeasureText( "Mp" ).Height;
-			if( this.Document != null )
+			if( Document != null )
 			{
 				_LastUsedLineNumberSample = PerDocParam.MaxLineNumber;
 			}
@@ -254,14 +251,14 @@ namespace Sgry.Azuki
 				= g.MeasureText( _LastUsedLineNumberSample.ToString() ).Width + _SpaceWidth;
 			_DirtBarWidth = Math.Max( 2, _SpaceWidth >> 1 );
 
-			// update metrics related with horizontal ruler
+			// Update metrics related with horizontal ruler
 			_HRulerHeight = (int)( _LineHeight / GoldenRatio ) + 2;
 			_HRulerY_5 = (int)( _HRulerHeight / (GoldenRatio * GoldenRatio) );
 			_HRulerY_1 = (int)( _HRulerHeight / (GoldenRatio) );
 			g.FontInfo = _HRulerFont;
 			g.FontInfo = _Font;
 
-			// calculate minimum text area width
+			// Calculate minimum text area width
 			_MinimumTextAreaWidth = Math.Max( _FullSpaceWidth, TabWidthInPx ) << 1;
 		}
 		#endregion
@@ -279,11 +276,10 @@ namespace Sgry.Azuki
 				if( value < 0 )
 					throw new ArgumentOutOfRangeException( "value", "TopMargin must not be a negative number (value:"+value+")" );
 
-				// apply value
+				// Apply value
 				_TopMargin = value;
 
-				// send dummy scroll event
-				// to update screen position of the caret
+				// Send dummy scroll event to update screen position of the caret
 				_UI.Scroll( Rectangle.Empty, 0, 0 );
 			}
 		}
@@ -300,11 +296,10 @@ namespace Sgry.Azuki
 				if( value < 0 )
 					throw new ArgumentOutOfRangeException( "value", "LeftMargin must not be a negative number (value:"+value+")" );
 
-				// apply value
+				// Apply value
 				_LeftMargin = value;
 
-				// send dummy scroll event
-				// to update screen position of the caret
+				// Send dummy scroll event to update screen position of the caret
 				_UI.Scroll( Rectangle.Empty, 0, 0 );
 			}
 		}
@@ -525,7 +520,7 @@ namespace Sgry.Azuki
 				if( value <= 0 )
 					throw new ArgumentOutOfRangeException( "value", "TabWidth must not be a negative number (given value:"+value+".)" );
 
-				using( IGraphics g = _UI.GetIGraphics() )
+				using( var g = _UI.GetIGraphics() )
 				{
 					_TabWidth = value;
 					UpdateMetrics( g );
@@ -605,12 +600,10 @@ namespace Sgry.Azuki
 		/// </summary>
 		public int LineNumAreaWidth
 		{
-			get
+			get 
 			{
-				if( ShowLineNumber )
-					return _LineNumAreaWidth;
-				else
-					return 0;
+				return ShowLineNumber ? _LineNumAreaWidth
+									  : 0;
 			}
 		}
 
@@ -621,10 +614,8 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				if( ShowsDirtBar )
-					return _DirtBarWidth;
-				else
-					return 0;
+				return ShowsDirtBar ? _DirtBarWidth
+									: 0;
 			}
 		}
 
@@ -635,10 +626,8 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				if( ShowsHRuler )
-					return _HRulerHeight;
-				else
-					return 0;
+				return ShowsHRuler ? _HRulerHeight
+								   : 0;
 			}
 		}
 
@@ -666,9 +655,7 @@ namespace Sgry.Azuki
 		public void SetDesiredColumn()
 		{
 			using( var g = _UI.GetIGraphics() )
-			{
 				SetDesiredColumn( g );
-			}
 		}
 
 		/// <summary>
@@ -720,10 +707,8 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException"/>
 		public Point GetVirtualPos( int index )
 		{
-			using( IGraphics g = _UI.GetIGraphics() )
-			{
+			using( var g = _UI.GetIGraphics() )
 				return GetVirtualPos( g, index );
-			}
 		}
 
 		/// <exception cref="ArgumentOutOfRangeException"/>
@@ -732,19 +717,15 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException"/>
 		public Point GetVirtualPos( int lineIndex, int columnIndex )
 		{
-			using( IGraphics g = _UI.GetIGraphics() )
-			{
+			using( var g = _UI.GetIGraphics() )
 				return GetVirtualPos( g, lineIndex, columnIndex );
-			}
 		}
 
 		public abstract int GetCharIndex( IGraphics g, Point pos );
 		public int GetCharIndex( Point pos )
 		{
-			using( IGraphics g = _UI.GetIGraphics() )
-			{
+			using( var g = _UI.GetIGraphics() )
 				return GetCharIndex( g, pos );
-			}
 		}
 
 		/// <summary>
@@ -813,44 +794,31 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public int[] GetRectSelectRanges( Rectangle selRect )
 		{
-			List<int> selRanges = new List<int>();
-			Point leftPos = new Point();
-			Point rightPos = new Point();
-			int leftIndex;
-			int rightIndex;
-			int y;
-			int selRectBottom;
+			var selRanges = new List<int>();
 
-			// if bottom coordinate of the selection rectangle is negative value,
-			// modify it to zero.
-			selRectBottom = selRect.Bottom;
-			if( selRect.Bottom < 0 )
-			{
-				selRectBottom = 0;
-			}
-
-			// get text in the rect
-			leftPos.X = selRect.Left;
-			rightPos.X = selRect.Right;
-			y = selRect.Top - (selRect.Top % LineSpacing);
+			// Get text in the rect
+			var selRectBottom = Math.Max( selRect.Bottom, 0 );
+			var leftPos = new Point( selRect.Left, 0 );
+			var rightPos = new Point( selRect.Right, 0 );
+			int y = selRect.Top - (selRect.Top % LineSpacing);
 			while( y <= selRectBottom )
 			{
-				// calculate sub-selection range made with this line
+				// Calculate sub-selection range made with this line
 				leftPos.Y = rightPos.Y = y;
-				leftIndex = this.GetCharIndex( leftPos );
-				rightIndex = this.GetCharIndex( rightPos );
+				var leftIndex = GetCharIndex( leftPos );
+				var rightIndex = GetCharIndex( rightPos );
 				if( 1 < selRanges.Count && selRanges[selRanges.Count-1] == rightIndex )
 				{
-					break; // reached EOF
+					break; // Reached EOF
 				}
 				Debug.Assert( Document.IsNotDividableIndex(leftIndex) == false );
 				Debug.Assert( Document.IsNotDividableIndex(rightIndex) == false );
 
-				// add this sub-selection range
+				// Add this sub-selection range
 				selRanges.Add( leftIndex );
 				selRanges.Add( rightIndex );
 
-				// go to next line
+				// Go to next line
 				y += LineSpacing;
 			}
 
@@ -881,13 +849,11 @@ namespace Sgry.Azuki
 			if( charIndex < 0 || Document.Length < charIndex )
 				throw new ArgumentOutOfRangeException( "charIndex", "Specified index is out of range. (value:"+charIndex+", document length:"+Document.Length+")" );
 
-			// calculate location of the character in coordinate in virtual text area
-			using( IGraphics g = _UI.GetIGraphics() )
-			{
+			// Calculate location of the character in coordinate in virtual text area
+			using( var g = _UI.GetIGraphics() )
 				virPos = GetVirtualPos( g, charIndex );
-			}
 
-			// calculate how many smallest lines exist at left of the character
+			// Calculate how many smallest lines exist at left of the character
 			return (virPos.X / HRulerUnitWidth);
 		}
 
@@ -918,13 +884,11 @@ namespace Sgry.Azuki
 			if( columnIndex < 0 )
 				throw new ArgumentOutOfRangeException( "columnIndex", "Specified index is out of range. (value:"+columnIndex+")" );
 
-			// calculate location of the character in coordinate in virtual text area
-			using( IGraphics g = _UI.GetIGraphics() )
-			{
+			// Calculate location of the character in coordinate in virtual text area
+			using( var g = _UI.GetIGraphics() )
 				virPos = GetVirtualPos( g, lineIndex, columnIndex );
-			}
 
-			// calculate how many smallest lines exist at left of the character
+			// Calculate how many smallest lines exist at left of the character
 			return (virPos.X / HRulerUnitWidth);
 		}
 		#endregion
@@ -935,10 +899,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void ScrollToCaret()
 		{
-			using( IGraphics g = _UI.GetIGraphics() )
-			{
+			using( var g = _UI.GetIGraphics() )
 				ScrollToCaret( g, _UI.AutoScrollMargin );
-			}
 		}
 
 		/// <summary>
@@ -954,17 +916,16 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void ScrollToCaret( IGraphics g, int autoScrollMargin )
 		{
-			Rectangle threshRect = new Rectangle();
-			Point caretPos;
+			var threshRect = new Rectangle();
 			int vDelta = 0, hDelta;
 
-			// make rentangle of virtual text view
+			// Make rentangle of virtual text view
 			threshRect.X = ScrollPosX + SpaceWidthInPx;
 			threshRect.Y = FirstVisibleLine * LineSpacing;
 			threshRect.Width = (_VisibleSize.Width - ScrXofTextArea) - (SpaceWidthInPx * 2);
 			threshRect.Height = (_VisibleSize.Height - ScrYofTextArea) - LineSpacing;
 
-			// shrink the rectangle if some lines must be visible
+			// Shrink the rectangle if some lines must be visible
 			if( 0 < autoScrollMargin )
 			{
 				int yMargin = Math.Max( 0, autoScrollMargin * LineSpacing );
@@ -972,8 +933,8 @@ namespace Sgry.Azuki
 				threshRect.Height -= (yMargin * 2);
 			}
 
-			// calculate caret position
-			caretPos = GetVirtualPos( g, Document.CaretIndex );
+			// Calculate caret position
+			var caretPos = GetVirtualPos( g, Document.CaretIndex );
 			if( threshRect.Left <= caretPos.X
 				&& caretPos.X <= threshRect.Right
 				&& threshRect.Top <= caretPos.Y
@@ -982,43 +943,29 @@ namespace Sgry.Azuki
 				return; // caret is already visible
 			}
 
-			// calculate horizontal offset to the position where we desire to scroll to
+			// Calculate horizontal offset to the position where we desire to scroll to
 			hDelta = 0;
 			if( threshRect.Right <= caretPos.X )
-			{
-				// scroll to right
-				hDelta = caretPos.X - (threshRect.Right - TabWidthInPx);
-			}
+				hDelta = caretPos.X - (threshRect.Right - TabWidthInPx); // Scroll to right
 			else if( caretPos.X < threshRect.Left )
-			{
-				// scroll to left
-				hDelta = caretPos.X - (threshRect.Left + TabWidthInPx);
-			}
+				hDelta = caretPos.X - (threshRect.Left + TabWidthInPx); // Scroll to left
 
-			// calculate vertical offset to the position where we desire to scroll to
+			// Calculate vertical offset to the position where we desire to scroll to
 			vDelta = 0;
 			if( threshRect.Bottom <= caretPos.Y )
-			{
-				// scroll down
-				vDelta = (caretPos.Y + LineSpacing) - threshRect.Bottom;
-			}
+				vDelta = (caretPos.Y + LineSpacing) - threshRect.Bottom; // Scroll down
 			else if( caretPos.Y < threshRect.Top )
-			{
-				// scroll up
-				vDelta = caretPos.Y - threshRect.Top;
-			}
+				vDelta = caretPos.Y - threshRect.Top; // Scroll up
 
-			// scroll the view
+			// Scroll the view
 			Scroll( vDelta / LineSpacing );
 			HScroll( hDelta );
 
-			// update horizontal ruler graphic.
-			// because indicator graphic may have been scrolled out partially (drawn partially),
+			// Update horizontal ruler graphic.
+			// Because indicator graphic may have been scrolled out partially (drawn partially),
 			// just scrolling horizontal ruler area may make uncompeltely drawn indicator
 			if( ShowsHRuler && 0 < hDelta )
-			{
 				UpdateHRuler( g );
-			}
 		}
 
 		/// <summary>
@@ -1027,7 +974,6 @@ namespace Sgry.Azuki
 		public void Scroll( int lineDelta )
 		{
 			int delta;
-			Rectangle clipRect;
 			int destLineIndex;
 			int maxLineIndex;
 			int visibleLineCount;
@@ -1035,7 +981,7 @@ namespace Sgry.Azuki
 			if( lineDelta == 0 )
 				return;
 
-			// calculate specified index of new FirstVisibleLine and biggest acceptable value of it
+			// Calculate specified index of new FirstVisibleLine and biggest acceptable value of it
 			destLineIndex = FirstVisibleLine + lineDelta;
 			if( ScrollsBeyondLastLine )
 			{
@@ -1047,26 +993,21 @@ namespace Sgry.Azuki
 				maxLineIndex = Math.Max( 0, Lines.Count-visibleLineCount+1 );
 			}
 
-			// calculate scroll distance
+			// Calculate scroll distance
 			if( destLineIndex < 0 )
-			{
 				delta = -FirstVisibleLine;
-			}
 			else if( maxLineIndex < destLineIndex )
-			{
 				delta = maxLineIndex - FirstVisibleLine;
-			}
 			else
-			{
 				delta = lineDelta;
-			}
 			if( delta == 0 )
 				return;
 
-			// make clipping rectangle
-			clipRect = new Rectangle( 0, ScrYofTextArea, _VisibleSize.Width, _VisibleSize.Height );
+			// Make clipping rectangle
+			var clipRect = new Rectangle( 0, ScrYofTextArea,
+										  _VisibleSize.Width, _VisibleSize.Height );
 
-			// do scroll
+			// Do scroll
 			FirstVisibleLine += delta;
 			_UI.Scroll( clipRect, 0, -(delta * LineSpacing) );
 			_UI.UpdateCaretGraphic();
@@ -1080,14 +1021,14 @@ namespace Sgry.Azuki
 		public void HScroll( int columnDelta )
 		{
 			int deltaInPx;
-			Rectangle clipRect = new Rectangle();
+			var clipRect = new Rectangle();
 			int rightLimit;
 			int desiredX;
 
 			if( columnDelta == 0 )
 				return;
 
-			// calculate the x-coord of right most scroll position
+			// Calculate the x-coord of right most scroll position
 			desiredX = ScrollPosX + columnDelta;
 			rightLimit = ReCalcRightEndOfTextArea( desiredX );
 			if( rightLimit <= 0 )
@@ -1095,7 +1036,7 @@ namespace Sgry.Azuki
 				return; // virtual text area is narrower than visible area. no need to scroll
 			}
 
-			// calculate scroll distance
+			// Calculate scroll distance
 			if( desiredX < 0 )
 			{
 				//--- scrolling to left of the text area ---
@@ -1121,13 +1062,13 @@ namespace Sgry.Azuki
 				deltaInPx = columnDelta;
 			}
 
-			// make clipping rectangle
+			// Make clipping rectangle
 			clipRect.X = ScrXofTextArea;
 			clipRect.Y = 0;
 			clipRect.Width = _VisibleSize.Width - ScrXofTextArea;
 			clipRect.Height = _VisibleSize.Height;
 
-			// do scroll
+			// Do scroll
 			ScrollPosX += deltaInPx;
 			_UI.Scroll( clipRect, -deltaInPx, 0 );
 
@@ -1252,7 +1193,7 @@ namespace Sgry.Azuki
 		internal virtual void HandleDocumentChanged( Document prevDocument )
 		{
 			var doc = Document;
-			using( IGraphics g = _UI.GetIGraphics() )
+			using( var g = _UI.GetIGraphics() )
 			{
 				// reset width of line number area
 				UpdateLineNumberWidth( g );
@@ -1279,11 +1220,10 @@ namespace Sgry.Azuki
 			// if dirty flag has been cleared, redraw entire dirt bar
 			if( Document.IsDirty == false )
 			{
-				Rectangle rect = new Rectangle();
-				rect.X = ScrXofDirtBar;
-				rect.Y = ScrYofTextArea;
-				rect.Width = DirtBarWidth;
-				rect.Height = VisibleSize.Height;
+				var rect = new Rectangle( ScrXofDirtBar,
+										  ScrYofTextArea,
+										  DirtBarWidth,
+										  VisibleSize.Height );
 				Invalidate( rect );
 			}
 		}
@@ -1328,7 +1268,7 @@ namespace Sgry.Azuki
 			// draw underline on current line
 			if( HighlightsCurrentLine )
 			{
-				using( IGraphics g = _UI.GetIGraphics() )
+				using( var g = _UI.GetIGraphics() )
 				{
 					int selBegin, selEnd;
 					Document.GetSelection( out selBegin, out selEnd );
@@ -1347,7 +1287,7 @@ namespace Sgry.Azuki
 			// erase underline on current line
 			if( HighlightsCurrentLine )
 			{
-				using( IGraphics g = _UI.GetIGraphics() )
+				using( var g = _UI.GetIGraphics() )
 				{
 					int selBegin, selEnd;
 					Document.GetSelection( out selBegin, out selEnd );
@@ -1440,10 +1380,8 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				return new Rectangle(
-						ScrXofDirtBar, ScrYofTextArea,
-						DirtBarWidth, VisibleSize.Height - ScrYofTextArea
-					);
+				return new Rectangle( ScrXofDirtBar, ScrYofTextArea,
+									  DirtBarWidth, VisibleSize.Height - ScrYofTextArea );
 			}
 		}
 
@@ -1454,10 +1392,8 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				return new Rectangle(
-						ScrXofLineNumberArea, ScrYofTextArea,
-						LineNumAreaWidth, VisibleSize.Height - ScrYofTextArea
-					);
+				return new Rectangle( ScrXofLineNumberArea, ScrYofTextArea,
+									  LineNumAreaWidth, VisibleSize.Height - ScrYofTextArea );
 			}
 		}
 
@@ -1468,9 +1404,8 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				return new Rectangle(
-						0, ScrYofHRuler, VisibleSize.Width, ScrYofTopMargin
-					);
+				return new Rectangle( 0, ScrYofHRuler,
+									  VisibleSize.Width, ScrYofTopMargin );
 			}
 		}
 
@@ -1481,11 +1416,10 @@ namespace Sgry.Azuki
 		{
 			get
 			{
-				return new Rectangle(
-						ScrXofTextArea, ScrYofTextArea,
-						VisibleSize.Width - ScrXofTextArea,
-						VisibleSize.Height - ScrYofTextArea
-					);
+				return new Rectangle( ScrXofTextArea,
+									  ScrYofTextArea,
+									  VisibleSize.Width - ScrXofTextArea,
+									  VisibleSize.Height - ScrYofTextArea );
 			}
 		}
 		#endregion
