@@ -704,15 +704,12 @@ namespace Sgry.Azuki
 			if( _IsDisposed )
 				return;
 
-			// draw view graphic
-			using( IGraphics g = _UI.GetIGraphics() )
-			{
+			// Draw view graphic
+			using( var g = _UI.GetIGraphics() )
 				_View.Paint( g, clipRect );
-			}
 
-			// If any characters which were not highlighted after last edit were drawn,
-			// expand invalid range to cover the chracters
-			// so that the highlighter thread can highlight them on next run
+			// If any characters which were not highlighted after last edit were drawn, invalidate
+			// them so that the highlighter thread can highlight them on next run
 			var doc = Document;
 			if( doc != null && doc.Highlighter != null )
 			{
@@ -757,20 +754,19 @@ namespace Sgry.Azuki
 			if( _IsDisposed )
 				return;
 
-			Point pos = e.Location;
-
+			var pos = e.Location;
 			lock( this )
 			{
 				if( _MouseDragEditing )
 				{
-					// mouse button was raised during drag-editing
-					// so move originally selected text to where the cursor is at
+					// Mouse button was raised during drag-editing. Move originally selected text
+					// to where the cursor is at
 					HandleMouseUp_OnDragEditing( e );
 				}
 				else if( _MouseDragEditDelayTimer != null )
 				{
-					// mouse button was raised before entering drag-editing mode.
-					// just set caret where the cursor is at
+					// Mouse button was raised before entering drag-editing mode. Just set caret
+					// where the cursor is at
 					_MouseDragEditDelayTimer.Dispose();
 					int targetIndex = View.GetCharIndex( View.ScreenToVirtual(pos) );
 					Document.SetSelection( targetIndex, targetIndex );
@@ -782,27 +778,26 @@ namespace Sgry.Azuki
 		void HandleMouseUp_OnDragEditing( IMouseEventArgs e )
 		{
 			int targetIndex;
-			Point pos = e.Location;
+			var pos = e.Location;
 
-			// do nothing if the document is read-only
+			// Do nothing if the document is read-only
 			if( Document.IsReadOnly )
 			{
 				Plat.Inst.MessageBeep();
 				return;
 			}
 
-			// calculate target position where the selected text is moved to
+			// Calculate target position where the selected text is moved to
 			targetIndex = View.GetCharIndex( View.ScreenToVirtual(pos) );
 
-			// move text
+			// Move text
 			using( Document.BeginUndo() )
 			{
 				int begin, end;
-				string selText;
 
-				// remove current selection
+				// Remove current selection
 				Document.GetSelection( out begin, out end );
-				selText = Document.GetText( begin, end );
+				var selText = Document.GetText( begin, end );
 				Document.Replace( "" );
 				if( end <= targetIndex )
 					targetIndex -= selText.Length;
@@ -813,7 +808,7 @@ namespace Sgry.Azuki
 					targetIndex = targetIndex;
 				*/
 
-				// insert new text
+				// Insert new text
 				Document.Replace( selText, targetIndex, targetIndex );
 				Document.SetSelection( targetIndex, targetIndex + selText.Length );
 			}
@@ -824,51 +819,39 @@ namespace Sgry.Azuki
 			if( _IsDisposed )
 				return;
 
-			using( IGraphics g = _UI.GetIGraphics() )
+			using( var g = _UI.GetIGraphics() )
 			{
-				Point pos = e.Location;
-				bool onLineNumberArea = false;
+				var pos = e.Location;
+				var onLineNumberArea = false;
 
-				// if mouse-down coordinate is out of window, this is not a normal event so ignore this
+				// Mouse-down coordinate is out of the window... this is not a normal event
 				if( pos.X < 0 || pos.Y < 0 )
-				{
 					return;
-				}
 
-				// check whether the mouse position is on the line number area or not
+				// Check whether the mouse position is on the line number area or not
 				if( pos.X < View.ScrXofLeftMargin )
-				{
 					onLineNumberArea = true;
-				}
 
-				// remember mouse down screen position and convert it to virtual view's coordinate
+				// Remember where a user clicked
 				pos= View.ScreenToVirtual( pos );
 				_MouseDownVirPos = pos;
 
-				if( e.ButtonIndex == 0 ) // left click
+				if( e.ButtonIndex == 0 ) // Left button
 				{
-					int clickedIndex;
-					bool onSelectedText;
+					var clickedIndex = View.GetCharIndex( g, pos );
+					var onSelectedText = Document.SelectionManager.IsInSelection( clickedIndex );
 
-					// calculate index of clicked character
-					clickedIndex = View.GetCharIndex( g, pos );
-
-					// determine whether the character is selected or not
-					onSelectedText = Document.SelectionManager.IsInSelection(
-							clickedIndex
-						);
-
-					// set selection
+					// Set selection
 					if( onLineNumberArea )
 					{
-						//--- line selection ---
+						//--- Line selection ---
 						_UI.SelectionMode = TextDataType.Line;
 						if( e.Shift )
 						{
-							//--- expanding line selection ---
-							// expand selection to one char next of clicked position
-							// (if caret is at head of a line,
-							// the line will not be selected by SetSelection.)
+							//--- Expanding line selection ---
+							// Expand selection to one character next of clicked position (if caret
+							// is at beginning of a line, the line will not be selected by
+							// SetSelection.)
 							int newCaretIndex = clickedIndex;
 							if( newCaretIndex+1 < Document.Length )
 							{
@@ -878,43 +861,41 @@ namespace Sgry.Azuki
 						}
 						else
 						{
-							//--- setting line selection ---
+							//--- Setting line selection ---
 							Document.SetSelection( clickedIndex, clickedIndex, View );
 						}
 					}
 					else if( e.Shift )
 					{
-						//--- expanding selection ---
-						_UI.SelectionMode = (e.Control) ? TextDataType.Words : TextDataType.Normal;
-						Document.SetSelection(
-								Document.SelectionManager.OriginalAnchorIndex,
-								clickedIndex, View
-							);
+						//--- Expanding selection ---
+						_UI.SelectionMode = (e.Control) ? TextDataType.Words
+														: TextDataType.Normal;
+						Document.SetSelection( Document.SelectionManager.OriginalAnchorIndex,
+											   clickedIndex, View );
 					}
 					else if( e.Alt )
 					{
-						//--- rectangle selection ---
+						//--- Rectangle selection ---
 						_UI.SelectionMode = TextDataType.Rectangle;
 						Document.SetSelection( clickedIndex, clickedIndex, View );
 					}
 					else if( e.Control )
 					{
-						//--- expanding selection ---
+						//--- Expanding selection ---
 						_UI.SelectionMode = TextDataType.Words;
 						Document.SetSelection( clickedIndex, clickedIndex, View );
 					}
 					else if( onSelectedText
 						&& Document.RectSelectRanges == null ) // currently dragging rectangle selection is out of support
 					{
-						//--- starting timer to wait small delay of drag-editing ---
+						//--- Starting timer to wait small delay of drag-editing ---
 						Debug.Assert( _MouseDragEditDelayTimer == null );
-						_MouseDragEditDelayTimer = new Timer(
-								_MouseDragEditDelayTimer_Tick, null, 500, Timeout.Infinite
-							);
+						_MouseDragEditDelayTimer = new Timer( _MouseDragEditDelayTimer_Tick,
+															  null, 500, Timeout.Infinite );
 					}
 					else
 					{
-						//--- setting caret ---
+						//--- Setting caret ---
 						Document.SetSelection( clickedIndex, clickedIndex );
 					}
 					View.SetDesiredColumn( g );
@@ -930,16 +911,14 @@ namespace Sgry.Azuki
 			if( e.Location.X < 0 || e.Location.Y < 0 )
 				return;
 
-			// remember mouse down screen position and convert it to virtual view's coordinate
+			// Remember mouse down screen position and convert it to virtual view's coordinate
 			_MouseDownVirPos = e.Location;
 
-			// select a word there if it is in the text area
+			// Select a word there if it is in the text area
 			if( _View.TextAreaRect.Contains(_MouseDownVirPos) )
 			{
-				int clickedIndex;
-				Point pos = View.ScreenToVirtual( e.Location );
-
-				clickedIndex = View.GetCharIndex( pos );
+				var pos = View.ScreenToVirtual( e.Location );
+				var clickedIndex = View.GetCharIndex( pos );
 				_UI.SelectionMode = TextDataType.Words;
 				Document.SetSelection( clickedIndex, clickedIndex, View );
 			}
@@ -950,19 +929,19 @@ namespace Sgry.Azuki
 			if( _IsDisposed )
 				return;
 
-			Point pos = e.Location;
+			var pos = e.Location;
 
-			// update mouse cursor graphic
+			// Update mouse cursor graphic
 			ResetCursorGraphic( pos );
 
-			// if mouse button was not down yet, do nothing
+			// If mouse button was not down yet, do nothing
 			if( _MouseDownVirPos.X == Int32.MinValue )
 			{
 				return;
 			}
 			pos = View.ScreenToVirtual( pos );
 
-			// if it was slight movement, ignore
+			// If it was slight movement, ignore
 			if( _MouseDragging == false )
 			{
 				int xOffset = Math.Abs( pos.X - _MouseDownVirPos.X );
@@ -975,42 +954,39 @@ namespace Sgry.Azuki
 			}
 			_MouseDragging = true;
 
-			// do drag action
-			using( IGraphics g = _UI.GetIGraphics() )
+			// Do drag action
+			using( var g = _UI.GetIGraphics() )
 			{
 				lock( this )
 				{
 					if( _MouseDragEditing )
 					{
-						//--- dragging selected text ---
-						int index;
-						Rectangle rect = new Rectangle();
-						Point alignedPos;
+						//--- Dragging selected text ---
+						var rect = new Rectangle();
 
-						// calculate position of the char below the mouse cursor
-						index = View.GetCharIndex( pos );
-						alignedPos = View.VirtualToScreen( View.GetVirtualPos(index) );
+						// Calculate position of the char below the mouse cursor
+						var index = View.GetCharIndex( pos );
+						var alignedPos = View.VirtualToScreen( View.GetVirtualPos(index) );
 
-						// display caret graphic at where
-						// if text was droped in current state
+						// Display caret graphic
 						rect.Location = alignedPos;
 						rect.Height = View.LineHeight;
 						rect.Width = DefaultCaretWidth;
 						_UI.UpdateCaretGraphic( rect );
 					}
-					else if( e.ButtonIndex == 0 ) // left button
+					else if( e.ButtonIndex == 0 ) // Left button
 					{
 						if( _MouseDragEditDelayTimer != null )
 						{
-							//--- cursor was moved before entering drag-editing delay ---
-							// stop waiting for the delay and enter drag-editing immediately
+							//--- Cursor was moved before entering drag-editing delay ---
+							// Stop waiting for the delay and enter drag-editing immediately
 							_MouseDragEditDelayTimer.Dispose();
 							_MouseDragEditDelayTimer = null;
 							_MouseDragEditing = true;
 						}
 						else
 						{
-							// expand selection to the character under the cursor
+							// Expand selection to the character under the cursor
 							HandleMouseMove_ExpandSelection( g, pos );
 						}
 					}
@@ -1021,28 +997,26 @@ namespace Sgry.Azuki
 		void HandleMouseMove_ExpandSelection( IGraphics g, Point cursorVirPos )
 		{
 			Debug.Assert( g != null );
-			int curPosIndex;
 
-			// calc index of where the mouse pointer is on
-			curPosIndex = View.GetCharIndex( cursorVirPos );
+			// Calc index of where the mouse pointer is on
+			var curPosIndex = View.GetCharIndex( cursorVirPos );
 			if( curPosIndex == -1 )
 			{
 				return;
 			}
 
-			// expand selection to there
+			// Expand selection to there
 			if( _UI.SelectionMode == TextDataType.Rectangle )
 			{
-				//--- rectangle selection ---
-				// expand selection to the point
+				//--- Rectangle selection ---
+				// Expand selection to the point
 				Document.SetSelection( Document.AnchorIndex, curPosIndex, View );
 			}
 			else if( _UI.SelectionMode == TextDataType.Line )
 			{
-				//--- line selection ---
-				// expand selection to one char next of clicked position
-				// (if caret is at head of a line,
-				// the line will not be selected by SetSelection.)
+				//--- Line selection ---
+				// Expand selection to one char next of clicked position (if caret is at head of
+				// a line, the line will not be selected by SetSelection.)
 				int newCaretIndex = curPosIndex;
 				if( newCaretIndex+1 < Document.Length )
 				{
@@ -1052,16 +1026,14 @@ namespace Sgry.Azuki
 			}
 			else if( _UI.SelectionMode == TextDataType.Words )
 			{
-				//--- word selection ---
-				Document.SetSelection(
-						Document.SelectionManager.OriginalAnchorIndex,
-						curPosIndex, View
-					);
+				//--- Word selection ---
+				Document.SetSelection( Document.SelectionManager.OriginalAnchorIndex,
+									   curPosIndex, View );
 			}
 			else
 			{
-				//--- normal selection ---
-				// expand selection to the point if it was different from previous index
+				//--- Normal selection ---
+				// Expand selection to the point if it was different from previous index
 				if( curPosIndex != Document.CaretIndex )
 				{
 					Document.SetSelection( Document.AnchorIndex, curPosIndex );
@@ -1071,7 +1043,7 @@ namespace Sgry.Azuki
 			View.ScrollToCaret( g, 0 );
 		}
 
-		void ClearDragState( Nullable<Point> cursorScreenPos )
+		void ClearDragState( Point? cursorScreenPos )
 		{
 			_MouseDownVirPos.X = Int32.MinValue;
 			_MouseDragging = false;
@@ -1089,17 +1061,14 @@ namespace Sgry.Azuki
 			ResetCursorGraphic( cursorScreenPos );
 		}
 
-		public void ResetCursorGraphic( Nullable<Point> cursorScreenPos )
+		public void ResetCursorGraphic( Point? cursorScreenPos )
 		{
-			// check state
-			bool onLineNumberArea = false;
-			bool onHRulerArea = false;
-			bool onSelectedText = false;
+			var onLineNumberArea = false;
+			var onHRulerArea = false;
+			var onSelectedText = false;
 			MouseCursor? cursorType = null;
 			if( cursorScreenPos != null )
 			{
-				int index;
-
 				if( cursorScreenPos.Value.X < View.ScrXofLeftMargin )
 				{
 					onLineNumberArea = true;
@@ -1110,59 +1079,44 @@ namespace Sgry.Azuki
 				}
 				else if( Document.RectSelectRanges == null )
 				{
-					Point virPos = View.ScreenToVirtual( cursorScreenPos.Value );
-					index = View.GetCharIndex( virPos );
+					var virPos = View.ScreenToVirtual( cursorScreenPos.Value );
+					var index = View.GetCharIndex( virPos );
 
 					onSelectedText = Document.SelectionManager.IsInSelection( index );
 					if( onSelectedText == false )
 					{
 						foreach( int id in Document.GetMarkingsAt(index) )
 						{
-							MarkingInfo info = Marking.GetMarkingInfo( id );
+							var info = Marking.GetMarkingInfo( id );
 							if( info.MouseCursor != MouseCursor.IBeam )
-							{
 								cursorType = info.MouseCursor;
-							}
 						}
 					}
 				}
 			}
 
-			// set cursor graphic
+			// Set cursor graphic
 			if( _MouseDragEditing )
-			{
 				_UI.SetCursorGraphic( MouseCursor.DragAndDrop );
-			}
 			else if( _UI.SelectionMode == TextDataType.Rectangle )
-			{
 				_UI.SetCursorGraphic( MouseCursor.Arrow );
-			}
 			else if( onLineNumberArea )
-			{
 				_UI.SetCursorGraphic( MouseCursor.Arrow );
-			}
 			else if( onHRulerArea )
-			{
 				_UI.SetCursorGraphic( MouseCursor.Arrow );
-			}
 			else if( onSelectedText )
-			{
 				_UI.SetCursorGraphic( MouseCursor.Arrow );
-			}
 			else if( cursorType.HasValue )
-			{
 				_UI.SetCursorGraphic( cursorType.Value );
-			}
 			else
-			{
 				_UI.SetCursorGraphic( MouseCursor.IBeam );
-			}
 		}
 
 		void _MouseDragEditDelayTimer_Tick( object param )
 		{
 			lock( this )
 			{
+				Debug.Assert( _MouseDragEditDelayTimer != null );
 				Debug.Assert( _MouseDragEditing == (_MouseDragEditDelayTimer == null) );
 				_MouseDragEditing = true;
 				_MouseDragEditDelayTimer.Dispose();
@@ -1197,20 +1151,20 @@ namespace Sgry.Azuki
 		{
 			Debug.Assert( _IsDisposed == false );
 
-			// delegate to view object
+			// Delegate to view object
 			View.HandleSelectionChanged( sender, e );
 
-			// update caret graphic
+			// Update caret graphic
 			_UI.UpdateCaretGraphic();
 
-			// update matched bracket positions unless this event was caused by ContentChanged event
-			// (event handler of ContentChanged already handles this)
+			// Update matched bracket positions unless this event was caused by ContentChanged
+			// event (event handler of ContentChanged already handles this)
 			if( e.ByContentChanged == false )
 			{
 				UpdateMatchedBracketPosition();
 			}
 
-			// send event to component users
+			// Send event to component users
 			_UI.InvokeCaretMoved();
 		}
 
@@ -1362,22 +1316,20 @@ namespace Sgry.Azuki
 		}
 
 		/// <summary>
-		/// Makes an array of spaces which is equivalent of a tab character
-		/// in case of inserting it to the position indicated by parameter
-		/// 'index'.
+		/// Makes an array of spaces which is equivalent of a tab character in case of inserting
+		/// it to the position indicated by parameter 'index'.
 		/// </summary>
 		internal static string GetTabEquivalentSpaces( IUserInterface ui,
 													   int index )
 		{
-			Document doc = ui.Document;
-			View view = (View)ui.View;
-			StringBuilder spaces = new StringBuilder( 32 );
+			var view = (IViewInternal)ui.View;
+			var spaces = new StringBuilder( 32 );
 
 			// Calculate next tab stop
-			Point insertPos = view.GetVirtualPos( index );
+			var insertPos = view.GetVirtualPos( index );
 			int nextTabStop = view.NextTabStopX( insertPos.X );
 
-			// make padding spaces
+			// Make padding spaces
 			int spaceCount = (nextTabStop - insertPos.X) / view.SpaceWidthInPx;
 			for( int i=0; i<spaceCount; i++ )
 			{
@@ -1395,26 +1347,22 @@ namespace Sgry.Azuki
 													  Point targetVirPos,
 													  bool alignTabStop )
 		{
-			StringBuilder paddingChars;
-			int targetIndex;
-			Point lineLastCharPos;
-			int rightMostTabStopX;
 			int neededTabCount = 0;
 			int neededSpaceCount;
-			IView view = ui.View;
+			var view = ui.View;
 
 			// calculate the position of the nearest character in line
 			// (this will be at end of the line)
-			targetIndex = view.GetCharIndex( targetVirPos );
-			lineLastCharPos = view.GetVirtualPos( targetIndex );
+			var targetIndex = view.GetCharIndex( targetVirPos );
+			var lineLastCharPos = view.GetVirtualPos( targetIndex );
 			if( targetVirPos.X <= lineLastCharPos.X + view.SpaceWidthInPx )
 			{
 				return ""; // no padding is needed
 			}
 
 			// calculate right most tab stop at left of the target position
-			rightMostTabStopX = targetVirPos.X
-								- (targetVirPos.X % view.TabWidthInPx);
+			var rightMostTabStopX = targetVirPos.X
+									- (targetVirPos.X % view.TabWidthInPx);
 			if( alignTabStop )
 			{
 				// to align position to tab stop,
@@ -1444,7 +1392,7 @@ namespace Sgry.Azuki
 			}
 
 			// pad tabs
-			paddingChars = new StringBuilder();
+			var paddingChars = new StringBuilder();
 			for( int i=0; i<neededTabCount; i++ )
 			{
 				paddingChars.Append( '\t' );
