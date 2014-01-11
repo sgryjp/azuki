@@ -30,12 +30,12 @@ namespace Sgry.Azuki
 			Debug.Assert( g != null, "IGraphics must not be null." );
 			Debug.Assert( token != null, "given token is null." );
 			Debug.Assert( 0 < token.Length, "given token is empty." );
-			Point textPos = tokenPos;
+			var textPos = tokenPos;
 			Color foreColor, backColor;
 			TextDecoration[] decorations;
 			uint markingBitMask;
 
-			// calculate top coordinate of text
+			// Calculate top coordinate of text
 			textPos.Y += (LinePadding >> 1);
 
 #			if DRAW_SLOWLY
@@ -43,90 +43,75 @@ namespace Sgry.Azuki
 			{ g.BackColor=Color.Red; g.FillRectangle(tokenPos.X, tokenPos.Y, 2, LineHeight); DebugUtl.Sleep(400); }
 #			endif
 
-			// get drawing style for this token
-			Utl.ColorFromCharClass(
-					ColorScheme, klass, inSelection, out foreColor, out backColor
-				);
+			// Get drawing style for this token
+			ColorFromCharClass( ColorScheme, klass, inSelection, out foreColor, out backColor );
 			g.BackColor = backColor;
 			markingBitMask = doc.GetMarkingBitMaskAt( tokenIndex );
 			decorations = ColorScheme.GetMarkingDecorations( markingBitMask );
 
-			// overwrite bg color if this token was decorated with solid background decoration
+			// Overwrite bg color if this token was decorated with solid background decoration
 			if( inSelection == false )
 			{
-				foreach( TextDecoration decoration in decorations )
+				foreach( var decoration in decorations )
 				{
-					if( decoration is BgColorTextDecoration )
+					var bgColorDecoration = decoration as BgColorTextDecoration;
+					if( bgColorDecoration != null )
 					{
-						g.BackColor
-							= backColor
-							= ((BgColorTextDecoration)decoration).BackgroundColor;
+						g.BackColor = backColor
+									= bgColorDecoration.BackgroundColor;
 					}
 				}
 			}
 
-			//--- draw graphic ---
-			// space
+			//--- Draw graphic ---
+			// Space
 			if( token == " " )
 			{
-				// draw background
 				g.FillRectangle( tokenPos.X, tokenPos.Y, _SpaceWidth, LineSpacing );
-
-				// draw foreground graphic
 				if( DrawsSpace )
 				{
 					g.ForeColor = ColorScheme.WhiteSpaceColor;
-					g.DrawRectangle(
-							tokenPos.X + (_SpaceWidth >> 1) - 1,
-							textPos.Y + (_LineHeight >> 1),
-							1,
-							1
-						);
+					g.DrawRectangle( tokenPos.X + (_SpaceWidth >> 1) - 1,
+									 textPos.Y + (_LineHeight >> 1),
+									 1,
+									 1 );
 				}
 			}
-			// full-width space
+			// Full-width space
 			else if( token == "\x3000" )
 			{
-				int graLeft, graWidth, graTop, graBottom;
+				// Calc desired foreground graphic position
+				var graLeft = tokenPos.X + 2;
+				var graWidth = _FullSpaceWidth - 5;
+				var graTop = (textPos.Y + _LineHeight / 2) - (graWidth / 2);
+				var graBottom = (textPos.Y + _LineHeight / 2) + (graWidth / 2);
 
-				// calc desired foreground graphic position
-				graLeft = tokenPos.X + 2;
-				graWidth = _FullSpaceWidth - 5;
-				graTop = (textPos.Y + _LineHeight / 2) - (graWidth / 2);
-				graBottom = (textPos.Y + _LineHeight / 2) + (graWidth / 2);
-
-				// draw background
+				// Draw
 				g.FillRectangle( tokenPos.X, tokenPos.Y, _FullSpaceWidth, LineSpacing );
-
-				// draw foreground
 				if( DrawsFullWidthSpace )
 				{
 					g.ForeColor = ColorScheme.WhiteSpaceColor;
 					g.DrawRectangle( graLeft, graTop, graWidth, graBottom-graTop );
 				}
 			}
-			// tab
+			// Tab
 			else if( token == "\t" )
 			{
-				int bgLeft, bgRight;
-				int fgLeft, fgRight;
 				int fgTop = textPos.Y + (_LineHeight * 1 / 3);
 				int fgBottom = textPos.Y + (_LineHeight * 2 / 3);
 
-				// calc next tab stop (calc in virtual space and convert it to screen coordinate)
-				Point tokenVirPos = ScreenToVirtual( tokenPos );
-				bgRight = Utl.CalcNextTabStop( tokenVirPos.X, TabWidthInPx );
+				// Calc next tab stop (calc in virtual space and convert it to screen coordinate)
+				var tokenVirPos = ScreenToVirtual( tokenPos );
+				var bgRight = CalcNextTabStop( tokenVirPos.X, TabWidthInPx );
 				bgRight -= ScrollPosX - ScrXofTextArea;
 				
-				// calc desired foreground graphic position
-				fgLeft = tokenPos.X + 2;
-				fgRight = bgRight - 2;
-				bgLeft = tokenPos.X;
+				// Calc desired foreground graphic position
+				var fgLeft = tokenPos.X + 2;
+				var fgRight = bgRight - 2;
+				var bgLeft = tokenPos.X;
 
-				// draw background
+				// Draw
 				g.FillRectangle( bgLeft, tokenPos.Y, bgRight-bgLeft, LineSpacing );
-
-				// draw foreground
 				if( DrawsTab )
 				{
 					g.ForeColor = ColorScheme.WhiteSpaceColor;
@@ -137,49 +122,49 @@ namespace Sgry.Azuki
 			// EOL-Code
 			else if( TextUtil.IsEolChar(token, 0) )
 			{
-				int width;
-
-				// before to draw background,
-				// change bgcolor to normal if it's not selected
 				if( inSelection == false )
 					g.BackColor = ColorScheme.BackColor;
 
-				// draw background
-				width = EolCodeWidthInPx;
+				// Draw background
+				var width = EolCodeWidthInPx;
 				g.FillRectangle( tokenPos.X, tokenPos.Y, width, LineSpacing );
 
-				// draw foreground
+				// Draw foreground
 				if( DrawsEolCode )
 				{
-					// calc metric
-					int y_middle = tokenPos.Y + (LineSpacing >> 1);
-					int x_middle = tokenPos.X + (width >> 1); // width/2
+					// Calc metric
+					int middleY = tokenPos.Y + (LineSpacing >> 1);
+					int middleX = tokenPos.X + (width >> 1); // width/2
 					int halfSpaceWidth = (_SpaceWidth >> 1); // _SpaceWidth/2
 					int left = tokenPos.X + 1;
 					int right = tokenPos.X + width - 2;
-					int bottom = y_middle + (width >> 1);
+					int bottom = middleY + (width >> 1);
 
-					// draw EOL char's graphic
+					// Draw EOL char's graphic
 					g.ForeColor = ColorScheme.EolColor;
 					if( token == "\r" ) // CR (left arrow)
 					{
-						g.DrawLine( left, y_middle, left+halfSpaceWidth, y_middle-halfSpaceWidth );
-						g.DrawLine( left, y_middle, tokenPos.X+width-2, y_middle );
-						g.DrawLine( left, y_middle, left+halfSpaceWidth, y_middle+halfSpaceWidth );
+						g.DrawLine( left, middleY, left+halfSpaceWidth, middleY-halfSpaceWidth );
+						g.DrawLine( left, middleY, tokenPos.X+width-2, middleY );
+						g.DrawLine( left, middleY, left+halfSpaceWidth, middleY+halfSpaceWidth );
 					}
 					else if( token == "\n" ) // LF (down arrow)
 					{
-						g.DrawLine( x_middle, bottom, x_middle-halfSpaceWidth, bottom-halfSpaceWidth );
-						g.DrawLine( x_middle, y_middle-(width>>1), x_middle, bottom );
-						g.DrawLine( x_middle, bottom, x_middle+halfSpaceWidth, bottom-halfSpaceWidth );
+						g.DrawLine( middleX, bottom,
+									middleX - halfSpaceWidth, bottom - halfSpaceWidth );
+						g.DrawLine( middleX, middleY-(width>>1), middleX, bottom );
+						g.DrawLine( middleX, bottom,
+									middleX + halfSpaceWidth, bottom - halfSpaceWidth );
 					}
 					else // CRLF (snapped arrow)
 					{
-						g.DrawLine( right, y_middle-(width>>1), right, y_middle+2 );
+						g.DrawLine( right, middleY-(width>>1), right, middleY+2 );
 
-						g.DrawLine( left, y_middle+2, left+halfSpaceWidth, y_middle+2-halfSpaceWidth );
-						g.DrawLine( right, y_middle+2, left, y_middle+2 );
-						g.DrawLine( left, y_middle+2, left+halfSpaceWidth, y_middle+2+halfSpaceWidth );
+						g.DrawLine( left, middleY+2,
+									left + halfSpaceWidth, middleY + 2 - halfSpaceWidth );
+						g.DrawLine( right, middleY+2, left, middleY+2 );
+						g.DrawLine( left, middleY+2,
+									left + halfSpaceWidth, middleY + 2 + halfSpaceWidth );
 					}
 				}
 			}
@@ -188,16 +173,12 @@ namespace Sgry.Azuki
 				&& doc.CaretIndex == doc.AnchorIndex // ensure nothing is selected
 				&& IsMatchedBracket(tokenIndex) )
 			{
-				Color fore = ColorScheme.MatchedBracketFore;
-				Color back = ColorScheme.MatchedBracketBack;
+				var fore = ColorScheme.MatchedBracketFore;
+				var back = ColorScheme.MatchedBracketBack;
 				if( fore == Color.Transparent )
-				{
 					fore = foreColor;
-				}
 				if( back == Color.Transparent )
-				{
 					back = backColor;
-				}
 				g.BackColor = back;
 
 				g.FillRectangle( tokenPos.X, tokenPos.Y, tokenEndPos.X-tokenPos.X, LineSpacing );
@@ -205,42 +186,33 @@ namespace Sgry.Azuki
 			}
 			else
 			{
-				// draw normal visible text
+				// Draw normal visible text
 				g.FillRectangle( tokenPos.X, tokenPos.Y, tokenEndPos.X-tokenPos.X, LineSpacing );
 				g.DrawText( token, ref textPos, foreColor );
 			}
 
-			// decorate token
-			foreach( TextDecoration decoration in decorations )
+			// Decorate token
+			foreach( var decoration in decorations )
 			{
-				if( decoration is UnderlineTextDecoration )
+				var ulDecoration = decoration as UnderlineTextDecoration;
+				var olDecoration = decoration as OutlineTextDecoration;
+				if( ulDecoration != null )
 				{
-					DrawToken_Underline(
-							g, token, tokenPos, tokenEndPos,
-							(UnderlineTextDecoration)decoration,
-							foreColor
-						);
+					DrawToken_Underline( g, tokenPos, tokenEndPos,
+										 ulDecoration, foreColor );
 				}
-				else if( decoration is OutlineTextDecoration )
+				else if( olDecoration != null )
 				{
-					DrawToken_Outline(
-							g, doc, token, tokenIndex, tokenPos, tokenEndPos,
-							(OutlineTextDecoration)decoration,
-							foreColor, markingBitMask
-						);
+					DrawToken_Outline( g, doc, token, tokenIndex, tokenPos, tokenEndPos,
+									   olDecoration, foreColor, markingBitMask );
 				}
 			}
 		}
 
-		void DrawToken_Underline(
-				IGraphics g, string token,
-				Point tokenPos, Point tokenEndPos,
-				UnderlineTextDecoration decoration,
-				Color currentForeColor
-			)
+		void DrawToken_Underline( IGraphics g, Point tokenPos, Point tokenEndPos,
+								  UnderlineTextDecoration decoration, Color currentForeColor )
 		{
 			Debug.Assert( g != null );
-			Debug.Assert( token != null );
 			Debug.Assert( decoration != null );
 
 			if( decoration.LineStyle == LineStyle.None )
@@ -266,9 +238,7 @@ namespace Sgry.Azuki
 				int offsetX = tokenPos.X % dotSpacing;
 				for( int x=tokenPos.X-offsetX; x<tokenEndPos.X; x += dotSpacing )
 				{
-					g.FillRectangle(
-						x, tokenPos.Y + LineHeight - dotSize,
-						dotSize, dotSize );
+					g.FillRectangle( x, tokenPos.Y + LineHeight - dotSize, dotSize, dotSize );
 				}
 			}
 			else if( decoration.LineStyle == LineStyle.Dashed )
@@ -279,9 +249,8 @@ namespace Sgry.Azuki
 				int offsetX = tokenPos.X % lineSpacing;
 				for( int x=tokenPos.X-offsetX; x<tokenEndPos.X; x +=lineSpacing )
 				{
-					g.FillRectangle(
-						x, tokenPos.Y + LineHeight - lineWidthSize,
-						lineLength, lineWidthSize );
+					g.FillRectangle( x, tokenPos.Y + LineHeight - lineWidthSize,
+									 lineLength, lineWidthSize );
 				}
 			}
 			else if( decoration.LineStyle == LineStyle.Waved )
@@ -304,30 +273,24 @@ namespace Sgry.Azuki
 			{
 				int lineWidth = (_Font.Size / 24) + 1;
 
-				g.FillRectangle(
-					tokenPos.X, tokenPos.Y + LineHeight - (3*lineWidth),
-					tokenEndPos.X, lineWidth );
+				g.FillRectangle( tokenPos.X, tokenPos.Y + LineHeight - (3 * lineWidth),
+								 tokenEndPos.X, lineWidth );
 
-				g.FillRectangle(
-					tokenPos.X, tokenPos.Y + LineHeight - lineWidth,
-					tokenEndPos.X, lineWidth );
+				g.FillRectangle( tokenPos.X, tokenPos.Y + LineHeight - lineWidth,
+								 tokenEndPos.X, lineWidth );
 			}
 			else if( decoration.LineStyle == LineStyle.Solid )
 			{
 				int lineWidth = (_Font.Size / 24) + 1;
-
-				g.FillRectangle(
-					tokenPos.X, tokenPos.Y + LineHeight - lineWidth,
-					tokenEndPos.X, lineWidth );
+				g.FillRectangle( tokenPos.X, tokenPos.Y + LineHeight - lineWidth,
+								 tokenEndPos.X, lineWidth );
 			}
 		}
 
-		void DrawToken_Outline(
-				IGraphics g, Document doc,
-				string token, int tokenIndex,
-				Point tokenPos, Point tokenEndPos,
-				OutlineTextDecoration decoration,
-				Color currentForeColor, uint markingBitMask
+		void DrawToken_Outline( IGraphics g, Document doc, string token, int tokenIndex,
+								Point tokenPos, Point tokenEndPos,
+								OutlineTextDecoration decoration,
+								Color currentForeColor, uint markingBitMask
 			)
 		{
 			Debug.Assert( g != null );
@@ -344,11 +307,10 @@ namespace Sgry.Azuki
 			else
 				g.BackColor = decoration.LineColor;
 			int w = (_Font.Size / 24) + 1;
-			Rectangle rect = new Rectangle();
-			rect.X = tokenPos.X;
-			rect.Y = tokenPos.Y + 1;
-			rect.Width = tokenEndPos.X - tokenPos.X;
-			rect.Height = LineSpacing - w - 2; // 1 == width of current line highlight
+			var rect = new Rectangle( tokenPos.X,
+									  tokenPos.Y + 1,
+									  tokenEndPos.X - tokenPos.X,
+									  LineSpacing - w - 2 );
 
 			// draw top line
 			g.FillRectangle( rect.Left, rect.Top, rect.Width, w );
@@ -382,7 +344,9 @@ namespace Sgry.Azuki
 			if( lineTopY < 0 )
 				return;
 
-			DebugUtl.Assert( (lineTopY % LineSpacing) == (ScrYofTextArea % LineSpacing), "lineTopY:"+lineTopY+", LineSpacing:"+LineSpacing+", ScrYofTextArea:"+ScrYofTextArea );
+			DebugUtl.Assert( (lineTopY % LineSpacing) == (ScrYofTextArea % LineSpacing),
+							 "lineTopY:" + lineTopY + ", LineSpacing:" + LineSpacing
+							 + ", ScrYofTextArea:" + ScrYofTextArea );
 
 			// calculate position to underline
 			int bottom = lineTopY + LineHeight + (LinePadding >> 1);
@@ -402,39 +366,37 @@ namespace Sgry.Azuki
 		/// </summary>
 		protected void DrawDirtBar( IGraphics g, int lineTopY, int logicalLineIndex )
 		{
-			Debug.Assert( ((lineTopY-ScrYofTextArea) % LineSpacing) == 0, "((lineTopY-ScrYofTextArea) % LineSpacing) is not 0 but " + (lineTopY-ScrYofTextArea) % LineSpacing );
+			Debug.Assert( ((lineTopY-ScrYofTextArea) % LineSpacing) == 0,
+						  "((lineTopY-ScrYofTextArea) % LineSpacing) is not 0 but "
+						  + (lineTopY-ScrYofTextArea) % LineSpacing );
 			DirtyState dirtyState;
 			Color backColor;
 
-			// get dirty state of the line
+			// Get dirty state of the line
 			if( 0 <= logicalLineIndex && logicalLineIndex < Document.Lines.Count )
 				dirtyState = Document.Lines[logicalLineIndex].DirtyState;
 			else
 				dirtyState = DirtyState.Clean;
 
-			// choose background color
+			// Choose background color
 			if( dirtyState == DirtyState.Saved )
 			{
 				backColor = ColorScheme.CleanedLineBar;
 				if( backColor == Color.Transparent )
-				{
-					backColor = Utl.BackColorOfLineNumber( ColorScheme );
-				}
+					backColor = BackColorOfLineNumber( ColorScheme );
 			}
 			else if( dirtyState == DirtyState.Dirty )
 			{
 				backColor = ColorScheme.DirtyLineBar;
 				if( backColor == Color.Transparent )
-				{
-					backColor = Utl.BackColorOfLineNumber( ColorScheme );
-				}
+					backColor = BackColorOfLineNumber( ColorScheme );
 			}
 			else
 			{
-				backColor = Utl.BackColorOfLineNumber( ColorScheme );
+				backColor = BackColorOfLineNumber( ColorScheme );
 			}
 
-			// fill
+			// Fill
 			g.BackColor = backColor;
 			g.FillRectangle( ScrXofDirtBar, lineTopY, DirtBarWidth, LineSpacing );
 		}
@@ -448,50 +410,46 @@ namespace Sgry.Azuki
 		/// <param name="drawsText">specify true if line number text should be drawn.</param>
 		protected void DrawLeftOfLine( IGraphics g, int lineTopY, int lineNumber, bool drawsText )
 		{
-			DebugUtl.Assert( (lineTopY % LineSpacing) == (ScrYofTextArea % LineSpacing), "lineTopY:"+lineTopY+", LineSpacing:"+LineSpacing+", ScrYofTextArea:"+ScrYofTextArea );
-			Point pos = new Point( ScrXofLineNumberArea, lineTopY );
+			DebugUtl.Assert( (lineTopY % LineSpacing) == (ScrYofTextArea % LineSpacing),
+							 "lineTopY:" + lineTopY + ", LineSpacing:" + LineSpacing
+							 + ", ScrYofTextArea:" + ScrYofTextArea );
+			var pos = new Point( ScrXofLineNumberArea, lineTopY );
 			
-			// fill line number area
+			// Fill line number area
 			if( ShowLineNumber )
 			{
-				g.BackColor = Utl.BackColorOfLineNumber( ColorScheme );
+				g.BackColor = BackColorOfLineNumber( ColorScheme );
 				g.FillRectangle( ScrXofLineNumberArea, pos.Y, LineNumAreaWidth, LineSpacing );
 			}
 
-			// fill dirt bar
+			// Fill dirt bar
 			if( ShowsDirtBar )
 			{
 				DrawDirtBar( g, lineTopY, lineNumber-1 );
 			}
 			
-			// fill left margin area
+			// Fill left margin area
 			if( 0 < LeftMargin )
 			{
 				g.BackColor = ColorScheme.BackColor;
 				g.FillRectangle( ScrXofLeftMargin, pos.Y, LeftMargin, LineSpacing );
 			}
 			
-			// draw line number text
+			// Draw line number text
 			if( ShowLineNumber && drawsText )
 			{
-				string lineNumText;
-				Point textPos;
-
-				// calculate text position
-				lineNumText = lineNumber.ToString();
+				var lineNumText = lineNumber.ToString();
 				pos.X = ScrXofDirtBar - g.MeasureText( lineNumText ).Width - LineNumberAreaPadding;
-				textPos = pos;
+				var textPos = pos;
 				textPos.Y += (LinePadding >> 1);
-
-				// draw text
-				g.DrawText( lineNumText, ref textPos, Utl.ForeColorOfLineNumber(ColorScheme) );
+				g.DrawText( lineNumText, ref textPos, ForeColorOfLineNumber(ColorScheme) );
 			}
 
-			// draw margin line between the line number area and text area
+			// Draw margin line between the line number area and text area
 			if( ShowLineNumber || ShowsDirtBar )
 			{
 				pos.X = ScrXofLeftMargin - 1;
-				g.ForeColor = Utl.ForeColorOfLineNumber( ColorScheme );
+				g.ForeColor = ForeColorOfLineNumber( ColorScheme );
 				g.DrawLine( pos.X, pos.Y, pos.X, pos.Y+LineSpacing );
 			}
 		}
@@ -504,19 +462,18 @@ namespace Sgry.Azuki
 			string columnNumberText;
 			int lineX, rulerIndex;
 			int leftMostLineX, leftMostRulerIndex;
-			int indexDiff;
 
 			if( ShowsHRuler == false || ScrYofTopMargin < clipRect.Y )
 				return;
 
 			g.SetClipRect( clipRect );
 
-			// fill ruler area
-			g.ForeColor = Utl.ForeColorOfLineNumber( ColorScheme );
-			g.BackColor = Utl.BackColorOfLineNumber( ColorScheme );
+			// Fill ruler area
+			g.ForeColor = ForeColorOfLineNumber( ColorScheme );
+			g.BackColor = BackColorOfLineNumber( ColorScheme );
 			g.FillRectangle( 0, ScrYofHRuler, VisibleSize.Width, HRulerHeight );
 
-			// if clipping rectangle covers left of text area,
+			// If clipping rectangle covers left of text area,
 			// reset clipping rect that does not covers left of text area
 			if( clipRect.X < ScrXofLeftMargin )
 			{
@@ -526,7 +483,7 @@ namespace Sgry.Azuki
 				g.SetClipRect( clipRect );
 			}
 
-			// calculate first line to be drawn
+			// Calculate first line to be drawn
 			leftMostRulerIndex = ScrollPosX / HRulerUnitWidth;
 			leftMostLineX = ScrXofTextArea + (leftMostRulerIndex * HRulerUnitWidth) - ScrollPosX;
 			while( leftMostLineX < clipRect.Left )
@@ -535,107 +492,101 @@ namespace Sgry.Azuki
 				leftMostLineX += HRulerUnitWidth;
 			}
 
-			// align first line index to largest multiple of 10 to ensure number text will not be cut off
-			indexDiff = (leftMostRulerIndex % 10);
+			// Align beginning column index to largest multiple of 10
+			// to ensure column number graphic will not be cut off
+			var indexDiff = (leftMostRulerIndex % 10);
 			if( 1 <= indexDiff && indexDiff <= 5 )
 			{
 				leftMostRulerIndex -= indexDiff;
 				leftMostLineX -= indexDiff * HRulerUnitWidth;
 			}
 
-			// draw lines on the ruler
+			// Draw lines on the ruler
 			g.FontInfo = _HRulerFont;
 			lineX = leftMostLineX;
 			rulerIndex = leftMostRulerIndex;
 			while( lineX < clipRect.Right )
 			{
-				// draw ruler line
+				// Draw ruler line
 				if( (rulerIndex % 10) == 0 )
 				{
-					Point pos;
-
-					// draw largest line
+					// Draw largest line
 					g.DrawLine( lineX, ScrYofHRuler, lineX, ScrYofHRuler+HRulerHeight );
 
-					// draw column text
+					// Draw column text
 					columnNumberText = (rulerIndex / 10).ToString();
-					pos = new Point( lineX+2, ScrYofHRuler );
-					g.DrawText( columnNumberText, ref pos, Utl.ForeColorOfLineNumber(ColorScheme) );
+					var pos = new Point( lineX+2, ScrYofHRuler );
+					g.DrawText( columnNumberText, ref pos, ForeColorOfLineNumber(ColorScheme) );
 				}
 				else if( (rulerIndex % 5) == 0 )
 				{
-					// draw middle-length line
+					// Draw middle-length line
 					g.DrawLine( lineX, ScrYofHRuler+_HRulerY_5, lineX, ScrYofHRuler+HRulerHeight );
 				}
 				else
 				{
-					// draw smallest line
+					// Draw smallest line
 					g.DrawLine( lineX, ScrYofHRuler+_HRulerY_1, lineX, ScrYofHRuler+HRulerHeight );
 				}
 
-				// go to next ruler line
+				// Go to next ruler line
 				rulerIndex++;
 				lineX += HRulerUnitWidth;
 			}
 			g.FontInfo = _Font;
 
-			// draw bottom border line
-			g.DrawLine(
-					ScrXofLeftMargin-1, ScrYofHRuler + HRulerHeight - 1,
-					VisibleSize.Width, ScrYofHRuler + HRulerHeight - 1
-				);
+			// Draw bottom border line
+			g.DrawLine( ScrXofLeftMargin-1, ScrYofHRuler + HRulerHeight - 1,
+						VisibleSize.Width, ScrYofHRuler + HRulerHeight - 1 );
 
-			// draw indicator of caret column
+			// Draw indicator of caret column
 			g.BackColor = ColorScheme.ForeColor;
 			if( HRulerIndicatorType == HRulerIndicatorType.Position )
 			{
 				int indicatorWidth = 2;
 
-				// calculate indicator region
-				Point caretPos = VirtualToScreen( GetVirtualPos(g, Document.CaretIndex) );
+				// Calculate indicator region
+				var caretPos = VirtualToScreen( GetVirtualPos(g, Document.CaretIndex) );
 				if( caretPos.X < ScrXofTextArea )
 				{
 					indicatorWidth -= ScrXofTextArea - caretPos.X;
 					caretPos.X = ScrXofTextArea;
 				}
 
-				// draw indicator
+				// Draw indicator
 				if( 0 < indicatorWidth )
 				{
 					g.FillRectangle( caretPos.X, ScrYofHRuler, indicatorWidth, HRulerHeight );
 				}
 
-				// remember lastly drawn ruler bar position
+				// Remember lastly drawn ruler bar position
 				PerDocParam.PrevHRulerVirX = caretPos.X - ScrXofTextArea + ScrollPosX;
 			}
 			else if( HRulerIndicatorType == HRulerIndicatorType.CharCount )
 			{
-				int indicatorX, indicatorWidth;
-
-				// calculate indicator region
+				// Calculate indicator region
 				var caretPos = GetTextPosition( Document.CaretIndex );
-				indicatorWidth = HRulerUnitWidth - 1;
-				indicatorX = leftMostLineX + (caretPos.Column - leftMostRulerIndex) * HRulerUnitWidth;
+				var indicatorWidth = HRulerUnitWidth - 1;
+				var indicatorX = leftMostLineX
+								 + (caretPos.Column - leftMostRulerIndex) * HRulerUnitWidth;
 				if( indicatorX < ScrXofTextArea )
 				{
 					indicatorWidth -= ScrXofTextArea - indicatorX;
 					indicatorX = ScrXofTextArea;
 				}
 				
-				// draw indicator
+				// Draw indicator
 				if( 0 < indicatorWidth )
-				{
 					g.FillRectangle( indicatorX+1, ScrYofHRuler, indicatorWidth, HRulerHeight-1 );
-				}
 
-				// remember lastly filled ruler segmentr position
+				// Remember lastly filled ruler segmentr position
 				PerDocParam.PrevHRulerVirX = indicatorX - ScrXofTextArea + ScrollPosX;
 			}
 			else// if( HRulerIndicatorType == HRulerIndicatorType.Segment )
 			{
-				// calculate indicator region
+				// Calculate indicator region
 				int indicatorWidth = HRulerUnitWidth - 1;
-				Point indicatorPos = GetVirtualPos( g, Document.CaretIndex );
+				var indicatorPos = GetVirtualPos( g, Document.CaretIndex );
 				indicatorPos.X -= (indicatorPos.X % HRulerUnitWidth);
 				indicatorPos = VirtualToScreen( indicatorPos );
 				if( indicatorPos.X < ScrXofTextArea )
@@ -644,14 +595,14 @@ namespace Sgry.Azuki
 					indicatorPos.X = ScrXofTextArea;
 				}
 
-				// draw indicator
+				// Draw indicator
 				if( 0 < indicatorWidth )
 				{
 					g.FillRectangle( indicatorPos.X + 1, ScrYofHRuler,
 									 indicatorWidth, HRulerHeight - 1 );
 				}
 
-				// remember lastly filled ruler segmentr position
+				// Remember lastly filled ruler segmentr position
 				PerDocParam.PrevHRulerVirX = indicatorPos.X - ScrXofTextArea + ScrollPosX;
 			}
 
@@ -663,23 +614,21 @@ namespace Sgry.Azuki
 		/// </summary>
 		protected void DrawTopMargin( IGraphics g )
 		{
-			// fill area above the line-number area [copied from DrawLineNumber]
-			g.BackColor = Utl.BackColorOfLineNumber( ColorScheme );
-			g.FillRectangle(
-					ScrXofLineNumberArea, ScrYofTopMargin,
-					ScrXofTextArea-ScrXofLineNumberArea, TopMargin
-				);
+			// Fill area above the line-number area [copied from DrawLineNumber]
+			g.BackColor = BackColorOfLineNumber( ColorScheme );
+			g.FillRectangle( ScrXofLineNumberArea, ScrYofTopMargin,
+							 ScrXofTextArea-ScrXofLineNumberArea, TopMargin );
 			
-			// fill left margin area [copied from DrawLineNumber]
+			// Fill left margin area [copied from DrawLineNumber]
 			g.BackColor = ColorScheme.BackColor;
 			g.FillRectangle( ScrXofLeftMargin, ScrYofTopMargin, LeftMargin, TopMargin );
 
-			// draw margin line between the line number area and text area [copied from DrawLineNumber]
+			// Draw margin line between the line number area and text area [copied from DrawLineNumber]
 			int x = ScrXofLeftMargin - 1;
-			g.ForeColor = Utl.ForeColorOfLineNumber( ColorScheme );
+			g.ForeColor = ForeColorOfLineNumber( ColorScheme );
 			g.DrawLine( x, ScrYofTopMargin, x, ScrYofTopMargin+TopMargin );
 
-			// fill area above the text area
+			// Fill area above the text area
 			g.BackColor = ColorScheme.BackColor;
 			g.FillRectangle( ScrXofTextArea, ScrYofTopMargin,
 							 VisibleSize.Width - ScrXofTextArea, TopMargin );
@@ -690,21 +639,19 @@ namespace Sgry.Azuki
 		/// </summary>
 		protected void DrawEofMark( IGraphics g, ref Point pos )
 		{
-			Point textPos;
-
 			g.BackColor = ColorScheme.BackColor;
 			int margin = (_SpaceWidth >> 2);
 
-			// fill background
+			// Fill background
 			int width = g.MeasureText( "[EOF]" ).Width;
 			g.FillRectangle( pos.X, pos.Y, width+margin, LineSpacing );
 
-			// calculate text position
+			// Calculate text position
 			pos.X += margin;
-			textPos = pos;
+			var textPos = pos;
 			textPos.Y += (LinePadding >> 1);
 
-			// draw text
+			// Draw text
 			g.DrawText( "[EOF]", ref textPos, ColorScheme.EofColor );
 			pos.X += width;
 		}
@@ -716,63 +663,57 @@ namespace Sgry.Azuki
 			if( ShowsHRuler == false )
 				return;
 
-			Rectangle updateRect_old;
-			Rectangle udpateRect_new;
+			Rectangle oldUpdateRect;
+			Rectangle newUdpateRect;
 			var doc = Document;
 
 			if( HRulerIndicatorType == HRulerIndicatorType.Position )
 			{
-				// get virtual position of the new caret
-				Point newCaretScreenPos = VirtualToScreen( GetVirtualPos(g, doc.CaretIndex) );
+				// Get virtual position of the new caret
+				var newCaretScreenPos = VirtualToScreen( GetVirtualPos(g, doc.CaretIndex) );
 
-				// get previous screen position of the caret
+				// Get previous screen position of the caret
 				int oldCaretX = PerDocParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
 				if( oldCaretX == newCaretScreenPos.X )
 				{
 					return; // horizontal poisition of the caret not changed
 				}
 
-				// calculate indicator rectangle for old caret position
-				updateRect_old = new Rectangle(
-						oldCaretX, ScrYofHRuler, 2, HRulerHeight
-					);
-
-				// calculate indicator rectangle for new caret position
-				udpateRect_new = new Rectangle(
-						newCaretScreenPos.X, ScrYofHRuler, 2, HRulerHeight
-					);
+				// Calculate indicator rectangle
+				oldUpdateRect = new Rectangle( oldCaretX, ScrYofHRuler,
+											   2, HRulerHeight );
+				newUdpateRect = new Rectangle( newCaretScreenPos.X, ScrYofHRuler,
+											   2, HRulerHeight );
 			}
 			else if( HRulerIndicatorType == HRulerIndicatorType.CharCount )
 			{
-				// calculate new segment of horizontal ruler
+				// Calculate new segment of horizontal ruler
 				var newCaretPos = GetTextPosition( doc.CaretIndex );
-				var newSegmentX = (newCaretPos.Column * HRulerUnitWidth) + ScrXofTextArea - ScrollPosX;
+				var newSegmentX = (newCaretPos.Column * HRulerUnitWidth)
+								  + ScrXofTextArea
+								  - ScrollPosX;
 
-				// calculate previous segment of horizontal ruler
+				// Calculate previous segment of horizontal ruler
 				var oldSegmentX = PerDocParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
 				if( oldSegmentX == newSegmentX )
 				{
 					return; // horizontal poisition of the caret not changed
 				}
 
-				// calculate indicator rectangle for old caret position
-				updateRect_old = new Rectangle(
-						oldSegmentX, ScrYofHRuler, HRulerUnitWidth, HRulerHeight
-					);
-
-				// calculate indicator rectangle for new caret position
-				udpateRect_new = new Rectangle(
-						newSegmentX, ScrYofHRuler, HRulerUnitWidth, HRulerHeight
-					);
+				// Calculate indicator rectangle
+				oldUpdateRect = new Rectangle( oldSegmentX, ScrYofHRuler,
+											   HRulerUnitWidth, HRulerHeight );
+				newUdpateRect = new Rectangle( newSegmentX, ScrYofHRuler,
+											   HRulerUnitWidth, HRulerHeight );
 			}
 			else// if( HRulerIndicatorType == HRulerIndicatorType.Segment )
 			{
 				int oldSegmentX, newSegmentX;
 
-				// get virtual position of the new caret
-				Point newCaretScreenPos = VirtualToScreen( GetVirtualPos(g, doc.CaretIndex) );
+				// Get virtual position of the new caret
+				var newCaretScreenPos = VirtualToScreen( GetVirtualPos(g, doc.CaretIndex) );
 
-				// calculate new segment of horizontal rulse
+				// Calculate new segment of horizontal rulse
 				int leftMostRulerIndex = ScrollPosX / HRulerUnitWidth;
 				int leftMostLineX = ScrXofTextArea
 									+ (leftMostRulerIndex * HRulerUnitWidth)
@@ -783,17 +724,17 @@ namespace Sgry.Azuki
 					newSegmentX += HRulerUnitWidth;
 				}
 
-				// calculate previous segment of horizontal ruler
+				// Calculate previous segment of horizontal ruler
 				oldSegmentX = PerDocParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
 				if( oldSegmentX == newSegmentX )
 				{
 					return; // segment was not changed
 				}
 
-				// calculate invalid rectangle
-				updateRect_old = new Rectangle( oldSegmentX, ScrYofHRuler,
+				// Calculate invalid rectangle
+				oldUpdateRect = new Rectangle( oldSegmentX, ScrYofHRuler,
 												HRulerUnitWidth, HRulerHeight );
-				udpateRect_new = new Rectangle( newSegmentX, ScrYofHRuler,
+				newUdpateRect = new Rectangle( newSegmentX, ScrYofHRuler,
 												HRulerUnitWidth, HRulerHeight );
 			}
 
@@ -802,14 +743,15 @@ namespace Sgry.Azuki
 			// invalidating area in horizontal ruler makes
 			// large invalid rectangle and has bad effect on performance,
 			// especially on mobile devices.)
-			DrawHRuler( g, updateRect_old );
-			DrawHRuler( g, udpateRect_new );
+			DrawHRuler( g, oldUpdateRect );
+			DrawHRuler( g, newUdpateRect );
 		}
 		#endregion
 
 		#region Measuring paint text token
 		/// <summary>
-		/// Calculates x-coordinate of the right end of given token drawed at specified position with specified tab-width.
+		/// Calculates x-coordinate of the right end of given token drawed at specified position
+		/// with specified tab-width.
 		/// </summary>
 		internal int MeasureTokenEndX( IGraphics g, string token, int virX )
 		{
@@ -828,9 +770,9 @@ namespace Sgry.Azuki
 		/// Calculates x-coordinate of the right end of given token
 		/// drawed at specified position with specified tab-width.
 		/// </summary>
-		protected int MeasureTokenEndX( IGraphics g, string token, int virX, int rightLimitX, out int drawableLength )
+		protected int MeasureTokenEndX( IGraphics g, string token, int virX, int rightLimitX,
+										out int drawableLength )
 		{
-			StringBuilder subToken;
 			int x = virX;
 			int relDLen; // relatively calculated drawable length
 			int subTokenWidth;
@@ -842,26 +784,26 @@ namespace Sgry.Azuki
 				return x;
 			}
 
-			// for each char
-			subToken = new StringBuilder( token.Length );
+			var subToken = new StringBuilder( token.Length );
 			for( int i=0; i<token.Length; i++ )
 			{
 				if( token[i] == '\t' )
 				{
-					//--- found a tab ---
-					// calculate drawn length of cached characters
-					hitRightLimit = MeasureTokenEndX_TreatSubToken( g, i, subToken, rightLimitX, ref x, ref drawableLength );
+					//--- Found a tab ---
+					// Calculate drawn length of cached characters
+					hitRightLimit = MeasureTokenEndX_TreatSubToken( g, i, subToken, rightLimitX,
+																	ref x, ref drawableLength );
 					if( hitRightLimit )
 					{
 						// before this tab, cached characters already hit the limit.
 						return x;
 					}
 
-					// calc next tab stop
-					subTokenWidth = Utl.CalcNextTabStop( x, TabWidthInPx );
+					// Calc next tab stop
+					subTokenWidth = CalcNextTabStop( x, TabWidthInPx );
 					if( rightLimitX <= subTokenWidth )
 					{
-						// this tab hit the right limit.
+						// This tab hit the right limit.
 						Debug.Assert( drawableLength == i );
 						drawableLength = i;
 						return x;
@@ -871,24 +813,25 @@ namespace Sgry.Azuki
 				}
 				else if( TextUtil.IsEolChar(token, i) )
 				{
-					//--- detected an EOL char ---
-					// calculate drawn length of cached characters
-					hitRightLimit = MeasureTokenEndX_TreatSubToken( g, i, subToken, rightLimitX, ref x, ref drawableLength );
+					//--- Detected an EOL char ---
+					// Calculate drawn length of cached characters
+					hitRightLimit = MeasureTokenEndX_TreatSubToken( g, i, subToken, rightLimitX,
+																	ref x, ref drawableLength );
 					if( hitRightLimit )
 					{
-						// before this EOL char, cached characters already hit the limit.
+						// Before this EOL char, cached characters already hit the limit.
 						return x;
 					}
 
-					// check whether this EOL code can be drawn or not
+					// Check whether this EOL code can be drawn or not
 					if( rightLimitX <= x + EolCodeWidthInPx )
 					{
-						// this EOL code hit the right limit.
+						// This EOL code hit the right limit.
 						return x;
 					}
 					x += EolCodeWidthInPx;
 
-					// treat this EOL code
+					// Treat this EOL code
 					drawableLength++;
 					if( token[i] == '\r'
 						&& i+1 < token.Length && token[i+1] == '\n' )
@@ -901,16 +844,19 @@ namespace Sgry.Azuki
 				{
 					if( 64 < subToken.Length )
 					{
-						// pretty long text was cached.
+						// Pretty long text was cached.
 						// calculate its width and check whether drawable or not
-						hitRightLimit = MeasureTokenEndX_TreatSubToken( g, i, subToken, rightLimitX, ref x, ref drawableLength );
+						hitRightLimit = MeasureTokenEndX_TreatSubToken( g, i, subToken,
+																		rightLimitX,
+																		ref x,
+																		ref drawableLength );
 						if( hitRightLimit )
 						{
 							return x; // hit the right limit
 						}
 					}
 
-					// append one grapheme cluster
+					// Append one grapheme cluster
 					subToken.Append( token[i] );
 					while( TextUtil.IsNotDividableIndex(token, i+1) )
 					{
@@ -920,7 +866,7 @@ namespace Sgry.Azuki
 				}
 			}
 
-			// calc last sub-token
+			// Calc last sub-token
 			if( 0 < subToken.Length )
 			{
 				x += g.MeasureText( subToken.ToString(), rightLimitX-x, out relDLen ).Width;
@@ -934,30 +880,27 @@ namespace Sgry.Azuki
 			}
 			Debug.Assert( TextUtil.IsNotDividableIndex(token, drawableLength) == false );
 
-			// whole part of the given token can be drawn at given width.
+			// Whole part of the given token can be drawn at given width.
 			return x;
 		}
 
 		/// <returns>true if measured right poisition hit the limit.</returns>
-		static bool MeasureTokenEndX_TreatSubToken( IGraphics gra, int i, StringBuilder subToken, int rightLimitX, ref int x, ref int drawableLength )
+		static bool MeasureTokenEndX_TreatSubToken( IGraphics gra, int i, StringBuilder subToken,
+													int rightLimitX, ref int x,
+													ref int drawableLength )
 		{
-			int subTokenWidth;
 			int relDLen;
-			
-			if( subToken.Length == 0 )
-			{
-				return false;
-			}
 
-			subTokenWidth = gra.MeasureText( subToken.ToString(), rightLimitX-x, out relDLen ).Width;
+			if( subToken.Length == 0 )
+				return false;
+
+			var subTokenWidth = gra.MeasureText( subToken.ToString(), rightLimitX-x, out relDLen ).Width;
 			if( relDLen < subToken.Length )
 			{
 				// given width is too narrow to draw this sub-token.
 				// chop after the limit and re-calc subtoken's width
 				drawableLength = i - (subToken.Length - relDLen);
-				x += gra.MeasureText(
-						subToken.ToString(0, relDLen)
-					).Width;
+				x += gra.MeasureText( subToken.ToString(0, relDLen) ).Width;
 				subToken.Length = 0;
 				return true;
 			}
@@ -1044,184 +987,134 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets next token for painting.
 		/// </summary>
-		protected int NextPaintToken(
-				Document doc, int index, int nextLineHead,
-				out CharClass out_klass, out bool out_inSelection
-			)
+		protected int NextPaintToken( Document doc, int index, int nextLineHead,
+									  out CharClass out_klass, out bool out_inSelection )
 		{
-			DebugUtl.Assert( nextLineHead <= doc.Length, "param 'nextLineHead'("+nextLineHead+") must not be greater than 'doc.Length'("+doc.Length+")." );
+			DebugUtl.Assert( nextLineHead <= doc.Length, "param 'nextLineHead'(" + nextLineHead
+							 + ") must not be greater than 'doc.Length'(" + doc.Length + ")." );
 
 			char firstCh, ch;
 			CharClass firstKlass, klass;
 			uint firstMarkingBitMask, markingBitMask;
-			int tokenEndLimit;
 
 			out_inSelection = false;
 
-			// if given index is out of range,
-			// return -1 to terminate outer loop
 			if( nextLineHead <= index )
 			{
 				out_klass = CharClass.Normal;
-				return -1;
+				return -1; // terminate outer loop
 			}
 
-			// calculate how many chars should be drawn as one token
-			tokenEndLimit = CalcTokenEndAtMost( doc, index, nextLineHead, out out_inSelection );
+			// Calculate how many chars should be drawn as one token
+			var tokenEndLimit = CalcTokenEndAtMost( doc, index, nextLineHead,
+													out out_inSelection );
 			if( IsMatchedBracket(index) )
 			{
-				// if specified index is a bracket paired with a bracket at caret, paint this single char
+				// If specified index is a bracket paired with a bracket at caret,
+				// paint this single char
 				out_klass = doc.GetCharClass( index );
 				return index + 1;
 			}
 
-			// get first char class and selection state
+			// Get first char class and selection state
 			firstCh = doc[ index ];
 			firstKlass = doc.GetCharClass( index );
 			firstMarkingBitMask = doc.GetMarkingBitMaskAt( index );
 			out_klass = firstKlass;
-			if( Utl.IsSpecialChar(firstCh) )
+			if( IsSpecialChar(firstCh) )
 			{
-				// treat 1 special char as 1 token
+				// Treat 1 special char as 1 token
 				if( firstCh == '\r'
 					&& index+1 < doc.Length
 					&& doc[index+1] == '\n' )
-				{
 					return index + 2;
-				}
 				else
-				{
 					return index + 1;
-				}
 			}
 			
-			// seek until token end appears
+			// Seek until token end appears
 			while( index+1 < tokenEndLimit )
 			{
-				// get next char
+				// Get next char
 				index++;
 				ch = doc[ index ];
 				klass = doc.GetCharClass( index );
 				markingBitMask = doc.GetMarkingBitMaskAt( index );
 
-				// if this char is a special char, stop seeking
-				if( Utl.IsSpecialChar(ch) )
-				{
-					return index;
-				}
-				// or if this is matched bracket, stop seeking
-				else if( IsMatchedBracket(index) )
-				{
-					return index;
-				}
-				// or, character class changed; token ended
-				else if( klass != firstKlass )
-				{
-					return index;
-				}
-				// or, marking changed; token ended
-				else if( markingBitMask != firstMarkingBitMask )
+				if( IsSpecialChar(ch)							// special char
+					|| IsMatchedBracket(index)					// matched bracket
+					|| klass != firstKlass						// different character class
+					|| markingBitMask != firstMarkingBitMask )	// different marking
 				{
 					return index;
 				}
 			}
 
-			// reached to the limit
+			// Reached to the limit
 			return tokenEndLimit;
 		}
 
 		/// <summary>
-		/// Class containing small utilities for class View.
+		/// Gets fore/back color pair from scheme according to char class.
 		/// </summary>
-		protected class Utl
+		static void ColorFromCharClass( ColorScheme cs, CharClass klass, bool inSelection,
+										out Color fore, out Color back )
 		{
-			/// <summary>
-			/// Gets fore/back color pair from scheme according to char class.
-			/// </summary>
-			public static void ColorFromCharClass(
-					ColorScheme cs, CharClass klass, bool inSelection,
-					out Color fore, out Color back
-				)
-			{
-				// Get appropriate fore and back color in the context
-				cs.GetColor( klass, out fore, out back );
+			cs.GetColor( klass, out fore, out back );
 
-				// Fallback
-				if( inSelection )
-				{
-					back = cs.SelectionBack;
-					if( cs.SelectionFore != Color.Transparent )
-						fore = cs.SelectionFore;
-				}
-				if( fore == Color.Transparent )
-				{
-					fore = cs.ForeColor;
-				}
-				if( back == Color.Transparent )
-				{
-					back = cs.BackColor;
-				}
+			if( inSelection )
+			{
+				back = cs.SelectionBack;
+				if( cs.SelectionFore != Color.Transparent )
+					fore = cs.SelectionFore;
 			}
 
-			public static Color ForeColorOfLineNumber( ColorScheme cs )
+			if( fore == Color.Transparent )
+				fore = cs.ForeColor;
+			if( back == Color.Transparent )
+				back = cs.BackColor;
+		}
+
+		static Color ForeColorOfLineNumber( ColorScheme cs )
+		{
+			return (cs.LineNumberFore != Color.Transparent) ? cs.LineNumberFore
+															: cs.ForeColor;
+		}
+
+		static Color BackColorOfLineNumber( ColorScheme cs )
+		{
+			return (cs.LineNumberBack != Color.Transparent) ? cs.LineNumberBack
+															: cs.BackColor;
+		}
+
+		static int CalcNextTabStop( int x, int tabWidthInPx )
+		{
+			DebugUtl.Assert( 0 < tabWidthInPx );
+			return ((x / tabWidthInPx) + 1) * tabWidthInPx;
+		}
+
+		static bool IsSpecialChar( char ch )
+		{
+			if( ch == ' '
+				|| ch == '\x3000' // full-width space
+				|| ch == '\t'
+				|| ch == '\r'
+				|| ch == '\n' )
 			{
-				if( cs.LineNumberFore != Color.Transparent )
-					return cs.LineNumberFore;
-				else
-					return cs.ForeColor;
+				return true;
 			}
 
-			public static Color BackColorOfLineNumber( ColorScheme cs )
-			{
-				if( cs.LineNumberBack != Color.Transparent )
-					return cs.LineNumberBack;
-				else
-					return cs.BackColor;
-			}
+			return false;
+		}
 
-			/// <summary>
-			/// Calculate x-coordinate of the next tab stop.
-			/// </summary>
-			/// <param name="x">calculates next tab stop from this (X coordinate in virtual space)</param>
-			/// <param name="tabWidthInPx">tab width (in pixel)</param>
-			public static int CalcNextTabStop( int x, int tabWidthInPx )
-			{
-				DebugUtl.Assert( 0 < tabWidthInPx );
-				return ((x / tabWidthInPx) + 1) * tabWidthInPx;
-			}
+		protected static int Min( int a, int b, int c, int d )
+		{
+			return Math.Min( a, Math.Min(b, Math.Min(c,d) ) );
+		}
 
-			/// <summary>
-			/// Distinguishs whether given char is special for painting or not.
-			/// </summary>
-			public static bool IsSpecialChar( char ch )
-			{
-				if( ch == ' '
-					|| ch == '\x3000' // full-width space
-					|| ch == '\t'
-					|| ch == '\r'
-					|| ch == '\n' )
-				{
-					return true;
-				}
-
-				return false;
-			}
-
-			/// <summary>
-			/// Gets minimum value in four integers.
-			/// </summary>
-			public static int Min( int a, int b, int c, int d )
-			{
-				return Math.Min( a, Math.Min(b, Math.Min(c,d) ) );
-			}
-
-			/// <summary>
-			/// Gets maximum value in four integers.
-			/// </summary>
-			public static int Max( int a, int b, int c, int d )
-			{
-				return Math.Max( a, Math.Max(b, Math.Max(c,d) ) );
-			}
+		protected static int Max( int a, int b, int c, int d )
+		{
+			return Math.Max( a, Math.Max(b, Math.Max(c,d) ) );
 		}
 
 		/// <summary>
@@ -1231,11 +1124,7 @@ namespace Sgry.Azuki
 		{
 			Debug.Assert( 0 <= index && index < Document.Length );
 
-			if( 0 <= Array.IndexOf(PerDocParam.MatchedBracketIndexes, index) )
-			{
-				return true;
-			}
-			return false;
+			return ( 0 <= Array.IndexOf(PerDocParam.MatchedBracketIndexes, index) );
 		}
 		#endregion
 	}

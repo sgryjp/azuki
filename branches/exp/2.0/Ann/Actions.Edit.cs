@@ -57,10 +57,7 @@ namespace Sgry.Ann
 		/// </summary>
 		public static void FindNext( AppLogic app )
 		{
-			// set text pattern to emphasize
 			app.UpdateWatchPatternForTextSearch();
-
-			// seek to next occurrence
 			app.FindNext();
 		}
 
@@ -69,10 +66,7 @@ namespace Sgry.Ann
 		/// </summary>
 		public static void FindPrev( AppLogic app )
 		{
-			// set text pattern to emphasize
 			app.UpdateWatchPatternForTextSearch();
-
-			// seek to previous occurrence
 			app.FindPrev();
 		}
 
@@ -83,6 +77,7 @@ namespace Sgry.Ann
 		{
 			using( var form = new GotoForm() )
 			{
+				var azuki = app.MainForm.Azuki;
 				var doc = app.ActiveDocument;
 				form.LineNumber = doc.Lines.AtOffset( doc.CaretIndex ).LineIndex + 1;
 
@@ -92,7 +87,7 @@ namespace Sgry.Ann
 				{
 					int index = doc.Lines[ form.LineNumber - 1 ].Begin;
 					doc.SetSelection( index, index );
-					app.MainForm.Azuki.ScrollToCaret();
+					azuki.ScrollToCaret();
 				}
 			}
 		}

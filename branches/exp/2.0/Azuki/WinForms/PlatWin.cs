@@ -211,13 +211,11 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		public IGraphics GetGraphics( object window )
 		{
-			AzukiControl azuki = window as AzukiControl;
+			var azuki = window as AzukiControl;
 			if( azuki != null )
-			{
 				return new GraWin( azuki.Handle, azuki.FontInfo );
-			}
 
-			Control control = window as Control;
+			var control = window as Control;
 			if( control != null )
 			{
 				if( control.Font == null )
@@ -226,7 +224,8 @@ namespace Sgry.Azuki.WinForms
 					return new GraWin( control.Handle, new FontInfo(control.Font) );
 			}
 
-			throw new ArgumentException( "an object of unexpected type ("+window.GetType()+") was given to PlatWin.GetGraphics.", "window" );
+			throw new ArgumentException( "an object of unexpected type (" + window.GetType()
+										 + ") was given to PlatWin.GetGraphics.", "window" );
 		}
 		#endregion
 
@@ -295,10 +294,10 @@ namespace Sgry.Azuki.WinForms
 			WinApi.DeleteDC( _MemDC );
 
 			// free objects lastly used
-			Utl.SafeDeleteObject( _Pen );
-			Utl.SafeDeleteObject( _Brush );
-			Utl.SafeDeleteObject( _NullPen );
-			Utl.SafeDeleteObject( _Font );
+			SafeDeleteObject( _Pen );
+			SafeDeleteObject( _Brush );
+			SafeDeleteObject( _NullPen );
+			SafeDeleteObject( _Font );
 		}
 		#endregion
 
@@ -325,19 +324,20 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		public void EndPaint()
 		{
-			Debug.Assert( _MemDC != IntPtr.Zero, "invalid state; EndPaint was called before BeginPaint." );
+			Debug.Assert( _MemDC != IntPtr.Zero, "invalid state; EndPaint was called before"
+						  + " BeginPaint." );
 			const uint SRCCOPY = 0x00CC0020;
 
 			// flush cached graphic update
 			WinApi.BitBlt( _DC, _Offset.X, _Offset.Y, _MemDcSize.Width, _MemDcSize.Height,
-				_MemDC, 0, 0, SRCCOPY );
+						   _MemDC, 0, 0, SRCCOPY );
 			RemoveClipRect();
 
 			// dispose resources used in off-screen rendering
 			WinApi.SelectObject( _MemDC, _OrgMemBmp );
 			WinApi.DeleteDC( _MemDC );
 			_MemDC = IntPtr.Zero;
-			Utl.SafeDeleteObject( _MemBmp );
+			SafeDeleteObject( _MemBmp );
 			_MemBmp = IntPtr.Zero;
 
 			// reset graphic coordinate offset
@@ -358,7 +358,7 @@ namespace Sgry.Azuki.WinForms
 					throw new ArgumentNullException();
 				
 				// delete old font
-				Utl.SafeDeleteObject( _Font );
+				SafeDeleteObject( _Font );
 
 				// create font handle from Font instance of .NET
 				unsafe
@@ -402,7 +402,7 @@ namespace Sgry.Azuki.WinForms
 		{
 			set
 			{
-				Utl.SafeDeleteObject( _Pen );
+				SafeDeleteObject( _Pen );
 				_ForeColor = (value.R) | (value.G << 8) | (value.B << 16);
 				_Pen = WinApi.CreatePen( 0, 1, _ForeColor );
 			}
@@ -415,7 +415,7 @@ namespace Sgry.Azuki.WinForms
 		{
 			set
 			{
-				Utl.SafeDeleteObject( _Brush );
+				SafeDeleteObject( _Brush );
 				int colorRef = (value.R) | (value.G << 8) | (value.B << 16);
 				_Brush = WinApi.CreateSolidBrush( colorRef );
 			}
@@ -429,14 +429,14 @@ namespace Sgry.Azuki.WinForms
 			unsafe
 			{
 				// make RECT structure
-				WinApi.RECT r = new WinApi.RECT();
+				var r = new WinApi.RECT();
 				r.left = clipRect.X - _Offset.X;
 				r.top = clipRect.Y - _Offset.Y;
 				r.right = r.left + clipRect.Width;
 				r.bottom = r.top + clipRect.Height;
 
 				// create rectangle region and select it as a clipping region
-				IntPtr clipRegion = WinApi.CreateRectRgnIndirect( &r );
+				var clipRegion = WinApi.CreateRectRgnIndirect( &r );
 				WinApi.SelectClipRgn( DC, clipRegion );
 				WinApi.DeleteObject( clipRegion ); // SelectClipRgn copies given region thus we can delete this
 			}
@@ -458,21 +458,18 @@ namespace Sgry.Azuki.WinForms
 		public void DrawText( string text, ref Point position, Color foreColor )
 		{
 			const int TRANSPARENT = 1;
-			IntPtr oldFont, newFont;
-			Int32 oldForeColor;
-			int x, y;
 
-			x = position.X - _Offset.X;
-			y = position.Y - _Offset.Y;
+			int x = position.X - _Offset.X;
+			int y = position.Y - _Offset.Y;
 
-			newFont = _Font;
-			oldFont = WinApi.SelectObject( DC, newFont );
-			oldForeColor = WinApi.SetTextColor( DC, foreColor );
+			var newFont = _Font;
+			var oldFont = WinApi.SelectObject( DC, newFont );
+			var oldForeColor = WinApi.SetTextColor( DC, foreColor );
 
 			WinApi.SetTextAlign( DC, false );
 			WinApi.SetBkMode( DC, TRANSPARENT );
 			WinApi.ExtTextOut( DC, x, y, 0, text );
-			
+
 			WinApi.SetTextColor( DC, oldForeColor );
 			WinApi.SelectObject( DC, oldFont );
 		}
@@ -501,19 +498,18 @@ namespace Sgry.Azuki.WinForms
 		/// <returns>Size of the text.</returns>
 		public Size MeasureText( string text, int clipWidth, out int drawableLength )
 		{
-			IntPtr oldFont = IntPtr.Zero;
+			var oldFont = IntPtr.Zero;
 
 			try
 			{
-				Size size;
 				int[] extents;
 
 				oldFont = WinApi.SelectObject( DC, _Font ); // Measuring does not need to be done
 															// in offscreen buffer.
 
 				// Calculate total width of given text and distance of each character
-				size = WinApi.GetTextExtentExPoint( DC, text, text.Length, clipWidth,
-													out drawableLength, out extents );
+				var size = WinApi.GetTextExtentExPoint( DC, text, text.Length, clipWidth,
+														out drawableLength, out extents );
 
 				// Shurink the width to exclude characters which is invisible or visible partially.
 				if( drawableLength == 0 )
@@ -556,14 +552,12 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		public void DrawLine( int fromX, int fromY, int toX, int toY )
 		{
-			IntPtr oldPen;
-
 			fromX -= _Offset.X;
 			fromY -= _Offset.Y;
 			toX -= _Offset.X;
 			toY -= _Offset.Y;
 
-			oldPen = WinApi.SelectObject( DC, _Pen );
+			var oldPen = WinApi.SelectObject( DC, _Pen );
 			
 			WinApi.MoveToEx( DC, fromX, fromY, IntPtr.Zero );
 			WinApi.LineTo( DC, toX, toY );
@@ -578,22 +572,20 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		public void DrawRectangle( int x, int y, int width, int height )
 		{
-			IntPtr oldPen;
-
 			x -= _Offset.X;
 			y -= _Offset.Y;
 
 			unsafe
 			{
-				WinApi.POINT[] points = new WinApi.POINT[5];
+				var points = new WinApi.POINT[5];
 				points[0] = new WinApi.POINT( x, y );
 				points[1] = new WinApi.POINT( x+width, y );
 				points[2] = new WinApi.POINT( x+width, y+height );
 				points[3] = new WinApi.POINT( x, y+height );
 				points[4] = new WinApi.POINT( x, y );
 
-				oldPen = WinApi.SelectObject( DC, _Pen );
-				
+				var oldPen = WinApi.SelectObject( DC, _Pen );
+
 				fixed( WinApi.POINT* p = points )
 				{
 					WinApi.Polyline( DC, p, 5 );
@@ -609,13 +601,11 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		public void FillRectangle( int x, int y, int width, int height )
 		{
-			IntPtr oldPen, oldBrush;
-
 			x -= _Offset.X;
 			y -= _Offset.Y;
 
-			oldPen = WinApi.SelectObject( DC, NullPen );
-			oldBrush = WinApi.SelectObject( DC, _Brush );
+			var oldPen = WinApi.SelectObject( DC, NullPen );
+			var oldBrush = WinApi.SelectObject( DC, _Brush );
 
 			WinApi.Rectangle( DC, x, y, x+width+1, y+height+1 );
 			WinApi.SelectObject( DC, oldPen );
@@ -648,15 +638,10 @@ namespace Sgry.Azuki.WinForms
 			}
 		}
 
-		class Utl
+		static void SafeDeleteObject( IntPtr gdiObj )
 		{
-			public static void SafeDeleteObject( IntPtr gdiObj )
-			{
-				if( gdiObj != IntPtr.Zero )
-				{
-					WinApi.DeleteObject( gdiObj );
-				}
-			}
+			if( gdiObj != IntPtr.Zero )
+				WinApi.DeleteObject( gdiObj );
 		}
 		#endregion
 	}

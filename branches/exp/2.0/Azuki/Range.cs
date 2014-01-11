@@ -154,9 +154,10 @@ namespace Sgry.Azuki
 			if( y == null )
 				throw new ArgumentNullException( "y" );
 
+			var doc = (x.Document == y.Document) ? x.Document : null;
 			var begin = Math.Max( x.Begin, y.Begin );
 			var end = Math.Min( x.End, y.End );
-			return (begin <= end) ? new Range( begin, end )
+			return (begin <= end) ? new Range( doc, begin, end )
 								  : Range.Empty;
 		}
 
