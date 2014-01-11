@@ -679,9 +679,11 @@ namespace Sgry.Azuki
 					return; // horizontal poisition of the caret not changed
 				}
 
-				// Calculate indicator rectangle
+				// Calculate indicator rectangle for old caret position
 				oldUpdateRect = new Rectangle( oldCaretX, ScrYofHRuler,
 											   2, HRulerHeight );
+
+				// Calculate indicator rectangle for new caret position
 				newUdpateRect = new Rectangle( newCaretScreenPos.X, ScrYofHRuler,
 											   2, HRulerHeight );
 			}
@@ -700,9 +702,11 @@ namespace Sgry.Azuki
 					return; // horizontal poisition of the caret not changed
 				}
 
-				// Calculate indicator rectangle
+				// Calculate indicator rectangle for old caret position
 				oldUpdateRect = new Rectangle( oldSegmentX, ScrYofHRuler,
 											   HRulerUnitWidth, HRulerHeight );
+
+				// calculate indicator rectangle for new caret position
 				newUdpateRect = new Rectangle( newSegmentX, ScrYofHRuler,
 											   HRulerUnitWidth, HRulerHeight );
 			}

@@ -1,10 +1,8 @@
 // file: PropWrapView.cs
 // brief: Platform independent view (proportional, line-wrap).
 //=========================================================
-//DEBUG//
-#define SLHI_DEBUG
-//DEBUG//
-#define DRAW_SLOWLY
+//DEBUG//#define SLHI_DEBUG
+//DEBUG//#define DRAW_SLOWLY
 using System;
 using System.Collections.Generic;
 using System.Drawing;
