@@ -2335,7 +2335,6 @@ namespace Sgry.Azuki.WinForms
 				if( ime != IntPtr.Zero )
 					WinApi.ImmReleaseContext( Handle, ime );
 			}
-
 		}
 		#endregion
 

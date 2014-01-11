@@ -600,7 +600,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public int LineNumAreaWidth
 		{
-			get 
+			get
 			{
 				return ShowLineNumber ? _LineNumAreaWidth
 									  : 0;
