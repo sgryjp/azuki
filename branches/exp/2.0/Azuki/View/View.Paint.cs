@@ -422,7 +422,7 @@ namespace Sgry.Azuki
 				g.FillRectangle( ScrXofLineNumberArea, pos.Y, LineNumAreaWidth, LineSpacing );
 			}
 
-			// Fill dirt bar
+			// Fill and draw dirt bar area
 			if( ShowsDirtBar )
 			{
 				DrawDirtBar( g, lineTopY, lineNumber-1 );
@@ -445,7 +445,7 @@ namespace Sgry.Azuki
 				g.DrawText( lineNumText, ref textPos, ForeColorOfLineNumber(ColorScheme) );
 			}
 
-			// Draw margin line between the line number area and text area
+			// Draw separating line between the line number area and text area
 			if( ShowLineNumber || ShowsDirtBar )
 			{
 				pos.X = ScrXofLeftMargin - 1;
@@ -483,7 +483,7 @@ namespace Sgry.Azuki
 				g.SetClipRect( clipRect );
 			}
 
-			// Calculate first line to be drawn
+			// Calculate first line on the ruler to draw
 			leftMostRulerIndex = ScrollPosX / HRulerUnitWidth;
 			leftMostLineX = ScrXofTextArea + (leftMostRulerIndex * HRulerUnitWidth) - ScrollPosX;
 			while( leftMostLineX < clipRect.Left )
@@ -492,7 +492,7 @@ namespace Sgry.Azuki
 				leftMostLineX += HRulerUnitWidth;
 			}
 
-			// Align beginning column index to largest multiple of 10
+			// Align beginning index of a line on the ruler to largest multiple of 10
 			// to ensure column number graphic will not be cut off
 			var indexDiff = (leftMostRulerIndex % 10);
 			if( 1 <= indexDiff && indexDiff <= 5 )
@@ -742,11 +742,9 @@ namespace Sgry.Azuki
 												HRulerUnitWidth, HRulerHeight );
 			}
 
-			// not invalidate but DRAW old and new indicator here
-			// (because if all invalid rectangles was combined,
-			// invalidating area in horizontal ruler makes
-			// large invalid rectangle and has bad effect on performance,
-			// especially on mobile devices.)
+			// DRAW old and new indicator (because if all invalid rectangles was combined,
+			// invalidating area in horizontal ruler makes large invalid rectangle and affect
+			// performance badly, especially on mobile devices.)
 			DrawHRuler( g, oldUpdateRect );
 			DrawHRuler( g, newUdpateRect );
 		}
@@ -779,7 +777,6 @@ namespace Sgry.Azuki
 		{
 			int x = virX;
 			int relDLen; // relatively calculated drawable length
-			int subTokenWidth;
 			bool hitRightLimit;
 
 			drawableLength = 0;
@@ -804,7 +801,7 @@ namespace Sgry.Azuki
 					}
 
 					// Calc next tab stop
-					subTokenWidth = CalcNextTabStop( x, TabWidthInPx );
+					var subTokenWidth = CalcNextTabStop( x, TabWidthInPx );
 					if( rightLimitX <= subTokenWidth )
 					{
 						// This tab hit the right limit.

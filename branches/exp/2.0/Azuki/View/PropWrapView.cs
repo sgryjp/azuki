@@ -268,7 +268,7 @@ namespace Sgry.Azuki
 					}
 				}
 
-				// update screen line head indexes
+				// Update screen line head indexes
 				var prevLineCount = Lines.Count;
 				UpdateSLHI( g, e.Index, e.OldText, e.NewText );
 #				if SLHI_DEBUG
@@ -286,10 +286,10 @@ namespace Sgry.Azuki
 				}
 #				endif
 
-				// update indicator graphic on horizontal ruler
+				// Update indicator graphic on horizontal ruler
 				UpdateHRuler( g );
 
-				// invalidate the part at right of the old selection
+				// Invalidate the part at right of the old selection
 				if( TextUtil.IsCombiningCharacter(e.OldText, 0)
 					|| TextUtil.IsCombiningCharacter(e.NewText, 0) )
 				{
@@ -315,29 +315,29 @@ namespace Sgry.Azuki
 				}
 				else
 				{
-					// invalidate this *logical* line if the replacement changed screen line count
+					// Invalidate this *logical* line if the replacement changed screen line count
 
-					// get position of the char at the end of the logical line
+					// Get position of the char at the end of the logical line
 					var logLineEnd = doc.Lines.AtOffset( e.Index ).End;
 					var logLineEndPos = VirtualToScreen( GetVirtualPos(g, logLineEnd) );
 					var logLineBottom = logLineEndPos.Y - (LinePadding >> 1);
 
-					// make a rectangle that covers the logical line area
+					// Make a rectangle that covers the logical line area
 					//NO_NEED//invalidRect2.X = 0;
 					invalidRect2.Y = invalidRect1.Bottom;
 					invalidRect2.Width = VisibleSize.Width;
 					invalidRect2.Height = (logLineBottom + LineSpacing) - invalidRect2.Top;
 				}
 
-				// invalidate the range
+				// Invalidate the range
 				Invalidate( invalidRect1 );
 				if( 0 < invalidRect2.Height )
 				{
-					//--- multiple logical lines are affected ---
+					//--- Multiple logical lines are affected ---
 					Invalidate( invalidRect2 );
 				}
 
-				// update left side of text area
+				// Update left side of text area
 				UpdateDirtBar( g, doc.Lines.AtOffset(e.Index).LineIndex );
 				UpdateLineNumberWidth( g );
 

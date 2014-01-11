@@ -20,10 +20,7 @@ namespace Sgry.Azuki
 			if( lineIndex < 0 )
 				throw new ArgumentOutOfRangeException( "lineIndex", "Parameter 'lineIndex' must"
 													  + " not be null." );
-			if( doc.Lines.Count <= lineIndex )
-				throw new ArgumentOutOfRangeException( "lineIndex", "Parameter 'lineIndex' was"
-													   + " too large. (lineIndex:" + lineIndex
-													   + ", LineCount:" + doc.Lines.Count + ")" );
+			//TODO: If LineRange associates with IView, validate 'lineIndex' here.
 
 			LineIndex = lineIndex;
 		}

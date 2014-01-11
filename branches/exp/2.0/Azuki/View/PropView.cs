@@ -233,7 +233,6 @@ namespace Sgry.Azuki
 
 				if( e.OldAnchor == e.OldCaret && anchor == caret ) // is and was no selection
 				{
-					// Update current line highlight
 					if( HighlightsCurrentLine && prevCaretLine != caretPos.Line )
 						HandleSelectionChanged_UpdateCurrentLineHighlight( g, caretPos.Line );
 				}
@@ -279,8 +278,7 @@ namespace Sgry.Azuki
 			}
 		}
 
-		void HandleSelectionChanged_UpdateCurrentLineHighlight( IGraphics g,
-																int newCaretLine )
+		void HandleSelectionChanged_UpdateCurrentLineHighlight( IGraphics g, int newCaretLine )
 		{
 			int prevAnchorLine = PerDocParam.PrevAnchorLine;
 			int prevCaretLine = PerDocParam.PrevCaretLine;
@@ -347,7 +345,7 @@ namespace Sgry.Azuki
 			{
 				token = Document.GetText( beginLineHead, begin );
 			}
-			
+
 			// Calculate invalid rect
 			rect.X = MeasureTokenEndX( g, token, 0 );
 			rect.Y = YofLine( beginL );
@@ -467,7 +465,7 @@ namespace Sgry.Azuki
 
 			using( var g = _UI.GetIGraphics() )
 			{
-				// calculate where to start invalidation
+				// Calculate where to start invalidation
 				invalidStartIndex = e.Index;
 				if( TextUtil.IsCombiningCharacter(e.OldText, 0)
 					|| TextUtil.IsCombiningCharacter(e.NewText, 0) )
@@ -476,20 +474,19 @@ namespace Sgry.Azuki
 					invalidStartIndex = Lines.AtOffset( invalidStartIndex ).Begin;
 				}
 
-				// get graphical position of the place
+				// Get graphical position of the place
 				invalidStartPos = VirtualToScreen( GetVirtualPos(g, invalidStartIndex) );
 
-				// update indicator graphic on horizontal ruler
+				// Update indicator graphic on horizontal ruler
 				UpdateHRuler( g );
 
-				// invalidate the part at right of the old selection
+				// Invalidate the part at right of the old selection
 				invalidRect1.X = invalidStartPos.X;
 				invalidRect1.Width = VisibleSize.Width - invalidRect1.X;
 				invalidRect1.Y = invalidStartPos.Y - (LinePadding >> 1);
 				invalidRect1.Height = LineSpacing;
 
-				// invalidate all lines below caret
-				// if old text or new text contains multiple lines
+				// Invalidate all lines below caret if old text or new text contains multiple lines
 				if( TextUtil.IsMultiLine(e.OldText) || TextUtil.IsMultiLine(e.NewText) )
 				{
 					//NO_NEED//invalidRect2.X = 0;
@@ -498,14 +495,14 @@ namespace Sgry.Azuki
 					invalidRect2.Height = VisibleSize.Height - invalidRect2.Top;
 				}
 
-				// invalidate the range
+				// Invalidate the range
 				Invalidate( invalidRect1 );
 				if( 0 < invalidRect2.Height )
 				{
 					Invalidate( invalidRect2 );
 				}
 
-				// update left side of text area
+				// Update left side of text area
 				DrawDirtBar( g, invalidRect1.Top, Document.Lines.AtOffset(e.Index).LineIndex );
 				UpdateLineNumberWidth( g );
 
@@ -690,9 +687,8 @@ namespace Sgry.Azuki
 			int selBegin, selEnd;
 			var pos = new Point();
 			int longestLineLength = 0;
-			bool shouldRedraw1, shouldRedraw2;
 
-			// prepare off-screen buffer
+			// Prepare off-screen buffer
 #			if !DRAW_SLOWLY
 			g.BeginPaint( clipRect );
 #			endif
@@ -718,9 +714,9 @@ namespace Sgry.Azuki
 				if( pos.Y < clipRect.Bottom && clipRect.Top <= pos.Y+LineSpacing )
 				{
 					// Draw the line
-					shouldRedraw1 = _UI.InvokeLineDrawing( g, i, pos );
+					var shouldRedraw1 = _UI.InvokeLineDrawing( g, i, pos );
 					DrawLine( g, i, pos, clipRect, ref longestLineLength );
-					shouldRedraw2 = _UI.InvokeLineDrawn( g, i, pos );
+					var shouldRedraw2 = _UI.InvokeLineDrawn( g, i, pos );
 
 					// [*1] Invalidate the line graphic if needed
 					if( (shouldRedraw1 || shouldRedraw2)
@@ -733,13 +729,15 @@ namespace Sgry.Azuki
 			}
 			g.RemoveClipRect();
 
-			// Expand text area width for longest line
+			// Expand text area width for graphically longest line
 			ReCalcRightEndOfTextArea( longestLineLength );
 
 			// Fill area below of the text
 			g.BackColor = ColorScheme.BackColor;
-			g.FillRectangle( ScrXofTextArea, pos.Y,
-							 VisibleSize.Width-ScrXofTextArea, VisibleSize.Height-pos.Y );
+			g.FillRectangle( ScrXofTextArea,
+							 pos.Y,
+							 VisibleSize.Width - ScrXofTextArea,
+							 VisibleSize.Height - pos.Y );
 			for( int y=pos.Y; y<VisibleSize.Height; y+=LineSpacing )
 			{
 				DrawLeftOfLine( g, y, -1, false );
@@ -755,7 +753,7 @@ namespace Sgry.Azuki
 			Document.GetSelection( out selBegin, out selEnd );
 			if( HighlightsCurrentLine && selBegin == selEnd )
 			{
-				// draw underline only when the current line is visible
+				// Draw underline only when the current line is visible
 				int caretLine = Document.Lines.AtOffset( Document.CaretIndex ).LineIndex;
 				if( FirstVisibleLine <= caretLine )
 				{

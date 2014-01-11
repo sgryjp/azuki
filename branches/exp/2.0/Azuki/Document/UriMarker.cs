@@ -14,8 +14,12 @@ namespace Sgry.Azuki
 	{
 		#region Fields
 		static UriMarker _Inst = null;
-		static DefaultWordProc _WordProc = new DefaultWordProc();
-		static string[] _SchemeTriggers = new string[] { "file://", "ftp://", "http://", "https://", "mailto:" };
+		static readonly DefaultWordProc _WordProc = new DefaultWordProc();
+		static string[] _SchemeTriggers = { "file://",
+											"ftp://",
+											"http://",
+											"https://",
+											"mailto:" };
 		#endregion
 
 		#region Static members
@@ -49,9 +53,7 @@ namespace Sgry.Azuki
 			get
 			{
 				if( _Inst == null )
-				{
 					_Inst = new UriMarker();
-				}
 				return _Inst;
 			}
 		}
@@ -63,28 +65,26 @@ namespace Sgry.Azuki
 		#region Event handlers
 		public void HandleContentChanged( object sender, ContentChangedEventArgs e )
 		{
-			UiImpl ui = (UiImpl)sender;
-			Document doc = ui.Document;
-			int lineIndex;
-			bool shouldBeRedrawn;
+			var ui = (UiImpl)sender;
+			var doc = ui.Document;
 
 			if( doc.MarksUri == false )
 				return;
 
-			// update marking in this line
-			lineIndex = doc.Lines.AtOffset( e.Index ).LineIndex;
-			shouldBeRedrawn = MarkOrUnmarkOneLine( doc, lineIndex, true );
+			// Update marking in this line
+			var lineIndex = doc.Lines.AtOffset( e.Index ).LineIndex;
+			var shouldBeRedrawn = MarkOrUnmarkOneLine( doc, lineIndex, true );
 			if( shouldBeRedrawn )
 			{
-				// update entire graphic of the logical line
-				// if marking bits associated with any character was changed
+				// Update entire graphic of the logical line if marking bits associated with any
+				// character was changed
 				ui.View.Invalidate( doc.Lines[lineIndex] );
 			}
 		}
 
 		public void UI_LineDrawing( object sender, LineDrawEventArgs e )
 		{
-			IUserInterface ui = (IUserInterface)sender;
+			var ui = (IUserInterface)sender;
 
 			// Even if the URI marking is disabled, scanning procedure must be done because
 			// characters marked as URI already must be unmarked after disabling URI marking.
@@ -93,7 +93,7 @@ namespace Sgry.Azuki
 				return;
 			<-- DO_NOT*/
 
-			// mark up all URIs in the logical line
+			// Mark up all URIs in the logical line
 			int screenLineHeadIndex = ui.View.Lines[ e.LineIndex ].Begin;
 			int logicalLineIndex = ui.Document.Lines.AtOffset( screenLineHeadIndex ).LineIndex;
 			e.ShouldBeRedrawn = MarkOrUnmarkOneLine( ui.Document, logicalLineIndex, ui.MarksUri );
@@ -111,56 +111,51 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( 0 <= logicalLineIndex );
 			DebugUtl.Assert( logicalLineIndex < doc.Lines.Count );
 
-			IRange line;
-			int lastMarkedIndex;
-			int seekIndex;
 			int changeCount = 0;
 
-			// first of all, do nothing if document is empty.
+			// Do nothing if the document is empty.
 			if( doc.Length == 0 )
-			{
 				return false;
-			}
 
-			// prepare scanning
-			line = doc.Lines[ logicalLineIndex ];
+			// Prepare scanning
+			var line = doc.Lines[ logicalLineIndex ];
 			if( line.IsEmpty )
 			{
-				return false; // this is an empty line.
+				return false; // empty line
 			}
 
-			// scan and mark all URIs in the line
-			lastMarkedIndex = line.Begin;
-			seekIndex = line.Begin;
+			// Scan and mark all URIs in the line
+			var lastMarkedIndex = line.Begin;
+			var seekIndex = line.Begin;
 			while( 0 <= seekIndex && seekIndex < line.End )
 			{
-				// mark URI if one starts from here
+				// Mark URI if one starts from here
 				if( SchemeStartsFromHere(doc, seekIndex) )
 				{
 					bool isMailAddress;
 					int uriEnd = GetUriEnd( doc, seekIndex, out isMailAddress );
 					if( 0 < uriEnd )
 					{
-						// clear marking before this URI part
+						// Clear marking before this URI part
 						if( lastMarkedIndex < seekIndex )
 						{
-							changeCount += doc.Unmark( lastMarkedIndex, seekIndex, Marking.Uri )
-										   ? 1 : 0;
+							if( doc.Unmark(lastMarkedIndex, seekIndex, Marking.Uri) )
+								changeCount++;
 						}
 
-						// mark the URI part
+						// Mark the URI part
 						if( marks )
 						{
-							changeCount += doc.Mark( seekIndex, uriEnd, Marking.Uri )
-										   ? 1 : 0;
+							if( doc.Mark(seekIndex, uriEnd, Marking.Uri) )
+								changeCount++;
 						}
 						else
 						{
-							changeCount += doc.Unmark( seekIndex, uriEnd, Marking.Uri )
-										   ? 1 : 0;
+							if( doc.Unmark(seekIndex, uriEnd, Marking.Uri) )
+								changeCount++;
 						}
 
-						// update seek position
+						// Update seek position
 						lastMarkedIndex = uriEnd;
 						seekIndex = uriEnd;
 						if( doc.Length <= seekIndex )
@@ -171,14 +166,15 @@ namespace Sgry.Azuki
 					}
 				}
 
-				// skip to next word
+				// Skip to next word
 				seekIndex = _WordProc.NextWordStart( doc, seekIndex+1 );
 			}
 
-			// clear marking of remaining characters
+			// Clear marking of remaining characters
 			if( lastMarkedIndex < line.End )
 			{
-				changeCount += doc.Unmark( lastMarkedIndex, line.End, Marking.Uri ) ? 1 : 0;
+				if( doc.Unmark(lastMarkedIndex, line.End, Marking.Uri) )
+					changeCount++;
 			}
 
 			return (0 < changeCount);
@@ -192,28 +188,23 @@ namespace Sgry.Azuki
 				throw new ArgumentOutOfRangeException( "startIndex" );
 
 			int index = startIndex;
-			int lineEnd;
 			char ch;
-			StringBuilder scheme = new StringBuilder( 8 );
+			var scheme = new StringBuilder( 8 );
 
-			// prepare parsing
+			// Prepare parsing
 			isMailAddress = false;
-			lineEnd = doc.Lines.AtOffset( startIndex ).End;
+			var lineEnd = doc.Lines.AtOffset( startIndex ).End;
 			DebugUtl.Assert( lineEnd <= doc.Length );
 
 		//scheme:
-			// parse first character of scheme part
+			// Parse first character of scheme part
 			if( index < lineEnd )
 			{
 				ch = doc[ index ];
 				if( GetUriEnd_ValidChar(ch) == false )
-				{
 					return -1;
-				}
 				if( ch == '/' || ch == '?' || ch == '#' || ch == ':' )
-				{
 					return -1;
-				}
 				scheme.Append( ch );
 
 				index++;
@@ -223,22 +214,16 @@ namespace Sgry.Azuki
 				return -1;
 			}
 
-			// parse remainings of scheme part
+			// Parse remainings of scheme part
 			while( index < lineEnd )
 			{
 				ch = doc[ index ];
 				if( GetUriEnd_ValidChar(ch) == false )
-				{
 					return -1;
-				}
 				if( ch == '/' || ch == '?' || ch == '#' )
-				{
 					return -1;
-				}
 				if( ch == ':' )
-				{
 					break;
-				}
 				scheme.Append( ch );
 
 				index++;
@@ -249,11 +234,11 @@ namespace Sgry.Azuki
 			}
 
 		//colon:
-			// parse colon part
+			// Parse colon part
 			DebugUtl.Assert( doc[index] == ':' );
 			index++;
 
-			// if scheme is mailto, switch to mail address specific logic
+			// If scheme is mailto, switch to mail address specific logic
 			if( scheme.ToString() == "mailto" )
 			{
 				isMailAddress = true;
@@ -261,14 +246,12 @@ namespace Sgry.Azuki
 			}
 
 		//slash-1:
-			// parse slash part
+			// Parse slash part
 			if( index < lineEnd )
 			{
 				ch = doc[ index ];
 				if( ch != '/' )
-				{
 					return -1;
-				}
 
 				index++;
 			}
@@ -278,14 +261,12 @@ namespace Sgry.Azuki
 			}
 
 		//slash-2:
-			// parse slash part
+			// Parse slash part
 			if( index < lineEnd )
 			{
 				ch = doc[ index ];
 				if( ch != '/' )
-				{
 					return -1;
-				}
 
 				index++;
 			}
@@ -295,14 +276,12 @@ namespace Sgry.Azuki
 			}
 
 		//authority:
-			// parse first character of authority part
+			// Parse first character of authority part
 			if( index < lineEnd )
 			{
 				ch = doc[ index ];
 				if( GetUriEnd_ValidChar(ch) == false )
-				{
 					return -1;
-				}
 
 				index++;
 			}
@@ -311,77 +290,57 @@ namespace Sgry.Azuki
 				return -1;
 			}
 
-			// parse remainings of authority part
+			// Parse remainings of authority part
 			while( index < lineEnd )
 			{
 				ch = doc[ index ];
 				if( GetUriEnd_ValidChar(ch) == false )
-				{
 					return index;
-				}
 				if( ch == '/' )
-				{
 					break; //goto path;
-				}
 				if( ch == '?' )
-				{
 					goto query;
-				}
 				if( ch == '#' )
-				{
 					goto fragment;
-				}
 
 				index++;
 			}
 
 		//path:
-			// parse path part
+			// Parse path part
 			while( index < lineEnd )
 			{
 				ch = doc[ index ];
 				if( GetUriEnd_ValidChar(ch) == false )
-				{
 					return index;
-				}
 				if( ch == '?' )
-				{
 					break; //goto query;
-				}
 				if( ch == '#' )
-				{
 					goto fragment;
-				}
 
 				index++;
 			}
 
 		query:
-			// parse query part
+			// Parse query part
 			while( index < lineEnd )
 			{
 				ch = doc[ index ];
 				if( GetUriEnd_ValidChar(ch) == false )
-				{
 					return index;
-				}
 				if( ch == '#' )
-				{
 					break; //goto fragment;
-				}
 
 				index++;
 			}
 
 		fragment:
-			// parse fragment part
+			// Parse fragment part
 			while( index < lineEnd )
 			{
 				ch = doc[ index ];
 				if( GetUriEnd_ValidChar(ch) == false )
-				{
 					return index;
-				}
 				 
 				index++;
 			}
@@ -403,7 +362,7 @@ namespace Sgry.Azuki
 			}
 			else
 			{
-				UnicodeCategory cat = Char.GetUnicodeCategory( ch );
+				var cat = Char.GetUnicodeCategory( ch );
 				if( cat == UnicodeCategory.ClosePunctuation
 					|| cat == UnicodeCategory.OpenPunctuation
 					|| cat == UnicodeCategory.ParagraphSeparator
@@ -430,7 +389,7 @@ namespace Sgry.Azuki
 			if( doc.Length <= startIndex )
 				return -1;
 
-			// prepare parsing
+			// Prepare parsing
 			int lineEnd = doc.Lines.AtOffset( startIndex ).End;
 			DebugUtl.Assert( lineEnd <= doc.Length );
 
@@ -439,9 +398,7 @@ namespace Sgry.Azuki
 			{
 				ch = doc[index];
 				if( GetMailToEnd_IsLocalPartChar(ch) == false )
-				{
 					return -1;
-				}
 
 				index++;
 			}
@@ -449,13 +406,9 @@ namespace Sgry.Azuki
 			{
 				ch = doc[index];
 				if( ch == '@' )
-				{
 					break;
-				}
 				if( GetMailToEnd_IsLocalPartChar(ch) == false )
-				{
 					return -1;
-				}
 
 				index++;
 			}
@@ -469,14 +422,12 @@ namespace Sgry.Azuki
 			index++;
 
 		//domain:
-			// parse first character of domain part
+			// Parse first character of domain part
 			if( index < lineEnd )
 			{
 				ch = doc[index];
 				if( GetMailToEnd_IsDomainChar(ch) == false )
-				{
 					return -1;
-				}
 
 				index++;
 			}
@@ -485,14 +436,12 @@ namespace Sgry.Azuki
 				return -1;
 			}
 
-			// parse remainings of domain part
+			// Parse remainings of domain part
 			while( index < lineEnd )
 			{
 				ch = doc[index];
 				if( GetMailToEnd_IsDomainChar(ch) == false )
-				{
 					return index;
-				}
 
 				index++;
 			}
@@ -524,12 +473,10 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( 0 <= index );
 			DebugUtl.Assert( index < doc.Length );
 
-			foreach( string scheme in _SchemeTriggers )
+			foreach( var scheme in _SchemeTriggers )
 			{
 				if( StartsWith(doc, index, scheme) )
-				{
 					return true;
-				}
 			}
 
 			return false;
