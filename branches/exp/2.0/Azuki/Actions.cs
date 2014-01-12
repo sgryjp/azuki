@@ -42,7 +42,7 @@ namespace Sgry.Azuki
 					doc.DeleteRectSelectText();
 				view.Invalidate();
 			}
-			else if( doc.AnchorIndex != doc.CaretIndex )
+			else if( view.AnchorIndex != view.CaretIndex )
 			{
 				//--- case of normal selection ---
 				doc.Replace( String.Empty );
@@ -51,7 +51,7 @@ namespace Sgry.Azuki
 			{
 				//--- case of no selection ---
 				int delLen = 1;
-				int caret = doc.CaretIndex;
+				int caret = view.CaretIndex;
 
 				// if the caret is at document head, there is no chars to delete
 				if( caret <= 0 )
@@ -110,7 +110,7 @@ namespace Sgry.Azuki
 					doc.DeleteRectSelectText();
 				view.Invalidate();
 			}
-			else if( doc.AnchorIndex != doc.CaretIndex )
+			else if( view.AnchorIndex != view.CaretIndex )
 			{
 				//--- case of normal selection ---
 				doc.Replace( String.Empty );
@@ -120,7 +120,7 @@ namespace Sgry.Azuki
 				//--- case of no selection ---
 				
 				// if the caret is at document head, there is no chars to delete
-				if( doc.CaretIndex <= 0 )
+				if( view.CaretIndex <= 0 )
 				{
 					Plat.Inst.MessageBeep();
 					return;
@@ -128,7 +128,7 @@ namespace Sgry.Azuki
 
 				// delete between previous word start position and the caret position
 				int prevWordIndex = CaretMoveLogic.Calc_PrevWord( view );
-				doc.Replace( String.Empty, prevWordIndex, doc.CaretIndex );
+				doc.Replace( String.Empty, prevWordIndex, view.CaretIndex );
 			}
 
 			// update desired column
@@ -162,7 +162,7 @@ namespace Sgry.Azuki
 					doc.DeleteRectSelectText();
 				view.Invalidate();
 			}
-			else if( doc.AnchorIndex != doc.CaretIndex )
+			else if( view.AnchorIndex != view.CaretIndex )
 			{
 				//--- case of normal selection ---
 				doc.Replace( String.Empty );
@@ -170,11 +170,11 @@ namespace Sgry.Azuki
 			else
 			{
 				//--- case of no selection ---
-				int begin = doc.CaretIndex;
+				int begin = view.CaretIndex;
 				int end = begin + 1;
 
 				// if the caret is at document end, there is no chars to delete
-				if( doc.Length <= doc.CaretIndex )
+				if( doc.Length <= view.CaretIndex )
 				{
 					Plat.Inst.MessageBeep();
 					return;
@@ -220,7 +220,7 @@ namespace Sgry.Azuki
 					doc.DeleteRectSelectText();
 				view.Invalidate();
 			}
-			else if( doc.AnchorIndex != doc.CaretIndex )
+			else if( view.AnchorIndex != view.CaretIndex )
 			{
 				//--- case of normal selection ---
 				doc.Replace( String.Empty );
@@ -229,14 +229,14 @@ namespace Sgry.Azuki
 			{
 				//--- case of no selection ---
 				int nextWordIndex = CaretMoveLogic.Calc_NextWord( view );
-				if( nextWordIndex == doc.Length && doc.CaretIndex == nextWordIndex )
+				if( nextWordIndex == doc.Length && view.CaretIndex == nextWordIndex )
 				{
 					Plat.Inst.MessageBeep();
 					return;
 				}
 
 				// delete char(s).
-				doc.Replace( String.Empty, doc.CaretIndex, nextWordIndex );
+				doc.Replace( String.Empty, view.CaretIndex, nextWordIndex );
 			}
 
 			// update desired column
@@ -265,6 +265,7 @@ namespace Sgry.Azuki
 		public static void Cut( IUserInterface ui )
 		{
 			var doc = ui.Document;
+			var view = ui.View;
 			string text;
 
 			// do nothing if the document is read-only
@@ -303,7 +304,7 @@ namespace Sgry.Azuki
 
 				// if the user prefers to use cuting/copying without selection
 				// to cut/copy current line, change the begin/end position to line head/end
-				var line = doc.RawLines.AtOffset( doc.CaretIndex );
+				var line = doc.RawLines.AtOffset( view.CaretIndex );
 				Plat.Inst.SetClipboardText( line.Text, TextDataType.Line );
 				doc.Replace( String.Empty, line.Begin, line.End );
 			}
@@ -330,6 +331,7 @@ namespace Sgry.Azuki
 		public static void Copy( IUserInterface ui )
 		{
 			var doc = ui.Document;
+			var view = ui.View;
 			string text;
 			
 			// is there any selection?
@@ -357,7 +359,7 @@ namespace Sgry.Azuki
 
 				// if the user prefers to use cuting/copying without selection
 				// to cut/copy current line, change the begin/end position to line head/end
-				var line = doc.RawLines.AtOffset( doc.CaretIndex );
+				var line = doc.RawLines.AtOffset( view.CaretIndex );
 				Plat.Inst.SetClipboardText( line.Text, TextDataType.Line );
 			}
 		}
@@ -427,7 +429,7 @@ namespace Sgry.Azuki
 					string padding;
 
 					// Insert every row at same column position
-					insertPos = view.GetVirtualPos( doc.CaretIndex );
+					insertPos = view.GetVirtualPos( view.CaretIndex );
 					rowBegin = 0;
 					rowEnd = TextUtil.NextLineHead( clipboardText, rowBegin );
 					while( 0 <= rowEnd )
@@ -596,7 +598,7 @@ namespace Sgry.Azuki
 				return;
 
 			// Insert an EOL code at the beginning of the previous line
-			var caretLine = view.Lines.AtOffset( doc.CaretIndex );
+			var caretLine = view.Lines.AtOffset( view.CaretIndex );
 			int insIndex = (0 == caretLine.LineIndex) ? 0
 													  : view.Lines[ caretLine.LineIndex-1 ].End;
 			doc.SetSelection( insIndex, insIndex );
@@ -616,7 +618,7 @@ namespace Sgry.Azuki
 				return;
 
 			// Insert an EOL code at the end of current line
-			var caretLine = view.Lines.AtOffset( doc.CaretIndex );
+			var caretLine = view.Lines.AtOffset( view.CaretIndex );
 			doc.SetSelection( caretLine.End, caretLine.End );
 			ui.HandleTextInput( "\n" );
 			ui.ScrollToCaret();

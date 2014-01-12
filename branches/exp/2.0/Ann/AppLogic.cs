@@ -885,13 +885,14 @@ namespace Sgry.Ann
 
 		public void FindNext()
 		{
+			var view = MainForm.Azuki.View;
 			var doc = ActiveDocument;
 			IRange result = null;
 
 			// Determine where to start text search
 			var startIndex = (0 <= _SearchContext.AnchorIndex) ? _SearchContext.AnchorIndex
-															   : Math.Max( doc.CaretIndex,
-																		   doc.AnchorIndex );
+															   : Math.Max( view.CaretIndex,
+																		   view.AnchorIndex );
 
 			// Find
 			if( _SearchContext.UseRegex )
@@ -928,13 +929,14 @@ namespace Sgry.Ann
 
 		public void FindPrev()
 		{
+			var view = MainForm.Azuki.View;
 			var doc = ActiveDocument;
 			IRange result;
 
 			// Determine where to start text search
 			var startIndex = (0 <= _SearchContext.AnchorIndex) ? _SearchContext.AnchorIndex
-															   : Math.Min( doc.CaretIndex,
-																		   doc.AnchorIndex );
+															   : Math.Min( view.CaretIndex,
+																		   view.AnchorIndex );
 
 			// Find
 			if( _SearchContext.UseRegex )

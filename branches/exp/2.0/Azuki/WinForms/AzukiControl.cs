@@ -373,12 +373,12 @@ namespace Sgry.Azuki.WinForms
 				return;
 			
 			// calculate caret size for current caret position
-			var pos = GetPositionFromIndex( Document.CaretIndex );
+			var pos = GetPositionFromIndex( View.CaretIndex );
 			using( var g = GetIGraphics() )
 			{
 				_CaretSize.Height = View.LineHeight;
 				_CaretSize.Width = CalcOverwriteCaretWidth( g, Document, _Impl.View,
-															Document.CaretIndex,
+															View.CaretIndex,
 															IsOverwriteMode );
 			}
 

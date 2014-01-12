@@ -77,8 +77,8 @@ namespace Sgry.Azuki
 						UpdateSLHI( g, 0, "", text );
 
 						// re-calculate line index of caret and anchor
-						PerDocParam.PrevCaretLine = Lines.AtOffset( doc.CaretIndex ).LineIndex;
-						PerDocParam.PrevAnchorLine = Lines.AtOffset( doc.AnchorIndex ).LineIndex;
+						PerDocParam.PrevCaretLine = Lines.AtOffset( CaretIndex ).LineIndex;
+						PerDocParam.PrevAnchorLine = Lines.AtOffset( AnchorIndex ).LineIndex;
 
 						// update desired column
 						// (must be done after UpdateSLHI)
@@ -638,7 +638,7 @@ namespace Sgry.Azuki
 			Document.GetSelection( out selBegin, out selEnd );
 			if( HighlightsCurrentLine && selBegin == selEnd )
 			{
-				var caretLine = TextUtil.GetLineIndexFromCharIndex( SLHI, Document.CaretIndex );
+				var caretLine = TextUtil.GetLineIndexFromCharIndex( SLHI, CaretIndex );
 				var caretPosY = ScrYofTextArea + (caretLine - FirstVisibleLine) * LineSpacing;
 				DrawUnderLine( g, caretPosY, ColorScheme.HighlightColor );
 			}

@@ -93,7 +93,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				doc.SetSelection( view.CaretIndex, view.CaretIndex );
 			}
 
 			// then, move caret
@@ -116,7 +116,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				doc.SetSelection( view.CaretIndex, view.CaretIndex );
 			}
 
 			// then, move caret
@@ -139,7 +139,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				doc.SetSelection( view.CaretIndex, view.CaretIndex );
 			}
 
 			// then, move caret
@@ -162,7 +162,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				doc.SetSelection( view.CaretIndex, view.CaretIndex );
 			}
 
 			// then, move caret
@@ -185,7 +185,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				doc.SetSelection( view.CaretIndex, view.CaretIndex );
 			}
 
 			// then, move caret
@@ -205,7 +205,7 @@ namespace Sgry.Azuki
 			int diff = (view.VisibleSize.Height / view.LineSpacing);
 
 			// get current virtual coordinate of the caret
-			var pt = view.GetVirtualPos( doc.CaretIndex );
+			var pt = view.GetVirtualPos( view.CaretIndex );
 
 			// calc new virtual coordinate of the caret
 			pt.Y += diff * view.LineSpacing;
@@ -234,7 +234,7 @@ namespace Sgry.Azuki
 			int diff = (view.VisibleSize.Height / view.LineSpacing);
 
 			// get current virtual coordinate of the caret
-			var pt = view.GetVirtualPos( doc.CaretIndex );
+			var pt = view.GetVirtualPos( view.CaretIndex );
 
 			// calc new virtual coordinate of the caret
 			pt.Y -= diff * view.LineSpacing;
@@ -265,7 +265,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				doc.SetSelection( view.CaretIndex, view.CaretIndex );
 			}
 
 			// then, move caret
@@ -288,7 +288,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			if( selEnd != selBegin )
 			{
-				doc.SetSelection( doc.CaretIndex, doc.CaretIndex );
+				doc.SetSelection( view.CaretIndex, view.CaretIndex );
 			}
 
 			// then, move caret
@@ -309,7 +309,7 @@ namespace Sgry.Azuki
 			int pairIndex;
 
 			// find pair and go there
-			caretIndex = doc.CaretIndex;
+			caretIndex = view.CaretIndex;
 			pairIndex = doc.FindMatchedBracket( caretIndex );
 			if( pairIndex != -1 )
 			{
@@ -439,7 +439,7 @@ namespace Sgry.Azuki
 			int diff = (view.VisibleSize.Height / view.LineSpacing);
 
 			// get current virtual coordinate of the caret
-			pt = view.GetVirtualPos( doc.CaretIndex );
+			pt = view.GetVirtualPos( view.CaretIndex );
 			
 			// calc new virtual coordinate of the caret
 			pt.Y += diff * view.LineSpacing;
@@ -453,7 +453,7 @@ namespace Sgry.Azuki
 			nextIndex = view.GetCharIndex( pt );
 
 			// move caret and scroll
-			doc.SetSelection( doc.AnchorIndex, nextIndex );
+			doc.SetSelection( view.AnchorIndex, nextIndex );
 			view.Scroll( diff );
 		}
 
@@ -467,7 +467,7 @@ namespace Sgry.Azuki
 			int diff = (view.VisibleSize.Height / view.LineSpacing);
 
 			// get current virtual coordinate of the caret
-			var pt = view.GetVirtualPos( doc.CaretIndex );
+			var pt = view.GetVirtualPos( view.CaretIndex );
 
 			// calc new virtual coordinate of the caret
 			pt.Y -= diff * view.LineSpacing;
@@ -480,7 +480,7 @@ namespace Sgry.Azuki
 			var nextIndex = view.GetCharIndex( pt );
 
 			// move caret and scroll
-			doc.SetSelection( doc.AnchorIndex, nextIndex );
+			doc.SetSelection( view.AnchorIndex, nextIndex );
 			view.Scroll( -diff );
 		}
 

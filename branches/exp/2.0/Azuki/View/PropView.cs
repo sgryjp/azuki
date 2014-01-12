@@ -35,7 +35,7 @@ namespace Sgry.Azuki
 			// force to release selection here)
 			if( Document != null )
 			{
-				Document.SetSelection( Document.CaretIndex, Document.CaretIndex );
+				Document.SetSelection( CaretIndex, CaretIndex );
 
 				// scroll to caret manually.
 				// (because text graphic was not drawn yet,
@@ -43,7 +43,7 @@ namespace Sgry.Azuki
 				// so ScrollToCaret does not work properly)
 				using( var g = _UI.GetIGraphics() )
 				{
-					var pos = GetVirtualPos( g, Document.CaretIndex );
+					var pos = GetVirtualPos( g, CaretIndex );
 					int newValue = pos.X - (VisibleTextAreaSize.Width / 2);
 					if( 0 < newValue )
 					{
@@ -200,9 +200,8 @@ namespace Sgry.Azuki
 			if( e.ByContentChanged )
 				return;
 
-			var doc = Document;
-			int anchor = doc.AnchorIndex;
-			int caret = doc.CaretIndex;
+			int anchor = AnchorIndex;
+			int caret = CaretIndex;
 			int prevCaretLine = PerDocParam.PrevCaretLine;
 
 			// calculate line/column index of current anchor/caret
@@ -330,10 +329,10 @@ namespace Sgry.Azuki
 			var token = String.Empty;
 
 			// If anchor was moved, invalidate largest range made with four indexes
-			if( e.OldAnchor != doc.AnchorIndex )
+			if( e.OldAnchor != AnchorIndex )
 			{
-				begin = Min( e.OldAnchor, e.OldCaret, doc.AnchorIndex, doc.CaretIndex );
-				end = Max( e.OldAnchor, e.OldCaret, doc.AnchorIndex, doc.CaretIndex );
+				begin = Min( e.OldAnchor, e.OldCaret, AnchorIndex, CaretIndex );
+				end = Max( e.OldAnchor, e.OldCaret, AnchorIndex, CaretIndex );
 				Invalidate( begin, end );
 
 				return;
@@ -366,26 +365,26 @@ namespace Sgry.Azuki
 			int end, endL;
 
 			// if anchor was moved, invalidate largest range made with four indexes
-			if( e.OldAnchor != doc.AnchorIndex )
+			if( e.OldAnchor != AnchorIndex )
 			{
-				begin = Min( e.OldAnchor, e.OldCaret, doc.AnchorIndex, doc.CaretIndex );
-				end = Max( e.OldAnchor, e.OldCaret, doc.AnchorIndex, doc.CaretIndex );
+				begin = Min( e.OldAnchor, e.OldCaret, AnchorIndex, CaretIndex );
+				end = Max( e.OldAnchor, e.OldCaret, AnchorIndex, CaretIndex );
 				Invalidate( begin, end );
 
 				return;
 			}
 
 			// get range between old caret and current caret
-			if( e.OldCaret < doc.CaretIndex )
+			if( e.OldCaret < CaretIndex )
 			{
 				begin = e.OldCaret;
 				beginL = PerDocParam.PrevCaretLine;
-				end = doc.CaretIndex;
+				end = CaretIndex;
 				endL = caretLine;
 			}
 			else
 			{
-				begin = doc.CaretIndex;
+				begin = CaretIndex;
 				beginL = caretLine;
 				end = e.OldCaret;
 				endL = PerDocParam.PrevCaretLine;
@@ -754,7 +753,7 @@ namespace Sgry.Azuki
 			if( HighlightsCurrentLine && selBegin == selEnd )
 			{
 				// Draw underline only when the current line is visible
-				int caretLine = Document.Lines.AtOffset( Document.CaretIndex ).LineIndex;
+				int caretLine = Document.Lines.AtOffset( CaretIndex ).LineIndex;
 				if( FirstVisibleLine <= caretLine )
 				{
 					var lineDiff = caretLine - FirstVisibleLine;

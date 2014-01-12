@@ -49,6 +49,7 @@ namespace Sgry.Azuki
 				return false;
 
 			var doc = ui.Document;
+			var view = ui.View;
 
 			// Perform indentation if an EOL code was inserted
 			if( TextUtil.IsEolChar(ch) )
@@ -56,8 +57,8 @@ namespace Sgry.Azuki
 				var str = new StringBuilder( doc.EolCode );
 
 				// Get indent chars
-				var lineHead = doc.Lines.AtOffset( doc.CaretIndex ).Begin;
-				for( int i=lineHead; i<doc.CaretIndex; i++ )
+				var lineHead = doc.Lines.AtOffset( view.CaretIndex ).Begin;
+				for( int i=lineHead; i<view.CaretIndex; i++ )
 				{
 					var c = doc[i];
 					if( c == ' ' || c == '\t' || c == '\x3000' )
@@ -67,7 +68,7 @@ namespace Sgry.Azuki
 				}
 
 				// Replace selection
-				var newCaretIndex = Math.Min( doc.AnchorIndex, doc.CaretIndex ) + str.Length;
+				var newCaretIndex = Math.Min( view.AnchorIndex, view.CaretIndex ) + str.Length;
 				doc.Replace( str.ToString() );
 				doc.SetSelection( newCaretIndex, newCaretIndex );
 
@@ -152,7 +153,7 @@ namespace Sgry.Azuki
 				}
 
 				// Replace selection
-				var newCaretIndex = Math.Min( doc.AnchorIndex, selBegin ) + indentChars.Length;
+				var newCaretIndex = Math.Min( view.AnchorIndex, selBegin ) + indentChars.Length;
 				doc.Replace( indentChars.ToString(), selBegin, selEnd );
 
 				// Insert extra indentation if there is an '{' without pair before caret and is no
