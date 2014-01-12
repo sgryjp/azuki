@@ -14,6 +14,16 @@ namespace Sgry.Azuki
 	/// </summary>
 	abstract partial class View : IViewInternal
 	{
+		public int CaretIndex
+		{
+			get{ return Document.CaretIndex; }
+		}
+
+		public int AnchorIndex
+		{
+			get{ return Document.AnchorIndex; }
+		}
+
 		#region Fields and Types
 		const float GoldenRatio = 1.6180339887f;
 		const int DefaultTabWidth = 8;
@@ -673,7 +683,7 @@ namespace Sgry.Azuki
 		/// </remarks>
 		public void SetDesiredColumn( IGraphics g )
 		{
-			PerDocParam.DesiredColumnX = GetVirtualPos( g, Document.CaretIndex ).X;
+			PerDocParam.DesiredColumnX = GetVirtualPos( g, CaretIndex ).X;
 		}
 
 		/// <summary>
@@ -934,7 +944,7 @@ namespace Sgry.Azuki
 			}
 
 			// Calculate caret position
-			var caretPos = GetVirtualPos( g, Document.CaretIndex );
+			var caretPos = GetVirtualPos( g, CaretIndex );
 			if( threshRect.Left <= caretPos.X
 				&& caretPos.X <= threshRect.Right
 				&& threshRect.Top <= caretPos.Y
@@ -1199,8 +1209,8 @@ namespace Sgry.Azuki
 				UpdateLineNumberWidth( g );
 
 				// re-calculate line index of caret and anchor
-				PerDocParam.PrevCaretLine = Lines.AtOffset( doc.CaretIndex ).LineIndex;
-				PerDocParam.PrevAnchorLine = Lines.AtOffset( doc.AnchorIndex ).LineIndex;
+				PerDocParam.PrevCaretLine = Lines.AtOffset( CaretIndex ).LineIndex;
+				PerDocParam.PrevAnchorLine = Lines.AtOffset( AnchorIndex ).LineIndex;
 
 				// reset desired column to current caret position
 				SetDesiredColumn( g );

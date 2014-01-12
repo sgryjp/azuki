@@ -11,6 +11,9 @@ namespace Sgry.Azuki
 	/// </summary>
 	public interface IView : IDisposable
 	{
+		int CaretIndex { get; }
+		int AnchorIndex { get; }
+
 		#region Properties
 		/// <summary>
 		/// Gets or sets the document displayed in this view.

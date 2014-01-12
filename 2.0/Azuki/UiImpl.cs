@@ -484,7 +484,7 @@ namespace Sgry.Azuki
 					else if( ch == '\t' && _UsesTabForIndent == false )
 					{
 						string spaces = GetTabEquivalentSpaces(_UI,
-															   doc.CaretIndex);
+															   View.CaretIndex);
 						if( spaces == "" )
 						{
 							// When the caret position is close to next tab
@@ -857,7 +857,7 @@ namespace Sgry.Azuki
 							{
 								newCaretIndex++;
 							}
-							Document.SetSelection( Document.AnchorIndex, newCaretIndex, View );
+							Document.SetSelection( View.AnchorIndex, newCaretIndex, View );
 						}
 						else
 						{
@@ -1010,7 +1010,7 @@ namespace Sgry.Azuki
 			{
 				//--- Rectangle selection ---
 				// Expand selection to the point
-				Document.SetSelection( Document.AnchorIndex, curPosIndex, View );
+				Document.SetSelection( View.AnchorIndex, curPosIndex, View );
 			}
 			else if( _UI.SelectionMode == TextDataType.Line )
 			{
@@ -1022,7 +1022,7 @@ namespace Sgry.Azuki
 				{
 					newCaretIndex++;
 				}
-				Document.SetSelection( Document.AnchorIndex, newCaretIndex, View );
+				Document.SetSelection( View.AnchorIndex, newCaretIndex, View );
 			}
 			else if( _UI.SelectionMode == TextDataType.Words )
 			{
@@ -1034,9 +1034,9 @@ namespace Sgry.Azuki
 			{
 				//--- Normal selection ---
 				// Expand selection to the point if it was different from previous index
-				if( curPosIndex != Document.CaretIndex )
+				if( curPosIndex != View.CaretIndex )
 				{
-					Document.SetSelection( Document.AnchorIndex, curPosIndex );
+					Document.SetSelection( View.AnchorIndex, curPosIndex );
 				}
 			}
 			View.SetDesiredColumn( g );
@@ -1246,9 +1246,9 @@ namespace Sgry.Azuki
 
 		void UpdateMatchedBracketPosition()
 		{
-			UpdateMatchedBracketPosition( _Document.CaretIndex, true );
-			if( 0 < _Document.CaretIndex )
-				UpdateMatchedBracketPosition( _Document.CaretIndex-1, false );
+			UpdateMatchedBracketPosition( _View.CaretIndex, true );
+			if( 0 < _View.CaretIndex )
+				UpdateMatchedBracketPosition( _View.CaretIndex-1, false );
 		}
 
 		void UpdateMatchedBracketPosition( int bracketIndex, bool afterCaret )

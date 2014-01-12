@@ -170,7 +170,7 @@ namespace Sgry.Azuki
 			}
 			// matched bracket
 			else if( HighlightsMatchedBracket
-				&& doc.CaretIndex == doc.AnchorIndex // ensure nothing is selected
+				&& CaretIndex == AnchorIndex // ensure nothing is selected
 				&& IsMatchedBracket(tokenIndex) )
 			{
 				var fore = ColorScheme.MatchedBracketFore;
@@ -546,7 +546,7 @@ namespace Sgry.Azuki
 				int indicatorWidth = 2;
 
 				// Calculate indicator region
-				var caretPos = VirtualToScreen( GetVirtualPos(g, Document.CaretIndex) );
+				var caretPos = VirtualToScreen( GetVirtualPos(g, CaretIndex) );
 				if( caretPos.X < ScrXofTextArea )
 				{
 					indicatorWidth -= ScrXofTextArea - caretPos.X;
@@ -565,7 +565,7 @@ namespace Sgry.Azuki
 			else if( HRulerIndicatorType == HRulerIndicatorType.CharCount )
 			{
 				// Calculate indicator region
-				var caretPos = GetTextPosition( Document.CaretIndex );
+				var caretPos = GetTextPosition( CaretIndex );
 				var indicatorWidth = HRulerUnitWidth - 1;
 				var indicatorX = leftMostLineX
 								 + (caretPos.Column - leftMostRulerIndex) * HRulerUnitWidth;
@@ -586,7 +586,7 @@ namespace Sgry.Azuki
 			{
 				// Calculate indicator region
 				int indicatorWidth = HRulerUnitWidth - 1;
-				var indicatorPos = GetVirtualPos( g, Document.CaretIndex );
+				var indicatorPos = GetVirtualPos( g, CaretIndex );
 				indicatorPos.X -= (indicatorPos.X % HRulerUnitWidth);
 				indicatorPos = VirtualToScreen( indicatorPos );
 				if( indicatorPos.X < ScrXofTextArea )
@@ -670,7 +670,7 @@ namespace Sgry.Azuki
 			if( HRulerIndicatorType == HRulerIndicatorType.Position )
 			{
 				// Get virtual position of the new caret
-				var newCaretScreenPos = VirtualToScreen( GetVirtualPos(g, doc.CaretIndex) );
+				var newCaretScreenPos = VirtualToScreen( GetVirtualPos(g, CaretIndex) );
 
 				// Get previous screen position of the caret
 				int oldCaretX = PerDocParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
@@ -690,7 +690,7 @@ namespace Sgry.Azuki
 			else if( HRulerIndicatorType == HRulerIndicatorType.CharCount )
 			{
 				// Calculate new segment of horizontal ruler
-				var newCaretPos = GetTextPosition( doc.CaretIndex );
+				var newCaretPos = GetTextPosition( CaretIndex );
 				var newSegmentX = (newCaretPos.Column * HRulerUnitWidth)
 								  + ScrXofTextArea
 								  - ScrollPosX;
@@ -715,7 +715,7 @@ namespace Sgry.Azuki
 				int oldSegmentX, newSegmentX;
 
 				// Get virtual position of the new caret
-				var newCaretScreenPos = VirtualToScreen( GetVirtualPos(g, doc.CaretIndex) );
+				var newCaretScreenPos = VirtualToScreen( GetVirtualPos(g, CaretIndex) );
 
 				// Calculate new segment of horizontal rulse
 				int leftMostRulerIndex = ScrollPosX / HRulerUnitWidth;
