@@ -186,7 +186,7 @@ namespace Sgry.Ann
 			{
 				return new FileType() {
 					Highlighter = Highlighters.Python,
-					AutoIndentHook = AutoIndentHooks.GenericHook,
+					AutoIndentHook = AutoIndentHooks.PythonHook,
 					Name = PythonFileTypeName
 				};
 			}
