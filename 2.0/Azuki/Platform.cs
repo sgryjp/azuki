@@ -312,13 +312,13 @@ namespace Sgry.Azuki
 				// if the font specified the name does not support
 				// specified font style.
 				// try to find available font style for the font.
-				FontStyle[] styles = new FontStyle[5];
+				var styles = new FontStyle[5];
 				styles[0] = FontStyle.Regular;
 				styles[1] = FontStyle.Bold;
 				styles[2] = FontStyle.Italic;
 				styles[3] = FontStyle.Underline;
 				styles[4] = FontStyle.Strikeout;
-				foreach( FontStyle s in styles )
+				foreach( var s in styles )
 				{
 					try
 					{
@@ -361,7 +361,7 @@ namespace Sgry.Azuki
 				if( _Plat == null )
 				{
 					if( IsWindows() )
-						_Plat = new Sgry.Azuki.WinForms.PlatWin();
+						_Plat = new WinForms.PlatWin();
 					else
 						throw new NotSupportedException( "Not supported!" );
 				}

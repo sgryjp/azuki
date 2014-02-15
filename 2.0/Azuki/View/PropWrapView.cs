@@ -150,10 +150,8 @@ namespace Sgry.Azuki
 
 		public override int GetCharIndex( IGraphics g, Point pos )
 		{
-			int lineIndex, columnIndex;
-
 			// calc line index
-			lineIndex = (pos.Y / LineSpacing);
+			var lineIndex = (pos.Y / LineSpacing);
 			if( lineIndex < 0 )
 			{
 				lineIndex = 0;
@@ -167,7 +165,7 @@ namespace Sgry.Azuki
 			}
 
 			// calc column index
-			columnIndex = 0;
+			var columnIndex = 0;
 			if( 0 < pos.X )
 			{
 				bool isWrapLine = false;
@@ -191,7 +189,7 @@ namespace Sgry.Azuki
 				// we should return the index of next one.
 				if( drawableTextLen < line.Text.Length )
 				{
-					var nextChar = line.Text[drawableTextLen].ToString();
+					var nextChar = ""+line.Text[drawableTextLen];
 					int nextCharWidth = MeasureTokenEndX( g, nextChar, leftPartWidth )
 										- leftPartWidth;
 					if( leftPartWidth + nextCharWidth/2 < pos.X ) // == "x of middle of next char"
@@ -419,7 +417,7 @@ namespace Sgry.Azuki
 		/// <param name="newText">The text which is inserted by the replacement.</param>
 		void UpdateSLHI( IGraphics g, int index, string oldText, string newText )
 		{
-			Debug.Assert( 0 < this.TabWidth );
+			Debug.Assert( 0 < TabWidth );
 			var doc = Document;
 			int delBeginL, delEndL;
 			int reCalcBegin, reCalcEnd;
@@ -497,12 +495,13 @@ namespace Sgry.Azuki
 			// copy of the text many times)
 			const int segmentLen = 32;
 			int x = 0;
-			int drawableLen;
 			int begin, end;
 			int line = delBeginL;
 			end = reCalcBegin;
 			do
 			{
+				int drawableLen;
+
 				// calc next segment range
 				begin = end;
 				if( begin+segmentLen < reCalcEnd )
@@ -571,7 +570,6 @@ namespace Sgry.Azuki
 
 			int selBegin, selEnd;
 			var pos = new Point();
-			bool shouldRedraw1, shouldRedraw2;
 
 			// prepare off-screen buffer
 #			if !DRAW_SLOWLY
@@ -600,9 +598,9 @@ namespace Sgry.Azuki
 					pos.X = -(ScrollPosX - ScrXofTextArea);
 
 					// Draw the line
-					shouldRedraw1 = _UI.InvokeLineDrawing( g, i, pos );
+					var shouldRedraw1 = _UI.InvokeLineDrawing( g, i, pos );
 					DrawLine( g, i, pos, clipRect );
-					shouldRedraw2 = _UI.InvokeLineDrawn( g, i, pos );
+					var shouldRedraw2 = _UI.InvokeLineDrawn( g, i, pos );
 
 					// [*1] Invalidate the line graphic if needed
 					if( (shouldRedraw1 || shouldRedraw2)
@@ -649,10 +647,9 @@ namespace Sgry.Azuki
 			Debug.Assert( Document != null );
 
 			// note that given pos is NOT virtual position BUT screen position.
-			string token;
 			int begin, end; // range of the token in the text
 			CharClass klass;
-			Point tokenEndPos = pos;
+			var tokenEndPos = pos;
 			bool inSelection;
 
 			// Calculate range of this screen line
@@ -679,7 +676,7 @@ namespace Sgry.Azuki
 			while( end <= screenLine.End && end != -1 )
 			{
 				// get this token
-				token = Document.GetText( begin, end );
+				var token = Document.GetText( begin, end );
 				Debug.Assert( 0 < token.Length, "@View.Paint. NextPaintToken returns empty range." );
 
 				// calc next drawing pos before drawing text
@@ -722,7 +719,6 @@ namespace Sgry.Azuki
 				if( clipRect.Right < tokenEndPos.X )
 				{
 					int visCharCount; // visible char count
-					string peekingChar;
 					int peekingCharRight = 0;
 
 					// Calculate the number of characters which fits within the clip-rect
@@ -733,7 +729,7 @@ namespace Sgry.Azuki
 					// we must write one more char so that the peeking char appears at the boundary.)
 
 					// Try to get graphically peeking (drawn over the border line) char
-					peekingChar = String.Empty;
+					var peekingChar = String.Empty;
 					if( visCharCount+1 <= token.Length )
 					{
 						if( TextUtil.IsNotDividableIndex(token, visCharCount+1) )

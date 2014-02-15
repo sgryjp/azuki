@@ -1,8 +1,6 @@
 ﻿// file: Highlighters.cs
 // brief: highlighter object factory.
 //=========================================================
-using System;
-
 namespace Sgry.Azuki.Highlighter
 {
 	/// <summary>

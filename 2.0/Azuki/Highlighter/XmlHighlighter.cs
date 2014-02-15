@@ -100,17 +100,15 @@ namespace Sgry.Azuki.Highlighter
 				_LastDocumentHash = doc.GetHashCode();
 			}
 
-			char nextCh;
-			int index, nextIndex;
-
 			// Determine range to highlight
 			dirtyRange.Begin = Utl.FindReparsePoint( _ReparsePoints, dirtyRange.Begin );
 			dirtyRange.End = Utl.FindReparseEndPoint( doc, dirtyRange.End );
 
 			// seek each tags
-			index = 0;
+			var index = 0;
 			while( 0 <= index && index < dirtyRange.End )
 			{
+				int nextIndex;
 				if( Utl.TryHighlight(doc, _Enclosures, index, dirtyRange.End, null, out nextIndex) )
 				{
 					Utl.EntryReparsePoint( _ReparsePoints, index );
@@ -129,7 +127,7 @@ namespace Sgry.Azuki.Highlighter
 					}
 
 					// if next char is '?' or '/', highlight it too
-					nextCh = doc[ index ];
+					var nextCh = doc[ index ];
 					if( nextCh == '?' || nextCh == '/' || nextCh == '!' )
 					{
 						doc.SetCharClass( index, CharClass.Delimiter );
@@ -188,14 +186,13 @@ namespace Sgry.Azuki.Highlighter
 				{
 					int seekEndIndex;
 					bool wasEntity;
-					CharClass klass;
 
 					// find end position of this token
 					FindEntityEnd( doc, index, out seekEndIndex, out wasEntity );
 					Debug.Assert( 0 <= seekEndIndex && seekEndIndex <= doc.Length );
 
 					// highlight this token
-					klass = wasEntity ? CharClass.Entity : CharClass.Normal;
+					var klass = wasEntity ? CharClass.Entity : CharClass.Normal;
 					for( int i=index; i<seekEndIndex; i++ )
 					{
 						doc.SetCharClass( i, klass );

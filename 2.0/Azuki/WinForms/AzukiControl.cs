@@ -1106,7 +1106,11 @@ namespace Sgry.Azuki.WinForms
 		public bool IsLineSelectMode
 		{
 			get{ return (SelectionMode == TextDataType.Line); }
-			set{ SelectionMode = TextDataType.Line; }
+			set
+			{
+				SelectionMode = (value) ? TextDataType.Line
+										: TextDataType.Normal;
+			}
 		}
 
 		/// <summary>
@@ -1117,7 +1121,11 @@ namespace Sgry.Azuki.WinForms
 		public bool IsRectSelectMode
 		{
 			get{ return (SelectionMode == TextDataType.Rectangle); }
-			set{ SelectionMode = TextDataType.Rectangle; }
+			set
+			{
+				SelectionMode = (value) ? TextDataType.Rectangle
+										: TextDataType.Normal;
+			}
 		}
 
 		/// <summary>
@@ -1579,9 +1587,8 @@ namespace Sgry.Azuki.WinForms
 		/// </para>
 		/// <para>
 		/// 'Horizontal ruler index' here means how many small lines drawn on the horizontal ruler
-		/// exist between left-end of the text area
-		/// and the character at index specified by <paramref name="charIndex"/>.
-		/// This value is zero-based index.
+		/// exist between left-end of the text area and the character specified. This value is
+		/// zero-based index.
 		/// </para>
 		/// </remarks>
 		public int GetHRulerIndex( int charIndex )
@@ -1602,9 +1609,8 @@ namespace Sgry.Azuki.WinForms
 		/// </para>
 		/// <para>
 		/// 'Horizontal ruler index' here means how many small lines drawn on the horizontal ruler
-		/// exist between left-end of the text area
-		/// and the character at index specified by <paramref name="charIndex"/>.
-		/// This value is zero-based index.
+		/// exist between left-end of the text area and the character specified. This value is
+		/// zero-based index.
 		/// </para>
 		/// </remarks>
 		public int GetHRulerIndex( int lineIndex, int columnIndex )
@@ -2168,11 +2174,10 @@ namespace Sgry.Azuki.WinForms
 			if( e.KeyChar == '\t' )
 			{
 				int selBegin, selEnd;
-				int selBeginL, selEndL;
 
 				Document.GetSelection( out selBegin, out selEnd );
-				selBeginL = Document.Lines.AtOffset( selBegin ).LineIndex;
-				selEndL = Document.Lines.AtOffset( selEnd ).LineIndex;
+				var selBeginL = Document.Lines.AtOffset( selBegin ).LineIndex;
+				var selEndL = Document.Lines.AtOffset( selEnd ).LineIndex;
 				if( selBeginL != selEndL )
 				{
 					if( WinApi.IsKeyDown(Keys.ShiftKey) )
@@ -2239,12 +2244,9 @@ namespace Sgry.Azuki.WinForms
 			try
 			{
 				const int MaxRangeLength = 40;
-				int		rc;
 				int		selBegin, selEnd;
 				string	stringBody;
 				int		stringBodyIndex;
-				char*	strPos;
-				int		infoBufSize;
 
 				// determine string body
 				Document.GetSelection( out selBegin, out selEnd );
@@ -2281,9 +2283,9 @@ namespace Sgry.Azuki.WinForms
 				}
 
 				// Calculate size of information buffer to communicate with IME
-				infoBufSize = sizeof(WinApi.RECONVERTSTRING)
-							  + Encoding.Unicode.GetByteCount( stringBody )
-							  + 1;
+				var infoBufSize = sizeof(WinApi.RECONVERTSTRING)
+								  + Encoding.Unicode.GetByteCount( stringBody )
+								  + 1;
 				if( reconv == null )
 				{
 					// This is the first call for re-conversion. Just inform IME the size of
@@ -2308,7 +2310,7 @@ namespace Sgry.Azuki.WinForms
 				// Copy string body
 				reconv->dwStrLen = (UInt32)stringBody.Length;
 				reconv->dwStrOffset = (UInt32)sizeof(WinApi.RECONVERTSTRING);
-				strPos = (char*)( (byte*)reconv + reconv->dwStrOffset );
+				var strPos = (char*)( (byte*)reconv + reconv->dwStrOffset );
 				for( int i=0; i<stringBody.Length; i++ )
 				{
 					strPos[i] = stringBody[i];
@@ -2331,9 +2333,9 @@ namespace Sgry.Azuki.WinForms
 					reconv->dwCompStrOffset = (UInt32)( (selBegin - stringBodyIndex) * 2);
 					reconv->dwTargetStrLen = 0;
 					reconv->dwTargetStrOffset = reconv->dwCompStrOffset;
-					rc = WinApi.ImmSetCompositionStringW( ime,
-														  WinApi.SCS_QUERYRECONVERTSTRING,
-														  reconv, (uint)infoBufSize, null, 0 );
+					int rc = WinApi.ImmSetCompositionStringW( ime,
+															  WinApi.SCS_QUERYRECONVERTSTRING,
+															  reconv, (uint)infoBufSize, null, 0 );
 					if( rc == 0 )
 					{
 						return 0;
@@ -2671,7 +2673,7 @@ namespace Sgry.Azuki.WinForms
 			_OriginalWndProcObj = WinApi.GetWindowLong( Handle, GWL_WNDPROC );
 			if( _CustomWndProcObj == null )
 			{
-				_CustomWndProcObj = new WinApi.WNDPROC( this.CustomWndProc );
+				_CustomWndProcObj = CustomWndProc;
 			}
 			
 			WinApi.SetWindowLong( Handle, GWL_WNDPROC, _CustomWndProcObj );
@@ -2725,7 +2727,7 @@ namespace Sgry.Azuki.WinForms
 			if( ch != '\t' )
 			{
 				// This is not a tab so return width of this char
-				return view.MeasureTokenEndX( g, ch.ToString(), 0 );
+				return view.MeasureTokenEndX( g, ""+ch, 0 );
 			}
 			else
 			{

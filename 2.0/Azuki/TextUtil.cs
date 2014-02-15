@@ -85,24 +85,16 @@ namespace Sgry.Azuki
 										  int lineIndex,
 										  bool includesEolCode )
 		{
-			DebugUtl.Assert( text != null );
-			DebugUtl.Assert( lhi != null );
+			Debug.Assert( text != null );
+			Debug.Assert( lhi != null );
 			DebugUtl.Assert( 0 <= lineIndex && lineIndex < lhi.Count,
 							 "argument out of range; given lineIndex is "
 							 + lineIndex + " but lhi.Count is " + lhi.Count );
 
-			int begin, end;
-
 			// Get range of the specified line
-			begin = lhi[lineIndex];
-			if( lineIndex+1 < lhi.Count )
-			{
-				end = lhi[lineIndex + 1];
-			}
-			else
-			{
-				end = text.Count;
-			}
+			var begin = lhi[lineIndex];
+			var end = (lineIndex+1 < lhi.Count) ? lhi[lineIndex + 1]
+												: text.Count;
 			DebugUtl.Assert( 0 <= begin && begin <= end );
 			//DO_NOT//DebugUtl.Assert( end <= text.Count );
 
@@ -324,12 +316,10 @@ namespace Sgry.Azuki
 		/// Maintain line head indexes for text insertion.
 		/// THIS MUST BE CALLED BEFORE ACTUAL INSERTION.
 		/// </summary>
-		public static void LHI_Insert(
-				GapBuffer<int> lhi,
-				GapBuffer<DirtyState> lds,
-				IList<char> text,
-				char[] insertText, int insertIndex
-			)
+		public static void LHI_Insert( GapBuffer<int> lhi,
+									   GapBuffer<DirtyState> lds,
+									   IList<char> text,
+									   char[] insertText, int insertIndex )
 		{
 			DebugUtl.Assert( lhi != null && 0 < lhi.Count && lhi[0] == 0,
 							 "lhi must have 0 as a first member." );
@@ -342,15 +332,10 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( 0 <= insertIndex && insertIndex <= text.Count,
 							 "insertIndex is out of range (" + insertIndex
 							 + ")." );
-			LineColumnPos insPos;
-			int lineIndex; // work variable
-			int lineHeadIndex;
-			int lineEndIndex;
-			int insLineCount;
 
 			// at first, find the line which contains the insertion point
-			insPos = GetLineColumnPos( text, lhi, insertIndex );
-			lineIndex = insPos.Line;
+			var insPos = GetLineColumnPos( text, lhi, insertIndex );
+			var lineIndex = insPos.Line;
 
 			// if the inserting divides a CR+LF, insert an entry for the CR
 			// separated
@@ -373,12 +358,12 @@ namespace Sgry.Azuki
 			}
 
 			// insert line index entries to LHI
-			insLineCount = 1;
-			lineHeadIndex = 0;
+			var insLineCount = 1;
+			int lineHeadIndex = 0;
 			do
 			{
 				// get end index of this line
-				lineEndIndex = NextLineHead( insertText, lineHeadIndex ) - 1;
+				var lineEndIndex = NextLineHead( insertText, lineHeadIndex ) - 1;
 				if( lineEndIndex == -2 ) // == "if NextLineHead returns -1"
 				{
 					// no more lines following to this line.
@@ -444,12 +429,10 @@ namespace Sgry.Azuki
 		/// Maintain line head indexes for text deletion.
 		/// THIS MUST BE CALLED BEFORE ACTUAL DELETION.
 		/// </summary>
-		public static void LHI_Delete(
-				GapBuffer<int> lhi,
-				GapBuffer<DirtyState> lds,
-				IList<char> text,
-				int delBegin, int delEnd
-			)
+		public static void LHI_Delete( GapBuffer<int> lhi,
+									   GapBuffer<DirtyState> lds,
+									   IList<char> text,
+									   int delBegin, int delEnd )
 		{
 			DebugUtl.Assert( lhi != null && 0 < lhi.Count && lhi[0] == 0,
 							 "lhi must have 0 as a first member." );
@@ -461,13 +444,12 @@ namespace Sgry.Azuki
 							 "delBegin is out of range." );
 			DebugUtl.Assert( delBegin <= delEnd && delEnd <= text.Count,
 							 "delEnd is out of range." );
-			int delFirstLine;
 			int delLen = delEnd - delBegin;
 
 			// calculate line indexes of both ends of the range
 			var delFromPos = GetLineColumnPos( text, lhi, delBegin );
 			var delToPos = GetLineColumnPos( text, lhi, delEnd );
-			delFirstLine = delFromPos.Line;
+			var delFirstLine = delFromPos.Line;
 
 			if( 0 < delBegin && text[delBegin-1] == '\r' )
 			{
@@ -765,10 +747,9 @@ namespace Sgry.Azuki
 
 			int left = 0;
 			int right = list.Count;
-			int middle;
 			for(;;)
 			{
-				middle = left + ( (right - left) >> 1 );
+				var middle = left + ( (right - left) >> 1 );
 				int result = compare( list[middle], item );
 				if( 0 < result )
 				{

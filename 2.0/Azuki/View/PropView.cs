@@ -114,11 +114,9 @@ namespace Sgry.Azuki
 		public override int GetCharIndex( IGraphics g, Point pos )
 		{
 			Debug.Assert( g != null );
-			int lineIndex, columnIndex;
-			int drawableTextLen;
 
 			// calc line index
-			lineIndex = (pos.Y / LineSpacing);
+			var lineIndex = (pos.Y / LineSpacing);
 			if( lineIndex < 0 )
 			{
 				lineIndex = 0;
@@ -132,9 +130,11 @@ namespace Sgry.Azuki
 			}
 
 			// calc column index
-			columnIndex = 0;
+			var columnIndex = 0;
 			if( 0 < pos.X )
 			{
+				int drawableTextLen;
+
 				// get content of the line
 				var line = Document.Lines[ lineIndex ].Text;
 
@@ -150,7 +150,7 @@ namespace Sgry.Azuki
 				if( drawableTextLen < line.Length )
 				{
 					// get next grapheme cluster
-					var nextChar = line[drawableTextLen].ToString();
+					var nextChar = "" + line[drawableTextLen];
 					int nextCharEnd = drawableTextLen + 1;
 					while( TextUtil.IsNotDividableIndex(line, nextCharEnd) )
 					{
@@ -322,7 +322,6 @@ namespace Sgry.Azuki
 													   int begin, int end, int beginL )
 		{
 			DebugUtl.Assert( beginL < Lines.Count );
-			var doc = Document;
 			var rect = new Rectangle();
 			var token = String.Empty;
 
@@ -358,7 +357,6 @@ namespace Sgry.Azuki
 		void HandleSelectionChanged_OnExpandSel( IGraphics g, SelectionChangedEventArgs e,
 												 int caretLine )
 		{
-			var doc = Document;
 			int begin, beginL;
 			int end, endL;
 
@@ -455,15 +453,13 @@ namespace Sgry.Azuki
 			// One case of that e.NewText has combining char at first:
 			//    aaaa --(replace [2, 3) to "^A")--> aa^Aa
 
-			Point invalidStartPos;
-			int invalidStartIndex;
-			var invalidRect1 = new Rectangle();
-			var invalidRect2 = new Rectangle();
-
 			using( var g = _UI.GetIGraphics() )
 			{
+				var invalidRect1 = new Rectangle();
+				var invalidRect2 = new Rectangle();
+
 				// Calculate where to start invalidation
-				invalidStartIndex = e.Index;
+				var invalidStartIndex = e.Index;
 				if( TextUtil.IsCombiningCharacter(e.OldText, 0)
 					|| TextUtil.IsCombiningCharacter(e.NewText, 0) )
 				{
@@ -472,7 +468,7 @@ namespace Sgry.Azuki
 				}
 
 				// Get graphical position of the place
-				invalidStartPos = VirtualToScreen( GetVirtualPos(g, invalidStartIndex) );
+				var invalidStartPos = VirtualToScreen( GetVirtualPos(g, invalidStartIndex) );
 
 				// Update indicator graphic on horizontal ruler
 				UpdateHRuler( g );
@@ -542,18 +538,16 @@ namespace Sgry.Azuki
 							 + ") must not exceed document length (" + Document.Length + ")" );
 			if( beginIndex == endIndex )
 				return;
-			
-			int beginLineHead, endLineHead;
 
 			// get needed coordinates
 			var beginPos = GetLineColumnPos( beginIndex );
 			var endPos = GetLineColumnPos( endIndex );
-			beginLineHead = Lines[ beginPos.Line ].Begin;
+			var beginLineHead = Lines[ beginPos.Line ].Begin;
 
 			// switch invalidation logic by whether the invalidated area is multiline or not
 			if( beginPos.Line != endPos.Line )
 			{
-				endLineHead = Lines[ endPos.Line ].Begin; // for invalidating multiline selection
+				var endLineHead = Lines[ endPos.Line ].Begin; // for invalidating multiline selection
 				Invalidate_MultiLines( g, beginIndex, endIndex, beginPos.Line, endPos.Line,
 									   beginLineHead, endLineHead );
 			}
@@ -765,23 +759,21 @@ namespace Sgry.Azuki
 					   ref int longestLineLength )
 		{
 			// note that given pos is NOT virtual position BUT screen position.
-			string token;
-			int begin, end; // range of the token in the text
 			CharClass klass;
-			Point tokenEndPos = pos;
+			var tokenEndPos = pos;
 			bool inSelection;
 
 			var line = Document.RawLines[ lineIndex ];
 
 			// Draw line text
-			begin = line.Begin;
-			end = NextPaintToken( Document, begin, line.End, out klass, out inSelection );
+			var begin = line.Begin;
+			var end = NextPaintToken( Document, begin, line.End, out klass, out inSelection );
 			while( end <= line.End // until end-pos reaches line-end
 				&& pos.X < clipRect.Right // or reaches right-end of the clip rect
 				&& end != -1 ) // or reaches the end of text
 			{
 				// Get this token
-				token = Document.GetText( begin, end );
+				var token = Document.GetText( begin, end );
 				DebugUtl.Assert( 0 < token.Length );
 
 				// Calc next drawing pos before drawing text

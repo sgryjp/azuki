@@ -26,8 +26,7 @@ namespace Sgry.Azuki
 	public class MarkingInfo
 	{
 		#region Fields
-		int _ID;
-		string _Name;
+
 		MouseCursor _MouseCursor = MouseCursor.IBeam;
 		#endregion
 
@@ -50,8 +49,8 @@ namespace Sgry.Azuki
 			if( name == null )
 				throw new ArgumentNullException( "name" );
 
-			_ID = id;
-			_Name = name;
+			ID = id;
+			Name = name;
 		}
 
 		/// <summary>
@@ -81,20 +80,12 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets or sets ID of this marking.
 		/// </summary>
-		public int ID
-		{
-			get{ return _ID; }
-			set{ _ID = value; }
-		}
+		public int ID { get; set; }
 
 		/// <summary>
 		/// Gets or sets name of this marking.
 		/// </summary>
-		public string Name
-		{
-			get{ return _Name; }
-			set{ _Name = value; }
-		}
+		public string Name { get; set; }
 
 		/// <summary>
 		/// Gets or sets type of mouse cursor associated with this marking.
@@ -184,13 +175,13 @@ namespace Sgry.Azuki
 		#endregion
 		
 		#region Fields
-		static MarkingInfo[] _MarkingInfoAry = new MarkingInfo[MaxID+1];
+		static readonly MarkingInfo[] _MarkingInfoAry = new MarkingInfo[MaxID+1];
 		#endregion
 
 		#region Init / Dispose
 		static Marking()
 		{
-			Register( new MarkingInfo(Marking.Uri, "URI", MouseCursor.Hand) );
+			Register( new MarkingInfo(Uri, "URI", MouseCursor.Hand) );
 		}
 		#endregion
 

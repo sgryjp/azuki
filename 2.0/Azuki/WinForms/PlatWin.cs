@@ -19,8 +19,8 @@ namespace Sgry.Azuki.WinForms
 		#region Fields
 		const string LineSelectClipFormatName = "MSDEVLineSelect";
 		const string RectSelectClipFormatName = "MSDEVColumnSelect";
-		UInt32 _CF_LINEOBJECT = WinApi.CF_PRIVATEFIRST + 1;
-		UInt32 _CF_RECTSELECT = WinApi.CF_PRIVATEFIRST + 2;
+		readonly UInt32 _CF_LINEOBJECT = WinApi.CF_PRIVATEFIRST + 1;
+		readonly UInt32 _CF_RECTSELECT = WinApi.CF_PRIVATEFIRST + 2;
 		#endregion
 
 		#region Init / Dispose
@@ -54,19 +54,18 @@ namespace Sgry.Azuki.WinForms
 		/// <seealso cref="Sgry.Azuki.TextDataType">TextDataType enum</seealso>
 		public string GetClipboardText( out TextDataType dataType )
 		{
-			Int32 rc; // result code
-			bool clipboardOpened = false;
-			IntPtr dataHandle = IntPtr.Zero;
-			IntPtr dataPtr = IntPtr.Zero;
-			uint formatID = UInt32.MaxValue;
-			string data = null;
+			var clipboardOpened = false;
+			var dataHandle = IntPtr.Zero;
+			var dataPtr = IntPtr.Zero;
+			var formatID = UInt32.MaxValue;
+			string data;
 
 			dataType = TextDataType.Normal;
 
 			try
 			{
 				// open clipboard
-				rc = WinApi.OpenClipboard( IntPtr.Zero );
+				var rc = WinApi.OpenClipboard( IntPtr.Zero );
 				if( rc == 0 )
 				{
 					return null;
@@ -112,22 +111,16 @@ namespace Sgry.Azuki.WinForms
 				}
 
 				// retrieve data
-				if( formatID == WinApi.CF_TEXT )
-					data = Utl.MyPtrToStringAnsi( dataPtr );
-				else
-					data = Marshal.PtrToStringUni( dataPtr );
+				data = (formatID == WinApi.CF_TEXT) ? MyPtrToStringAnsi( dataPtr )
+													: Marshal.PtrToStringUni( dataPtr );
 			}
 			finally
 			{
 				// unlock handle
 				if( dataPtr != IntPtr.Zero )
-				{
 					WinApi.GlobalUnlock( dataHandle );
-				}
 				if( clipboardOpened )
-				{
 					WinApi.CloseClipboard();
-				}
 			}
 
 			return data;
@@ -149,14 +142,12 @@ namespace Sgry.Azuki.WinForms
 		/// </remarks>
 		public void SetClipboardText( string text, TextDataType dataType )
 		{
-			Int32 rc; // result code
-			IntPtr dataHdl;
 			bool clipboardOpened = false;
 
 			try
 			{
 				// open clipboard
-				rc = WinApi.OpenClipboard( IntPtr.Zero );
+				var rc = WinApi.OpenClipboard( IntPtr.Zero );
 				if( rc == 0 )
 				{
 					return;
@@ -167,7 +158,7 @@ namespace Sgry.Azuki.WinForms
 				WinApi.EmptyClipboard();
 
 				// set normal text data
-				dataHdl = Marshal.StringToHGlobalUni( text );
+				var dataHdl = Marshal.StringToHGlobalUni( text );
 				WinApi.SetClipboardData( WinApi.CF_UNICODETEXT, dataHdl );
 
 				// set addional text data
@@ -187,9 +178,7 @@ namespace Sgry.Azuki.WinForms
 			finally
 			{
 				if( clipboardOpened )
-				{
 					WinApi.CloseClipboard();
-				}
 			}
 		}
 		#endregion
@@ -230,32 +219,27 @@ namespace Sgry.Azuki.WinForms
 		#endregion
 
 		#region Utilities
-		class Utl
+		static string MyPtrToStringAnsi( IntPtr dataPtr )
 		{
-			#region String Conversion
-			public static string MyPtrToStringAnsi( IntPtr dataPtr )
-			{
-				unsafe {
-					byte* p = (byte*)dataPtr;
-					int byteCount = 0;
+			unsafe {
+				byte* p = (byte*)dataPtr;
+				int byteCount = 0;
 					
-					// count length
-					for( int i=0; *(p + i) != 0; i++ )
-					{
-						byteCount++;
-					}
-
-					// copy data
-					byte[] data = new byte[ byteCount ];
-					for( int i=0; i<byteCount; i++ )
-					{
-						data[i] = *(p + i);
-					}
-					
-					return new String( Encoding.Default.GetChars(data) );
+				// count length
+				for( int i=0; *(p + i) != 0; i++ )
+				{
+					byteCount++;
 				}
+
+				// copy data
+				byte[] data = new byte[ byteCount ];
+				for( int i=0; i<byteCount; i++ )
+				{
+					data[i] = *(p + i);
+				}
+					
+				return new String( Encoding.Default.GetChars(data) );
 			}
-			#endregion
 		}
 		#endregion
 	}
@@ -263,8 +247,8 @@ namespace Sgry.Azuki.WinForms
 	class GraWin : IGraphics
 	{
 		#region Fields
-		IntPtr _Window = IntPtr.Zero;
-		IntPtr _DC = IntPtr.Zero;
+		readonly IntPtr _Window = IntPtr.Zero;
+		readonly IntPtr _DC = IntPtr.Zero;
 		IntPtr _MemDC = IntPtr.Zero;
 		Size _MemDcSize;
 		Point _Offset = Point.Empty;

@@ -1,7 +1,6 @@
 ﻿// file: TextDecoration.cs
 // brief: Text decoration classes.
 //=========================================================
-using System;
 using System.Drawing;
 
 namespace Sgry.Azuki
@@ -42,7 +41,7 @@ namespace Sgry.Azuki
 	/// </summary>
 	public class BgColorTextDecoration : TextDecoration
 	{
-		Color bgColor;
+		readonly Color bgColor;
 
 		#region Init / Dispose
 		/// <summary>
@@ -68,9 +67,6 @@ namespace Sgry.Azuki
 	/// </summary>
 	public class UnderlineTextDecoration : TextDecoration
 	{
-		LineStyle _LineStyle;
-		Color _LineColor;
-
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
@@ -82,27 +78,19 @@ namespace Sgry.Azuki
 		/// </param>
 		public UnderlineTextDecoration( LineStyle lineStyle, Color lineColor )
 		{
-			_LineStyle = lineStyle;
-			_LineColor = lineColor;
+			LineStyle = lineStyle;
+			LineColor = lineColor;
 		}
 
 		/// <summary>
 		/// Gets or sets style of underline.
 		/// </summary>
-		public LineStyle LineStyle
-		{
-			get{ return _LineStyle; }
-			set{ _LineStyle = value; }
-		}
+		public LineStyle LineStyle { get; set; }
 
 		/// <summary>
 		/// Gets or sets color of underline.
 		/// </summary>
-		public Color LineColor
-		{
-			get{ return _LineColor; }
-			set{ _LineColor = value; }
-		}
+		public Color LineColor { get; set; }
 	}
 
 	/// <summary>
@@ -110,8 +98,6 @@ namespace Sgry.Azuki
 	/// </summary>
 	public class OutlineTextDecoration : TextDecoration
 	{
-		Color _LineColor;
-
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
@@ -124,11 +110,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// The color of the outline.
 		/// </summary>
-		public Color LineColor
-		{
-			get{ return _LineColor; }
-			set{ _LineColor = value; }
-		}
+		public Color LineColor { get; set; }
 	}
 
 	/// <summary>

@@ -32,8 +32,6 @@ namespace Sgry.Azuki
 			Debug.Assert( 0 < token.Length, "given token is empty." );
 			var textPos = tokenPos;
 			Color foreColor, backColor;
-			TextDecoration[] decorations;
-			uint markingBitMask;
 
 			// Calculate top coordinate of text
 			textPos.Y += (LinePadding >> 1);
@@ -46,8 +44,8 @@ namespace Sgry.Azuki
 			// Get drawing style for this token
 			ColorFromCharClass( ColorScheme, klass, inSelection, out foreColor, out backColor );
 			g.BackColor = backColor;
-			markingBitMask = doc.GetMarkingBitMaskAt( tokenIndex );
-			decorations = ColorScheme.GetMarkingDecorations( markingBitMask );
+			var markingBitMask = doc.GetMarkingBitMaskAt( tokenIndex );
+			var decorations = ColorScheme.GetMarkingDecorations( markingBitMask );
 
 			// Overwrite bg color if this token was decorated with solid background decoration
 			if( inSelection == false )
@@ -302,10 +300,8 @@ namespace Sgry.Azuki
 			int tokenEndIndex = tokenIndex + token.Length;
 
 			// prepare drawing
-			if( decoration.LineColor == Color.Transparent )
-				g.BackColor = currentForeColor;
-			else
-				g.BackColor = decoration.LineColor;
+			g.BackColor = (decoration.LineColor == Color.Transparent) ? currentForeColor
+																	  : decoration.LineColor;
 			int w = (_Font.Size / 24) + 1;
 			var rect = new Rectangle( tokenPos.X,
 									  tokenPos.Y + 1,
@@ -352,10 +348,8 @@ namespace Sgry.Azuki
 			int bottom = lineTopY + LineHeight + (LinePadding >> 1);
 
 			// determine color of the underline
-			if( _UI.Focused )
-				g.ForeColor = color;
-			else
-				g.ForeColor = ColorScheme.BackColor;
+			g.ForeColor = ( _UI.Focused ) ? color
+										  : ColorScheme.BackColor;
 
 			// draw under line
 			g.DrawLine( ScrXofTextArea, bottom, _VisibleSize.Width, bottom );
@@ -438,7 +432,7 @@ namespace Sgry.Azuki
 			// Draw line number text
 			if( ShowLineNumber && drawsText )
 			{
-				var lineNumText = lineNumber.ToString();
+				var lineNumText = "" + lineNumber;
 				pos.X = ScrXofDirtBar - g.MeasureText( lineNumText ).Width - LineNumberAreaPadding;
 				var textPos = pos;
 				textPos.Y += (LinePadding >> 1);
@@ -459,10 +453,6 @@ namespace Sgry.Azuki
 		/// </summary>
 		protected void DrawHRuler( IGraphics g, Rectangle clipRect )
 		{
-			string columnNumberText;
-			int lineX, rulerIndex;
-			int leftMostLineX, leftMostRulerIndex;
-
 			if( ShowsHRuler == false || ScrYofTopMargin < clipRect.Y )
 				return;
 
@@ -484,8 +474,8 @@ namespace Sgry.Azuki
 			}
 
 			// Calculate first line on the ruler to draw
-			leftMostRulerIndex = ScrollPosX / HRulerUnitWidth;
-			leftMostLineX = ScrXofTextArea + (leftMostRulerIndex * HRulerUnitWidth) - ScrollPosX;
+			var leftMostRulerIndex = ScrollPosX / HRulerUnitWidth;
+			var leftMostLineX = ScrXofTextArea + (leftMostRulerIndex * HRulerUnitWidth) - ScrollPosX;
 			while( leftMostLineX < clipRect.Left )
 			{
 				leftMostRulerIndex++;
@@ -503,8 +493,8 @@ namespace Sgry.Azuki
 
 			// Draw lines on the ruler
 			g.FontInfo = _HRulerFont;
-			lineX = leftMostLineX;
-			rulerIndex = leftMostRulerIndex;
+			var lineX = leftMostLineX;
+			var rulerIndex = leftMostRulerIndex;
 			while( lineX < clipRect.Right )
 			{
 				// Draw ruler line
@@ -514,7 +504,7 @@ namespace Sgry.Azuki
 					g.DrawLine( lineX, ScrYofHRuler, lineX, ScrYofHRuler+HRulerHeight );
 
 					// Draw column text
-					columnNumberText = (rulerIndex / 10).ToString();
+					var columnNumberText = "" + (rulerIndex / 10);
 					var pos = new Point( lineX+2, ScrYofHRuler );
 					g.DrawText( columnNumberText, ref pos, ForeColorOfLineNumber(ColorScheme) );
 				}
@@ -665,7 +655,6 @@ namespace Sgry.Azuki
 
 			Rectangle oldUpdateRect;
 			Rectangle newUdpateRect;
-			var doc = Document;
 
 			if( HRulerIndicatorType == HRulerIndicatorType.Position )
 			{
@@ -712,8 +701,6 @@ namespace Sgry.Azuki
 			}
 			else// if( HRulerIndicatorType == HRulerIndicatorType.Segment )
 			{
-				int oldSegmentX, newSegmentX;
-
 				// Get virtual position of the new caret
 				var newCaretScreenPos = VirtualToScreen( GetVirtualPos(g, CaretIndex) );
 
@@ -722,14 +709,14 @@ namespace Sgry.Azuki
 				int leftMostLineX = ScrXofTextArea
 									+ (leftMostRulerIndex * HRulerUnitWidth)
 									- ScrollPosX;
-				newSegmentX = leftMostLineX;
+				var newSegmentX = leftMostLineX;
 				while( newSegmentX+HRulerUnitWidth <= newCaretScreenPos.X )
 				{
 					newSegmentX += HRulerUnitWidth;
 				}
 
 				// Calculate previous segment of horizontal ruler
-				oldSegmentX = PerDocParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
+				var oldSegmentX = PerDocParam.PrevHRulerVirX + ScrXofTextArea - ScrollPosX;
 				if( oldSegmentX == newSegmentX )
 				{
 					return; // segment was not changed
@@ -776,8 +763,6 @@ namespace Sgry.Azuki
 										out int drawableLength )
 		{
 			int x = virX;
-			int relDLen; // relatively calculated drawable length
-			bool hitRightLimit;
 
 			drawableLength = 0;
 			if( token.Length == 0 )
@@ -792,8 +777,9 @@ namespace Sgry.Azuki
 				{
 					//--- Found a tab ---
 					// Calculate drawn length of cached characters
-					hitRightLimit = MeasureTokenEndX_TreatSubToken( g, i, subToken, rightLimitX,
-																	ref x, ref drawableLength );
+					var hitRightLimit = MeasureTokenEndX_TreatSubToken( g, i, subToken,
+																		rightLimitX, ref x,
+																		ref drawableLength );
 					if( hitRightLimit )
 					{
 						// before this tab, cached characters already hit the limit.
@@ -816,8 +802,9 @@ namespace Sgry.Azuki
 				{
 					//--- Detected an EOL char ---
 					// Calculate drawn length of cached characters
-					hitRightLimit = MeasureTokenEndX_TreatSubToken( g, i, subToken, rightLimitX,
-																	ref x, ref drawableLength );
+					var hitRightLimit = MeasureTokenEndX_TreatSubToken( g, i, subToken,
+																		rightLimitX, ref x,
+																		ref drawableLength );
 					if( hitRightLimit )
 					{
 						// Before this EOL char, cached characters already hit the limit.
@@ -847,10 +834,9 @@ namespace Sgry.Azuki
 					{
 						// Pretty long text was cached.
 						// calculate its width and check whether drawable or not
-						hitRightLimit = MeasureTokenEndX_TreatSubToken( g, i, subToken,
-																		rightLimitX,
-																		ref x,
-																		ref drawableLength );
+						var hitRightLimit = MeasureTokenEndX_TreatSubToken( g, i, subToken,
+																			rightLimitX, ref x,
+																			ref drawableLength );
 						if( hitRightLimit )
 						{
 							return x; // hit the right limit
@@ -870,6 +856,8 @@ namespace Sgry.Azuki
 			// Calc last sub-token
 			if( 0 < subToken.Length )
 			{
+				int relDLen; // relatively calculated drawable length
+
 				x += g.MeasureText( subToken.ToString(), rightLimitX-x, out relDLen ).Width;
 				if( relDLen < subToken.Length )
 				{
@@ -994,10 +982,6 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( nextLineHead <= doc.Length, "param 'nextLineHead'(" + nextLineHead
 							 + ") must not be greater than 'doc.Length'(" + doc.Length + ")." );
 
-			char firstCh, ch;
-			CharClass firstKlass, klass;
-			uint firstMarkingBitMask, markingBitMask;
-
 			out_inSelection = false;
 
 			if( nextLineHead <= index )
@@ -1018,9 +1002,9 @@ namespace Sgry.Azuki
 			}
 
 			// Get first char class and selection state
-			firstCh = doc[ index ];
-			firstKlass = doc.GetCharClass( index );
-			firstMarkingBitMask = doc.GetMarkingBitMaskAt( index );
+			var firstCh = doc[ index ];
+			var firstKlass = doc.GetCharClass( index );
+			var firstMarkingBitMask = doc.GetMarkingBitMaskAt( index );
 			out_klass = firstKlass;
 			if( IsSpecialChar(firstCh) )
 			{
@@ -1038,9 +1022,9 @@ namespace Sgry.Azuki
 			{
 				// Get next char
 				index++;
-				ch = doc[ index ];
-				klass = doc.GetCharClass( index );
-				markingBitMask = doc.GetMarkingBitMaskAt( index );
+				var ch = doc[ index ];
+				var klass = doc.GetCharClass( index );
+				var markingBitMask = doc.GetMarkingBitMaskAt( index );
 
 				if( IsSpecialChar(ch)							// special char
 					|| IsMatchedBracket(index)					// matched bracket

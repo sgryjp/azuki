@@ -36,7 +36,7 @@ class Parser {
 	public Token la;   // lookahead token
 	int errDist = minErrDist;
 	
-	Document doc;
+	readonly Document doc;
 
 int sectionLevel = 0;
 	int curlyBracketDepth = 0;

@@ -3,8 +3,6 @@
 // author: YAMAMOTO Suguru
 //=========================================================
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki
@@ -323,19 +321,14 @@ namespace Sgry.Azuki
 			if( startIndex < 0 || doc.Length < startIndex )
 				throw new ArgumentOutOfRangeException( "startIndex" );
 
-			int index;
-			ClassifyCharProc isSameClass;
-			
 			// check start index
-			index = doc.PrevGraphemeClusterIndex( startIndex );
+			var index = doc.PrevGraphemeClusterIndex( startIndex );
 			Debug.Assert( index < startIndex );
 			if( index < 0 )
-			{
 				return 0;
-			}
 			
 			// proceed until the char category changes
-			isSameClass = ClassifyChar( doc, index );
+			var isSameClass = ClassifyChar( doc, index );
 			do
 			{
 				index = doc.NextGraphemeClusterIndex( index );
@@ -367,24 +360,17 @@ namespace Sgry.Azuki
 			if( startIndex < 0 || doc.Length < startIndex )
 				throw new ArgumentOutOfRangeException( "startIndex" );
 
-			int index;
-			ClassifyCharProc isSameClass;
-
 			// check start index
 			if( doc.Length <= startIndex )
-			{
 				return doc.Length;
-			}
 
 			// set seek starting index
-			index = doc.PrevGraphemeClusterIndex( startIndex );
+			var index = doc.PrevGraphemeClusterIndex( startIndex );
 			if( index < 0 )
-			{
 				index = 0;
-			}
 
 			// proceed until the char category changes
-			isSameClass = ClassifyChar( doc, index );
+			var isSameClass = ClassifyChar( doc, index );
 			do
 			{
 				index = doc.NextGraphemeClusterIndex( index );
@@ -402,13 +388,13 @@ namespace Sgry.Azuki
 		/// <param name="doc">The document in which to search.</param>
 		/// <param name="startIndex">The index to start the search from.</param>
 		/// <returns>Index of start position of a word if found, or 0 if no word was found.</returns>
-		/// <exception cref="System.ArgumentNullException">
+		/// <exception cref="ArgumentNullException">
 		///		<paramref name="doc"/> is null.
 		/// </exception>
-		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <exception cref="ArgumentOutOfRangeException">
 		///		<paramref name="startIndex"/> is less than 0 or greater than length of the document.
 		/// </exception>
-		/// <seealso cref="Sgry.Azuki.IWordProc.PrevWordStart">IWordProc.PrevWordStart method</seealso>
+		/// <seealso cref="IWordProc.PrevWordStart"/>
 		public virtual int PrevWordStart( Document doc, int startIndex )
 		{
 			if( doc == null )
@@ -416,28 +402,19 @@ namespace Sgry.Azuki
 			if( startIndex < 0 || doc.Length < startIndex )
 				throw new ArgumentOutOfRangeException( "startIndex" );
 
-			int index;
-			ClassifyCharProc isSameClass;
-			
 			// check start index
 			if( startIndex <= 0 )
-			{
 				return 0;
-			}
-			else if( doc.Length <= startIndex )
-			{
+			if( doc.Length <= startIndex )
 				return doc.Length;
-			}
 
 			// set seek starting index
-			index = startIndex;
+			var index = startIndex;
 			while( doc.IsNotDividableIndex(index) )
-			{
 				index--;
-			}
 
 			// proceed until the char category changes
-			isSameClass = ClassifyChar( doc, index );
+			var isSameClass = ClassifyChar( doc, index );
 			do
 			{
 				index = doc.PrevGraphemeClusterIndex( index );
@@ -455,13 +432,13 @@ namespace Sgry.Azuki
 		/// <param name="doc">The document in which to search.</param>
 		/// <param name="startIndex">The index to start the search from.</param>
 		/// <returns>Index of end position of a word if found, or length of the document if no word was found.</returns>
-		/// <exception cref="System.ArgumentNullException">
+		/// <exception cref="ArgumentNullException">
 		///		<paramref name="doc"/> is null.
 		/// </exception>
-		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <exception cref="ArgumentOutOfRangeException">
 		///		<paramref name="startIndex"/> is less than 0 or greater than length of the document.
 		/// </exception>
-		/// <seealso cref="Sgry.Azuki.IWordProc.PrevWordEnd">IWordProc.PrevWordEnd method</seealso>
+		/// <seealso cref="Sgry.Azuki.IWordProc.PrevWordEnd"/>
 		public virtual int PrevWordEnd( Document doc, int startIndex )
 		{
 			if( doc == null )
@@ -469,28 +446,19 @@ namespace Sgry.Azuki
 			if( startIndex < 0 || doc.Length < startIndex )
 				throw new ArgumentOutOfRangeException( "startIndex" );
 
-			int index;
-			ClassifyCharProc isSameClass;
-			
 			// check start index
 			if( startIndex <= 0 )
-			{
 				return 0;
-			}
-			else if( doc.Length <= startIndex )
-			{
+			if( doc.Length <= startIndex )
 				return doc.Length;
-			}
 
 			// set seek starting index
-			index = startIndex;
+			var index = startIndex;
 			while( doc.IsNotDividableIndex(index) )
-			{
 				index--;
-			}
 
 			// proceed until the char category changes
-			isSameClass = ClassifyChar( doc, index );
+			var isSameClass = ClassifyChar( doc, index );
 			do
 			{
 				index = doc.PrevGraphemeClusterIndex( index );
@@ -508,13 +476,13 @@ namespace Sgry.Azuki
 		/// <param name="doc">The document currently rendering.</param>
 		/// <param name="index">The index of character which is to be drawn over the right edge of text area.</param>
 		/// <returns>The index of the character which starts the next screen line.</returns>
-		/// <exception cref="System.ArgumentNullException">
+		/// <exception cref="ArgumentNullException">
 		///		<paramref name="doc"/> is null.
 		/// </exception>
-		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <exception cref="ArgumentOutOfRangeException">
 		///		<paramref name="index"/> is less than 0 or greater than length of the document.
 		/// </exception>
-		/// <seealso cref="Sgry.Azuki.IWordProc.HandleWordWrapping">IWordProc.HandleWordWrapping method</seealso>
+		/// <seealso cref="IWordProc.HandleWordWrapping"/>
 		public virtual int HandleWordWrapping( Document doc, int index )
 		{
 			if( doc == null )
@@ -523,7 +491,6 @@ namespace Sgry.Azuki
 				throw new ArgumentOutOfRangeException( "index" );
 
 			int i;
-			int startIndex;
 
 			if( doc.Length <= index )
 				return index;
@@ -545,7 +512,7 @@ namespace Sgry.Azuki
 			}
 
 			// execute 'hanging'
-			startIndex = index;
+			var startIndex = index;
 			for( i=0; i<KinsokuDepth; i++ )
 			{
 				// execute character hanging
@@ -621,9 +588,9 @@ namespace Sgry.Azuki
 			if( doc.IsNotDividableIndex(index) && 0 < index )
 			{
 				DebugUtl.Assert( index+1 < doc.Length );
-				DebugUtl.Fail( String.Format(
-					"kinsoku-shori resulted in forbidden index; between U+{0:X4} and U+{1:X4}", doc[index], doc[index+1]
-				));
+				DebugUtl.Fail( String.Format("kinsoku-shori resulted in forbidden index;"
+											 + " between U+{0:X4} and U+{1:X4}",
+											 (int)doc[index], (int)doc[index+1]) );
 				index = doc.PrevGraphemeClusterIndex( index );
 			}
 			return index;
@@ -686,7 +653,7 @@ namespace Sgry.Azuki
 			return IsUnknown;
 		}
 
-		static ClassifyCharProc IsAlphabet = delegate( Document doc, int index )
+		static readonly ClassifyCharProc IsAlphabet = delegate( Document doc, int index )
 		{
 			if( doc.Length <= index )
 				return false;
@@ -748,7 +715,7 @@ namespace Sgry.Azuki
 			/*00F*/ 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1
 		};
 
-		static ClassifyCharProc IsDigit = delegate( Document doc, int index )
+		static readonly ClassifyCharProc IsDigit = delegate( Document doc, int index )
 		{
 			if( doc.Length <= index )
 				return false;
@@ -833,7 +800,7 @@ namespace Sgry.Azuki
 			return false;
 		};
 
-		static ClassifyCharProc IsPunct = delegate( Document doc, int index )
+		static readonly ClassifyCharProc IsPunct = delegate( Document doc, int index )
 		{
 			if( doc.Length <= index )
 				return false;
@@ -869,7 +836,7 @@ namespace Sgry.Azuki
 			return false;
 		};
 
-		static ClassifyCharProc IsWhiteSpace = delegate( Document doc, int index )
+		static readonly ClassifyCharProc IsWhiteSpace = delegate( Document doc, int index )
 		{
 			if( doc.Length <= index )
 				return false;
@@ -886,7 +853,7 @@ namespace Sgry.Azuki
 			return false;
 		};
 
-		static ClassifyCharProc IsEolCode = delegate( Document doc, int index )
+		static readonly ClassifyCharProc IsEolCode = delegate( Document doc, int index )
 		{
 			if( doc.Length <= index )
 				return false;
@@ -899,7 +866,7 @@ namespace Sgry.Azuki
 			return false;
 		};
 
-		static ClassifyCharProc IsHiragana = delegate( Document doc, int index )
+		static readonly ClassifyCharProc IsHiragana = delegate( Document doc, int index )
 		{
 			if( doc.Length <= index )
 				return false;
@@ -914,7 +881,7 @@ namespace Sgry.Azuki
 			return false;
 		};
 
-		static ClassifyCharProc IsKatakana = delegate( Document doc, int index )
+		static readonly ClassifyCharProc IsKatakana = delegate( Document doc, int index )
 		{
 			if( doc.Length <= index )
 				return false;
@@ -929,7 +896,7 @@ namespace Sgry.Azuki
 			return false;
 		};
 
-		static ClassifyCharProc IsUnknown = delegate( Document doc, int index )
+		static readonly ClassifyCharProc IsUnknown = delegate( Document doc, int index )
 		{
 			if( doc.Length <= index )
 				return false;

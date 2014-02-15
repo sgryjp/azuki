@@ -2,7 +2,6 @@
 // brief: Parameters associated with each document used internally by View.
 //=========================================================
 using System;
-using System.Collections.Generic;
 
 namespace Sgry.Azuki
 {

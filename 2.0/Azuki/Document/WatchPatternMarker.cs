@@ -1,7 +1,6 @@
 ﻿// file: WatchPatternMarker.cs
 // brief: a singleton class which marks up watching text patterns in document.
 //=========================================================
-using System;
 using System.Text.RegularExpressions;
 using Debug = System.Diagnostics.Debug;
 
@@ -12,7 +11,7 @@ namespace Sgry.Azuki
 	/// </summary>
 	class WatchPatternMarker
 	{
-		Document _Document;
+		readonly Document _Document;
 		int _LastDrawnLogicalLineIndex;
 
 		#region Init / Dispose
@@ -26,15 +25,14 @@ namespace Sgry.Azuki
 		#region Event handlers
 		public void HandleContentChanged( object sender, ContentChangedEventArgs e )
 		{
-			UiImpl ui = (UiImpl)sender;
-			Document doc = _Document;
-			bool shouldBeRedrawn;
+			var ui = (UiImpl)sender;
+			var doc = _Document;
 
 			Debug.Assert( ui.Document == _Document );
 
 			// update marking in this line
 			var line = doc.Lines.AtOffset( e.Index );
-			shouldBeRedrawn = MarkOneLine( doc, line.LineIndex, true );
+			var shouldBeRedrawn = MarkOneLine( doc, line.LineIndex );
 			if( shouldBeRedrawn )
 			{
 				// update entire graphic of the logical line
@@ -45,7 +43,7 @@ namespace Sgry.Azuki
 
 		public void UI_LineDrawing( object sender, LineDrawEventArgs e )
 		{
-			IUserInterface ui = (IUserInterface)sender;
+			var ui = (IUserInterface)sender;
 			Debug.Assert( ui.Document == _Document );
 
 			// Mark up all URIs in the logical line
@@ -59,8 +57,7 @@ namespace Sgry.Azuki
 			_LastDrawnLogicalLineIndex = logicalLineIndex;
 
 			e.ShouldBeRedrawn = MarkOneLine( _Document,
-											 logicalLineIndex,
-											 true );
+											 logicalLineIndex );
 		}
 		#endregion
 
@@ -69,7 +66,7 @@ namespace Sgry.Azuki
 		/// Marks patterns in a logical line.
 		/// </summary>
 		/// <returns>Whether specified line should be redrawn or not.</returns>
-		bool MarkOneLine( Document doc, int logicalLineIndex, bool marks )
+		bool MarkOneLine( Document doc, int logicalLineIndex )
 		{
 			Debug.Assert( doc != null );
 			Debug.Assert( 0 <= logicalLineIndex && logicalLineIndex <= doc.Lines.Count,
@@ -81,11 +78,8 @@ namespace Sgry.Azuki
 				return false;
 
 			var line = doc.Lines[ logicalLineIndex ];
-			foreach( WatchPattern wp in doc.WatchPatterns )
+			foreach( var wp in doc.WatchPatterns )
 			{
-				MatchCollection matches;
-				int lastMarkedIndex;
-
 				// do nothing if invalid pattern was set
 				if( wp.Pattern == null )
 				{
@@ -93,8 +87,8 @@ namespace Sgry.Azuki
 				}
 
 				// mark all matched parts
-				lastMarkedIndex = line.Begin;
-				matches = wp.Pattern.Matches( line.Text );
+				var lastMarkedIndex = line.Begin;
+				var matches = wp.Pattern.Matches( line.Text );
 				foreach( Match match in matches )
 				{
 					// skip if length of this matched part is zero

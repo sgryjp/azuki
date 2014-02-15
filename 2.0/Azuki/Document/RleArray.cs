@@ -102,7 +102,7 @@ namespace Sgry.Azuki
 
 			int nodeIndex;
 			int indexInNode;
-			Node prevNode, theNode;
+			Node prevNode;
 
 			// find the node which contains the insertion point
 			FindNodeIndex( index, out nodeIndex, out indexInNode );
@@ -139,7 +139,7 @@ namespace Sgry.Azuki
 			}
 
 			// get the node at one previous position
-			theNode = _Nodes[ nodeIndex ];
+			var theNode = _Nodes[ nodeIndex ];
 			prevNode = null;
 			if( 0 < nodeIndex )
 			{
@@ -264,9 +264,7 @@ namespace Sgry.Azuki
 				if( index < 0 || _TotalCount <= index )
 					throw new ArgumentOutOfRangeException();
 
-				int nodeIndex;
-				int indexInNode;
-				Node thisNode, prevNode, nextNode;
+				int nodeIndex, indexInNode;
 
 				// find the node at the index
 				FindNodeIndex( index, out nodeIndex, out indexInNode );
@@ -274,7 +272,7 @@ namespace Sgry.Azuki
 
 				// if the value at the index was already same as
 				// the specified new value, do nothing
-				thisNode = _Nodes[nodeIndex];
+				var thisNode = _Nodes[nodeIndex];
 				if( thisNode.Value.Equals(value) )
 				{
 					return;
@@ -283,8 +281,8 @@ namespace Sgry.Azuki
 				if( thisNode.Length == 1 )
 				{
 					Debug.Assert( indexInNode == 0 );
-					prevNode = (0 <= nodeIndex-1) ? _Nodes[nodeIndex-1] : null;
-					nextNode = (nodeIndex+1 < _Nodes.Count) ? _Nodes[nodeIndex+1] : null;
+					var prevNode = (0 <= nodeIndex-1) ? _Nodes[nodeIndex-1] : null;
+					var nextNode = (nodeIndex+1 < _Nodes.Count) ? _Nodes[nodeIndex+1] : null;
 
 					if( prevNode != null
 						&& prevNode.Value.Equals(value) )
@@ -317,7 +315,7 @@ namespace Sgry.Azuki
 				}
 				else if( indexInNode == 0 ) // at left boundary
 				{
-					prevNode = (0 <= nodeIndex-1) ? _Nodes[nodeIndex-1] : null;
+					var prevNode = (0 <= nodeIndex-1) ? _Nodes[nodeIndex-1] : null;
 					if( prevNode != null
 						&& prevNode.Value.Equals(value) )
 					{
@@ -337,7 +335,7 @@ namespace Sgry.Azuki
 				}
 				else if( indexInNode == thisNode.Length - 1 ) // at right boundary
 				{
-					nextNode = (nodeIndex+1 < _Nodes.Count) ? _Nodes[nodeIndex+1] : null;
+					var nextNode = (nodeIndex+1 < _Nodes.Count) ? _Nodes[nodeIndex+1] : null;
 					if( nextNode != null
 						&& nextNode.Value.Equals(value) )
 					{
@@ -457,9 +455,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public bool Remove( T item )
 		{
-			int index;
-			
-			index = IndexOf( item );
+			var index = IndexOf( item );
 			if( index < 0 )
 			{
 				return false;
@@ -555,7 +551,6 @@ namespace Sgry.Azuki
 		internal class Node
 		{
 			int _Length;
-			T _Value;
 
 			public Node( int length, T value )
 			{
@@ -572,11 +567,8 @@ namespace Sgry.Azuki
 					_Length = value;
 				}
 			}
-			public T Value
-			{
-				get{ return _Value; }
-				set{ _Value = value; }
-			}
+
+			public T Value { get; set; }
 
 			public override string ToString()
 			{
