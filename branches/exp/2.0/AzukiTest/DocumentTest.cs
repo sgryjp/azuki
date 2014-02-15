@@ -9,13 +9,13 @@ namespace Sgry.Azuki.Test
 	public class DocumentTest
 	{
 		[Test]
-		public void GetTextPosition()
+		public void GetLineColumnPos()
 		{
 			// keep it as simple as possible\r\n
 			// but\n
 			// not simpler.\r\n
-			Document doc = new Document();
-			TextPoint pos;
+			var doc = new Document();
+			LineColumnPos pos;
 			int i = 0;
 
 			doc.Text = "keep it as simple as possible\r\nbut\nnot simpler.\r\n";
@@ -23,29 +23,29 @@ namespace Sgry.Azuki.Test
 			i = 0;
 			for( ; i<31; i++ )
 			{
-				pos = doc.GetTextPosition( i );
+				pos = doc.GetLineColumnPos( i );
 				Assert.AreEqual( 0, pos.Line );
 				Assert.AreEqual( i, pos.Column );
 			}
 			for( ; i<35; i++ )
 			{
-				pos = doc.GetTextPosition( i );
+				pos = doc.GetLineColumnPos( i );
 				Assert.AreEqual( 1, pos.Line );
 				Assert.AreEqual( i-31, pos.Column );
 			}
 			for( ; i<49; i++ )
 			{
-				pos = doc.GetTextPosition( i );
+				pos = doc.GetLineColumnPos( i );
 				Assert.AreEqual( 2, pos.Line );
 				Assert.AreEqual( i-35, pos.Column );
 			}
-			pos = doc.GetTextPosition( 49 );
+			pos = doc.GetLineColumnPos( 49 );
 			Assert.AreEqual( 3, pos.Line );
 			Assert.AreEqual( i-49, pos.Column );
 
 			// out of range
 			Assert.Throws<ArgumentOutOfRangeException>( delegate{
-				doc.GetTextPosition( 50 );
+				doc.GetLineColumnPos( 50 );
 			} );
 		}
 

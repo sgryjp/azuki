@@ -18,20 +18,19 @@ namespace Sgry.Azuki
 		#region Line/Column
 		public static int GetCharIndex( IList<char> text,
 										IList<int> lhi,
-										TextPoint position )
+										LineColumnPos pos )
 		{
-			DebugUtl.Assert( text != null && lhi != null && 0 <= position.Line
-							 && 0 <= position.Column, "invalid arguments were given" );
-			DebugUtl.Assert( position.Line < lhi.Count, String.Format(
-							 "too large line index was given (given:{0} actual"
-							 + " line count:{1})", position.Line, lhi.Count) );
+			DebugUtl.Assert( text != null && lhi != null && 0 <= pos.Line
+							 && 0 <= pos.Column, "invalid arguments were given" );
+			DebugUtl.Assert( pos.Line < lhi.Count, String.Format(
+							 "too large line index was given (given:{0} actual line count:{1})",
+							 pos.Line, lhi.Count) );
 
-			int lineHeadIndex = lhi[ position.Line ];
-			int limit = (position.Line + 1 < lhi.Count) ? lineHeadIndex + lhi[ position.Line + 1 ]
-														: text.Count;
+			int lineHeadIndex = lhi[ pos.Line ];
+			int limit = (pos.Line + 1 < lhi.Count) ? lineHeadIndex + lhi[ pos.Line + 1 ]
+												   : text.Count;
 
-			return Math.Min( lineHeadIndex + position.Column,
-							 limit );
+			return Math.Min( lineHeadIndex + pos.Column, limit );
 		}
 
 		public static int GetLineIndexFromCharIndex( IList<int> lhi,
@@ -44,16 +43,15 @@ namespace Sgry.Azuki
 			return (0 <= index) ? index : ~(index) - 1;
 		}
 
-		public static TextPoint GetTextPosition( IList<char> text,
-												 IList<int> lhi,
-												 int charIndex )
+		public static LineColumnPos GetLineColumnPos( IList<char> text,
+													  IList<int> lhi,
+													  int charIndex )
 		{
 			DebugUtl.Assert( text != null && lhi != null );
-			DebugUtl.Assert( 0<=charIndex,"invalid args; given charIndex was "
-							 + charIndex );
+			DebugUtl.Assert( 0 <= charIndex,"invalid args; given charIndex was " + charIndex );
 			DebugUtl.Assert( charIndex <= text.Count, String.Format(
 							 "given charIndex was too large (given:{0} "
-							 + "actual text count:{1})",charIndex,text.Count));
+							 + "actual text count:{1})", charIndex, text.Count) );
 
 			int index = BinarySearch( lhi, charIndex );
 			int line = (0 <= index) ? index : ~(index) - 1;
@@ -61,7 +59,7 @@ namespace Sgry.Azuki
 				line = lhi.Count - 1;
 			int column = charIndex - lhi[line];
 
-			return new TextPoint( line, column );
+			return new LineColumnPos( line, column );
 		}
 
 		public static int GetLineHeadIndexFromCharIndex( IList<char> text,
@@ -344,14 +342,14 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( 0 <= insertIndex && insertIndex <= text.Count,
 							 "insertIndex is out of range (" + insertIndex
 							 + ")." );
-			TextPoint insPos;
+			LineColumnPos insPos;
 			int lineIndex; // work variable
 			int lineHeadIndex;
 			int lineEndIndex;
 			int insLineCount;
 
 			// at first, find the line which contains the insertion point
-			insPos = GetTextPosition( text, lhi, insertIndex );
+			insPos = GetLineColumnPos( text, lhi, insertIndex );
 			lineIndex = insPos.Line;
 
 			// if the inserting divides a CR+LF, insert an entry for the CR
@@ -467,8 +465,8 @@ namespace Sgry.Azuki
 			int delLen = delEnd - delBegin;
 
 			// calculate line indexes of both ends of the range
-			var delFromPos = GetTextPosition( text, lhi, delBegin );
-			var delToPos = GetTextPosition( text, lhi, delEnd );
+			var delFromPos = GetLineColumnPos( text, lhi, delBegin );
+			var delToPos = GetLineColumnPos( text, lhi, delEnd );
 			delFirstLine = delFromPos.Line;
 
 			if( 0 < delBegin && text[delBegin-1] == '\r' )

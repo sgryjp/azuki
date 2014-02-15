@@ -208,33 +208,32 @@ namespace Sgry.Azuki
 			}
 
 			return TextUtil.GetCharIndex( Document.Buffer, SLHI,
-										  new TextPoint(lineIndex, columnIndex) );
+										  new LineColumnPos(lineIndex, columnIndex) );
 		}
 
 		/// <summary>
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException"/>
-		public override TextPoint GetTextPosition( int charIndex )
+		public override LineColumnPos GetLineColumnPos( int charIndex )
 		{
 			if( charIndex < 0 || Document.Length < charIndex )
 				throw new ArgumentOutOfRangeException( "charIndex", "Invalid index was given (charIndex:"+charIndex+", document.Length:"+Document.Length+")." );
 
-			return TextUtil.GetTextPosition( Document.Buffer, SLHI, charIndex );
+			return TextUtil.GetLineColumnPos( Document.Buffer, SLHI, charIndex );
 		}
 
 		/// <summary>
 		/// Calculates char-index from screen line/column index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public override int GetCharIndex( TextPoint position )
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public override int GetCharIndex( LineColumnPos pos )
 		{
-			if( position.Line < 0 || Lines.Count < position.Line || position.Column < 0 )
-				throw new ArgumentOutOfRangeException( "position", "Invalid index was given"
-													   + " (position:" + position + ", line count:"
-													   + Lines.Count + ")." );
+			if( pos.Line < 0 || Lines.Count < pos.Line || pos.Column < 0 )
+				throw new ArgumentOutOfRangeException( "pos", "Invalid index was given (pos:" + pos
+													   + ", line count:" + Lines.Count + ")." );
 
-			return TextUtil.GetCharIndex( Document.Buffer, SLHI, position );
+			return TextUtil.GetCharIndex( Document.Buffer, SLHI, pos );
 		}
 		#endregion
 
@@ -872,7 +871,7 @@ namespace Sgry.Azuki
 														   + ", Document.Length:"
 														   + _View.Document.Length + ")." );
 
-				return this[ _View.GetTextPosition(charIndex).Line ];
+				return this[ _View.GetLineColumnPos(charIndex).Line ];
 			}
 
 			public int Count

@@ -2,13 +2,13 @@
 
 namespace Sgry.Azuki
 {
-	public struct TextPoint
+	public struct LineColumnPos
 	{
 		#region Init / Dispose
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
-		public TextPoint( int line, int column )
+		public LineColumnPos( int line, int column )
 			: this()
 		{
 			Line = line;

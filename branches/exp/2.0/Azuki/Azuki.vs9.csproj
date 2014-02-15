@@ -98,12 +98,12 @@
     <Compile Include="IUserInterface.cs" />
     <Compile Include="IUserInterfaceInternal.cs" />
     <Compile Include="IWordProc.cs" />
+    <Compile Include="LineColumnPos.cs" />
     <Compile Include="LineRange.cs" />
     <Compile Include="LineRangeList.cs" />
     <Compile Include="Range.cs" />
     <Compile Include="RawLineRange.cs" />
     <Compile Include="RawLineRangeList.cs" />
-    <Compile Include="TextPoint.cs" />
     <Compile Include="TextUtil.cs" />
     <Compile Include="Platform.cs" />
     <Compile Include="UiImpl.cs" />

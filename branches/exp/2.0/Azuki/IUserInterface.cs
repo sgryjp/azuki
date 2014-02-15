@@ -709,7 +709,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <param name="lineIndex">Index of the line of which to get the length.</param>
 		/// <returns>Length of the specified line in character count.</returns>
-		/// <exception cref="System.ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		int GetLineLength( int lineIndex );
 		#endregion
 
@@ -717,13 +717,13 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Calculate screen location of the character at specified index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Invalid index was given.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		Point GetPositionFromIndex( int index );
 
 		/// <summary>
 		/// Calculate screen location of the character at specified index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Invalid index was given.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		Point GetPositionFromIndex( int lineIndex, int columnIndex );
 
 		/// <summary>
@@ -736,14 +736,14 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets the index of the first char in the line.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		int GetLineHeadIndex( int lineIndex );
 
 		/// <summary>
 		/// Gets the index of the first char in the screen line
 		/// which contains the specified char-index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		int GetLineHeadIndexFromCharIndex( int charIndex );
 
 		/// <summary>
@@ -751,20 +751,20 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <param name="charIndex">The index of the line which contains the char at this parameter will be calculated.</param>
 		/// <returns>The index of the line which contains the character at specified index.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"/>
 		int GetLineIndexFromCharIndex( int charIndex );
 
 		/// <summary>
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
-		TextPoint GetTextPosition( int charIndex );
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		LineColumnPos GetLineColumnPos( int charIndex );
 
 		/// <summary>
 		/// Calculates char-index from screen line/column index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
-		int GetCharIndex( TextPoint position );
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		int GetCharIndex( LineColumnPos pos );
 		#endregion
 
 		#region Events
@@ -776,7 +776,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Occurs soon after the overwrite mode was moved.
 		/// </summary>
-		/// <seealso cref="Sgry.Azuki.IUserInterface.IsOverwriteMode">IUserInterface.IsOverwriteMode property</seealso>
+		/// <seealso cref="IUserInterface.IsOverwriteMode"/>
 		event EventHandler OverwriteModeChanged;
 
 		/// <summary>

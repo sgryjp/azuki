@@ -318,14 +318,14 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		TextPoint GetTextPosition( int charIndex );
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		LineColumnPos GetLineColumnPos( int charIndex );
 
 		/// <summary>
 		/// Calculates char-index from screen line/column index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
-		int GetCharIndex( TextPoint position );
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		int GetCharIndex( LineColumnPos pos );
 		#endregion
 
 		#region Misc.

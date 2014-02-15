@@ -1647,19 +1647,19 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
-		public TextPoint GetTextPosition( int charIndex )
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public LineColumnPos GetLineColumnPos( int charIndex )
 		{
-			return View.GetTextPosition( charIndex );
+			return View.GetLineColumnPos( charIndex );
 		}
 
 		/// <summary>
 		/// Calculates char-index from screen line/column index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
-		public int GetCharIndex( TextPoint position )
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public int GetCharIndex( LineColumnPos pos )
 		{
-			return View.GetCharIndex( position );
+			return View.GetCharIndex( pos );
 		}
 		#endregion
 

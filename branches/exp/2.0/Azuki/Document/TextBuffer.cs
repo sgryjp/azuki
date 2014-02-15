@@ -86,23 +86,23 @@ namespace Sgry.Azuki
 
 		#region Line / Column
 		/// <exception cref="ArgumentOutOfRangeException"/>
-		public TextPoint GetTextPosition( int charIndex )
+		public LineColumnPos GetLineColumnPos( int charIndex )
 		{
 			if( charIndex < 0 || Count < charIndex )
 				throw new ArgumentOutOfRangeException( "charIndex", charIndex, "Invalid index was"
 													   + " given. (charIndex:" + charIndex
 													   + ", Count:" + Count + ")." );
 
-			return TextUtil.GetTextPosition( _Chars, _LHI, charIndex );
+			return TextUtil.GetLineColumnPos( _Chars, _LHI, charIndex );
 		}
 
-		public int GetCharIndex( TextPoint position )
+		public int GetCharIndex( LineColumnPos pos )
 		{
-			Debug.Assert( 0 <= position.Line );
-			Debug.Assert( position.Line < _LHI.Count );
-			Debug.Assert( 0 <= position.Column );
+			Debug.Assert( 0 <= pos.Line );
+			Debug.Assert( pos.Line < _LHI.Count );
+			Debug.Assert( 0 <= pos.Column );
 
-			return TextUtil.GetCharIndex( _Chars, _LHI, position );
+			return TextUtil.GetCharIndex( _Chars, _LHI, pos );
 		}
 
 		/// <exception cref="ArgumentNullException"/>
@@ -110,12 +110,12 @@ namespace Sgry.Azuki
 		public IRange GetTextRange( int beginLineIndex, int beginColumnIndex,
 									int endLineIndex, int endColumnIndex )
 		{
-			return GetTextRange( new TextPoint(beginLineIndex, beginColumnIndex),
-								 new TextPoint(endLineIndex, endColumnIndex) );
+			return GetTextRange( new LineColumnPos(beginLineIndex, beginColumnIndex),
+								 new LineColumnPos(endLineIndex, endColumnIndex) );
 		}
 
 		/// <exception cref="ArgumentOutOfRangeException"/>
-		public IRange GetTextRange( TextPoint beginPos, TextPoint endPos )
+		public IRange GetTextRange( LineColumnPos beginPos, LineColumnPos endPos )
 		{
 			if( endPos.Line < 0 || _LHI.Count <= endPos.Line )
 				throw new ArgumentOutOfRangeException( "endPos", endPos, "Specified line index is"
@@ -188,14 +188,14 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( insertText != null, "insertText must not be null." );
 			DebugUtl.Assert( 0 <= insertIndex && insertIndex <= _Chars.Count,
 							 "insertIndex is out of range (" + insertIndex + ")." );
-			TextPoint insPos;
+			LineColumnPos insPos;
 			int lineIndex; // work variable
 			int lineHeadIndex;
 			int lineEndIndex;
 			int insLineCount;
 
 			// At first, find the line which contains the insertion point
-			insPos = GetTextPosition( insertIndex );
+			insPos = GetLineColumnPos( insertIndex );
 			lineIndex = insPos.Line;
 
 			// If the inserting divides a CR+LF, insert an entry for the CR separated
@@ -288,8 +288,8 @@ namespace Sgry.Azuki
 			int delLen = delEnd - delBegin;
 
 			// calculate line indexes of both ends of the range
-			var delFromPos = GetTextPosition( delBegin );
-			var delToPos = GetTextPosition( delEnd );
+			var delFromPos = GetLineColumnPos( delBegin );
+			var delToPos = GetLineColumnPos( delEnd );
 			delFirstLine = delFromPos.Line;
 
 			if( 0 < delBegin && _Chars[delBegin-1] == '\r' )

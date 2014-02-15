@@ -518,7 +518,7 @@ namespace Sgry.Ann
 				if( String.Compare(d.FilePath, filePath, true) == 0 )
 				{
 					ActiveDocument = d;
-					var pos = d.GetTextPosition( d.CaretIndex );
+					var pos = d.GetLineColumnPos( d.CaretIndex );
 					AppConfig.MruFiles.Put( d.FilePath, pos.Line, pos.Column );
 					return;
 				}
@@ -769,7 +769,7 @@ namespace Sgry.Ann
 			}
 
 			// Record current editing state
-			var caretPos = doc.GetTextPosition( doc.CaretIndex );
+			var caretPos = doc.GetLineColumnPos( doc.CaretIndex );
 			AppConfig.MruFiles.Put( doc.FilePath, caretPos.Line, caretPos.Column );
 
 			// close
@@ -1108,7 +1108,7 @@ namespace Sgry.Ann
 			// Record current editing state
 			foreach( var doc in Documents )
 			{
-				var caretPos = doc.GetTextPosition( doc.CaretIndex );
+				var caretPos = doc.GetLineColumnPos( doc.CaretIndex );
 				AppConfig.MruFiles.Put( doc.FilePath, caretPos.Line, caretPos.Column );
 			}
 
