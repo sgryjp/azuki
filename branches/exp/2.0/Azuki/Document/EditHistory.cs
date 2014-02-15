@@ -163,15 +163,10 @@ namespace Sgry.Azuki
 
 		public void SetSavedState()
 		{
-			if( 0 < _NextIndex )
-			{
-				_LastSavedAction = _Stack[_NextIndex-1];
-			}
-			else
-			{
-				_LastSavedAction = null;
-			}
+			_LastSavedAction = (0 < _NextIndex) ? _Stack[_NextIndex-1]
+												: null;
 		}
+
 		#endregion
 
 		#region Properties

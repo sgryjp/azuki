@@ -19,13 +19,13 @@ namespace Sgry.Azuki
 	class EditAction
 	{
 		#region Fields
-		Document _Document;
-		int _Index;
-		string _DeletedText;
-		string _InsertedText;
-		int _OldAnchorIndex;
-		int _OldCaretIndex;
-		LineDirtyStateUndoInfo _LdsUndoInfo;
+		readonly Document _Document;
+		readonly int _Index;
+		readonly string _DeletedText;
+		readonly string _InsertedText;
+		readonly int _OldAnchorIndex;
+		readonly int _OldCaretIndex;
+		readonly LineDirtyStateUndoInfo _LdsUndoInfo;
 		EditAction _Next = null;
 		#endregion
 
@@ -58,10 +58,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void Undo()
 		{
-			EditAction action;
-
 			// UNDO all chained history
-			action = this;
+			var action = this;
 			do
 			{
 				action.ExecuteUndo();
@@ -114,11 +112,10 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void Redo()
 		{
-			Stack<EditAction> reversedChain = new Stack<EditAction>( 32 );
-			EditAction action;
+			var reversedChain = new Stack<EditAction>( 32 );
 
 			// reverse history chain
-			action = this;
+			var action = this;
 			do
 			{
 				reversedChain.Push( action );
@@ -211,29 +208,29 @@ namespace Sgry.Azuki
 		/// <summary>ToString for debug :)</summary>
 		public override string ToString()
 		{
-			System.Text.StringBuilder text = new System.Text.StringBuilder( 64 );
-			EditAction action = this;
+			var text = new System.Text.StringBuilder( 64 );
+			var action = this;
 
 			do
 			{
 				text.Append( action._Index );
 				if( !String.IsNullOrEmpty(action._DeletedText) )
 				{
-					text.AppendFormat( null, "-[{0}]",
-							action._DeletedText
-							.Substring( 0, Math.Min(16, action._DeletedText.Length) )
-							.Replace("\r", "<CR>")
-							.Replace("\n", "<LF>")
-						);
+					text.AppendFormat( "-[{0}]",
+									   action._DeletedText
+											 .Substring(0,
+														Math.Min(16, action._DeletedText.Length) )
+											 .Replace("\r", "<CR>")
+											 .Replace("\n", "<LF>") );
 				}
 				if( !String.IsNullOrEmpty(action._InsertedText) )
 				{
-					text.AppendFormat( null, "+[{0}]",
-							action._InsertedText
-							.Substring( 0, Math.Min(16, action._InsertedText.Length) )
-							.Replace("\r", "<CR>")
-							.Replace("\n", "<LF>")
-						);
+					text.AppendFormat( "+[{0}]",
+									   action._InsertedText
+											 .Substring(0,
+														Math.Min(16, action._InsertedText.Length) )
+											 .Replace("\r", "<CR>")
+											 .Replace("\n", "<LF>") );
 				}
 				text.Append( '_' );
 

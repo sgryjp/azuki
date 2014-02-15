@@ -1,7 +1,6 @@
 // file: CaretMoveLogic.cs
 // brief: Implementation of caret movement.
 //=========================================================
-using System;
 using System.Drawing;
 
 namespace Sgry.Azuki
@@ -42,10 +41,9 @@ namespace Sgry.Azuki
 		{
 			var doc = ui.Document;
 			var view = (IViewInternal)ui.View;
-			int nextIndex;
 
 			// calculate where to expand selection
-			nextIndex = calculator( view );
+			var nextIndex = calculator( view );
 			if( nextIndex == view.CaretIndex )
 			{
 				// notify that the caret not moved
@@ -144,7 +142,6 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static int Calc_Up( IViewInternal view )
 		{
-			int newIndex;
 			var doc = view.Document;
 
 			// Get screen location of the caret
@@ -153,7 +150,7 @@ namespace Sgry.Azuki
 			// Calculate next location
 			pt.X = view.GetDesiredColumn();
 			pt.Y -= view.LineSpacing;
-			newIndex = view.GetCharIndex( pt );
+			var newIndex = view.GetCharIndex( pt );
 			if( newIndex < 0 )
 			{
 				return view.CaretIndex; // Don't move
@@ -181,7 +178,6 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static int Calc_NextWord( IView view )
 		{
-			int index;
 			var doc = view.Document;
 
 			// Stop just after an EOL code
@@ -189,7 +185,7 @@ namespace Sgry.Azuki
 				return Utl.SkipOneEol( doc, view.CaretIndex );
 
 			// Stay in valid range
-			index = view.CaretIndex + 1;
+			var index = view.CaretIndex + 1;
 			if( doc.Length <= index )
 				return doc.Length;
 
@@ -208,17 +204,15 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static int Calc_PrevWord( IView view )
 		{
-			int index;
-			int startIndex;
 			var doc = view.Document;
 
 			// Stay in valid range
-			index = view.CaretIndex - 1;
+			var index = view.CaretIndex - 1;
 			if( index <= 0 )
 				return 0;
 
 			// Skip whitespaces
-			startIndex = index;
+			var startIndex = index;
 			if( Utl.IsWhiteSpace(doc, index) )
 			{
 				index = doc.WordProc.PrevWordStart( doc, index ) - 1;
@@ -345,9 +339,8 @@ namespace Sgry.Azuki
 			public static int SkipOneEol( Document doc, int startIndex )
 			{
 				int index = startIndex;
-				char ch;
-				
-				ch = doc[index];
+
+				var ch = doc[index];
 				if( ch == 0x0d ) // CR?
 				{
 					index++;

@@ -5,8 +5,6 @@ using System.Text;
 using System.Windows.Forms;
 using Sgry.Azuki;
 using Sgry.Azuki.WinForms;
-using Path = System.IO.Path;
-using File = System.IO.File;
 using Directory = System.IO.Directory;
 using Debug = System.Diagnostics.Debug;
 

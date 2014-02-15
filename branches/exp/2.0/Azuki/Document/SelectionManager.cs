@@ -12,7 +12,7 @@ namespace Sgry.Azuki
 	class SelectionManager
 	{
 		#region Fields
-		Document _Document;
+		readonly Document _Document;
 		int _CaretIndex = 0;
 		int _AnchorIndex = 0;
 		int _OriginalAnchorIndex = -1;
@@ -264,9 +264,6 @@ namespace Sgry.Azuki
 
 		void SetSelection_Normal( int anchor, int caret )
 		{
-			int oldAnchor, oldCaret;
-			int[] oldRectSelectRanges = null;
-
 			// if given parameters change nothing, do nothing
 			if( _AnchorIndex == anchor && _CaretIndex == caret )
 			{
@@ -282,9 +279,9 @@ namespace Sgry.Azuki
 			}
 
 			// remember old selection state
-			oldAnchor = _AnchorIndex;
-			oldCaret = _CaretIndex;
-			oldRectSelectRanges = _RectSelectRanges;
+			var oldAnchor = _AnchorIndex;
+			var oldCaret = _CaretIndex;
+			var oldRectSelectRanges = _RectSelectRanges;
 
 			// apply new selection
 			_AnchorIndex = anchor;
@@ -292,13 +289,9 @@ namespace Sgry.Azuki
 
 			// invoke event
 			if( oldRectSelectRanges != null )
-			{
 				_Document.InvokeSelectionChanged( oldAnchor, oldCaret, oldRectSelectRanges, false );
-			}
 			else
-			{
 				_Document.InvokeSelectionChanged( oldAnchor, oldCaret, oldRectSelectRanges, false );
-			}
 		}
 
 		void ClearRectSelectionData()

@@ -4,7 +4,7 @@
 	{
 		public DiffHighlighter()
 		{
-			base.HighlightsNumericLiterals = false;
+			HighlightsNumericLiterals = false;
 
 			AddRegex( @"^(Index:|diff|---(?![^-]+-{3,}$)|\+\+\+|\*\*\*(?! [0-9])|===) .*", CharClass.IndexLine );
 			AddRegex( @"^={4,}$", CharClass.IndexLine );

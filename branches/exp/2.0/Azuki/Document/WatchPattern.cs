@@ -14,7 +14,7 @@ namespace Sgry.Azuki
 	/// <see cref="Sgry.Azuki.WatchPattern">WatchPattern class</see>
 	public class WatchPatternSet : IEnumerable<WatchPattern>
 	{
-		Dictionary<int, WatchPattern> _Patterns = new Dictionary<int,WatchPattern>();
+		readonly Dictionary<int, WatchPattern> _Patterns = new Dictionary<int,WatchPattern>();
 
 		/// <summary>
 		/// Registers a text pattern to be watched and automatically marked.
@@ -160,9 +160,6 @@ namespace Sgry.Azuki
 	/// </example>
 	public class WatchPattern
 	{
-		int _MarkingID;
-		Regex _Pattern;
-
 		#region Init / Dispose
 		/// <summary>
 		/// Creates a new instance.
@@ -214,14 +211,11 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Properties
+
 		/// <summary>
 		/// The marking ID to be marked for each found matching patterns.
 		/// </summary>
-		public int MarkingID
-		{
-			get{ return _MarkingID; }
-			set{ _MarkingID = value; }
-		}
+		public int MarkingID { get; set; }
 
 		/// <summary>
 		/// The pattern to be watched and to be marked automatically.
@@ -234,11 +228,7 @@ namespace Sgry.Azuki
 		///   Azuki simply ignores the watch pattern.
 		///   </para>
 		/// </remarks>
-		public Regex Pattern
-		{
-			get{ return _Pattern; }
-			set{ _Pattern = value; }
-		}
+		public Regex Pattern { get; set; }
 		#endregion
 	}
 }

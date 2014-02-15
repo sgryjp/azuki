@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 
 namespace Sgry.Azuki.Highlighter
 {
@@ -49,10 +48,7 @@ namespace Sgry.Azuki.Highlighter
 		public static void EntryReparsePoint( GapBuffer<int> reparsePoints,
 											  int index )
 		{
-			int count;
-			int leastMaximumIndex;
-
-			count = reparsePoints.Count;
+			var count = reparsePoints.Count;
 			if( count == 0 )
 			{
 				reparsePoints.Add( 0 );
@@ -63,10 +59,8 @@ namespace Sgry.Azuki.Highlighter
 			// one, drop them
 			if( index < reparsePoints[count-1] )
 			{
-				leastMaximumIndex = Utl.FindLeastMaximum( reparsePoints,
-														  index );
-				reparsePoints.RemoveRange( leastMaximumIndex + 1,
-										   reparsePoints.Count );
+				var leastMaximumIndex = FindLeastMaximum( reparsePoints, index );
+				reparsePoints.RemoveRange( leastMaximumIndex + 1, reparsePoints.Count );
 			}
 			// if current token is not so far from currently largest position,
 			// position of current token is not worth to remember
@@ -80,21 +74,17 @@ namespace Sgry.Azuki.Highlighter
 		public static int FindReparsePoint( GapBuffer<int> reparsePoints,
 											int parseStartIndex )
 		{
-			int index = Utl.FindLeastMaximum( reparsePoints, parseStartIndex );
+			int index = FindLeastMaximum( reparsePoints, parseStartIndex );
 			if( 0 <= index )
-			{
 				return reparsePoints[index];
-			}
 			else
-			{
 				return 0;
-			}
 		}
 
 		public static int FindReparseEndPoint( Document doc,
 											   int parseEndIndex )
 		{
-			int d = Utl.ReparsePointMinimumDistance;
+			const int d = ReparsePointMinimumDistance;
 			parseEndIndex += d - (parseEndIndex % d); // next multiple of x
 			if( doc.Length < parseEndIndex )
 			{
@@ -154,14 +144,12 @@ namespace Sgry.Azuki.Highlighter
 			Debug.Assert( pair != null );
 			Debug.Assert( 0 <= startIndex );
 			Debug.Assert( startIndex < endIndex );
-			int closerPos;
-			int closerEndPos;
 			bool openerFound;
 
 			// Search for a closing pattern
-			closerPos = FindCloser( doc, pair,
-									startIndex, endIndex,
-									out openerFound );
+			var closerPos = FindCloser( doc, pair,
+										startIndex, endIndex,
+										out openerFound );
 			if( closerPos == -1 )
 			{
 				// No opening pattern nor closing pattern was found
@@ -180,9 +168,8 @@ namespace Sgry.Azuki.Highlighter
 			}
 
 			// Highlight enclosed part
-			closerEndPos = (pair.closer == null)
-							? closerPos
-							: closerPos + pair.closer.Length;
+			var closerEndPos = (pair.closer == null) ? closerPos
+													 : closerPos + pair.closer.Length;
 			Highlight( doc, startIndex, closerEndPos, pair.klass, hook );
 			nextParsePos = closerEndPos;
 			return true;
@@ -205,7 +192,6 @@ namespace Sgry.Azuki.Highlighter
 						  +endIndex+", doc.Length:"+doc.Length+")" );
 			int begin = startIndex;
 			int end = begin;
-			char postfixCh;
 			ClassifyCharProc isalpha = delegate( char ch ) {
 					return ('a'<=ch && ch<='z') || ('A'<=ch && ch<='Z');
 				};
@@ -240,7 +226,7 @@ namespace Sgry.Azuki.Highlighter
 				// treat it as a post-fix.
 				if( end < endIndex )
 				{
-					postfixCh = doc[end];
+					var postfixCh = doc[end];
 					if( postfixCh == 'f' || postfixCh == 'F'
 						|| postfixCh == 'i' || postfixCh == 'I' 
 						|| postfixCh == 'j' || postfixCh == 'J'
@@ -407,12 +393,9 @@ namespace Sgry.Azuki.Highlighter
 		{
 			Debug.Assert( doc != null );
 			Debug.Assert( pair != null );
-			Debug.Assert( pair.opener != null && 0 < pair.opener.Length );
+			Debug.Assert( !String.IsNullOrEmpty(pair.opener) );
 			Debug.Assert( 0 <= openerIndex );
 			Debug.Assert( endIndex <= doc.Length );
-
-			int i;
-			int openerEndIndex;
 
 			// Check whether there is the opener at specified position
 			if( StartsWith(doc, pair.opener, openerIndex, pair.ignoreCase) == false )
@@ -423,7 +406,7 @@ namespace Sgry.Azuki.Highlighter
 			openerFound = true;
 
 			// If no closer was specified, EOL becomes the ending pattern
-			openerEndIndex = openerIndex + pair.opener.Length;
+			int openerEndIndex = openerIndex + pair.opener.Length;
 			if( pair.closer == null )
 			{
 				int lineEndIndex = doc.RawLines.AtOffset( openerEndIndex ).End;
@@ -438,14 +421,14 @@ namespace Sgry.Azuki.Highlighter
 			}
 
 			// Find a closing pattern
-			for( i=openerEndIndex; i<endIndex; i++ )
+			for( int i=openerEndIndex; i<endIndex; i++ )
 			{
 				// If found one, return this position
 				if( StartsWith(doc, pair.closer, i, pair.ignoreCase) )
 				{
 					// If the closing pattern is exactly the same with the
 					// escape character, this can be an escape character.
-					if( pair.closer == pair.escape.ToString()
+					if( pair.closer == ""+pair.escape
 						&& doc[i+1] == pair.escape )
 					{
 						i++;
@@ -489,8 +472,8 @@ namespace Sgry.Azuki.Highlighter
 
 			for( ; i<token.Length && index+i<doc.Length; i++ )
 			{
-				int ch1 = (int)token[i];
-				int ch2 = (int)doc[index+i];
+				var ch1 = (int)token[i];
+				var ch2 = (int)doc[index+i];
 				if( ignoreCase )
 				{
 					if( 'A' <= ch1 && ch1 <= 'Z' )	ch1 = ('a' + ch1-'A');
@@ -501,10 +484,7 @@ namespace Sgry.Azuki.Highlighter
 					return false;
 			}
 
-			if( i == token.Length )
-				return true;
-			else
-				return false;
+			return (i == token.Length);
 		}
 
 		public static bool IsWordChar( string wordChars, char ch )
@@ -526,7 +506,7 @@ namespace Sgry.Azuki.Highlighter
 			else
 			{
 				//--- use custom word character set ---
-				int index = Array.BinarySearch<char>( wordChars.ToCharArray(), ch );
+				int index = Array.BinarySearch( wordChars.ToCharArray(), ch );
 				return (0 <= index && index < wordChars.Length);
 			}
 		}

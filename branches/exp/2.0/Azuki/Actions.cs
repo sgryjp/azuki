@@ -50,7 +50,7 @@ namespace Sgry.Azuki
 			else
 			{
 				//--- case of no selection ---
-				int delLen = 1;
+				int delLen;
 				int caret = view.CaretIndex;
 
 				// if the caret is at document head, there is no chars to delete
@@ -293,7 +293,6 @@ namespace Sgry.Azuki
 		{
 			var doc = ui.Document;
 			var view = ui.View;
-			string text;
 
 			// do nothing if the document is read-only
 			if( doc.IsReadOnly )
@@ -303,7 +302,7 @@ namespace Sgry.Azuki
 			}
 
 			// is there any selection?
-			text = ui.GetSelectedText();
+			var text = ui.GetSelectedText();
 			if( 0 < text.Length )
 			{
 				// there is selection.
@@ -359,22 +358,17 @@ namespace Sgry.Azuki
 		{
 			var doc = ui.Document;
 			var view = ui.View;
-			string text;
 			
 			// is there any selection?
-			text = ui.GetSelectedText();
+			var text = ui.GetSelectedText();
 			if( 0 < text.Length )
 			{
 				// there is selection.
 				// copy selected text.
 				if( doc.RectSelectRanges != null )
-				{
 					Plat.Inst.SetClipboardText( text, TextDataType.Rectangle );
-				}
 				else
-				{
 					Plat.Inst.SetClipboardText( text, TextDataType.Normal );
-				}
 			}
 			else
 			{
@@ -398,9 +392,6 @@ namespace Sgry.Azuki
 		{
 			var view = ui.View;
 			var doc = ui.Document;
-			string clipboardText;
-			int begin, end;
-			int insertIndex;
 			TextDataType dataType;
 
 			// do nothing if the document is read-only
@@ -411,7 +402,7 @@ namespace Sgry.Azuki
 			}
 
 			// get clipboard content
-			clipboardText = Plat.Inst.GetClipboardText( out dataType );
+			var clipboardText = Plat.Inst.GetClipboardText( out dataType );
 			if( clipboardText == null )
 			{
 				return;
@@ -429,6 +420,9 @@ namespace Sgry.Azuki
 			
 			using( doc.BeginUndo() )
 			{
+				int begin, end;
+				int insertIndex;
+
 				// delete currently selected text before insertion
 				doc.GetSelection( out begin, out end );
 				if( doc.RectSelectRanges != null )
@@ -449,18 +443,14 @@ namespace Sgry.Azuki
 				if( dataType == TextDataType.Rectangle )
 				{
 					//--- rectangle text data ---
-					Point insertPos;
-					int rowBegin;
-					int rowEnd;
-					string rowText;
-					string padding;
-
 					// Insert every row at same column position
-					insertPos = view.GetVirtualPos( view.CaretIndex );
-					rowBegin = 0;
-					rowEnd = TextUtil.NextLineHead( clipboardText, rowBegin );
+					var insertPos = view.GetVirtualPos( view.CaretIndex );
+					var rowBegin = 0;
+					var rowEnd = TextUtil.NextLineHead( clipboardText, rowBegin );
 					while( 0 <= rowEnd )
 					{
+						string rowText;
+
 						// get this row content
 						if( clipboardText[rowEnd-1] == '\n' )
 						{
@@ -479,7 +469,7 @@ namespace Sgry.Azuki
 						}
 
 						// pad tabs if needed
-						padding = UiImpl.GetNeededPaddingChars( ui, insertPos, false );
+						var padding = UiImpl.GetNeededPaddingChars( ui, insertPos, false );
 
 						// insert this row
 						insertIndex = view.GetCharIndex( insertPos );
@@ -688,14 +678,8 @@ namespace Sgry.Azuki
 			doc.GetSelectedLineRange( out beginL, out endL );
 
 			// prepare indent character
-			if( ui.UsesTabForIndent )
-			{
-				indentChars = "\t";
-			}
-			else
-			{
-				indentChars = new String( ' ', ui.TabWidth );
-			}
+			indentChars = ui.UsesTabForIndent ? "\t"
+											  : new String( ' ', ui.TabWidth );
 
 			// indent each lines
 			using( doc.BeginUndo() )

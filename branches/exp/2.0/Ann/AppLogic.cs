@@ -7,8 +7,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using Sgry.Azuki;
-using Sgry.Azuki.Highlighter;
-using Sgry.Azuki.WinForms;
 using Assembly = System.Reflection.Assembly;
 using CancelEventArgs = System.ComponentModel.CancelEventArgs;
 using Color = System.Drawing.Color;

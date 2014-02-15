@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Sgry.Azuki.Highlighter.Coco
 {
 	class Buffer
 	{
 		public const int EOF = Char.MaxValue + 1;
-		Document	_Document;
-		int			_Position;
-		int			_EndPosition;
+		readonly Document _Document;
+		int _Position;
+		readonly int _EndPosition;
 
 		public Buffer( Document doc, int startIndex, int endIndex )
 		{

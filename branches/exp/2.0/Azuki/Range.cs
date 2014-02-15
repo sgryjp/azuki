@@ -158,7 +158,7 @@ namespace Sgry.Azuki
 			var begin = Math.Max( x.Begin, y.Begin );
 			var end = Math.Min( x.End, y.End );
 			return (begin <= end) ? new Range( doc, begin, end )
-								  : Range.Empty;
+								  : Empty;
 		}
 
 		/// <exception cref="InvalidOperationException"/>

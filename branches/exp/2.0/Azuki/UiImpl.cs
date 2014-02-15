@@ -22,20 +22,18 @@ namespace Sgry.Azuki
 		public const int DefaultCaretWidth = 2;
 		const int MaxMatchedBracketSearchLength = 2048;
 		internal const int HighlightDelay = 200; // 200[ms]
-		IUserInterfaceInternal _UI;
+		readonly IUserInterfaceInternal _UI;
 		View _View = null;
 		Document _Document = null;
 		ViewType _ViewType = ViewType.Proportional;
 		bool _IsDisposed = false;
 
-		IDictionary< uint, ActionProc > _KeyMap = new Dictionary< uint, ActionProc >( 32 );
+		readonly IDictionary< uint, ActionProc > _KeyMap = new Dictionary< uint, ActionProc >( 32 );
 		AutoIndentHook _AutoIndentHook = null;
 		bool _IsOverwriteMode = false;
 		bool _UsesTabForIndent = true;
 		bool _ConvertsFullWidthSpaceToSpace = false;
 		bool _UnindentsWithBackspace = true;
-		bool _UsesStickyCaret = false;
-		bool _IsSingleLineMode = false;
 		bool _CopyLineWhenNoSelection = true;
 		int _AutoScrollMargin = 1;
 
@@ -50,6 +48,8 @@ namespace Sgry.Azuki
 		#region Init / Dispose
 		public UiImpl( IUserInterfaceInternal ui )
 		{
+			IsSingleLineMode = false;
+			UsesStickyCaret = false;
 			_UI = ui;
 			_View = new PropView( ui );
 
@@ -125,14 +125,13 @@ namespace Sgry.Azuki
 			get
 			{
 				TextDataType dataType;
-				string text;
 
 				// always false in read-only mode
 				if( Document.IsReadOnly )
 					return false;
 
 				// get text from clipboard
-				text = Plat.Inst.GetClipboardText( out dataType );
+				var text = Plat.Inst.GetClipboardText( out dataType );
 
 				// there is no text available, paste cannot be done
 				return (text != null);
@@ -287,20 +286,12 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets or sets whether caret behavior is 'sticky' or not.
 		/// </summary>
-		public bool UsesStickyCaret
-		{
-			get{ return _UsesStickyCaret; }
-			set{ _UsesStickyCaret = value; }
-		}
+		public bool UsesStickyCaret { get; set; }
 
 		/// <summary>
 		/// Gets or sets whether the content should be limited to a single line.
 		/// </summary>
-		public bool IsSingleLineMode
-		{
-			get{ return _IsSingleLineMode; }
-			set{ _IsSingleLineMode = value; }
-		}
+		public bool IsSingleLineMode { get; set; }
 
 		/// <summary>
 		/// Gets or sets whether an cut/copy action targets the current line when nothing selected.
@@ -420,7 +411,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		internal void HandleKeyPress( char ch )
 		{
-			HandleTextInput( ch.ToString() );
+			HandleTextInput( ""+ch );
 		}
 
 		/// <summary>
@@ -431,15 +422,12 @@ namespace Sgry.Azuki
 		internal void HandleTextInput( string text )
 		{
 			if( _IsDisposed )
-				throw new InvalidOperationException( "This "+this.GetType().Name+" object is already disposed." );
+				throw new InvalidOperationException( "UiImpl is already disposed." );
 			if( text == null )
 				throw new ArgumentNullException( "text" );
 
-			int newCaretIndex;
-			Document doc = Document;
-			int selBegin, selEnd;
-			StringBuilder input = new StringBuilder( Math.Max(64, text.Length) );
-			IGraphics g = null;
+			var doc = Document;
+			var input = new StringBuilder( Math.Max(64, text.Length) );
 
 			// if in read only mode, just notify and return 
 			if( doc.IsReadOnly )
@@ -454,7 +442,7 @@ namespace Sgry.Azuki
 				return;
 			}
 
-			using( g = _UI.GetIGraphics() )
+			using( var g = _UI.GetIGraphics() )
 			using( doc.BeginUndo() )
 			try
 			{
@@ -515,8 +503,9 @@ namespace Sgry.Azuki
 				}
 
 				// calculate new caret position
+				int selBegin, selEnd;
 				doc.GetSelection( out selBegin, out selEnd );
-				newCaretIndex = selBegin + input.Length;
+				int newCaretIndex = selBegin + input.Length;
 
 				// calc replacement target range
 				if( IsOverwriteMode
@@ -619,12 +608,10 @@ namespace Sgry.Azuki
 		{
 			Debug.Assert( _IsDisposed == false );
 
-			int count;
-
 			if( Document.RectSelectRanges != null )
 			{
 				// Get the number of characters in each line of the rectangle
-				count = 0;
+				var count = 0;
 				for( int i=0; i<Document.RectSelectRanges.Length; i+=2 )
 				{
 					// get this row content
@@ -784,7 +771,6 @@ namespace Sgry.Azuki
 
 		void HandleMouseUp_OnDragEditing( IMouseEventArgs e )
 		{
-			int targetIndex;
 			var pos = e.Location;
 
 			// Do nothing if the document is read-only
@@ -795,7 +781,7 @@ namespace Sgry.Azuki
 			}
 
 			// Calculate target position where the selected text is moved to
-			targetIndex = View.GetCharIndex( View.ScreenToVirtual(pos) );
+			var targetIndex = View.GetCharIndex( View.ScreenToVirtual(pos) );
 
 			// Move text
 			using( Document.BeginUndo() )
@@ -1380,9 +1366,8 @@ namespace Sgry.Azuki
 			// calculate how many tabs are needed
 			if( ui.UsesTabForIndent )
 			{
-				int xMax; // x-corrdinate of available right most tab stop
-				xMax = lineLastCharPos.X
-					   - (lineLastCharPos.X % view.TabWidthInPx);
+				var xMax	// x-corrdinate of available right most tab stop
+					= lineLastCharPos.X - (lineLastCharPos.X % view.TabWidthInPx);
 				neededTabCount = (targetVirPos.X - xMax) / view.TabWidthInPx;
 			}
 

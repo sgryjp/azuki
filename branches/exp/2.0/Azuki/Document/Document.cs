@@ -98,7 +98,7 @@ namespace Sgry.Azuki
 			get{ return !_History.IsSavedState; }
 			set
 			{
-				if( value == true )
+				if( value )
 					throw new InvalidOperationException( "Document.IsDirty must not be set True by"
 														 + " application code." );
 
@@ -281,8 +281,12 @@ namespace Sgry.Azuki
 		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of valid range.</exception>
 		public void SetCaretIndex( int lineIndex, int columnIndex )
 		{
-			if( lineIndex < 0 || columnIndex < 0 )
-				throw new ArgumentOutOfRangeException( "lineIndex or columnIndex", "index must not be negative value. (lineIndex:"+lineIndex+", columnIndex:"+columnIndex+")" );
+			if( lineIndex < 0 )
+				throw new ArgumentOutOfRangeException( "lineIndex", "lineIndex must not be a"
+													   + " negative value." );
+			if( columnIndex < 0 )
+				throw new ArgumentOutOfRangeException( "columnIndex", "columnIndex must not be a"
+													   + " negative value." );
 
 			int caretIndex = _Buffer.GetCharIndex( new LineColumnPos(lineIndex, columnIndex) );
 			SetSelection( caretIndex, caretIndex );
@@ -475,7 +479,7 @@ namespace Sgry.Azuki
 				if( value == null )
 					value = String.Empty;
 
-				Replace( value, 0, this.Length );
+				Replace( value, 0, Length );
 				SetSelection( 0, 0 );
 			}
 		}
@@ -505,17 +509,13 @@ namespace Sgry.Azuki
 			{
 				if( Length <= range.End || Char.IsWhiteSpace(this[range.End]) )
 				{
-					if( 0 <= index-1 )
-						range.Begin = WordProc.PrevWordStart( this, index-1 );
-					else
-						range.Begin = 0;
+					range.Begin = (0 <= index-1) ? WordProc.PrevWordStart( this, index-1 )
+												 : 0;
 				}
 				else
 				{
-					if( index+1 < Length )
-						range.End = WordProc.NextWordEnd( this, index+1 );
-					else
-						range.End = Length;
+					range.End = (index+1 < Length) ? WordProc.NextWordEnd( this, index+1 )
+												   : Length;
 				}
 			}
 			Debug.Assert( 0 <= range.Begin );
@@ -662,13 +662,7 @@ namespace Sgry.Azuki
 				throw new ArgumentNullException( "text" );
 
 			string oldText = String.Empty;
-			int oldAnchor, anchorDelta;
-			int oldCaret, caretDelta;
-			int newAnchor, newCaret;
-			EditAction undo;
 			LineDirtyStateUndoInfo ldsUndoInfo = null;
-			int affectedBeginLI = -1;
-			bool wasSavedState;
 
 			// Do nothing if the operation has no effect
 			if( text == "" && begin == end )
@@ -676,13 +670,13 @@ namespace Sgry.Azuki
 
 			// first of all, remember current dirty state of the lines
 			// which will be modified by this replacement
-			wasSavedState = _History.IsSavedState;
+			var wasSavedState = _History.IsSavedState;
 			if( _IsRecordingHistory )
 			{
 				ldsUndoInfo = new LineDirtyStateUndoInfo();
 
 				// calculate range of the lines which will be affectd by this replacement
-				affectedBeginLI = Lines.AtOffset( begin ).LineIndex;
+				var affectedBeginLI = Lines.AtOffset( begin ).LineIndex;
 				if( 0 < begin-1 && _Buffer[begin-1] == '\r' )
 				{
 					if( (0 < text.Length && text[0] == '\n')
@@ -716,8 +710,10 @@ namespace Sgry.Azuki
 			}
 
 			// keep copy of old caret/anchor index
-			oldAnchor = newAnchor = AnchorIndex;
-			oldCaret = newCaret = CaretIndex;
+			var oldAnchor = AnchorIndex;
+			var oldCaret = CaretIndex;
+			var newAnchor = AnchorIndex;
+			var newCaret = CaretIndex;
 
 			// delete target range
 			if( begin < end )
@@ -762,13 +758,14 @@ namespace Sgry.Azuki
 			}
 
 			// calc diff of anchor/caret between old and new positions
-			anchorDelta = newAnchor - oldAnchor;
-			caretDelta = newCaret - oldCaret;
+			var anchorDelta = newAnchor - oldAnchor;
+			var caretDelta = newCaret - oldCaret;
 
 			// stack UNDO history
 			if( _IsRecordingHistory )
 			{
-				undo = new EditAction( this, begin, oldText, text, oldAnchor, oldCaret, ldsUndoInfo );
+				var undo = new EditAction( this, begin, oldText, text,
+										   oldAnchor, oldCaret, ldsUndoInfo );
 				_History.Add( undo );
 			}
 
@@ -825,28 +822,24 @@ namespace Sgry.Azuki
 		public bool Mark( int begin, int end, int markingID )
 		{
 			if( begin < 0 || _Buffer.Count < begin )
-				throw new ArgumentOutOfRangeException( "begin", "Invalid index was given."
-													   + " (begin:" + begin + ","
-													   + " this.Length:" + Length + ")" );
+				throw new ArgumentOutOfRangeException( "begin", "Invalid index was given. (begin:"
+													   + begin + "," + " Length:" + Length + ")" );
 			if( end < 0 || _Buffer.Count < end )
-				throw new ArgumentOutOfRangeException( "end", "Invalid index was given."
-													   + " (end:" + end + ","
-													   + " this.Length:" + Length + ")" );
+				throw new ArgumentOutOfRangeException( "end", "Invalid index was given. (end:"
+													   + end + "," + " Length:" + Length + ")" );
 			if( end < begin )
 				throw new ArgumentException( "Parameter 'begin' must not be greater than 'end'."
 											 + " (begin:" + begin + ", end:" + end + ")" );
 			if( Marking.GetMarkingInfo(markingID) == null )
-				throw new ArgumentException( "Specified marking ID is not registered."
-											 + " (markingID:" + markingID + ")",
-											 "markingID" );
+				throw new ArgumentException( "Specified marking ID is not registered. (markingID:"
+											 + markingID + ")", "markingID" );
 
-			Debug.Assert( _Buffer.Marks.Count == this.Length, "sync failed." );
+			Debug.Assert( _Buffer.Marks.Count == Length, "sync failed." );
 
-			uint bitMask;
-			bool changed = false;
+			var changed = false;
 
 			// store the marking ID in form of bit mask
-			bitMask = (uint)( 0x01 << markingID );
+			var bitMask = (uint)( 0x01 << markingID );
 			for( int i=begin; i<end; i++ )
 			{
 				if( (_Buffer.Marks[i] & bitMask) == 0 )
@@ -903,13 +896,12 @@ namespace Sgry.Azuki
 				throw new ArgumentException( "Specified marking ID is not registered."
 											 + " (markingID:" + markingID + ")", "markingID" );
 
-			Debug.Assert( _Buffer.Marks.Count == this.Length, "sync failed." );
+			Debug.Assert( _Buffer.Marks.Count == Length, "sync failed." );
 
-			uint bitMask;
-			bool changed = false;
+			var changed = false;
 
 			// clears bit of the marking
-			bitMask = (uint)( 0x01 << markingID );
+			var bitMask = (uint)( 0x01 << markingID );
 			for( int i=begin; i<end; i++ )
 			{
 				if( (_Buffer.Marks[i] & bitMask) != 0 )
@@ -1050,7 +1042,7 @@ namespace Sgry.Azuki
 											 + " (markingID:" + markingID + ")",
 											 "markingID" );
 
-			uint markingBitMask = (uint)GetMarkingBitMaskAt( index );
+			var markingBitMask = GetMarkingBitMaskAt( index );
 			return ( (markingBitMask >> markingID) & 0x01) != 0;
 		}
 
@@ -1075,8 +1067,7 @@ namespace Sgry.Azuki
 			if( index < 0 || _Buffer.Count < index )
 				throw new ArgumentOutOfRangeException( "index", "Specified index is out of valid range. (index:"+index+", Document.Length:"+Length+")" );
 
-			uint markingBitMask;
-			List<int> result = new List<int>( 8 );
+			var result = new List<int>( 8 );
 
 			// if specified index is end of document, no marking will be found anyway
 			if( _Buffer.Count == index )
@@ -1085,7 +1076,7 @@ namespace Sgry.Azuki
 			}
 
 			// get marking bit mask of specified character
-			markingBitMask = _Buffer.Marks[ index ];
+			var markingBitMask = _Buffer.Marks[ index ];
 			if( markingBitMask == 0 )
 			{
 				return result.ToArray();
@@ -1129,7 +1120,7 @@ namespace Sgry.Azuki
 			if( index < 0 || _Buffer.Count <= index )
 				throw new ArgumentOutOfRangeException( "index", "Specified index is out of valid range. (index:"+index+", Document.Length:"+Length+")" );
 
-			return (uint)_Buffer.Marks[index];
+			return _Buffer.Marks[index];
 		}
 
 		/// <summary>
@@ -1806,9 +1797,9 @@ namespace Sgry.Azuki
 			if( isOpenBracket )
 			{
 				// determine search ending position
-				int limit = this.Length;
+				int limit = Length;
 				if( 0 < maxSearchLength )
-					limit = Math.Min( this.Length, index+maxSearchLength );
+					limit = Math.Min( Length, index+maxSearchLength );
 
 				// search
 				for( int i=index; i<limit; i++ )
@@ -1888,9 +1879,9 @@ namespace Sgry.Azuki
 		///   satisfies most needs.
 		///   </para>
 		///   <para>
-		///   Azuki calls <see cref="IHighlighter.Highlight(Document, ref int, ref int)"/> every
-		///   time slightly after the user stops editing with a range of document which should be
-		///   highlighted. This means highlighting does not occur in realtime.
+		///   Azuki calls <see cref="IHighlighter.Highlight"/> every time slightly after the user
+		///   stops editing with a range of document which should be highlighted. This means
+		///   highlighting does not occur in realtime.
 		///   </para>
 		/// </remarks>
 		public IHighlighter Highlighter
@@ -2308,10 +2299,10 @@ namespace Sgry.Azuki
 	/// </summary>
 	public class SelectionChangedEventArgs : EventArgs
 	{
-		int _OldAnchor;
-		int _OldCaret;
-		int[] _OldRectSelectRanges;
-		bool _ByContentChanged;
+		readonly int _OldAnchor;
+		readonly int _OldCaret;
+		readonly int[] _OldRectSelectRanges;
+		readonly bool _ByContentChanged;
 
 		/// <summary>
 		/// Creates a new instance.
@@ -2367,9 +2358,8 @@ namespace Sgry.Azuki
 	/// </summary>
 	public class ContentChangedEventArgs : EventArgs
 	{
-		int _Index;
-		string _OldText, _NewText;
-		int _RedrawStartIndex, _RedrawEndIndex;
+		readonly int _Index;
+		readonly string _OldText, _NewText;
 
 		/// <summary>
 		/// Creates a new instance.
@@ -2408,20 +2398,12 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets or sets starting index of the range to be redrawn after this event.
 		/// </summary>
-		public int RedrawStartIndex
-		{
-			get{ return _RedrawStartIndex; }
-			set{ _RedrawStartIndex = value; }
-		}
+		public int RedrawStartIndex { get; set; }
 
 		/// <summary>
 		/// Gets or sets ending index of the range to be redrawn after this event.
 		/// </summary>
-		public int RedrawEndIndex
-		{
-			get{ return _RedrawEndIndex; }
-			set{ _RedrawEndIndex = value; }
-		}
+		public int RedrawEndIndex { get; set; }
 	}
 	#endregion
 }

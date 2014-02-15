@@ -831,10 +831,9 @@ namespace Sgry.Azuki
 	public class LineDrawEventArgs : EventArgs
 	{
 		#region Fields
-		IGraphics _Graphics;
-		int _LineIndex;
-		Point _Position;
-		bool _ShouldBeRedrawn;
+		readonly IGraphics _Graphics;
+		readonly int _LineIndex;
+		readonly Point _Position;
 		#endregion
 
 		#region Init / Dispose
@@ -846,7 +845,7 @@ namespace Sgry.Azuki
 			_Graphics = g;
 			_LineIndex = lineIndex;
 			_Position = pos;
-			_ShouldBeRedrawn = false;
+			ShouldBeRedrawn = false;
 		}
 		#endregion
 
@@ -879,11 +878,7 @@ namespace Sgry.Azuki
 		/// Gets or sets whether graphic of the entire line
 		/// should be redrawn after the event or not.
 		/// </summary>
-		public bool ShouldBeRedrawn
-		{
-			get{ return _ShouldBeRedrawn; }
-			set{ _ShouldBeRedrawn = value; }
-		}
+		public bool ShouldBeRedrawn { get; set; }
 		#endregion
 	}
 }

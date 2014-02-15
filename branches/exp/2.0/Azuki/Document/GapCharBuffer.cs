@@ -71,13 +71,10 @@ namespace Sgry.Azuki
 
 			// If the gap exists after the search starting position,
 			// it must be moved to before the starting position.
-			int start, length;
-			int foundIndex;
-			StringComparison compType;
 
 			// convert begin/end indexes to start/length indexes
-			start = begin;
-			length = end - begin;
+			var start = begin;
+			var length = end - begin;
 			if( length <= 0 )
 			{
 				foundBegin = foundEnd = -1;
@@ -100,8 +97,9 @@ namespace Sgry.Azuki
 			//NO_NEED//else if( end <= _GapPos ) {} // nothing to do in this case
 
 			// find
-			compType = (matchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
-			foundIndex = new String(_Data).IndexOf( value, start, length, compType );
+			var compType = (matchCase ? StringComparison.Ordinal
+									  : StringComparison.OrdinalIgnoreCase);
+			var foundIndex = new String(_Data).IndexOf( value, start, length, compType );
 			if( foundIndex == -1 )
 			{
 				foundBegin = foundEnd = -1;
@@ -130,9 +128,6 @@ namespace Sgry.Azuki
 
 			// If the gap exists before the search starting position,
 			// it must be moved to after the starting position.
-			int start, length;
-			int foundIndex;
-			StringComparison compType;
 
 			// if empty string is the value to search, just return search start index
 			if( value.Length == 0 )
@@ -142,8 +137,8 @@ namespace Sgry.Azuki
 			}
 
 			// convert begin/end indexes to start/length indexes
-			start = end - 1;
-			length = end - begin;
+			var start = end - 1;
+			var length = end - begin;
 			if( start < 0 || length <= 0 )
 			{
 				foundBegin = foundEnd = -1;
@@ -164,8 +159,9 @@ namespace Sgry.Azuki
 			//NO_NEED//else if( end <= _GapPos ) {} // nothing to do in this case
 
 			// find
-			compType = (matchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase);
-			foundIndex = new String(_Data).LastIndexOf( value, start, length, compType );
+			var compType = (matchCase ? StringComparison.CurrentCulture
+									  : StringComparison.CurrentCultureIgnoreCase);
+			var foundIndex = new String(_Data).LastIndexOf( value, start, length, compType );
 			if( foundIndex == -1 )
 			{
 				foundBegin = foundEnd = -1;
@@ -192,11 +188,10 @@ namespace Sgry.Azuki
 			Debug.Assert( begin <= end );
 			Debug.Assert( end <= _Count );
 
-			int start, length;
-			Match match;
+			int start;
 
 			// in any cases, search length is "end - begin".
-			length = end - begin;
+			var length = end - begin;
 
 			// determine where the gap should be moved to
 			if( end <= _GapPos )
@@ -213,7 +208,7 @@ namespace Sgry.Azuki
 			}
 
 			// do search
-			match = regex.Match( new String(_Data), start, length );
+			var match = regex.Match( new String(_Data), start, length );
 			if( match.Success == false )
 			{
 				foundBegin = foundEnd = -1;
@@ -243,11 +238,10 @@ namespace Sgry.Azuki
 			Debug.Assert( end <= _Count );
 			Debug.Assert( (regex.Options & RegexOptions.RightToLeft) != 0 );
 
-			int start, length;
-			Match match;
+			int start;
 
 			// convert begin/end indexes to start/length
-			length = end - begin;
+			var length = end - begin;
 			if( end <= _GapPos )
 			{
 				// search must stop before reaching the gap so there is no need to move gap
@@ -262,7 +256,7 @@ namespace Sgry.Azuki
 			}
 
 			// do search
-			match = regex.Match( new String(_Data), start, length );
+			var match = regex.Match( new String(_Data), start, length );
 			if( match.Success == false )
 			{
 				foundBegin = foundEnd = -1;

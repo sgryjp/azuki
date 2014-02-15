@@ -95,37 +95,32 @@ namespace Sgry.Azuki
 			_UI = other._UI;
 
 			// inherit other parameters
-			if( other != null )
-			{
-				_ColorScheme = new ColorScheme( other._ColorScheme );
-				_DrawingOption = other._DrawingOption;
-				//DO_NOT//_DirtBarWidth = other._DirtBarWidth;
-				//DO_NOT//_HRulerFont = other._HRulerFont;
-				//DO_NOT//_LCharWidth = other._LCharWidth;
-				//DO_NOT//_LineHeight = other._LineHeight;
-				//DO_NOT//_LineNumAreaWidth = other._LineNumAreaWidth;
-				//DO_NOT//_SpaceWidth = other._SpaceWidth;
-				_TabWidth = other._TabWidth;
-				_LinePadding = other._LinePadding;
-				_LeftMargin = other._LeftMargin;
-				_TopMargin = other.TopMargin;
-				//DO_NOT//_TabWidthInPx = other._TabWidthInPx;
-				_TextAreaWidth = other._TextAreaWidth;
-				//DO_NOT//_UI = other._UI;
-				_VisibleSize = other._VisibleSize;
+			_ColorScheme = new ColorScheme( other._ColorScheme );
+			_DrawingOption = other._DrawingOption;
+			//DO_NOT//_DirtBarWidth = other._DirtBarWidth;
+			//DO_NOT//_HRulerFont = other._HRulerFont;
+			//DO_NOT//_LCharWidth = other._LCharWidth;
+			//DO_NOT//_LineHeight = other._LineHeight;
+			//DO_NOT//_LineNumAreaWidth = other._LineNumAreaWidth;
+			//DO_NOT//_SpaceWidth = other._SpaceWidth;
+			_TabWidth = other._TabWidth;
+			_LinePadding = other._LinePadding;
+			_LeftMargin = other._LeftMargin;
+			_TopMargin = other.TopMargin;
+			//DO_NOT//_TabWidthInPx = other._TabWidthInPx;
+			_TextAreaWidth = other._TextAreaWidth;
+			//DO_NOT//_UI = other._UI;
+			_VisibleSize = other._VisibleSize;
 
-				// set Font through property
-				if( other.FontInfo != null )
-					FontInfo = other.FontInfo;
+			// set Font through property
+			if( other.FontInfo != null )
+				FontInfo = other.FontInfo;
 
-				// re-calculate graphic metrics
-				// (because there is a metric which needs a reference to Document to be calculated
-				// but it cannnot be set Document before setting Font by structural reason)
-				using( IGraphics g = _UI.GetIGraphics() )
-				{
-					UpdateMetrics( g );
-				}
-			}
+			// re-calculate graphic metrics
+			// (because there is a metric which needs a reference to Document to be calculated
+			// but it cannnot be set Document before setting Font by structural reason)
+			using( var g = _UI.GetIGraphics() )
+				UpdateMetrics( g );
 		}
 
 		/// <summary>
@@ -257,8 +252,7 @@ namespace Sgry.Azuki
 			{
 				_LastUsedLineNumberSample = PerDocParam.MaxLineNumber;
 			}
-			_LineNumAreaWidth
-				= g.MeasureText( _LastUsedLineNumberSample.ToString() ).Width + _SpaceWidth;
+			_LineNumAreaWidth = g.MeasureText( ""+_LastUsedLineNumberSample ).Width + _SpaceWidth;
 			_DirtBarWidth = Math.Max( 2, _SpaceWidth >> 1 );
 
 			// Update metrics related with horizontal ruler
@@ -835,23 +829,6 @@ namespace Sgry.Azuki
 			return selRanges.ToArray();
 		}
 
-		/// <summary>
-		/// Calculates location of character at specified index in horizontal ruler index.
-		/// </summary>
-		/// <param name="charIndex">The index of the character to calculate its location.</param>
-		/// <returns>Horizontal ruler index of the character.</returns>
-		/// <remarks>
-		/// <para>
-		/// This method calculates location of character at specified index
-		/// in horizontal ruler index.
-		/// </para>
-		/// <para>
-		/// 'Horizontal ruler index' here means how many small lines drawn on the horizontal ruler
-		/// exist between left-end of the text area
-		/// and the character at index specified by <paramref name="charIndex"/>.
-		/// This value is zero-based index.
-		/// </para>
-		/// </remarks>
 		public int GetHRulerIndex( int charIndex )
 		{
 			Point virPos;
@@ -867,24 +844,6 @@ namespace Sgry.Azuki
 			return (virPos.X / HRulerUnitWidth);
 		}
 
-		/// <summary>
-		/// Calculates location of character at specified index in horizontal ruler index.
-		/// </summary>
-		/// <param name="lineIndex">The line index of the character to calculate its location.</param>
-		/// <param name="columnIndex">The column index of the character to calculate its location.</param>
-		/// <returns>Horizontal ruler index of the character.</returns>
-		/// <remarks>
-		/// <para>
-		/// This method calculates location of character at specified index
-		/// in horizontal ruler index.
-		/// </para>
-		/// <para>
-		/// 'Horizontal ruler index' here means how many small lines drawn on the horizontal ruler
-		/// exist between left-end of the text area
-		/// and the character at index specified by <paramref name="charIndex"/>.
-		/// This value is zero-based index.
-		/// </para>
-		/// </remarks>
 		public int GetHRulerIndex( int lineIndex, int columnIndex )
 		{
 			Point virPos;
@@ -927,7 +886,6 @@ namespace Sgry.Azuki
 		public void ScrollToCaret( IGraphics g, int autoScrollMargin )
 		{
 			var threshRect = new Rectangle();
-			int vDelta = 0, hDelta;
 
 			// Make rentangle of virtual text view
 			threshRect.X = ScrollPosX + SpaceWidthInPx;
@@ -954,14 +912,14 @@ namespace Sgry.Azuki
 			}
 
 			// Calculate horizontal offset to the position where we desire to scroll to
-			hDelta = 0;
+			var hDelta = 0;
 			if( threshRect.Right <= caretPos.X )
 				hDelta = caretPos.X - (threshRect.Right - TabWidthInPx); // Scroll to right
 			else if( caretPos.X < threshRect.Left )
 				hDelta = caretPos.X - (threshRect.Left + TabWidthInPx); // Scroll to left
 
 			// Calculate vertical offset to the position where we desire to scroll to
-			vDelta = 0;
+			var vDelta = 0;
 			if( threshRect.Bottom <= caretPos.Y )
 				vDelta = (caretPos.Y + LineSpacing) - threshRect.Bottom; // Scroll down
 			else if( caretPos.Y < threshRect.Top )
@@ -984,22 +942,20 @@ namespace Sgry.Azuki
 		public void Scroll( int lineDelta )
 		{
 			int delta;
-			int destLineIndex;
 			int maxLineIndex;
-			int visibleLineCount;
 
 			if( lineDelta == 0 )
 				return;
 
 			// Calculate specified index of new FirstVisibleLine and biggest acceptable value of it
-			destLineIndex = FirstVisibleLine + lineDelta;
+			var destLineIndex = FirstVisibleLine + lineDelta;
 			if( ScrollsBeyondLastLine )
 			{
 				maxLineIndex = Lines.Count - 1;
 			}
 			else
 			{
-				visibleLineCount = VisibleSize.Height / LineSpacing;
+				var visibleLineCount = VisibleSize.Height / LineSpacing;
 				maxLineIndex = Math.Max( 0, Lines.Count-visibleLineCount+1 );
 			}
 
@@ -1032,15 +988,13 @@ namespace Sgry.Azuki
 		{
 			int deltaInPx;
 			var clipRect = new Rectangle();
-			int rightLimit;
-			int desiredX;
 
 			if( columnDelta == 0 )
 				return;
 
 			// Calculate the x-coord of right most scroll position
-			desiredX = ScrollPosX + columnDelta;
-			rightLimit = ReCalcRightEndOfTextArea( desiredX );
+			var desiredX = ScrollPosX + columnDelta;
+			var rightLimit = ReCalcRightEndOfTextArea( desiredX );
 			if( rightLimit <= 0 )
 			{
 				return; // virtual text area is narrower than visible area. no need to scroll
@@ -1202,7 +1156,6 @@ namespace Sgry.Azuki
 		/// </summary>
 		internal virtual void HandleDocumentChanged( Document prevDocument )
 		{
-			var doc = Document;
 			using( var g = _UI.GetIGraphics() )
 			{
 				// reset width of line number area

@@ -1,10 +1,8 @@
-// 2009-11-28
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
-using ListViewSubItem = System.Windows.Forms.ListViewItem.ListViewSubItem;
 
 namespace Sgry.Ann
 {

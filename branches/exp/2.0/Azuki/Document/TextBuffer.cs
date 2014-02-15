@@ -185,18 +185,13 @@ namespace Sgry.Azuki
 		/// </summary>
 		void LHI_Insert( string insertText, int insertIndex )
 		{
-			DebugUtl.Assert( insertText != null, "insertText must not be null." );
+			Debug.Assert( insertText != null );
 			DebugUtl.Assert( 0 <= insertIndex && insertIndex <= _Chars.Count,
 							 "insertIndex is out of range (" + insertIndex + ")." );
-			LineColumnPos insPos;
-			int lineIndex; // work variable
-			int lineHeadIndex;
-			int lineEndIndex;
-			int insLineCount;
 
 			// At first, find the line which contains the insertion point
-			insPos = GetLineColumnPos( insertIndex );
-			lineIndex = insPos.Line;
+			var insPos = GetLineColumnPos( insertIndex );
+			var lineIndex = insPos.Line;
 
 			// If the inserting divides a CR+LF, insert an entry for the CR separated
 			if( 0 < insertIndex && _Chars[insertIndex-1] == '\r'
@@ -218,12 +213,12 @@ namespace Sgry.Azuki
 			}
 
 			// Insert line index entries
-			insLineCount = 1;
-			lineHeadIndex = 0;
+			var insLineCount = 1;
+			var lineHeadIndex = 0;
 			do
 			{
 				// Get end index of this line
-				lineEndIndex = TextUtil.NextLineHead( insertText, lineHeadIndex ) - 1;
+				var lineEndIndex = TextUtil.NextLineHead( insertText, lineHeadIndex ) - 1;
 				if( lineEndIndex == -2 ) // == "if NextLineHead returns -1"
 				{
 					// No more lines follows so no more entries are needed
@@ -284,13 +279,12 @@ namespace Sgry.Azuki
 							 "delBegin is out of range." );
 			DebugUtl.Assert( delBegin <= delEnd && delEnd <= _Chars.Count,
 							 "delEnd is out of range." );
-			int delFirstLine;
-			int delLen = delEnd - delBegin;
+			var delLen = delEnd - delBegin;
 
 			// calculate line indexes of both ends of the range
 			var delFromPos = GetLineColumnPos( delBegin );
 			var delToPos = GetLineColumnPos( delEnd );
-			delFirstLine = delFromPos.Line;
+			var delFirstLine = delFromPos.Line;
 
 			if( 0 < delBegin && _Chars[delBegin-1] == '\r' )
 			{
@@ -375,7 +369,7 @@ namespace Sgry.Azuki
 
 			var lineIndex = TextUtil.GetLineIndexFromCharIndex( _LHI, charIndex );
 			var range = TextUtil.GetLineRange( _Chars, _LHI, lineIndex, includesEolCode );
-			return new LineRange( _Document, range.Begin, range.End, lineIndex );;
+			return new LineRange( _Document, range.Begin, range.End, lineIndex );
 		}
 
 		public string GetText()
@@ -806,7 +800,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public override string ToString()
 		{
-			var buf = new System.Text.StringBuilder( this.Count );
+			var buf = new System.Text.StringBuilder( Count );
 			for( int i=0; i<Count; i++ )
 			{
 				buf.Append( this[i] );

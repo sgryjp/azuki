@@ -6,8 +6,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using Assembly = System.Reflection.Assembly;
 
 namespace Sgry
@@ -62,24 +60,23 @@ namespace Sgry
 		public static string GetStackTrace()
 		{
 			const int TraceBackCount = 5;
-			StringBuilder buf = new StringBuilder( 256 );
-			StringBuilder indent = new StringBuilder( 32 );
+			var buf = new StringBuilder( 256 );
+			var indent = new StringBuilder( 32 );
 
 			for( int i=2; i<TraceBackCount; i++ )
 			{
 				// get method information
-				StackFrame frame = new StackFrame( i );
-				MethodBase method = frame.GetMethod();
+				var frame = new StackFrame( i );
+				var method = frame.GetMethod();
 
 				// format stack trace message
 				buf.Append( indent.ToString() );
 				buf.Append( method.ReflectedType.FullName + "." + method.Name );
 				if( 0 < frame.GetFileLineNumber() )
 				{
-					buf.Append(
-						frame.GetFileName() + " ("
-						+ frame.GetFileLineNumber() + ", "
-						+ frame.GetFileColumnNumber() + ")"
+					buf.Append( frame.GetFileName()
+								+ " (" + frame.GetFileLineNumber() + ", "
+								+ frame.GetFileColumnNumber() + ")"
 					);
 				}
 				buf.Append( "\r\n" );
@@ -211,9 +208,9 @@ namespace Sgry
 			{
 				if( _LogFilePath == null )
 				{
-					Assembly exe = Assembly.GetExecutingAssembly();
-					string exePath = exe.GetModules()[0].FullyQualifiedName;
-					string exeDirPath = Path.GetDirectoryName( exePath );
+					var exe = Assembly.GetExecutingAssembly();
+					var exePath = exe.GetModules()[0].FullyQualifiedName;
+					var exeDirPath = Path.GetDirectoryName( exePath );
 					_LogFilePath = Path.Combine( exeDirPath, "log.txt" );
 				}
 				return _LogFilePath;
@@ -229,9 +226,9 @@ namespace Sgry
 			{
 				if( _OldLogFilePath == null )
 				{
-					Assembly exe = Assembly.GetExecutingAssembly();
-					string exePath = exe.GetModules()[0].FullyQualifiedName;
-					string exeDirPath = Path.GetDirectoryName( exePath );
+					var exe = Assembly.GetExecutingAssembly();
+					var exePath = exe.GetModules()[0].FullyQualifiedName;
+					var exeDirPath = Path.GetDirectoryName( exePath );
 					_OldLogFilePath = Path.Combine( exeDirPath, "log.old" );
 				}
 				return _OldLogFilePath;
@@ -295,29 +292,23 @@ namespace Sgry
 
 		void Write_Impl( string format, params object[] p )
 		{
-			TextWriter writer = null;
-
+			using( var writer = new StringWriter(_Buffer) )
 			try
 			{
 				// write header
-				writer = new StringWriter( _Buffer );
 				if( _HeaderNotWritten )
 				{
-					int pid;
-					int tid = 0;
-					DateTime now = DateTime.Now;
-					StringBuilder pidPart = new StringBuilder( 32 );
+					var now = DateTime.Now;
+					var pidPart = new StringBuilder( 32 );
 
 					// append extra header info
 					if( _WriteProcessID )
 					{
-						pid = Process.GetCurrentProcess().Id;
-						tid = Thread.CurrentThread.ManagedThreadId;
+						var pid = Process.GetCurrentProcess().Id;
+						var tid = Thread.CurrentThread.ManagedThreadId;
 						pidPart.Append( "[" + pid.ToString("X4") );
 						if( _WriteThreadID )
-						{
 							pidPart.Append( "," + tid.ToString("X2") );
-						}
 						pidPart.Append( "] " );
 					}
 
@@ -335,11 +326,9 @@ namespace Sgry
 				}
 
 				// write message
-				writer.Write( String.Format(format, p) );
+				writer.Write( format, p );
 				if( SecondOutput != null )
-				{
-					SecondOutput.Write( String.Format(format, p) );
-				}
+					SecondOutput.Write( format, p );
 
 				// flush
 				if( Realtime )
@@ -356,13 +345,6 @@ namespace Sgry
 			catch( Exception ex )
 			{
 				Debug.Fail( ex.ToString() );
-			}
-			finally
-			{
-				if( writer != null )
-				{
-					writer.Close();
-				}
 			}
 		}
 

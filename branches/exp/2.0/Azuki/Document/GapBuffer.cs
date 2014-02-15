@@ -75,7 +75,7 @@ namespace Sgry.Azuki
 		public virtual int Capacity
 		{
 			get{ return _Data.Length; }
-			set{ this.EnsureSpaceForInsertion(value); }
+			set{ EnsureSpaceForInsertion(value); }
 		}
 		#endregion
 
@@ -423,10 +423,9 @@ namespace Sgry.Azuki
 
 			int left = 0;
 			int right = Count;
-			int middle;
 			for(;;)
 			{
-				middle = left + ( (right - left) >> 1 );
+				int middle = left + ( (right - left) >> 1 );
 				int result = compare( GetAt(middle), item );
 				if( 0 < result )
 				{
@@ -564,19 +563,18 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region DebugUtl Utilities (only works when T is System.Char)
-		const char INSANITY = '\x65e0'; // 'wu'; a Kanji meaning "nothing" 
-		//const char INSANITY = '?';
+		const char Insanity = '\x65e0'; // 'wu'; a Kanji meaning "nothing" 
+		//const char Insanity = '?';
 		
 		[Conditional("SPLIT_ARRAY_ENABLE_SANITY_CHECK")]
 		void __check_sanity__()
 		{
 			if( 'a' is T )
 			{
-				char ch;
 				for( int i=_GapPos; i<_GapPos+_GapLen; i++ )
 				{
-					ch = (char)_Data.GetValue( i );
-					if( ch != INSANITY )
+					var ch = (char)_Data.GetValue( i );
+					if( ch != Insanity )
 					{
 						__dump__( "##SANITY CHECK##" );
 						DebugUtl.Fail( "GapBuffer lost sanity!! (_Data["+i+"] is "+(int)(char)_Data.GetValue(i)+")" );
@@ -591,7 +589,7 @@ namespace Sgry.Azuki
 			if( 'a' is T )
 			{
 				for( int i=begin; i<end; i++ )
-					_Data.SetValue( INSANITY, i );
+					_Data.SetValue( Insanity, i );
 			}
 		}
 
@@ -618,14 +616,11 @@ namespace Sgry.Azuki
 		/// </summary>
 		public override string ToString()
 		{
-			System.Text.StringBuilder buf;
-			int count;
-			
 			if( Count == 0 )
 				return String.Empty;
 
-			buf = new System.Text.StringBuilder();
-			count = Math.Min( 16, Count );
+			var buf = new System.Text.StringBuilder();
+			var count = Math.Min( 16, Count );
 			buf.Append( this[0].ToString() );
 			for( int i=1; i<count; i++ )
 				buf.Append( " " + this[i].ToString() );

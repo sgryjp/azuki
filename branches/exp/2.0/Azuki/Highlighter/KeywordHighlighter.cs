@@ -140,17 +140,17 @@ namespace Sgry.Azuki.Highlighter
 		#region Inner Types and Fields
 		class RegexPattern
 		{
-			public Regex regex;
-			public IList<CharClass> klassList;
-			public bool groupMatch;
+			public Regex Regex{ get; private set; }
+			public IList<CharClass> KlassList{ get; private set; }
+			public bool GroupMatch{ get; private set; }
 			public RegexPattern( Regex regex,
 								 bool groupMatch,
 								 IList<CharClass> klassList )
 			{
 				Debug.Assert( 0 < klassList.Count );
-				this.regex = regex;
-				this.groupMatch = groupMatch;
-				this.klassList = klassList;
+				Regex = regex;
+				GroupMatch = groupMatch;
+				KlassList = klassList;
 			}
 		}
 
@@ -162,7 +162,7 @@ namespace Sgry.Azuki.Highlighter
 
 		class KeywordSet
 		{
-			public CharTreeNode root = new CharTreeNode();
+			public readonly CharTreeNode root = new CharTreeNode();
 			public CharClass klass = CharClass.Normal;
 			public bool ignoresCase = false;
 		}
@@ -177,7 +177,7 @@ namespace Sgry.Azuki.Highlighter
 #			if DEBUG
 			public override string ToString()
 			{
-				return ch.ToString();
+				return "" + ch;
 			}
 #			endif
 		}
@@ -465,18 +465,17 @@ namespace Sgry.Azuki.Highlighter
 			if( keywords == null )
 				throw new ArgumentNullException("keywords");
 
-			KeywordSet set = new KeywordSet();
+			var set = new KeywordSet();
 
 			// ensure keywords are sorted alphabetically
 			for( int i=0; i<keywords.Length-1; i++ )
 				if( 0 <= keywords[i].CompareTo(keywords[i+1]) )
-					throw new ArgumentException(
-						String.Format(
-							"Keywords must be sorted alphabetically;"
-							+ " '{0}' is expected to be greater than"
-							+ " '{1}' but not greater.",
-							keywords[i+1], keywords[i]),
-						"value" );
+					throw new ArgumentException( String.Format("Keywords must be sorted"
+															   + " alphabetically; '{0}' is"
+															   + " expected to be greater than"
+															   + " '{1}' but not greater.",
+															   keywords[i+1], keywords[i]),
+												 "keywords" );
 
 			// parse and generate keyword tree
 			for( int i=0; i<keywords.Length; i++ )
@@ -505,13 +504,11 @@ namespace Sgry.Azuki.Highlighter
 						  CharTreeNode parent,
 						  int depth )
 		{
-			CharTreeNode child, node;
-
 			if( keyword.Length <= index )
 				return;
 
 			// get child
-			child = parent.child;
+			var child = parent.child;
 			if( child == null )
 			{
 				// no child. create
@@ -529,7 +526,7 @@ namespace Sgry.Azuki.Highlighter
 			}
 
 			// find the char from brothers
-			node = child;
+			var node = child;
 			while( node.sibling != null && node.sibling.ch <= keyword[index] )
 			{
 				// found a node having the char?
@@ -546,7 +543,7 @@ namespace Sgry.Azuki.Highlighter
 
 			// no node having the char exists.
 			// create and go down
-			CharTreeNode tmp = node.sibling;
+			var tmp = node.sibling;
 			node.sibling = new CharTreeNode();
 			node.sibling.ch = keyword[index];
 			node.sibling.depth = depth;
@@ -676,10 +673,10 @@ namespace Sgry.Azuki.Highlighter
 			if( regex == null )
 				throw new ArgumentNullException( "regex" );
 
-			RegexOptions opt = RegexOptions.Compiled;
+			var opt = RegexOptions.Compiled;
 			if( ignoreCase )
 				opt |= RegexOptions.IgnoreCase;
-			Regex r = new Regex( regex, opt );
+			var r = new Regex( regex, opt );
 
 			AddRegex( r, klass );
 		}
@@ -706,7 +703,7 @@ namespace Sgry.Azuki.Highlighter
 
 			_RegexPatterns.Add( new RegexPattern( regex,
 												  false,
-												  new CharClass[]{klass} ) );
+												  new[]{klass} ) );
 		}
 
 		/// <summary>
@@ -766,10 +763,10 @@ namespace Sgry.Azuki.Highlighter
 			if( klassList.Count == 0 )
 				throw new ArgumentException( "klassList" );
 
-			RegexOptions opt = RegexOptions.Compiled;
+			var opt = RegexOptions.Compiled;
 			if( ignoreCase )
 				opt |= RegexOptions.IgnoreCase;
-			Regex r = new Regex( regex, opt );
+			var r = new Regex( regex, opt );
 
 			AddRegex( r, klassList );
 		}
@@ -822,8 +819,6 @@ namespace Sgry.Azuki.Highlighter
 				throw new ArgumentOutOfRangeException( "dirtyRange", "End of 'dirtyRange' is out"
 																	 + " of valid range." );
 
-			int index;
-
 			// Refresh cache
 			if( _LastDocumentHash != doc.GetHashCode() )
 			{
@@ -838,11 +833,10 @@ namespace Sgry.Azuki.Highlighter
 								   Utl.FindReparseEndPoint(doc, dirtyRange.End) );
 
 			// seek each chars and do pattern matching
-			index = range.Begin;
+			int index = range.Begin;
 			while( 0 <= index && index < range.End )
 			{
 				int nextIndex;
-				bool highlighted;
 
 				// highlight line-comment if this token starts one
 				Utl.TryHighlight( doc, _LineHighlights,
@@ -869,8 +863,8 @@ namespace Sgry.Azuki.Highlighter
 				}
 
 				// highlight keyword if this token is a keyword
-				highlighted = TryHighlight( doc, _Keywords, _WordCharSet,
-											index, range.End, out nextIndex );
+				bool highlighted = TryHighlight( doc, _Keywords, _WordCharSet,
+												 index, range.End, out nextIndex );
 				if( highlighted )
 				{
 					index = nextIndex;
@@ -880,8 +874,7 @@ namespace Sgry.Azuki.Highlighter
 				// highlight digit as number
 				if( _HighlightsNumericLiterals )
 				{
-					nextIndex = Utl.TryHighlightNumberToken( doc, index, range.End,
-															 _HookProc );
+					nextIndex = Utl.TryHighlightNumberToken( doc, index, range.End, _HookProc );
 					if( index < nextIndex )
 					{
 						index = nextIndex;
@@ -902,8 +895,7 @@ namespace Sgry.Azuki.Highlighter
 				// This is not a token to be highlighted.
 				// Reset classes and seek to next token.
 				nextIndex = Utl.FindNextToken( doc, index, _WordCharSet );
-				Utl.Highlight( doc, index, nextIndex,
-							   CharClass.Normal, _HookProc );
+				Utl.Highlight( doc, index, nextIndex, CharClass.Normal, _HookProc );
 				index = nextIndex;
 			}
 
@@ -930,7 +922,7 @@ namespace Sgry.Azuki.Highlighter
 			bool highlighted = false;
 
 			nextSeekIndex = startIndex;
-			foreach( KeywordSet set in keywords )
+			foreach( var set in keywords )
 			{
 				highlighted = TryHighlight_OneKeyword( doc, set, wordCharSet,
 													   startIndex, endIndex,
@@ -1044,26 +1036,26 @@ namespace Sgry.Azuki.Highlighter
 			int offset = begin - cache.lineBegin;
 
 			// Evaluate regular expressions
-			foreach( RegexPattern pattern in patterns )
+			foreach( var pattern in patterns )
 			{
-				Match match = pattern.regex.Match( cache.lineContent, offset );
+				var match = pattern.Regex.Match( cache.lineContent, offset );
 				if( match.Success == false || match.Index != offset )
 				{
 					continue;
 				}
 
-				if( pattern.groupMatch )
+				if( pattern.GroupMatch )
 				{
 					for( int i=1; i<match.Groups.Count; i++ )
 					{
-						Group g = match.Groups[i];
+						var g = match.Groups[i];
 						int patBegin = cache.lineBegin + g.Index;
 						int patEnd = cache.lineBegin + g.Index + g.Length;
 						if( patBegin < patEnd
-							&& i-1 < pattern.klassList.Count )
+							&& i-1 < pattern.KlassList.Count )
 						{
 							Utl.Highlight( doc, patBegin, patEnd,
-										   pattern.klassList[i-1], _HookProc );
+										   pattern.KlassList[i-1], _HookProc );
 							nextSeekIndex = Math.Max( nextSeekIndex, patEnd );
 						}
 					}
@@ -1075,7 +1067,7 @@ namespace Sgry.Azuki.Highlighter
 					if( patBegin < patEnd )
 					{
 						Utl.Highlight( doc, patBegin, patEnd,
-									   pattern.klassList[0], _HookProc );
+									   pattern.KlassList[0], _HookProc );
 						nextSeekIndex = Math.Max( nextSeekIndex, patEnd );
 					}
 				}

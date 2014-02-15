@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // アセンブリに関する一般情報は以下の属性セットをとおして制御されます。
@@ -8,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle( "AzukiTest" )]
 [assembly: AssemblyDescription( "" )]
 [assembly: AssemblyConfiguration( "" )]
-[assembly: AssemblyCompany( "Microsoft" )]
+[assembly: AssemblyCompany("Suguru YAMAMOTO")]
 [assembly: AssemblyProduct( "AzukiTest" )]
-[assembly: AssemblyCopyright( "Copyright © Microsoft 2013" )]
+[assembly: AssemblyCopyright("Copyright (C) 2008-2013, Suguru YAMAMOTO")]
 [assembly: AssemblyTrademark( "" )]
 [assembly: AssemblyCulture( "" )]
 

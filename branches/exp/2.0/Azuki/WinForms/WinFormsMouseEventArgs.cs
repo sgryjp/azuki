@@ -3,18 +3,15 @@
 // author: YAMAMOTO Suguru
 // update: 2010-12-04
 //=========================================================
-using System;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace Sgry.Azuki.WinForms
 {
 	class WinFormsMouseEventArgs : MouseEventArgs, IMouseEventArgs
 	{
-		int _ButtonIndex;
-		int _Index;
-		bool _Shift, _Control, _Alt, _Special;
-		bool _Handled;
+		readonly int _ButtonIndex;
+		readonly int _Index;
+		readonly bool _Shift, _Control, _Alt, _Special;
 
 		public WinFormsMouseEventArgs( MouseEventArgs e, int index, int clicks, bool shift, bool control, bool alt, bool special )
 			: base( e.Button, clicks, e.X, e.Y, 0 )
@@ -75,10 +72,6 @@ namespace Sgry.Azuki.WinForms
 			get{ return _Special; }
 		}
 
-		public bool Handled
-		{
-			get{ return _Handled; }
-			set{ _Handled = value; }
-		}
+		public bool Handled { get; set; }
 	}
 }

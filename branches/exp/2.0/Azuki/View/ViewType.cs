@@ -1,10 +1,6 @@
 ﻿// file: ViewType.cs
 // brief: Enumeration to specify type of the text view.
-// author: YAMAMOTO Suguru
-// encoding: UTF-8
-// update: 2009-05-16
 //=========================================================
-using System;
 
 namespace Sgry.Azuki
 {

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki
 {
@@ -42,9 +41,9 @@ namespace Sgry.Azuki
 	/// <seealso cref="Sgry.Azuki.ColorScheme.SetColor">SetColor method</seealso>
 	public class ColorScheme
 	{
-		Color[] _ForeColors = new Color[ Byte.MaxValue ];
-		Color[] _BackColors = new Color[ Byte.MaxValue ];
-		TextDecoration[] _MarkingDecorations = new TextDecoration[ Marking.MaxID+1 ];
+		readonly Color[] _ForeColors = new Color[ Byte.MaxValue ];
+		readonly Color[] _BackColors = new Color[ Byte.MaxValue ];
+		readonly TextDecoration[] _MarkingDecorations = new TextDecoration[ Marking.MaxID+1 ];
 
 		#region Init / Dispose
 		/// <summary>

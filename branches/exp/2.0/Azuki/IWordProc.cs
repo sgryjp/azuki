@@ -1,9 +1,6 @@
 ﻿// file: IWordProc.cs
 // brief: Interface of word processor objects.
-// author: YAMAMOTO Suguru
-// update: 2010-06-26
 //=========================================================
-using System;
 
 namespace Sgry.Azuki
 {

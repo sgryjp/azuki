@@ -2,7 +2,6 @@
 // brief: Sgry's Win32API glues.
 //=========================================================
 using System;
-using System.Text;
 using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Windows.Forms;
@@ -351,7 +350,7 @@ namespace Sgry.Azuki.WinForms
 		public static extern IntPtr CreateCompatibleBitmap( IntPtr hdc, Int32 width, Int32 height );
 
 		[DllImport(gdi32_dll)]
-		public static unsafe extern Int32 DeleteDC( IntPtr hdc );
+		public static extern Int32 DeleteDC( IntPtr hdc );
 
 		[DllImport(gdi32_dll)]
 		public static extern Int32 BitBlt(
@@ -365,10 +364,10 @@ namespace Sgry.Azuki.WinForms
 		public unsafe static extern IntPtr CreateRectRgnIndirect( RECT * rect );
 
 		[DllImport(gdi32_dll)]
-		public unsafe static extern IntPtr SelectObject( IntPtr hdc, IntPtr gdiObj );
+		public static extern IntPtr SelectObject( IntPtr hdc, IntPtr gdiObj );
 		
 		[DllImport(gdi32_dll)]
-		public unsafe static extern Int32 DeleteObject( IntPtr gdiObj );
+		public static extern Int32 DeleteObject( IntPtr gdiObj );
 		#endregion
 
 		#region GDI - Text and Fonts
@@ -392,24 +391,23 @@ namespace Sgry.Azuki.WinForms
 		unsafe static extern Int32 GetTextExtentExPointW( IntPtr hdc, string text, int textLen, int maxWidth, int* out_fitLength, int* out_x, SIZE* out_size );
 		public static Size GetTextExtentExPoint( IntPtr hdc, string text, int textLen, int maxWidth, out int fitLength, out int[] extents )
 		{
-			Int32 bOk;
-			SIZE size;
-			extents = new int[text.Length];
-
 			unsafe {
+				Int32 bOk;
+				SIZE size;
+				extents = new int[text.Length];
+
 				fixed( int* pExtents = extents )
 				fixed( int* pFitLength = &fitLength )
 					bOk = GetTextExtentExPointW( hdc, text, textLen, maxWidth, pFitLength, pExtents, &size );
-				Debug.Assert( bOk != 0, "failed to calculate text width (LE:"+WinApi.GetLastError()+")" );
+				Debug.Assert( bOk != 0, "failed to calculate text width (LE:"+GetLastError()+")" );
 				return new Size( size.width, size.height );
 			}
 		}
 
 		public static Size GetTextExtentExPoint( IntPtr hdc, string text, int textLen )
 		{
-			SIZE size;
-			
 			unsafe {
+				SIZE size;
 				GetTextExtentExPointW( hdc, text, textLen, 0, null, null, &size );
 				return new Size( size.width, size.height );
 			}
@@ -435,17 +433,13 @@ namespace Sgry.Azuki.WinForms
 
 			const int LOGPIXELSY = 90;
 			lf = new LOGFONTW();
-			IntPtr dc;
-			int dpi_y;
 
-			dc = GetDC( window );
-			{
-				dpi_y = GetDeviceCaps( dc, LOGPIXELSY );
-			}
+			var dc = GetDC( window );
+			var dpiY = GetDeviceCaps( dc, LOGPIXELSY );
 			ReleaseDC( window, dc );
 			lf.escapement = 0;
 			lf.orientation = 0;
-			lf.height = -(int)( font.Size * dpi_y / 72 );
+			lf.height = -(int)( font.Size * dpiY / 72 );
 			lf.weight = (font.Style & FontStyle.Bold) != 0 ? 700 : 400; // FW_BOLD or FW_NORMAL
 			lf.italic = (byte)( (font.Style & FontStyle.Italic) != 0 ? 1 : 0 );
 			lf.underline = 0;//(byte)( (font.Style & FontStyle.Underline) != 0 ? 1 : 0 );
@@ -462,9 +456,7 @@ namespace Sgry.Azuki.WinForms
 				for( int i=0; i<32; i++ )
 				{
 					if( font.Name.Length <= i || font.Name[i] == '\0' )
-					{
 						return;
-					}
 					p[i] = font.Name[i];
 				}
 				p[31] = '\0';
@@ -499,25 +491,25 @@ namespace Sgry.Azuki.WinForms
 
 		#region GDI - Drawing Other Graphics
 		[DllImport(gdi32_dll)]
-		public unsafe static extern UInt32 MoveToEx( IntPtr hdc, Int32 x, Int32 y, IntPtr nul );
+		public static extern UInt32 MoveToEx( IntPtr hdc, Int32 x, Int32 y, IntPtr nul );
 
 		[DllImport(gdi32_dll)]
-		public unsafe static extern Int32 LineTo( IntPtr hdc, Int32 x, Int32 y );
+		public static extern Int32 LineTo( IntPtr hdc, Int32 x, Int32 y );
 		
 		[DllImport(gdi32_dll)]
-		public unsafe static extern Int32 SetPixel( IntPtr hdc, Int32 x, Int32 y, Int32 color );
+		public static extern Int32 SetPixel( IntPtr hdc, Int32 x, Int32 y, Int32 color );
 		
 		[DllImport(gdi32_dll)]
 		public unsafe static extern Int32 Polyline( IntPtr hdc, POINT* points, Int32 count );
 		
 		[DllImport(gdi32_dll)]
-		public unsafe static extern Int32 Rectangle( IntPtr hdc, Int32 left, Int32 top, Int32 right, Int32 bottom );
+		public static extern Int32 Rectangle( IntPtr hdc, Int32 left, Int32 top, Int32 right, Int32 bottom );
 
 		[DllImport(gdi32_dll)]
-		public unsafe static extern IntPtr CreatePen( Int32 style, Int32 width, Int32 color );
+		public static extern IntPtr CreatePen( Int32 style, Int32 width, Int32 color );
 
 		[DllImport(gdi32_dll)]
-		public unsafe static extern IntPtr CreateSolidBrush( Int32 color );
+		public static extern IntPtr CreateSolidBrush( Int32 color );
 		#endregion
 
 		#region Window Scrolling
@@ -554,11 +546,10 @@ namespace Sgry.Azuki.WinForms
 		{
 			unsafe {
 				SCROLLINFO si;
-				int rc;
 
 				si.size = (uint)sizeof( SCROLLINFO );
 				si.mask = SIF_POS;
-				rc = GetScrollInfo( window, isHScroll?0:1, &si );
+				var rc = GetScrollInfo( window, isHScroll?0:1, &si );
 				Debug.Assert( rc != 0, "failed to call GetScrollInfo" );
 				return si.pos;
 			}
@@ -580,11 +571,9 @@ namespace Sgry.Azuki.WinForms
 		{
 			unsafe {
 				SCROLLINFO si;
-				int rc;
-
 				si.size = (uint)sizeof( SCROLLINFO );
 				si.mask = SIF_TRACKPOS;
-				rc = GetScrollInfo( window, isHScroll?0:1, &si );
+				var rc = GetScrollInfo( window, isHScroll?0:1, &si );
 				Debug.Assert( rc != 0, "failed to call GetScrollInfo" );
 				return si.trackPos;
 			}
@@ -640,11 +629,8 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>Sets location of the IME composition window (pre-edit window) </summary>
 		public static void SetImeWindowPos( IntPtr window, Point screenPos )
 		{
-			IntPtr imContext = ImmGetContext( window );
-			unsafe
-			{
-				SetImeWindowPos( imContext, window, screenPos );
-			}
+			var imContext = ImmGetContext( window );
+			SetImeWindowPos( imContext, window, screenPos );
 			ImmReleaseContext( window, imContext );
 		}
 
@@ -652,7 +638,7 @@ namespace Sgry.Azuki.WinForms
 		public static void SetImeWindowPos( IntPtr imContext, IntPtr window, Point screenPos )
 		{
 			const int CFS_POINT = 0x0002;
-			COMPOSITIONFORM compForm = new COMPOSITIONFORM();
+			var compForm = new COMPOSITIONFORM();
 
 			unsafe
 			{
@@ -667,12 +653,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>Sets font of the IME composition window (pre-edit window) </summary>
 		public static void SetImeWindowFont( IntPtr window, FontInfo font )
 		{
-			IntPtr imContext;
-			LOGFONTW logicalFont;
-
-			imContext = ImmGetContext( window );
+			var imContext = ImmGetContext( window );
 			unsafe
 			{
+				LOGFONTW logicalFont;
 				CreateLogFont( window, font, out logicalFont );
 				ImmSetCompositionFontW( imContext, &logicalFont );
 			}

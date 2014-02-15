@@ -1,8 +1,6 @@
 ﻿// file: Actions.Selection.cs
 // brief: Actions for Azuki engine (actions to change selection).
 //=========================================================
-using System.Drawing;
-
 namespace Sgry.Azuki
 {
 	public static partial class Actions
@@ -305,12 +303,10 @@ namespace Sgry.Azuki
 		{
 			var view = ui.View;
 			var doc = ui.Document;
-			int caretIndex;
-			int pairIndex;
 
 			// find pair and go there
-			caretIndex = view.CaretIndex;
-			pairIndex = doc.FindMatchedBracket( caretIndex );
+			var caretIndex = view.CaretIndex;
+			var pairIndex = doc.FindMatchedBracket( caretIndex );
 			if( pairIndex != -1 )
 			{
 				// found.
@@ -434,12 +430,10 @@ namespace Sgry.Azuki
 		{
 			var view = ui.View;
 			var doc = ui.Document;
-			Point pt;
-			int nextIndex;
 			int diff = (view.VisibleSize.Height / view.LineSpacing);
 
 			// get current virtual coordinate of the caret
-			pt = view.GetVirtualPos( view.CaretIndex );
+			var pt = view.GetVirtualPos( view.CaretIndex );
 			
 			// calc new virtual coordinate of the caret
 			pt.Y += diff * view.LineSpacing;
@@ -450,7 +444,7 @@ namespace Sgry.Azuki
 			}*/
 
 			// calc index from the coord
-			nextIndex = view.GetCharIndex( pt );
+			var nextIndex = view.GetCharIndex( pt );
 
 			// move caret and scroll
 			doc.SetSelection( view.AnchorIndex, nextIndex );
