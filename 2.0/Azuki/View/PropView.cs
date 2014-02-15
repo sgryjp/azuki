@@ -170,27 +170,25 @@ namespace Sgry.Azuki
 				}
 			}
 
-			return Document.GetCharIndex( new TextPoint(lineIndex, columnIndex) );
+			return Document.GetCharIndex( new LineColumnPos(lineIndex, columnIndex) );
 		}
 
 		/// <summary>
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">
-		/// Specified index was out of range.
-		/// </exception>
-		public override TextPoint GetTextPosition( int charIndex )
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public override LineColumnPos GetLineColumnPos( int charIndex )
 		{
-			return Document.GetTextPosition( charIndex );
+			return Document.GetLineColumnPos( charIndex );
 		}
 
 		/// <summary>
 		/// Calculates char-index from screen line/column index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
-		public override int GetCharIndex( TextPoint position )
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public override int GetCharIndex( LineColumnPos pos )
 		{
-			return Document.GetCharIndex( position );
+			return Document.GetCharIndex( pos );
 		}
 		#endregion
 
@@ -205,8 +203,8 @@ namespace Sgry.Azuki
 			int prevCaretLine = PerDocParam.PrevCaretLine;
 
 			// calculate line/column index of current anchor/caret
-			var anchorPos = GetTextPosition( anchor );
-			var caretPos = GetTextPosition( caret );
+			var anchorPos = GetLineColumnPos( anchor );
+			var caretPos = GetLineColumnPos( caret );
 
 			using( var g = _UI.GetIGraphics() )
 			try
@@ -244,7 +242,7 @@ namespace Sgry.Azuki
 					// Remove current line highlight if this is the beginning of selection
 					if( HighlightsCurrentLine && e.OldCaret == e.OldAnchor )
 					{
-						var oldCaretLineY = YofLine( GetTextPosition(e.OldCaret).Line );
+						var oldCaretLineY = YofLine( GetLineColumnPos(e.OldCaret).Line );
 						DrawUnderLine( g, oldCaretLineY, ColorScheme.BackColor );
 					}
 
@@ -548,8 +546,8 @@ namespace Sgry.Azuki
 			int beginLineHead, endLineHead;
 
 			// get needed coordinates
-			var beginPos = GetTextPosition( beginIndex );
-			var endPos = GetTextPosition( endIndex );
+			var beginPos = GetLineColumnPos( beginIndex );
+			var endPos = GetLineColumnPos( endIndex );
 			beginLineHead = Lines[ beginPos.Line ].Begin;
 
 			// switch invalidation logic by whether the invalidated area is multiline or not

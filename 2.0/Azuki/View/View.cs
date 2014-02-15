@@ -710,7 +710,7 @@ namespace Sgry.Azuki
 		public virtual Point GetVirtualPos( IGraphics g, int index )
 		{
 			Debug.Assert( g != null );
-			var pos = GetTextPosition( index );
+			var pos = GetLineColumnPos( index );
 			return GetVirtualPos( g, pos.Line, pos.Column );
 		}
 
@@ -769,14 +769,14 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Calculates screen line/column index from char-index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public abstract TextPoint GetTextPosition( int charIndex );
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public abstract LineColumnPos GetLineColumnPos( int charIndex );
 
 		/// <summary>
 		/// Calculates char-index from screen line/column index.
 		/// </summary>
-		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
-		public abstract int GetCharIndex( TextPoint position );
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public abstract int GetCharIndex( LineColumnPos pos );
 
 		/// <summary>
 		/// Calculates and returns text ranges that will be selected by specified rectangle.

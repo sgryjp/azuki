@@ -267,7 +267,7 @@ namespace Sgry.Azuki
 		/// <param name="columnIndex">column index of where the caret is at</param>
 		public void GetCaretIndex( out int lineIndex, out int columnIndex )
 		{
-			var pos = GetTextPosition( _SelMan.CaretIndex );
+			var pos = GetLineColumnPos( _SelMan.CaretIndex );
 			lineIndex = pos.Line;
 			columnIndex = pos.Column;
 		}
@@ -284,7 +284,7 @@ namespace Sgry.Azuki
 			if( lineIndex < 0 || columnIndex < 0 )
 				throw new ArgumentOutOfRangeException( "lineIndex or columnIndex", "index must not be negative value. (lineIndex:"+lineIndex+", columnIndex:"+columnIndex+")" );
 
-			int caretIndex = _Buffer.GetCharIndex( new TextPoint(lineIndex, columnIndex) );
+			int caretIndex = _Buffer.GetCharIndex( new LineColumnPos(lineIndex, columnIndex) );
 			SetSelection( caretIndex, caretIndex );
 		}
 
@@ -600,7 +600,7 @@ namespace Sgry.Azuki
 		/// Gets a portion of text in a specified range.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException"/>
-		public string GetText( TextPoint beginPos, TextPoint endPos )
+		public string GetText( LineColumnPos beginPos, LineColumnPos endPos )
 		{
 			return _Buffer.GetText( beginPos.Line, beginPos.Column, endPos.Line, endPos.Column );
 		}
@@ -1341,23 +1341,22 @@ namespace Sgry.Azuki
 		/// Calculates line/column index from an offset.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException"/>
-		public TextPoint GetTextPosition( int charIndex )
+		public LineColumnPos GetLineColumnPos( int charIndex )
 		{
-			return _Buffer.GetTextPosition( charIndex );
+			return _Buffer.GetLineColumnPos( charIndex );
 		}
 
 		/// <summary>
 		/// Calculates char-index from line/column index.
 		/// </summary>
-		/// <exception cref="System.ArgumentOutOfRangeException"/>
-		public int GetCharIndex( TextPoint position )
+		/// <exception cref="ArgumentOutOfRangeException"/>
+		public int GetCharIndex( LineColumnPos pos )
 		{
-			if( position.Line < 0 || Lines.Count <= position.Line || position.Column < 0 )
-				throw new ArgumentOutOfRangeException( "position",
-					"Invalid index was given (position:" + position
-					+ ", Lines.Count:" + Lines.Count + ")." );
+			if( pos.Line < 0 || Lines.Count <= pos.Line || pos.Column < 0 )
+				throw new ArgumentOutOfRangeException( "pos", "Invalid index was given (pos:" + pos
+													   + ", Lines.Count:" + Lines.Count + ")." );
 
-			return _Buffer.GetCharIndex( position );
+			return _Buffer.GetCharIndex( pos );
 		}
 		#endregion
 

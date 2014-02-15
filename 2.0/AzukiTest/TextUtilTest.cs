@@ -24,11 +24,11 @@ namespace Sgry.Azuki.Test
 			GapBuffer<int> lhi;
 			MakeTestData( out text, out lhi );
 
-			Assert.AreEqual(  0, TextUtil.GetCharIndex(text, lhi, new TextPoint(0,  0)) );
-			Assert.AreEqual( 34, TextUtil.GetCharIndex(text, lhi, new TextPoint(2,  1)) );
-			Assert.AreEqual( 71, TextUtil.GetCharIndex(text, lhi, new TextPoint(6, 18)) );
-			Assert.AreEqual( 71, TextUtil.GetCharIndex(text, lhi, new TextPoint(6, 19)) );
-			Assert.AreEqual( 32, TextUtil.GetCharIndex(text, lhi, new TextPoint(0,100)) );
+			Assert.AreEqual(  0, TextUtil.GetCharIndex(text, lhi, new LineColumnPos(0,  0)) );
+			Assert.AreEqual( 34, TextUtil.GetCharIndex(text, lhi, new LineColumnPos(2,  1)) );
+			Assert.AreEqual( 71, TextUtil.GetCharIndex(text, lhi, new LineColumnPos(6, 18)) );
+			Assert.AreEqual( 71, TextUtil.GetCharIndex(text, lhi, new LineColumnPos(6, 19)) );
+			Assert.AreEqual( 32, TextUtil.GetCharIndex(text, lhi, new LineColumnPos(0,100)) );
 		}
 
 		[Test]
@@ -191,27 +191,27 @@ namespace Sgry.Azuki.Test
 		}
 
 		[Test]
-		public void GetTextPosition()
+		public void GetLineColumnPos()
 		{
-			TextPoint pos;
+			LineColumnPos pos;
 			IList<char> text;
 			GapBuffer<int> lhi;
 			MakeTestData( out text, out lhi );
 
-			pos = TextUtil.GetTextPosition( text, lhi, 0 );
+			pos = TextUtil.GetLineColumnPos( text, lhi, 0 );
 			Assert.AreEqual( 0, pos.Line );
 			Assert.AreEqual( 0, pos.Column );
-			pos = TextUtil.GetTextPosition( text, lhi, 2 );
+			pos = TextUtil.GetLineColumnPos( text, lhi, 2 );
 			Assert.AreEqual( 0, pos.Line );
 			Assert.AreEqual( 2, pos.Column );
-			pos = TextUtil.GetTextPosition( text, lhi, 40 );
+			pos = TextUtil.GetLineColumnPos( text, lhi, 40 );
 			Assert.AreEqual( 4, pos.Line );
 			Assert.AreEqual( 2, pos.Column );
-			pos = TextUtil.GetTextPosition( text, lhi, 71 ); // 71 --> EOF
+			pos = TextUtil.GetLineColumnPos( text, lhi, 71 ); // 71 --> EOF
 			Assert.AreEqual( 6, pos.Line );
 			Assert.AreEqual( 18, pos.Column );
 			Assert.Throws<AssertException>( delegate{
-				TextUtil.GetTextPosition( text, lhi, 72 );
+				TextUtil.GetLineColumnPos( text, lhi, 72 );
 			} );
 		}
 

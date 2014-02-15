@@ -565,7 +565,7 @@ namespace Sgry.Azuki
 			else if( HRulerIndicatorType == HRulerIndicatorType.CharCount )
 			{
 				// Calculate indicator region
-				var caretPos = GetTextPosition( CaretIndex );
+				var caretPos = GetLineColumnPos( CaretIndex );
 				var indicatorWidth = HRulerUnitWidth - 1;
 				var indicatorX = leftMostLineX
 								 + (caretPos.Column - leftMostRulerIndex) * HRulerUnitWidth;
@@ -690,7 +690,7 @@ namespace Sgry.Azuki
 			else if( HRulerIndicatorType == HRulerIndicatorType.CharCount )
 			{
 				// Calculate new segment of horizontal ruler
-				var newCaretPos = GetTextPosition( CaretIndex );
+				var newCaretPos = GetLineColumnPos( CaretIndex );
 				var newSegmentX = (newCaretPos.Column * HRulerUnitWidth)
 								  + ScrXofTextArea
 								  - ScrollPosX;

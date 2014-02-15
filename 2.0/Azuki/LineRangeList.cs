@@ -21,7 +21,7 @@ namespace Sgry.Azuki
 													   + " given. (charIndex:" + charIndex
 													   + ", Count:" + Count + ")." );
 
-			return this[ _Document.GetTextPosition(charIndex).Line ];
+			return this[ _Document.GetLineColumnPos(charIndex).Line ];
 		}
 
 		/// <exception cref="ArgumentOutOfRangeException"/>

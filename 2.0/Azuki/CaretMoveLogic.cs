@@ -290,11 +290,11 @@ namespace Sgry.Azuki
 			var doc = view.Document;
 			int offset = -1;
 
-			var pos = view.GetTextPosition( view.CaretIndex );
+			var pos = view.GetLineColumnPos( view.CaretIndex );
 			if( view.Lines.Count <= pos.Line+1 )
 				return doc.Length;
 
-			int nextIndex = view.GetCharIndex( new TextPoint(pos.Line+1, 0) );
+			int nextIndex = view.GetCharIndex( new LineColumnPos(pos.Line+1, 0) );
 			if( 0 <= nextIndex-1 && doc[nextIndex-1] == '\n'
 				&& 0 <= nextIndex-2 && doc[nextIndex-2] == '\r' )
 			{
