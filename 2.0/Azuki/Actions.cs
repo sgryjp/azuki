@@ -210,7 +210,7 @@ namespace Sgry.Azuki
 
 				// avoid dividing a CR-LF, a surrogate pair,
 				// or a combining character sequence
-				while( doc.IsNotDividableIndex(end) )
+				while( doc.IsUndividableIndex(end) )
 					end++;
 
 				// delete char(s).

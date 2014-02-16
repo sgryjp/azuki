@@ -2260,7 +2260,7 @@ namespace Sgry.Azuki.WinForms
 					if( MaxRangeLength < end - selBegin )
 					{
 						end = selBegin + MaxRangeLength;
-						while( Document.IsNotDividableIndex(end) )
+						while( Document.IsUndividableIndex(end) )
 							end++;
 					}
 

@@ -397,7 +397,7 @@ namespace Sgry.Azuki
 
 			// set seek starting index
 			var index = startIndex;
-			while( doc.IsNotDividableIndex(index) )
+			while( doc.IsUndividableIndex(index) )
 				index--;
 
 			// proceed until the char category changes
@@ -444,7 +444,7 @@ namespace Sgry.Azuki
 
 			// set seek starting index
 			var index = startIndex;
-			while( doc.IsNotDividableIndex(index) )
+			while( doc.IsUndividableIndex(index) )
 				index--;
 
 			// proceed until the char category changes
@@ -577,7 +577,7 @@ namespace Sgry.Azuki
 			}
 
 			// correct index if its forbidden position
-			if( doc.IsNotDividableIndex(index) && 0 < index )
+			if( doc.IsUndividableIndex(index) && 0 < index )
 			{
 				DebugUtl.Assert( index+1 < doc.Length );
 				DebugUtl.Fail( String.Format("kinsoku-shori resulted in forbidden index;"

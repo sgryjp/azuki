@@ -2083,7 +2083,7 @@ namespace Sgry.Azuki
 		///   </list>
 		/// </remarks>
 		/// <seealso cref="Document.PrevGraphemeClusterIndex"/>
-		/// <seealso cref="Document.IsNotDividableIndex(int)"/>
+		/// <seealso cref="IsUndividableIndex"/>
 		public int NextGraphemeClusterIndex( int index )
 		{
 			if( index < 0 || Length < index )
@@ -2121,7 +2121,7 @@ namespace Sgry.Azuki
 		///   </list>
 		/// </remarks>
 		/// <seealso cref="Document.PrevGraphemeClusterIndex"/>
-		/// <seealso cref="Document.IsNotDividableIndex(int)"/>
+		/// <seealso cref="IsUndividableIndex"/>
 		public int PrevGraphemeClusterIndex( int index )
 		{
 			if( index < 0 || Length < index )
@@ -2175,10 +2175,7 @@ namespace Sgry.Azuki
 		///   <para>
 		///   This method determines whether text can not be divided at given index or not. To seek
 		///   document through grapheme cluster by grapheme cluster, please consider to use
-		///   <see cref="Document.NextGraphemeClusterIndex">
-		///   Document.NextGraphemeClusterIndex method</see> or
-		///   <see cref="Document.PrevGraphemeClusterIndex">
-		///   Document.PrevGraphemeClusterIndex method</see>.
+		///   <see cref="NextGraphemeClusterIndex"/> or <see cref="PrevGraphemeClusterIndex"/>.
 		///   </para>
 		///   <para>
 		///   This method determines an index pointing the middle of character sequences next as
@@ -2197,17 +2194,11 @@ namespace Sgry.Azuki
 		///     <item>Variation sequence (including IVS)</item>
 		///   </list>
 		/// </remarks>
-		/// <seealso cref="Document.NextGraphemeClusterIndex"/>
-		/// <seealso cref="Document.PrevGraphemeClusterIndex"/>
-		public bool IsNotDividableIndex( int index )
+		/// <seealso cref="NextGraphemeClusterIndex"/>
+		/// <seealso cref="PrevGraphemeClusterIndex"/>
+		public bool IsUndividableIndex( int index )
 		{
-			if( index <= 0 || Length <= index )
-				return false;
-
-			return TextUtil.IsNotDividableIndex( this[index-1],
-												 this[index],
-												 (index+1 < Length) ? this[index+1]
-																	: '\0' );
+			return TextUtil.IsUndividableIndex( _Buffer, index );
 		}
 
 		/// <summary>
@@ -2215,10 +2206,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public bool IsCombiningCharacter( int index )
 		{
-			if( index < 0 || Length <= index )
-				return false;
-
-			return TextUtil.IsCombiningCharacter( this[index] );
+			return TextUtil.IsCombiningCharacter( _Buffer, index );
 		}
 
 		/// <summary>
@@ -2226,10 +2214,7 @@ namespace Sgry.Azuki
 		/// </summary>
 		public bool IsVariationSelector( int index )
 		{
-			if( index < 0 || Length <= index+1 )
-				return false;
-
-			return TextUtil.IsVariationSelector( this[index], this[index+1] );
+			return TextUtil.IsVariationSelector( _Buffer, index );
 		}
 
 		internal void DeleteRectSelectText()
@@ -2243,8 +2228,8 @@ namespace Sgry.Azuki
 				RectSelectRanges[i+1] -= diff;
 
 				// replace this row
-				Debug.Assert( !IsNotDividableIndex(RectSelectRanges[i]) );
-				Debug.Assert( !IsNotDividableIndex(RectSelectRanges[i+1]) );
+				Debug.Assert( !IsUndividableIndex(RectSelectRanges[i]) );
+				Debug.Assert( !IsUndividableIndex(RectSelectRanges[i+1]) );
 				Replace( String.Empty, RectSelectRanges[i], RectSelectRanges[i+1] );
 
 				// go to next row

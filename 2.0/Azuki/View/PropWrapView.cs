@@ -513,7 +513,7 @@ namespace Sgry.Azuki
 				{
 					end = reCalcEnd;
 				}
-				while( TextUtil.IsNotDividableIndex(doc.Buffer, end) )
+				while( TextUtil.IsUndividableIndex(doc.Buffer, end) )
 				{
 					end++;
 				}
@@ -733,7 +733,7 @@ namespace Sgry.Azuki
 					var peekingChar = String.Empty;
 					if( visCharCount+1 <= token.Length )
 					{
-						if( TextUtil.IsNotDividableIndex(token, visCharCount+1) )
+						if( TextUtil.IsUndividableIndex(token, visCharCount+1) )
 							peekingChar = token.Substring( visCharCount, 2 );
 						else
 							peekingChar = token.Substring( visCharCount, 1 );

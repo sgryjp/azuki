@@ -846,7 +846,7 @@ namespace Sgry.Azuki
 
 					// Append one grapheme cluster
 					subToken.Append( token[i] );
-					while( TextUtil.IsNotDividableIndex(token, i+1) )
+					while( TextUtil.IsUndividableIndex(token, i+1) )
 					{
 						subToken.Append( token[i+1] );
 						i++;
@@ -863,12 +863,12 @@ namespace Sgry.Azuki
 				if( relDLen < subToken.Length )
 				{
 					drawableLength = token.Length - (subToken.Length - relDLen);
-					Debug.Assert( TextUtil.IsNotDividableIndex(token, drawableLength) == false );
+					Debug.Assert( TextUtil.IsUndividableIndex(token, drawableLength) == false );
 					return x; // hit the right limit.
 				}
 				drawableLength += subToken.Length;
 			}
-			Debug.Assert( TextUtil.IsNotDividableIndex(token, drawableLength) == false );
+			Debug.Assert( TextUtil.IsUndividableIndex(token, drawableLength) == false );
 
 			// Whole part of the given token can be drawn at given width.
 			return x;
@@ -894,7 +894,7 @@ namespace Sgry.Azuki
 				subToken.Length = 0;
 				return true;
 			}
-			Debug.Assert( TextUtil.IsNotDividableIndex(subToken.ToString(), relDLen) == false );
+			Debug.Assert( TextUtil.IsUndividableIndex(subToken.ToString(), relDLen) == false );
 
 			x += subTokenWidth;
 			drawableLength += subToken.Length;

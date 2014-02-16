@@ -143,7 +143,7 @@ namespace Sgry.Azuki
 				int rightLimitX = pos.X;
 				int leftPartWidth = MeasureTokenEndX( g, line, 0, rightLimitX,
 													  out drawableTextLen );
-				Debug.Assert( TextUtil.IsNotDividableIndex(line, drawableTextLen) == false );
+				Debug.Assert( TextUtil.IsUndividableIndex(line, drawableTextLen) == false );
 				columnIndex = drawableTextLen;
 
 				// if the location is nearer to the NEXT of that char,
@@ -153,7 +153,7 @@ namespace Sgry.Azuki
 					// get next grapheme cluster
 					var nextChar = "" + line[drawableTextLen];
 					int nextCharEnd = drawableTextLen + 1;
-					while( TextUtil.IsNotDividableIndex(line, nextCharEnd) )
+					while( TextUtil.IsUndividableIndex(line, nextCharEnd) )
 					{
 						nextChar += line[ nextCharEnd ];
 						nextCharEnd++;
@@ -165,7 +165,7 @@ namespace Sgry.Azuki
 					if( leftPartWidth + nextCharWidth/2 < pos.X )
 					{
 						columnIndex = drawableTextLen + 1;
-						while( TextUtil.IsNotDividableIndex(line, columnIndex) )
+						while( TextUtil.IsUndividableIndex(line, columnIndex) )
 							columnIndex++;
 					}
 				}
@@ -819,7 +819,7 @@ namespace Sgry.Azuki
 					// Set the position to cut extra trailings of this token
 					if( visibleCharCount+1 <= token.Length )
 					{
-						if( TextUtil.IsNotDividableIndex(token, visibleCharCount+1) )
+						if( TextUtil.IsUndividableIndex(token, visibleCharCount+1) )
 							token = token.Substring( 0, visibleCharCount + 2 );
 						else
 							token = token.Substring( 0, visibleCharCount + 1 );

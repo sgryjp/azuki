@@ -512,13 +512,13 @@ namespace Sgry.Azuki.WinForms
 				}
 
 				// Ensure not to break a grapheme cluster
-				if( 0 < drawableLength && TextUtil.IsNotDividableIndex(text, drawableLength) )
+				if( 0 < drawableLength && TextUtil.IsUndividableIndex(text, drawableLength) )
 				{
 					do
 					{
 						drawableLength++;
 					}
-					while( TextUtil.IsNotDividableIndex(text, drawableLength) );
+					while( TextUtil.IsUndividableIndex(text, drawableLength) );
 				}
 				return size;
 			}
