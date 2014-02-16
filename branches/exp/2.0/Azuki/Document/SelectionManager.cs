@@ -3,6 +3,7 @@
 //=========================================================
 using System.Diagnostics;
 using System.Drawing;
+using Sgry.Azuki.Utils;
 
 namespace Sgry.Azuki
 {

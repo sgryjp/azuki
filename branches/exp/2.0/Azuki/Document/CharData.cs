@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using Sgry.Azuki.Utils;
 
 namespace Sgry.Azuki
 {
@@ -50,9 +51,8 @@ namespace Sgry.Azuki
 			{
 				if( _Buffer == null )
 					throw new InvalidOperationException();
-				return (Index < _Buffer.Count)
-					? TextUtil.NextGraphemeClusterIndex(_Buffer, Index) - Index
-					: 0;
+				return (Index < _Buffer.Count) ? TextUtil.NextGraphemeClusterIndex(_Buffer, Index) - Index
+											   : 0;
 			}
 		}
 

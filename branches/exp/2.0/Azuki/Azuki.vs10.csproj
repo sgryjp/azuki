@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>
     </AppDesignerFolder>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <RootNamespace>Sgry.Azuki</RootNamespace>
     <AssemblyName>Azuki</AssemblyName>
     <SignAssembly>true</SignAssembly>
@@ -102,16 +102,16 @@
     <Compile Include="IUserInterface.cs" />
     <Compile Include="IUserInterfaceInternal.cs" />
     <Compile Include="IWordProc.cs" />
-    <Compile Include="LineColumnPos.cs"/>
+    <Compile Include="LineColumnPos.cs" />
     <Compile Include="LineRange.cs" />
     <Compile Include="LineRangeList.cs" />
     <Compile Include="Range.cs" />
     <Compile Include="RawLineRange.cs" />
     <Compile Include="RawLineRangeList.cs" />
-    <Compile Include="TextUtil.cs" />
     <Compile Include="Platform.cs" />
     <Compile Include="UiImpl.cs" />
     <Compile Include="UndoContext.cs" />
+    <Compile Include="Utils\TextUtil.cs" />
     <Compile Include="View\ColorScheme.cs" />
     <Compile Include="View\DrawingOption.cs" />
     <Compile Include="View\HRulerIndicatorType.cs" />

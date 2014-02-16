@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>
     </AppDesignerFolder>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <RootNamespace>Sgry.Azuki</RootNamespace>
     <AssemblyName>Azuki</AssemblyName>
     <SignAssembly>true</SignAssembly>
@@ -45,6 +45,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
@@ -104,10 +107,10 @@
     <Compile Include="Range.cs" />
     <Compile Include="RawLineRange.cs" />
     <Compile Include="RawLineRangeList.cs" />
-    <Compile Include="TextUtil.cs" />
     <Compile Include="Platform.cs" />
     <Compile Include="UiImpl.cs" />
     <Compile Include="UndoContext.cs" />
+    <Compile Include="Utils\TextUtil.cs" />
     <Compile Include="View\ColorScheme.cs" />
     <Compile Include="View\DrawingOption.cs" />
     <Compile Include="View\HRulerIndicatorType.cs" />

@@ -4,6 +4,7 @@
 //DEBUG//#define DRAW_SLOWLY
 using System;
 using System.Drawing;
+using Sgry.Azuki.Utils;
 using Debug = System.Diagnostics.Debug;
 using StringBuilder = System.Text.StringBuilder;
 

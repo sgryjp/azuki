@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using System.Threading;
+using Sgry.Azuki.Utils;
 using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki

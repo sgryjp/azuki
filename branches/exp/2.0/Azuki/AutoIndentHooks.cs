@@ -3,6 +3,7 @@
 //=========================================================
 using System;
 using System.Text;
+using Sgry.Azuki.Utils;
 
 namespace Sgry.Azuki
 {

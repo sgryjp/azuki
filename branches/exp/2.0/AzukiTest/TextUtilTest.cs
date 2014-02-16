@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NUnit.Framework;
+using Sgry.Azuki.Utils;
 
 namespace Sgry.Azuki.Test
 {
