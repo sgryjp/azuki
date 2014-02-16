@@ -1,6 +1,5 @@
 ﻿// file: DefaultWordProc.cs
 // brief: built-in word processor for well Japanese handling
-// author: YAMAMOTO Suguru
 //=========================================================
 using System;
 using Debug = System.Diagnostics.Debug;
@@ -8,19 +7,16 @@ using Debug = System.Diagnostics.Debug;
 namespace Sgry.Azuki
 {
 	/// <summary>
-	/// The only one built-in word processor
-	/// which can handle Japanese kinsoku-shori.
+	/// Built-in word processor which can handle Japanese kinsoku-shori.
 	/// </summary>
 	/// <remarks>
 	/// <para>
-	/// DefaultWordProc is the only one built-in word processor.
-	/// This class provides
-	/// word handling logic which is specially adapted for Japanese language
-	/// including 'kinsoku shori;'
-	/// special prohibition rule of word-wrapping used in Japanese.
+	/// DefaultWordProc is the only one built-in word processor. This class provides word handling
+	/// logic which is specially adapted for Japanese language including 'kinsoku shori;' special
+	/// prohibition rule of word-wrapping used in Japanese.
 	/// </para>
-	/// <seealso cref="Sgry.Azuki.IWordProc">IWordProc interface</seealso>
-	/// <seealso cref="Sgry.Azuki.Document.WordProc">Document.WordProc property</seealso>
+	/// <seealso cref="IWordProc"/>
+	/// <seealso cref="Document.WordProc"/>
 	/// </remarks>
 	public class DefaultWordProc : IWordProc
 	{
@@ -35,7 +31,7 @@ namespace Sgry.Azuki
 		bool _EnableEolHanging = true;
 		bool _EnableWordWrap = true;
 
-		char[] _CharsForbiddenToEndLine = new char[] {
+		char[] _CharsForbiddenToEndLine = {
 			'(', '[', '{',
 			'\x00ab', // left-pointing double angle quotation mark
 			'\x2014', // em dash (full-width dash)
@@ -57,7 +53,7 @@ namespace Sgry.Azuki
 			'\x3034', // vertical kana repeat with voiced sound mark upper half
 			'\xff08', '\xff3b', '\xff5b', '\xff5f' // full-width forms
 		};
-		char[] _CharsForbiddenToStartLine = new char[] {
+		char[] _CharsForbiddenToStartLine = {
 			')', ',', '.', ':', ';', ']',
 			'\x00bb', // right-pointing double angle quotation mark
 			'\x2010', // hyphen
@@ -94,7 +90,7 @@ namespace Sgry.Azuki
 			'\x31fc', '\x31fd', '\x31fe', '\x31ff', // supplemental small katakana
 			'\xff09', '\xff0c', '\xff0d', '\xff1a', '\xff1b', '\xff1d', '\xff3d', '\xff5d', '\xff60' // full-width form
 		};
-		char[] _CharsToBeHanged = new char[] {
+		char[] _CharsToBeHanged = {
 			',', '.',
 			'\x3001', // ideographic comma (ja: tou ten)
 			'\x3002', // ideographic full stop (ja: ku ten)
@@ -119,15 +115,12 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// If this property was set true,
-		/// Azuki tries to avoid placing characters specified by
-		/// <see cref="Sgry.Azuki.DefaultWordProc.CharsForbiddenToEndLine">
-		/// CharsForbiddenToEndLine property</see>
-		/// at ends of a screen line.
+		/// If this property was set true, Azuki tries to avoid placing characters specified by
+		/// <see cref="CharsForbiddenToEndLine"/> at ends of a screen line.
 		/// This is one of the restriction rules in kinsoku shori.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.DefaultWordProc.CharsForbiddenToEndLine">DefaultWordProc.CharsForbiddenToEndLine property</seealso>
+		/// <seealso cref="CharsForbiddenToEndLine"/>
 		public virtual bool EnableLineEndRestriction
 		{
 			get{ return _EnableLineEndRestriction; }
@@ -139,13 +132,12 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This property is a set of characters.
-		/// All characters included in the value
-		/// will be avoided to be placed at the end of a screen line.
+		/// This property is a set of characters. All characters included in the value will be
+		/// avoided to be placed at the end of a screen line.
 		/// </para>
 		/// </remarks>
-		/// <exception cref="System.ArgumentNullException">Null was specified.</exception>
-		/// <seealso cref="Sgry.Azuki.DefaultWordProc.EnableLineEndRestriction">DefaultWordProc.EnableLineEndRestriction property</seealso>
+		/// <exception cref="ArgumentNullException"/>
+		/// <seealso cref="EnableLineEndRestriction"/>
 		public virtual char[] CharsForbiddenToEndLine
 		{
 			get{ return _CharsForbiddenToEndLine; }
@@ -164,15 +156,12 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// If this property was set true,
-		/// Azuki tries to avoid placing characters specified by
-		/// <see cref="Sgry.Azuki.DefaultWordProc.CharsForbiddenToStartLine">
-		/// CharsForbiddenToStartLine property</see>
-		/// at start of a screen line.
+		/// If this property was set true, Azuki tries to avoid placing characters specified by
+		/// <see cref="CharsForbiddenToStartLine"/> at start of a screen line.
 		/// This is one of the restriction rules in kinsoku shori.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.DefaultWordProc.CharsForbiddenToStartLine">DefaultWordProc.CharsForbiddenToStartLine property</seealso>
+		/// <seealso cref="CharsForbiddenToStartLine"/>
 		public virtual bool EnableLineHeadRestriction
 		{
 			get{ return _EnableLineHeadRestriction; }
@@ -184,13 +173,12 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This property is a set of characters.
-		/// All characters included in the value
-		/// will be avoided to be placed at start of a screen line.
+		/// This property is a set of characters. All characters included in the value will be
+		/// avoided to be placed at start of a screen line.
 		/// </para>
 		/// </remarks>
-		/// <exception cref="System.ArgumentNullException">Null was specified.</exception>
-		/// <seealso cref="Sgry.Azuki.DefaultWordProc.EnableLineHeadRestriction">DefaultWordProc.EnableLineHeadRestriction property</seealso>
+		/// <exception cref="ArgumentNullException"/>
+		/// <seealso cref="EnableLineHeadRestriction"/>
 		public virtual char[] CharsForbiddenToStartLine
 		{
 			get{ return _CharsForbiddenToStartLine; }
@@ -209,24 +197,20 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This property gets or sets whether to 'hang'
-		/// specified characters on the end of screen lines.
+		/// This property gets or sets whether to 'hang' specified characters on the end of screen
+		/// lines.
 		/// </para>
 		/// <para>
-		/// The term 'hang' here means placing a character beyond the end of screen line.
-		/// Hanged character will be drawn out of text area
-		/// and not be sent to next screen line.
+		/// The term 'hang' here means placing a character beyond the end of screen line. Hanged
+		/// character will be drawn out of text area and not be sent to next screen line.
 		/// </para>
 		/// <para>
-		/// Which characters are hanged is determined by
-		/// <see cref="Sgry.Azuki.DefaultWordProc.CharsToBeHanged">CharsToBeHanged property</see>.
-		/// To hang EOL code graphics, use 
-		/// <see cref="Sgry.Azuki.DefaultWordProc.EnableEolHanging">EnableEolHanging</see>
-		/// instead.
+		/// Which characters are hanged is determined by <see cref="CharsToBeHanged"/>. To hang EOL
+		/// code graphics, use <see cref="EnableEolHanging"/> instead.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.DefaultWordProc.CharsToBeHanged">DefaultWordProc.CharsToBeHanged property</seealso>
-		/// <seealso cref="Sgry.Azuki.DefaultWordProc.EnableEolHanging">DefaultWordProc.EnableEolHanging property</seealso>
+		/// <seealso cref="CharsToBeHanged"/>
+		/// <seealso cref="EnableEolHanging"/>
 		public virtual bool EnableCharacterHanging
 		{
 			get{ return _EnableCharacterHanging; }
@@ -238,34 +222,30 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This property is a set of characters.
-		/// All characters included in the value
-		/// will be avoided to be placed at start of a screen line,
-		/// and will be 'hanged.'
-		/// The term 'hang' here means placing a character beyond the end of screen line.
-		/// Hanged character will be drawn out of text area
-		/// and will not be the starting character of the next screen line.
+		/// This property is a set of characters. All characters included in the value will be
+		/// avoided to be placed at start of a screen line, and will be 'hanged.' The term 'hang'
+		/// means placing a character beyond the end of screen line. Hanged character will be drawn
+		/// out of text area and will not be the starting character of the next screen line.
 		/// </para>
 		/// <para>
-		/// Note that CR (U+000d) and LF (U+000a)
-		/// must not be included in the value of this property.
-		/// To hang graphics of CR, LF, or CR+LF, use
-		/// <see cref="Sgry.Azuki.DefaultWordProc.EnableEolHanging">EnableEolHanging</see>.
+		/// Note that CR (U+000d) and LF (U+000a) must not be included in the value of this
+		/// property. To hang graphics of CR, LF, or CR+LF, use <see cref="EnableEolHanging"/>.
 		/// </para>
 		/// </remarks>
-		/// <exception cref="System.ArgumentNullException">Null was specified.</exception>
-		/// <exception cref="System.ArgumentException">Specified value contains one or more EOL characters.</exception>
-		/// <seealso cref="Sgry.Azuki.DefaultWordProc.EnableCharacterHanging">DefaultWordProc.EnableCharacterHanging property</seealso>
-		/// <seealso cref="Sgry.Azuki.DefaultWordProc.EnableEolHanging">DefaultWordProc.EnableEolHanging property</seealso>
+		/// <exception cref="ArgumentNullException"/>
+		/// <exception cref="ArgumentException">Specified value contains one or more EOL characters.</exception>
+		/// <seealso cref="EnableCharacterHanging"/>
+		/// <seealso cref="EnableEolHanging"/>
 		public virtual char[] CharsToBeHanged
 		{
 			get{ return _CharsToBeHanged; }
 			set
 			{
 				if( value == null )
-					throw new ArgumentNullException( "value", "DefaultWordProc.CharsToBeHanged must not be null." );
-				if( 0 <= new String(value).IndexOfAny(TextUtil.EolChars) )
-					throw new ArgumentException( "DefaultWordProc.CharsToBeHanged must not contain EOL codes.", "value" );
+					throw new ArgumentNullException( "value" );
+				if( value.All( ch => ch.IsEolChar() ) )
+					throw new ArgumentException( "DefaultWordProc.CharsToBeHanged must not contain"
+												 + " EOL codes.", "value" );
 
 				// keep a sorted copy of the value
 				_CharsToBeHanged = (char[])value.Clone();
@@ -278,21 +258,19 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This property gets or sets whether to 'hang'
-		/// EOL graphics on the end of screen lines.
+		/// This property gets or sets whether to 'hang' EOL graphics on the end of screen lines.
 		/// </para>
 		/// <para>
-		/// The term 'hang' here means placing a character beyond the end of screen line.
-		/// Hanged character will be drawn out of text area
-		/// and will not be the starting character of the next screen line.
+		/// The term 'hang' here means placing a character beyond the end of screen line. Hanged
+		/// character will be drawn out of text area and will not be the starting character of the
+		/// next screen line.
 		/// </para>
 		/// <para>
-		/// To hang characters which is not EOL code, use 
-		/// <see cref="Sgry.Azuki.DefaultWordProc.EnableCharacterHanging">EnableCharacterHanging</see>
+		/// To hang characters which is not EOL code, use <see cref="EnableCharacterHanging"/>
 		/// instead.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.DefaultWordProc.EnableCharacterHanging">DefaultWordProc.EnableCharacterHanging property</seealso>
+		/// <seealso cref="EnableCharacterHanging"/>
 		public virtual bool EnableEolHanging
 		{
 			get{ return _EnableEolHanging; }
@@ -306,14 +284,17 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <param name="doc">The document in which to search.</param>
 		/// <param name="startIndex">The index to start the search from.</param>
-		/// <returns>Index of start position of a word if found, or length of the document if no word was found.</returns>
-		/// <exception cref="System.ArgumentNullException">
+		/// <returns>
+		///   Index of start position of the found word, or length of the document if no word was
+		///   found.
+		/// </returns>
+		/// <exception cref="ArgumentNullException">
 		///		<paramref name="doc"/> is null.
 		/// </exception>
-		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <exception cref="ArgumentOutOfRangeException">
 		///		<paramref name="startIndex"/> is less than 0 or greater than length of the document.
 		/// </exception>
-		/// <seealso cref="Sgry.Azuki.IWordProc.NextWordStart">IWordProc.NextWordStart method</seealso>
+		/// <seealso cref="IWordProc.NextWordStart"/>
 		public virtual int NextWordStart( Document doc, int startIndex )
 		{
 			if( doc == null )
@@ -345,14 +326,16 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <param name="doc">The document in which to search.</param>
 		/// <param name="startIndex">The index to start the search from.</param>
-		/// <returns>Index of end position of a word if found, or length of the document if no word was found.</returns>
-		/// <exception cref="System.ArgumentNullException">
+		/// <returns>
+		///   Index of end position of the found word, or length of the document if no word was found.
+		/// </returns>
+		/// <exception cref="ArgumentNullException">
 		///		<paramref name="doc"/> is null.
 		/// </exception>
-		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <exception cref="ArgumentOutOfRangeException">
 		///		<paramref name="startIndex"/> is less than 0 or greater than length of the document.
 		/// </exception>
-		/// <seealso cref="Sgry.Azuki.IWordProc.NextWordEnd">IWordProc.NextWordEnd method</seealso>
+		/// <seealso cref="IWordProc.NextWordEnd"/>
 		public virtual int NextWordEnd( Document doc, int startIndex )
 		{
 			if( doc == null )
@@ -387,7 +370,9 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <param name="doc">The document in which to search.</param>
 		/// <param name="startIndex">The index to start the search from.</param>
-		/// <returns>Index of start position of a word if found, or 0 if no word was found.</returns>
+		/// <returns>
+		///   Index of start position of a word if found, or 0 if no word was found.
+		/// </returns>
 		/// <exception cref="ArgumentNullException">
 		///		<paramref name="doc"/> is null.
 		/// </exception>
@@ -431,14 +416,17 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <param name="doc">The document in which to search.</param>
 		/// <param name="startIndex">The index to start the search from.</param>
-		/// <returns>Index of end position of a word if found, or length of the document if no word was found.</returns>
+		/// <returns>
+		///   Index of end position of a word if found, or length of the document if no word was
+		///   found.
+		/// </returns>
 		/// <exception cref="ArgumentNullException">
 		///		<paramref name="doc"/> is null.
 		/// </exception>
 		/// <exception cref="ArgumentOutOfRangeException">
 		///		<paramref name="startIndex"/> is less than 0 or greater than length of the document.
 		/// </exception>
-		/// <seealso cref="Sgry.Azuki.IWordProc.PrevWordEnd"/>
+		/// <seealso cref="IWordProc.PrevWordEnd"/>
 		public virtual int PrevWordEnd( Document doc, int startIndex )
 		{
 			if( doc == null )
@@ -474,7 +462,9 @@ namespace Sgry.Azuki
 		/// Determines where a screen line should be wrapped at.
 		/// </summary>
 		/// <param name="doc">The document currently rendering.</param>
-		/// <param name="index">The index of character which is to be drawn over the right edge of text area.</param>
+		/// <param name="index">
+		///   The index of character which is to be drawn over the right edge of text area.
+		/// </param>
 		/// <returns>The index of the character which starts the next screen line.</returns>
 		/// <exception cref="ArgumentNullException">
 		///		<paramref name="doc"/> is null.
@@ -603,21 +593,17 @@ namespace Sgry.Azuki
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// DefaultWordProc executes kinsoku shori on character by character basis.
-		/// This property determines how many times
-		/// the prohibition rules are applied for each characters which ends a screen line.
+		/// DefaultWordProc executes kinsoku shori on character by character basis. This property
+		/// determines how many times the prohibition rules are applied for each characters which
+		/// ends a screen line.
 		/// </para>
 		/// <para>
-		/// If prohibition rules on character by character basis
-		/// were applied only once, there are many cases that cannot be handled with.
-		/// For example, if an open parenthesis was included in
-		/// <see cref="Sgry.Azuki.DefaultWordProc.CharsForbiddenToEndLine">
-		/// CharsForbiddenToEndLine</see>
-		/// and if a screen line ended with two open parentheses,
-		/// applying kinsoku shori (line end restriction) once
-		/// results pushing one open parenthesis to next screen line;
-		/// and thus the screen line ends with an open parenthesis.
-		/// Obviously this is not acceptable result of applying line end restriction.
+		/// If prohibition rules on character by character basis were applied only once, there are
+		/// many cases that cannot be handled with. For example, if an open parenthesis was
+		/// included in <see cref="CharsForbiddenToEndLine"/> and if a screen line ended with two
+		/// open parentheses, applying kinsoku shori (line end restriction) once results pushing
+		/// one open parenthesis to next screen line; and thus the screen line ends with an open
+		/// parenthesis. Obviously this is not acceptable result of applying line end restriction.
 		/// To solve this problem, DefaultWordProc applies rules multiple times.
 		/// </para>
 		/// <para>
@@ -695,7 +681,7 @@ namespace Sgry.Azuki
 		};
 
 		// 1=Alphabet, 0=Other
-		readonly static byte[] CodeTable = new byte[] {
+		readonly static byte[] CodeTable = {
 			/*      0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  */
 			/*000*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			/*001*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

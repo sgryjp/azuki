@@ -2242,8 +2242,8 @@ namespace Sgry.Azuki
 				RectSelectRanges[i+1] -= diff;
 
 				// replace this row
-				Debug.Assert( IsNotDividableIndex(RectSelectRanges[i]) == false );
-				Debug.Assert( IsNotDividableIndex(RectSelectRanges[i+1]) == false );
+				Debug.Assert( !IsNotDividableIndex(RectSelectRanges[i]) );
+				Debug.Assert( !IsNotDividableIndex(RectSelectRanges[i+1]) );
 				Replace( String.Empty, RectSelectRanges[i], RectSelectRanges[i+1] );
 
 				// go to next row
