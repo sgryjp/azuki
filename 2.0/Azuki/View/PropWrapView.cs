@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Diagnostics;
+using Sgry.Azuki.Utils;
 
 namespace Sgry.Azuki
 {

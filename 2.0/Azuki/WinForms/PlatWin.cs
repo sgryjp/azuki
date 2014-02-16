@@ -4,6 +4,7 @@
 using System;
 using System.Drawing;
 using System.Text;
+using Sgry.Azuki.Utils;
 using Control = System.Windows.Forms.Control;
 using SystemInformation = System.Windows.Forms.SystemInformation;
 using Marshal = System.Runtime.InteropServices.Marshal;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+using Sgry.Azuki.Utils;
 
 namespace Sgry.Azuki.Test
 {

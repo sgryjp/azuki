@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Debug = System.Diagnostics.Debug;
 
-namespace Sgry.Azuki
+namespace Sgry.Azuki.Utils
 {
 	/// <summary>
 	/// Utility functions to manipulate strings.

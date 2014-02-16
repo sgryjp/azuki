@@ -2,6 +2,8 @@
 // brief: built-in word processor for well Japanese handling
 //=========================================================
 using System;
+using System.Linq;
+using Sgry.Azuki.Utils;
 using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki
@@ -243,7 +245,7 @@ namespace Sgry.Azuki
 			{
 				if( value == null )
 					throw new ArgumentNullException( "value" );
-				if( value.All( ch => ch.IsEolChar() ) )
+				if( value.All( ch => TextUtil.IsEolChar(ch) ) )
 					throw new ArgumentException( "DefaultWordProc.CharsToBeHanged must not contain"
 												 + " EOL codes.", "value" );
 
