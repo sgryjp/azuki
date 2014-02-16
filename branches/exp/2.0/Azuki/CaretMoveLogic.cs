@@ -69,12 +69,10 @@ namespace Sgry.Azuki
 				return doc.Length;
 			}
 
-			// Avoid placing caret at middle of an undividable character sequences.
+			// Avoid placing caret in the middle of an undividable character sequences.
 			int newCaretIndex = view.CaretIndex + 1;
-			while( doc.IsNotDividableIndex(newCaretIndex) )
-			{
+			while( doc.IsUndividableIndex(newCaretIndex) )
 				newCaretIndex++;
-			}
 
 			return newCaretIndex;
 		}
@@ -91,12 +89,10 @@ namespace Sgry.Azuki
 				return 0;
 			}
 
-			// Avoid placing caret at middle of an undividable character sequences.
+			// Avoid placing caret in the middle of an undividable character sequences.
 			int newCaretIndex = view.CaretIndex - 1;
-			while( doc.IsNotDividableIndex(newCaretIndex) )
-			{
+			while( doc.IsUndividableIndex(newCaretIndex) )
 				newCaretIndex--;
-			}
 
 			return newCaretIndex;
 		}

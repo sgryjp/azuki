@@ -511,21 +511,15 @@ namespace Sgry.Azuki.Utils
 		#endregion
 
 		#region Unicode character sequence
-		/// <summary>
-		/// Determines whether given character is a combining character or not.
-		/// </summary>
-		public static bool IsCombiningCharacter( char ch )
+		//-----------------------------------------------------------------------------------------
+		static bool IsCombiningCharacter( char ch )
 		{
-			UnicodeCategory category = Char.GetUnicodeCategory( ch );
-			return ( category == UnicodeCategory.NonSpacingMark
+			var category = Char.GetUnicodeCategory( ch );
+			return (category == UnicodeCategory.NonSpacingMark
 					|| category == UnicodeCategory.SpacingCombiningMark
-					|| category == UnicodeCategory.EnclosingMark
-				);
+					|| category == UnicodeCategory.EnclosingMark);
 		}
 
-		/// <summary>
-		/// Determines whether given character is a combining character or not.
-		/// </summary>
 		public static bool IsCombiningCharacter( string text, int index )
 		{
 			if( index < 0 || text.Length <= index )
@@ -534,10 +528,16 @@ namespace Sgry.Azuki.Utils
 			return IsCombiningCharacter( text[index] );
 		}
 
-		/// <summary>
-		/// Determines whether given character(s) is a variation selector or not.
-		/// </summary>
-		public static bool IsVariationSelector( char ch, char nextCh )
+		public static bool IsCombiningCharacter( IList<char> chars, int index )
+		{
+			if( index < 0 || chars.Count <= index )
+				return false;
+
+			return IsCombiningCharacter( chars[index] );
+		}
+
+		//-----------------------------------------------------------------------------------------
+		static bool IsVariationSelector( char ch, char nextCh )
 		{
 			if( 0xfe00 <= ch && ch <= 0xfe0f )
 			{
@@ -553,101 +553,65 @@ namespace Sgry.Azuki.Utils
 			return false;
 		}
 
-		/// <summary>
-		/// Determines whether text can not be divided at given index or not.
-		/// </summary>
-		public static bool IsNotDividableIndex( char prevCh, char ch, char nextCh )
+		public static bool IsVariationSelector( IList<char> chars, int index )
+		{
+			if( index < 0 || chars.Count <= index+1 )
+				return false;
+
+			return IsVariationSelector( chars[index], chars[index+1] );
+		}
+
+		//-----------------------------------------------------------------------------------------
+		static bool IsUndividableIndex( char prevCh, char ch, char nextCh )
 		{
 			if( prevCh == '\r' && ch == '\n' )
-			{
 				return true;
-			}
 			if( Char.IsHighSurrogate(prevCh) && Char.IsLowSurrogate(ch) )
-			{
 				return true;
-			}
 			if( IsCombiningCharacter(ch) && IsEolChar(prevCh) == false )
-			{
 				return true;
-			}
 			if( IsVariationSelector(ch, nextCh) )
-			{
 				return true;
-			}
 
 			return false;
 		}
 
-		/// <summary>
-		/// Determines whether text can not be divided at given index or not.
-		/// </summary>
-		/// <param name="text">The text to be examined.</param>
-		/// <param name="index">The index to determine whether it points to middle of an undividable character sequence or not.</param>
-		/// <remarks>
-		///   <para>
-		///   This method determines whether a string can not be divided at given index or not.
-		///   This is only an utility method.
-		///   Please refer to the document of
-		///   <see cref="Sgry.Azuki.Document.IsNotDividableIndex(int)">Document.IsNotDividableIndex instance method</see>
-		///   for detail.
-		///   </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.IsNotDividableIndex(int)">Document.IsNotDividableIndex method</seealso>
-		public static bool IsNotDividableIndex( string text, int index )
+		public static bool IsUndividableIndex( string str, int index )
 		{
-			if( text == null || index <= 0 || text.Length <= index )
+			if( str == null || index <= 0 || str.Length <= index )
 				return false;
 
-			return IsNotDividableIndex( text[index-1],
-										text[index],
-										(index+1 < text.Length) ? text[index+1]
-																: '\0' );
-		}
-
-		/// <summary>
-		/// Determines whether text can not be divided at given index or not.
-		/// </summary>
-		/// <param name="text">The text to be examined.</param>
-		/// <param name="index">The index to determine whether it points to middle of an undividable character sequence or not.</param>
-		/// <remarks>
-		///   <para>
-		///   This method determines whether a string can not be divided at given index or not.
-		///   This is only an utility method.
-		///   Please refer to the document of
-		///   <see cref="Sgry.Azuki.Document.IsNotDividableIndex(int)">Document.IsNotDividableIndex instance method</see>
-		///   for detail.
-		///   </para>
-		/// </remarks>
-		/// <seealso cref="Sgry.Azuki.Document.IsNotDividableIndex(int)">Document.IsNotDividableIndex method</seealso>
-		public static bool IsNotDividableIndex( IList<char> text, int index )
-		{
-			if( text == null || index <= 0 || text.Count <= index )
-				return false;
-
-			return IsNotDividableIndex( text[index-1],
-										text[index],
-										(index+1 < text.Count) ? text[index+1]
+			return IsUndividableIndex( str[index-1],
+										str[index],
+										(index+1 < str.Length) ? str[index+1]
 															   : '\0' );
 		}
 
-		public static bool IsDividableIndex( IList<char> text, int index )
+		public static bool IsUndividableIndex( IList<char> chars, int index )
 		{
-			return !IsNotDividableIndex( text, index );
+			if( chars == null || index <= 0 || chars.Count <= index )
+				return false;
+
+			return IsUndividableIndex( chars[index-1],
+										chars[index],
+										(index+1 < chars.Count) ? chars[index+1]
+																: '\0' );
 		}
 
+		//-----------------------------------------------------------------------------------------
 		public static void ConstrainIndex( IList<char> text, ref IRange range )
 		{
 			if( range.IsEmpty == false )
 			{
 				Debug.Assert( range.Begin < range.End );
-				while( IsNotDividableIndex(text, range.Begin) )
+				while( IsUndividableIndex(text, range.Begin) )
 					range.Begin--;
-				while( IsNotDividableIndex(text, range.End) )
+				while( IsUndividableIndex(text, range.End) )
 					range.End++;
 			}
 			else
 			{
-				while( IsNotDividableIndex(text, range.Begin) )
+				while( IsUndividableIndex(text, range.Begin) )
 				{
 					range.Begin--;
 					range.End--;
@@ -660,14 +624,14 @@ namespace Sgry.Azuki.Utils
 			if( range.IsEmpty == false )
 			{
 				Debug.Assert( range.Begin < range.End );
-				while( IsNotDividableIndex(text, range.Begin) )
+				while( IsUndividableIndex(text, range.Begin) )
 					range.Begin--;
-				while( IsNotDividableIndex(text, range.End) )
+				while( IsUndividableIndex(text, range.End) )
 					range.End++;
 			}
 			else
 			{
-				while( IsNotDividableIndex(text, range.Begin) )
+				while( IsUndividableIndex(text, range.Begin) )
 				{
 					range.Begin--;
 					range.End--;
@@ -679,21 +643,21 @@ namespace Sgry.Azuki.Utils
 		{
 			if( anchor < caret )
 			{
-				while( IsNotDividableIndex(text, anchor) )
+				while( IsUndividableIndex(text, anchor) )
 					anchor--;
-				while( IsNotDividableIndex(text, caret) )
+				while( IsUndividableIndex(text, caret) )
 					caret++;
 			}
 			else if( caret < anchor )
 			{
-				while( IsNotDividableIndex(text, caret) )
+				while( IsUndividableIndex(text, caret) )
 					caret--;
-				while( IsNotDividableIndex(text, anchor) )
+				while( IsUndividableIndex(text, anchor) )
 					anchor++;
 			}
 			else// if( anchor == caret )
 			{
-				while( IsNotDividableIndex(text, caret) )
+				while( IsUndividableIndex(text, caret) )
 				{
 					anchor--;
 					caret--;
@@ -701,6 +665,7 @@ namespace Sgry.Azuki.Utils
 			}
 		}
 
+		//-----------------------------------------------------------------------------------------
 		public static int NextGraphemeClusterIndex( IList<char> text, int index )
 		{
 			Debug.Assert( text != null );
@@ -711,7 +676,7 @@ namespace Sgry.Azuki.Utils
 			{
 				index++;
 			}
-			while( index < text.Count && IsNotDividableIndex(text, index) );
+			while( index < text.Count && IsUndividableIndex(text, index) );
 
 			return index;
 		}
@@ -726,7 +691,7 @@ namespace Sgry.Azuki.Utils
 			{
 				index--;
 			}
-			while( 0 < index && IsNotDividableIndex(text, index) );
+			while( 0 < index && IsUndividableIndex(text, index) );
 
 			return index;
 		}

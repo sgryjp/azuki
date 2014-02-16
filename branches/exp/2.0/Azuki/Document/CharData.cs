@@ -117,7 +117,7 @@ namespace Sgry.Azuki
 			{
 				cd.Index++;
 			}
-			while( TextUtil.IsNotDividableIndex(cd._Buffer, cd.Index) );
+			while( TextUtil.IsUndividableIndex(cd._Buffer, cd.Index) );
 			return cd;
 		}
 
@@ -127,7 +127,7 @@ namespace Sgry.Azuki
 			{
 				cd.Index--;
 			}
-			while( TextUtil.IsNotDividableIndex(cd._Buffer, cd.Index) );
+			while( TextUtil.IsUndividableIndex(cd._Buffer, cd.Index) );
 			return cd;
 		}
 		#endregion
