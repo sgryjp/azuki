@@ -2510,7 +2510,7 @@ namespace Sgry.Azuki.WinForms
 
 		bool MyIsInputChar( char charCode )
 		{
-			if( !_AcceptsReturn && TextUtil.IsEolChar(charCode) )
+			if( !_AcceptsReturn && charCode.IsEolChar() )
 				return false;
 			if( !_AcceptsTab && charCode == '\t' )
 				return false;

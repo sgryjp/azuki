@@ -119,7 +119,7 @@ namespace Sgry.Azuki
 				}
 			}
 			// EOL-Code
-			else if( TextUtil.IsEolChar(token, 0) )
+			else if( token.IsEolChar(0) )
 			{
 				if( inSelection == false )
 					g.BackColor = ColorScheme.BackColor;
@@ -799,7 +799,7 @@ namespace Sgry.Azuki
 					drawableLength++;
 					x = subTokenWidth;
 				}
-				else if( TextUtil.IsEolChar(token, i) )
+				else if( token.IsEolChar(i) )
 				{
 					//--- Detected an EOL char ---
 					// Calculate drawn length of cached characters

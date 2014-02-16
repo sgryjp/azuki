@@ -846,7 +846,7 @@ namespace Sgry.Azuki
 			{
 				DebugUtl.Assert( line.Begin <= line.End );
 				if( line.Begin == line.End
-					|| (0 < line.End && TextUtil.IsEolChar(Document[line.End-1]) == false) )
+					|| !Document.IsEolChar(line.End - 1) )
 				{
 					DrawEofMark( g, ref pos );
 				}
