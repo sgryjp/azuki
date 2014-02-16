@@ -1022,7 +1022,7 @@ namespace Sgry.Azuki.Highlighter
 
 			// Because KeywordHighlighter applies regular expressions line per
 			// line basis, do nothing in a middle of lines.
-			if( TextUtil.IsEolChar(doc[begin]) )
+			if( doc.IsEolChar(begin) )
 			{
 				return false;
 			}

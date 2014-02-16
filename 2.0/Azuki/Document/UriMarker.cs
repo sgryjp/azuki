@@ -3,6 +3,7 @@
 //=========================================================
 using System;
 using System.Text;
+using Sgry.Azuki.Utils;
 using UnicodeCategory = System.Globalization.UnicodeCategory;
 
 namespace Sgry.Azuki
@@ -354,7 +355,7 @@ namespace Sgry.Azuki
 			{
 				if( 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' // alpha
 					|| '0' <= ch && ch <= '9' // digit
-					|| 0 <= "./_-?&=#%~!$*+,:;@\\^|".IndexOf(ch) )
+					|| ch.IsOneOf("./_-?&=#%~!$*+,:;@\\^|") )
 				{
 					return true;
 				}
@@ -368,7 +369,7 @@ namespace Sgry.Azuki
 					|| cat == UnicodeCategory.ParagraphSeparator
 					|| cat == UnicodeCategory.SpaceSeparator
 					|| cat == UnicodeCategory.Format
-					|| 0 <= "\x3001\x3002".IndexOf(ch) )
+					|| ch.IsOneOf("\x3001\x3002") )
 				{
 					return false;
 				}
@@ -454,7 +455,7 @@ namespace Sgry.Azuki
 			return ('0' <= ch && ch <= '9')
 					|| ('A' <= ch && ch <= 'Z')
 					|| 'a' <= ch && ch <= 'z'
-					|| 0 <= ".-_!#$%&'*+/=?^`{|}~".IndexOf(ch);
+					|| ch.IsOneOf(".-_!#$%&'*+/=?^`{|}~");
 		}
 
 		static bool GetMailToEnd_IsDomainChar( char ch )
@@ -462,7 +463,7 @@ namespace Sgry.Azuki
 			return ('A' <= ch && ch <= 'Z')
 				|| ('a' <= ch && ch <= 'z')
 				|| ('0' <= ch && ch <= '9')
-				|| (0 <= "-.:[]".IndexOf(ch));
+				|| ch.IsOneOf("-.:[]");
 		}
 		#endregion
 

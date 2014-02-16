@@ -2258,17 +2258,9 @@ namespace Sgry.Azuki
 
 		bool IsEmptyLine( int index )
 		{
-			// is the index indicates end of the document or end of a line?
-			if( index == Length
-				|| index < Length && TextUtil.IsEolChar(this[index]))
-			{
-				// is the index indicates start of the document or start of a line?
-				if( index == 0
-					|| 0 <= index-1 && TextUtil.IsEolChar(this[index-1]) )
-				{
+			if( index == Length || this.IsEolChar(index) )
+				if( index == 0 || this.IsEolChar(index - 1) )
 					return true;
-				}
-			}
 			return false;
 		}
 		#endregion

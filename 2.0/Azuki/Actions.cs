@@ -63,8 +63,8 @@ namespace Sgry.Azuki
 
 				if( ui.UnindentsWithBackspace
 					&& 0 <= caret-1
-					&& (caret == doc.Length || TextUtil.IsEolChar(doc[caret]))
-					&& 0 <= " \r\x3000".IndexOf(doc[caret-1]) )
+					&& (caret == doc.Length || doc.IsEolChar(caret) )
+					&& doc[caret-1].IsOneOf(" \r\x3000") )
 				{
 					// Remove whitespace characters to previous tab-stop
 					var caretPos = view.GetVirtualPos( caret );
@@ -80,7 +80,7 @@ namespace Sgry.Azuki
 					delLen = 0;
 					for( int i=caret-1; newLineEnd <= i; i-- )
 					{
-						if( " \r\x3000".IndexOf(doc[i]) < 0 )
+						if( !doc[i].IsOneOf(" \r\x3000") )
 							break;
 						delLen++;
 					}

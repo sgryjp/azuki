@@ -635,6 +635,11 @@ namespace Sgry.Azuki.Utils
 		#endregion
 
 		#region Others
+		public static bool IsOneOf( this char ch, string chars )
+		{
+			return 0 <= chars.IndexOf( ch );
+		}
+
 		public static int BinarySearch<T>( IList<T> list, T item )
 		{
 			return BinarySearch( list, item, Comparer<T>.Default.Compare );

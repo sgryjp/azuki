@@ -53,7 +53,7 @@ namespace Sgry.Azuki
 			var view = ui.View;
 
 			// Perform indentation if an EOL code was inserted
-			if( TextUtil.IsEolChar(ch) )
+			if( ch.IsEolChar() )
 			{
 				var str = new StringBuilder( doc.EolCode );
 
@@ -119,7 +119,7 @@ namespace Sgry.Azuki
 			doc.GetSelection( out selBegin, out selEnd );
 			var line = doc.Lines.AtOffset( selBegin );
 
-			if( TextUtil.IsEolChar(ch) ) // Enter key
+			if( ch.IsEolChar() ) // Enter key
 			{
 				bool extraPaddingNeeded = false;
 				var indentChars = new StringBuilder( doc.EolCode, 64 );
@@ -178,7 +178,7 @@ namespace Sgry.Azuki
 				// Ensure this line contains white spaces only
 				for( int i=line.Begin; i<line.End; i++ )
 				{
-					if( TextUtil.IsEolChar(doc[i]) )
+					if( doc.IsEolChar(i) )
 						break;
 					else if( doc[i] != ' ' && doc[i] != '\t' )
 						return false;
@@ -252,7 +252,7 @@ namespace Sgry.Azuki
 				return false;
 			}
 
-			if( TextUtil.IsEolChar(ch) )
+			if( ch.IsEolChar() )
 			{
 				var doc = ui.Document;
 				var view = (View)ui.View;
@@ -273,7 +273,7 @@ namespace Sgry.Azuki
 							levelUp = true;
 							break;
 						}
-						else if( " \t".IndexOf(doc[i]) < 0 )
+						else if( !doc[i].IsOneOf(" \t") )
 						{
 							break;
 						}
@@ -322,7 +322,7 @@ namespace Sgry.Azuki
 				int extraSpaceCount = 0;
 				for( int i=doc.CaretIndex; i<line.End; i++ )
 				{
-					if( 0 <= " \t".IndexOf(doc[i]) )
+					if( doc[i].IsOneOf(" \t") )
 						extraSpaceCount++;
 				}
 

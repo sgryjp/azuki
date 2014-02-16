@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Sgry.Azuki.Utils;
 
 namespace Sgry.Azuki.Highlighter
 {
@@ -52,7 +53,7 @@ namespace Sgry.Azuki.Highlighter
 		bool HighlightPreprocessorMacro( Document doc, string token, int index, CharClass klass )
 		{
 			// If one previous character is not a space or '#', ignore it
-			if( index <= 0 || "# \t".IndexOf(doc[index-1]) < 0 )
+			if( index <= 0 || !doc[index-1].IsOneOf("# \t") )
 			{
 				return false;
 			}

@@ -175,7 +175,7 @@ namespace Sgry.Azuki
 				// get content of the line
 				var line = RawLines[lineIndex];
 				if( line.End+1 < Document.Length
-					&& !TextUtil.IsEolChar(Document[line.End]) )
+					&& !Document.IsEolChar(line.End) )
 				{
 					isWrapLine = true;
 				}
@@ -524,11 +524,11 @@ namespace Sgry.Azuki
 
 				// can this segment be written in this screen line?
 				if( drawableLen < str.Length
-					|| TextUtil.IsEolChar(str, drawableLen-1) )
+					|| str.IsEolChar(drawableLen - 1) )
 				{
 					// hit right limit. end this screen line
 					end = begin + drawableLen;
-					if( TextUtil.IsEolChar(str, drawableLen-1) == false )
+					if( str.IsEolChar(drawableLen - 1) == false )
 					{
 						// wrap word
 						int newEndIndex = doc.WordProc.HandleWordWrapping( doc, begin+drawableLen );
@@ -766,7 +766,7 @@ namespace Sgry.Azuki
 			if( DrawsEofMark && screenLine.End == Document.Length )
 			{
 				if( screenLine.IsEmpty
-					|| (0 < screenLine.End && TextUtil.IsEolChar(Document[screenLine.End-1]) == false) )
+					|| !Document.IsEolChar(screenLine.End - 1) )
 				{
 					DrawEofMark( g, ref pos );
 				}
@@ -830,8 +830,7 @@ namespace Sgry.Azuki
 				return false;
 			}
 
-			char lastCharOfPrevLine = doc[lineHeadIndex-1];
-			return ( TextUtil.IsEolChar(lastCharOfPrevLine) == false );
+			return !doc[ lineHeadIndex - 1 ].IsEolChar();
 		}
 
 		class WrappedLineRangeList : ILineRangeList
