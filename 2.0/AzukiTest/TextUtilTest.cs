@@ -86,31 +86,6 @@ namespace Sgry.Azuki.Test
 		}
 
 		[Test]
-		public void GetLineLengthByCharIndex()
-		{
-			IList<char> text;
-			GapBuffer<int> lhi;
-			MakeTestData( out text, out lhi );
-
-			int i = 0;
-			for( ; i<32; i++ )
-				Assert.AreEqual( 32, TextUtil.GetLineLengthByCharIndex(text, i) );
-			for( ; i<33; i++ )
-				Assert.AreEqual(  1, TextUtil.GetLineLengthByCharIndex(text, i) );
-			for( ; i<37; i++ )
-				Assert.AreEqual(  4, TextUtil.GetLineLengthByCharIndex(text, i) );
-			for( ; i<38; i++ )
-				Assert.AreEqual(  1, TextUtil.GetLineLengthByCharIndex(text, i) );
-			for( ; i<52; i++ )
-				Assert.AreEqual( 14, TextUtil.GetLineLengthByCharIndex(text, i) );
-			for( ; i<53; i++ )
-				Assert.AreEqual(  1, TextUtil.GetLineLengthByCharIndex(text, i) );
-			for( ; i<71; i++ )
-				Assert.AreEqual( 17, TextUtil.GetLineLengthByCharIndex(text, i) );
-			Assert.AreEqual( 17, TextUtil.GetLineLengthByCharIndex(text, i) ); // EOF
-		}
-
-		[Test]
 		public void GetLineRange()
 		{
 			IRange range;

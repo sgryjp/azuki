@@ -13,8 +13,6 @@ namespace Sgry.Azuki.Utils
 	/// </summary>
 	static class TextUtil
 	{
-		public static readonly char[] EolChars = new char[]{ '\r', '\n' };
-
 		#region Line/Column
 		public static int GetCharIndex( IList<char> text,
 										IList<int> lhi,
@@ -119,60 +117,9 @@ namespace Sgry.Azuki.Utils
 			return new Range( begin, end );
 		}
 
-		public static int GetLineLengthByCharIndex( IList<char> text,
-													int charIndex )
-		{
-			int prevLH = PrevLineHead( text, charIndex );
-			int nextLH = NextLineHead( text, charIndex );
-			if( nextLH == -1 )
-			{
-				nextLH = text.Count - 1;
-			}
-
-			return (nextLH - prevLH);
-		}
-
-		public static int GetLineLengthByCharIndex( string text, int charIndex )
-		{
-			int prevLH = PrevLineHead( text, charIndex );
-			int nextLH = NextLineHead( text, charIndex );
-			if( nextLH == -1 )
-			{
-				nextLH = text.Length - 1;
-			}
-
-			return (nextLH - prevLH);
-		}
-
 		public static bool IsMultiLine( string text )
 		{
-			int lineHead = 0;
-
-			lineHead = NextLineHead( text, lineHead );
-			if( lineHead != -1 )
-			{
-				return true;
-			}
-
-			return false;
-		}
-
-		public static bool IsEolChar( char ch )
-		{
-			return (ch == '\r' || ch == '\n');
-		}
-
-		public static bool IsEolChar( string str, int index )
-		{
-			if( 0 <= index && index < str.Length )
-			{
-				char ch = str[index];
-				return (ch == '\r' || ch == '\n');
-			}
-			else
-			{
-				return false;
-			}
+			return ( 0 <= NextLineHead(text, 0) );
 		}
 
 		public static int NextLineHead( IList<char> str, int startIndex )
@@ -186,12 +133,8 @@ namespace Sgry.Azuki.Utils
 				// found EOL code?
 				if( str[i] == '\r' )
 				{
-					if( i+1 < str.Count
-						&& str[i+1] == '\n' )
-					{
+					if( i+1 < str.Count && str[i+1] == '\n' )
 						return i+2;
-					}
-
 					return i+1;
 				}
 				else if( str[i] == '\n' )
@@ -211,12 +154,8 @@ namespace Sgry.Azuki.Utils
 				// found EOL code?
 				if( str[i] == '\r' )
 				{
-					if( i+1 < str.Length
-						&& str[i+1] == '\n' )
-					{
+					if( i+1 < str.Length && str[i+1] == '\n' )
 						return i+2;
-					}
-
 					return i+1;
 				}
 				else if( str[i] == '\n' )
@@ -235,9 +174,7 @@ namespace Sgry.Azuki.Utils
 							 +startIndex+" but str.Count is "+str.Count+")" );
 
 			if( str.Count <= startIndex )
-			{
 				startIndex = str.Count - 1;
-			}
 
 			for( int i=startIndex-1; 0<=i; i-- )
 			{
@@ -248,11 +185,8 @@ namespace Sgry.Azuki.Utils
 				}
 				else if( str[i] == '\r' )
 				{
-					if( i+1 < str.Count
-						&& str[i+1] == '\n' )
-					{
+					if( i+1 < str.Count && str[i+1] == '\n' )
 						continue;
-					}
 					return i+1;
 				}
 			}
@@ -267,9 +201,7 @@ namespace Sgry.Azuki.Utils
 							 +startIndex+" but str.Length is "+str.Length+")" );
 
 			if( str.Length <= startIndex )
-			{
 				startIndex = str.Length - 1;
-			}
 
 			for( int i=startIndex-1; 0<=i; i-- )
 			{
@@ -280,11 +212,8 @@ namespace Sgry.Azuki.Utils
 				}
 				else if( str[i] == '\r' )
 				{
-					if( i+1 < str.Length
-						&& str[i+1] == '\n' )
-					{
+					if( i+1 < str.Length && str[i+1] == '\n' )
 						continue;
-					}
 					return i+1;
 				}
 			}
@@ -510,7 +439,34 @@ namespace Sgry.Azuki.Utils
 		}
 		#endregion
 
-		#region Unicode character sequence
+		#region Character categorization
+		//-----------------------------------------------------------------------------------------
+		public static bool IsEolChar( this char ch )
+		{
+			return (ch == '\r' || ch == '\n');
+		}
+
+		public static bool IsEolChar( this string str, int index )
+		{
+			if( index < 0 || str.Length <= index )
+				return false;
+			var ch = str[index];
+			return (ch == '\r' || ch == '\n');
+		}
+
+		public static bool IsEolChar( this IList<char> chars, int index )
+		{
+			if( index < 0 || chars.Count <= index )
+				return false;
+			var ch = chars[index];
+			return (ch == '\r' || ch == '\n');
+		}
+
+		public static bool IsEolChar( this Document doc, int index )
+		{
+			return IsEolChar( doc.Buffer, index );
+		}
+
 		//-----------------------------------------------------------------------------------------
 		static bool IsCombiningCharacter( char ch )
 		{
@@ -520,12 +476,12 @@ namespace Sgry.Azuki.Utils
 					|| category == UnicodeCategory.EnclosingMark);
 		}
 
-		public static bool IsCombiningCharacter( string text, int index )
+		public static bool IsCombiningCharacter( string str, int index )
 		{
-			if( index < 0 || text.Length <= index )
+			if( index < 0 || str.Length <= index )
 				return false;
 
-			return IsCombiningCharacter( text[index] );
+			return IsCombiningCharacter( str[index] );
 		}
 
 		public static bool IsCombiningCharacter( IList<char> chars, int index )
@@ -599,7 +555,7 @@ namespace Sgry.Azuki.Utils
 		}
 
 		//-----------------------------------------------------------------------------------------
-		public static void ConstrainIndex( IList<char> text, ref IRange range )
+		public static T ConstrainIndex<T>( IList<char> text, T range ) where T : IRange
 		{
 			if( range.IsEmpty == false )
 			{
@@ -617,26 +573,7 @@ namespace Sgry.Azuki.Utils
 					range.End--;
 				}
 			}
-		}
-
-		public static void ConstrainIndex( IList<char> text, ref Range range )
-		{
-			if( range.IsEmpty == false )
-			{
-				Debug.Assert( range.Begin < range.End );
-				while( IsUndividableIndex(text, range.Begin) )
-					range.Begin--;
-				while( IsUndividableIndex(text, range.End) )
-					range.End++;
-			}
-			else
-			{
-				while( IsUndividableIndex(text, range.Begin) )
-				{
-					range.Begin--;
-					range.End--;
-				}
-			}
+			return range;
 		}
 
 		public static void ConstrainIndex( IList<char> text, ref int anchor, ref int caret )

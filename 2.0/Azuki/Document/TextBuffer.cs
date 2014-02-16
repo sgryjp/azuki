@@ -396,7 +396,7 @@ namespace Sgry.Azuki
 				return String.Empty;
 
 			// constrain indexes to avoid dividing a grapheme cluster
-			TextUtil.ConstrainIndex( _Chars, ref range );
+			range = TextUtil.ConstrainIndex( _Chars, range );
 
 			// retrieve a part of the content
 			var buf = new char[range.Length];
