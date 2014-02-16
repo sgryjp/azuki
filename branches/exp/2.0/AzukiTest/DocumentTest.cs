@@ -253,8 +253,7 @@ namespace Sgry.Azuki.Test
 			Assert.AreEqual( 2, end );
 
 			// Index constraint
-			var range = new Range( 1, 1 );
-			TextUtil.ConstrainIndex( doc.Buffer, ref range );
+			var range = TextUtil.ConstrainIndex( doc.Buffer, new Range(1, 1) );
 			Assert.AreEqual( 0, range.Begin );
 			Assert.AreEqual( 0, range.End );
 		}
