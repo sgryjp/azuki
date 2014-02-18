@@ -324,6 +324,8 @@ namespace Sgry.Azuki
 				{
 					if( doc[i].IsOneOf(" \t") )
 						extraSpaceCount++;
+					else
+						break;
 				}
 
 				// Replace selection
