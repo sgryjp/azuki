@@ -102,6 +102,7 @@ namespace Sgry.Azuki
 			//DO_NOT//_LCharWidth = other._LCharWidth;
 			//DO_NOT//_LineHeight = other._LineHeight;
 			//DO_NOT//_LineNumAreaWidth = other._LineNumAreaWidth;
+			_ScrollsBeyondLastLine = other._ScrollsBeyondLastLine;
 			//DO_NOT//_SpaceWidth = other._SpaceWidth;
 			_TabWidth = other._TabWidth;
 			_LinePadding = other._LinePadding;
