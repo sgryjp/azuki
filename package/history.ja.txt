@@ -1,4 +1,4 @@
-== 1.7.11 (2014-xx-xx) ==
+== 1.7.11 (2014-07-19) ==
  * mod: IUserInterface.UnindentsWithBackspaceは標準で無効化するように仕様変更（このモードの動作はPythonなどの適した言語以外では不自然に感じる）
  * fix: IUserInterface.UnindentsWithBackspaceを有効化すると空行をバックスペースキーで削除できない問題を修正（Frankieさんに感謝）
 
