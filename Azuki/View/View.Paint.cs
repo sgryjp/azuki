@@ -3,6 +3,7 @@
 //=========================================================
 //DEBUG//#define DRAW_SLOWLY
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using StringBuilder = System.Text.StringBuilder;
 using Debug = System.Diagnostics.Debug;
@@ -136,7 +137,7 @@ namespace Sgry.Azuki
 				}
 			}
 			// EOL-Code
-			else if( TextUtil.IsEolChar(token, 0) )
+			else if( LineLogic.IsEolChar(token, 0) )
 			{
 				int width;
 
@@ -838,7 +839,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Calculates x-coordinate of the right end of given token drawed at specified position with specified tab-width.
 		/// </summary>
-		internal int MeasureTokenEndX( IGraphics g, TextSegment segment, int virX )
+		internal int MeasureTokenEndX( IGraphics g, string token, int virX )
 		{
 			int dummy;
 			int rightLimitX = Int32.MaxValue;
@@ -848,17 +849,16 @@ namespace Sgry.Azuki
 			{
 				rightLimitX = Int32.MaxValue + virX;
 			}
-			return MeasureTokenEndX( g, Document.GetTextInRange(segment.Begin, segment.End),
-									 virX, rightLimitX, out dummy );
+			return MeasureTokenEndX( g, token, virX, rightLimitX, out dummy );
 		}
 
 		/// <summary>
 		/// Calculates x-coordinate of the right end of given token
 		/// drawed at specified position with specified tab-width.
 		/// </summary>
-		protected int MeasureTokenEndX( IGraphics g, string token, int virX, int rightLimitX,
-										out int drawableLength )
+		protected int MeasureTokenEndX( IGraphics g, string token, int virX, int rightLimitX, out int drawableLength )
 		{
+			StringBuilder subToken;
 			int x = virX;
 			int relDLen; // relatively calculated drawable length
 			int subTokenWidth;
@@ -871,7 +871,7 @@ namespace Sgry.Azuki
 			}
 
 			// for each char
-			var subToken = new StringBuilder( token.Length );
+			subToken = new StringBuilder( token.Length );
 			for( int i=0; i<token.Length; i++ )
 			{
 				if( token[i] == '\t' )
@@ -897,7 +897,7 @@ namespace Sgry.Azuki
 					drawableLength++;
 					x = subTokenWidth;
 				}
-				else if( TextUtil.IsEolChar(token, i) )
+				else if( LineLogic.IsEolChar(token, i) )
 				{
 					//--- detected an EOL char ---
 					// calculate drawn length of cached characters
@@ -967,9 +967,7 @@ namespace Sgry.Azuki
 		}
 
 		/// <returns>true if measured right poisition hit the limit.</returns>
-		static bool MeasureTokenEndX_TreatSubToken( IGraphics gra, int i, StringBuilder subToken,
-													int rightLimitX, ref int x,
-													ref int drawableLength )
+		static bool MeasureTokenEndX_TreatSubToken( IGraphics gra, int i, StringBuilder subToken, int rightLimitX, ref int x, ref int drawableLength )
 		{
 			int subTokenWidth;
 			int relDLen;
@@ -1043,26 +1041,23 @@ namespace Sgry.Azuki
 				}
 			}
 
-			// Caltulate ending position in the longest case
-			int limit = index + MaxPaintTokenLen;
-			while( TextUtil.IsUndividableIndex(doc.InternalBuffer, limit) )
-				limit++;
-
 			if( index < selBegin )
 			{
 				// Token being drawn exist before a selection
 				// so we must extract characters not in a selection range.
 				inSelection = false;
-				return Math.Min( Math.Min(selBegin, nextLineHead ),
-								 limit );
+				return Math.Min( Math.Min( selBegin,
+										   nextLineHead ),
+								 index + MaxPaintTokenLen );
 			}
 			else if( index < selEnd )
 			{
 				// Token being drawin exist in a selection
 				// so we must extract characters in a selection range.
 				inSelection = true;
-				return Math.Min( Math.Min(selEnd, nextLineHead),
-								 limit );
+				return Math.Min( Math.Min( selEnd,
+										   nextLineHead ),
+								 index + MaxPaintTokenLen );
 			}
 			else
 			{
@@ -1070,7 +1065,7 @@ namespace Sgry.Azuki
 				// characters selected so we don't need to care about selection
 				inSelection = false;
 				return Math.Min( nextLineHead,
-								 limit );
+								 index + MaxPaintTokenLen );
 			}
 		}
 
@@ -1113,9 +1108,7 @@ namespace Sgry.Azuki
 			firstKlass = doc.GetCharClass( index );
 			firstMarkingBitMask = doc.GetMarkingBitMaskAt( index );
 			out_klass = firstKlass;
-			if( Utl.IsSpecialChar(firstCh)
-				&& TextUtil.IsCombiningCharacter(doc.InternalBuffer, index+1) == false
-				&& TextUtil.IsVariationSelector(doc.InternalBuffer, index+1) == false )
+			if( Utl.IsSpecialChar(firstCh) )
 			{
 				// treat 1 special char as 1 token
 				if( firstCh == '\r'

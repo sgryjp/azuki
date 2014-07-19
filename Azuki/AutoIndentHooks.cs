@@ -57,7 +57,7 @@ namespace Sgry.Azuki
 			}
 
 			// if EOL code was detected, perform indentation
-			if( TextUtil.IsEolChar(ch) )
+			if( LineLogic.IsEolChar(ch) )
 			{
 				str.Append( doc.EolCode );
 
@@ -133,7 +133,7 @@ namespace Sgry.Azuki
 			}
 
 			// user hit Enter key?
-			if( TextUtil.IsEolChar(ch) )
+			if( LineLogic.IsEolChar(ch) )
 			{
 				int i;
 				bool extraPaddingNeeded = false;
@@ -209,7 +209,7 @@ namespace Sgry.Azuki
 				// ensure this line contains only white spaces
 				for( int i=lineHead; i<lineEnd; i++ )
 				{
-					if( TextUtil.IsEolChar(doc[i]) )
+					if( LineLogic.IsEolChar(doc[i]) )
 					{
 						break;
 					}
@@ -288,7 +288,7 @@ namespace Sgry.Azuki
 				return false;
 			}
 
-			if( TextUtil.IsEolChar(ch) )
+			if( LineLogic.IsEolChar(ch) )
 			{
 				Document doc = ui.Document;
 				View view = (View)ui.View;

@@ -1,5 +1,7 @@
 ﻿// file: SelectionManager.cs
 // brief: Internal class to manage text selection range.
+// author: YAMAMOTO Suguru
+// update: 2010-08-13
 //=========================================================
 using System;
 using System.Diagnostics;
@@ -107,31 +109,14 @@ namespace Sgry.Azuki
 			}
 		}
 
-		public void SetSelection( int anchor, int caret, IViewInternal view )
+		public void SetSelection( int anchor, int caret, IView view )
 		{
-			Debug.Assert( 0 <= anchor && anchor <= _Document.Length, "parameter 'anchor' out of"
-						  + " range (anchor:" + anchor + ", Document.Length:"
-						  + _Document.Length + ")" );
-			Debug.Assert( 0 <= caret && caret <= _Document.Length, "parameter 'caret' out of range"
-						  + " (anchor:" + anchor + ", Document.Length:" + _Document.Length + ")" );
+			Debug.Assert( 0 <= anchor && anchor <= _Document.Length, "parameter 'anchor' out of range (anchor:"+anchor+", Document.Length:"+_Document.Length+")" );
+			Debug.Assert( 0 <= caret && caret <= _Document.Length, "parameter 'caret' out of range (anchor:"+anchor+", Document.Length:"+_Document.Length+")" );
 			Debug.Assert( _SelectionMode == TextDataType.Normal || view != null );
 
 			// ensure that document can be divided at given index
-			if( anchor < caret )
-			{
-				while( _Document.IsNotDividableIndex(anchor) )	anchor--;
-				while( _Document.IsNotDividableIndex(caret) )	caret++;
-			}
-			else if( caret < anchor )
-			{
-				while( _Document.IsNotDividableIndex(caret) )	caret--;
-				while( _Document.IsNotDividableIndex(anchor) )	anchor++;
-			}
-			else// if( anchor == caret )
-			{
-				while( _Document.IsNotDividableIndex(caret) )	caret--;
-				anchor = caret;
-			}
+			Document.Utl.ConstrainIndex( _Document, ref anchor, ref caret );
 
 			// set selection
 			if( SelectionMode == TextDataType.Rectangle )
@@ -193,7 +178,7 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Internal Logic
-		void SetSelection_Rect( int anchor, int caret, IViewInternal view )
+		void SetSelection_Rect( int anchor, int caret, IView view )
 		{
 			// calculate graphical position of both anchor and new caret
 			Point anchorPos = view.GetVirPosFromIndex( anchor );
@@ -208,7 +193,7 @@ namespace Sgry.Azuki
 			SetSelection_Normal( anchor, caret );
 		}
 
-		void SetSelection_Line( int anchor, int caret, IViewInternal view )
+		void SetSelection_Line( int anchor, int caret, IView view )
 		{
 			int toLineIndex;
 
@@ -237,7 +222,7 @@ namespace Sgry.Azuki
 				//-- selecting to the line (or after) where selection started --
 				// select between head of the starting line and the end of the destination line
 				anchor = view.GetLineHeadIndexFromCharIndex( _LineSelectionAnchor1 );
-				if( view.IsLineHeadIndex(caret) == false )
+				if( Document.Utl.IsLineHead(_Document, view, caret) == false )
 				{
 					toLineIndex = view.GetLineIndexFromCharIndex( caret );
 					if( toLineIndex+1 < view.LineCount )

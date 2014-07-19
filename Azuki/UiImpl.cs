@@ -36,6 +36,8 @@ namespace Sgry.Azuki
 		bool _UsesTabForIndent = true;
 		bool _ConvertsFullWidthSpaceToSpace = false;
 		bool _UnindentsWithBackspace = false;
+		bool _UsesStickyCaret = false;
+		bool _IsSingleLineMode = false;
 
 		// X coordinate of this also be used as a flag to determine
 		// whether the mouse button is down or not.
@@ -123,13 +125,14 @@ namespace Sgry.Azuki
 			get
 			{
 				TextDataType dataType;
+				string text;
 
 				// always false in read-only mode
 				if( Document.IsReadOnly )
 					return false;
 
 				// get text from clipboard
-				var text = Plat.Inst.GetClipboardText( out dataType );
+				text = Plat.Inst.GetClipboardText( out dataType );
 
 				// there is no text available, paste cannot be done
 				return (text != null);
@@ -286,7 +289,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public bool UsesStickyCaret
 		{
-			get; set;
+			get{ return _UsesStickyCaret; }
+			set{ _UsesStickyCaret = value; }
 		}
 
 		/// <summary>
@@ -294,7 +298,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public bool IsSingleLineMode
 		{
-			get; set;
+			get{ return _IsSingleLineMode; }
+			set{ _IsSingleLineMode = value; }
 		}
 
 		/// <summary>
@@ -409,19 +414,19 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Handles text input event.
 		/// </summary>
-		/// <exception cref="InvalidOperationException">
-		///   This object is already disposed.
-		/// </exception>
-		/// <exception cref="ArgumentNullException">Parameter 'text' is null.</exception>
+		/// <exception cref="System.InvalidOperationException">This object is already disposed.</exception>
+		/// <exception cref="System.ArgumentNullException">Parameter 'text' is null.</exception>
 		internal void HandleTextInput( string text )
 		{
 			if( _IsDisposed )
-				throw new InvalidOperationException( "This object is already disposed." );
+				throw new InvalidOperationException( "This "+this.GetType().Name+" object is already disposed." );
 			if( text == null )
 				throw new ArgumentNullException( "text" );
 
-			var doc = Document;
-			var input = new StringBuilder( Math.Max(64, text.Length) );
+			int newCaretIndex;
+			Document doc = Document;
+			int selBegin, selEnd;
+			StringBuilder input = new StringBuilder( Math.Max(64, text.Length) );
 			IGraphics g = null;
 
 			// if in read only mode, just notify and return 
@@ -439,9 +444,6 @@ namespace Sgry.Azuki
 
 			try
 			{
-				int newCaretIndex;
-				int selBegin, selEnd;
-
 				g = _UI.GetIGraphics();
 
 				// begin grouping UNDO action
@@ -465,7 +467,7 @@ namespace Sgry.Azuki
 					}
 
 					// execute built-in hook logic
-					if( TextUtil.IsEolChar(ch) )
+					if( LineLogic.IsEolChar(ch) )
 					{
 						// if an EOL code was found, stop consuming and discard
 						// following inputs
@@ -510,7 +512,7 @@ namespace Sgry.Azuki
 				// calc replacement target range
 				if( IsOverwriteMode
 					&& selBegin == selEnd && selEnd+1 < doc.Length
-					&& TextUtil.IsEolChar(doc[selBegin]) != true )
+					&& LineLogic.IsEolChar(doc[selBegin]) != true )
 				{
 					selEnd++;
 				}
@@ -639,15 +641,17 @@ namespace Sgry.Azuki
 		{
 			Debug.Assert( _IsDisposed == false );
 
+			int count;
+
 			if( Document.RectSelectRanges != null )
 			{
 				// Get number of characters in each line of the rectangle
-				int count = 0;
+				count = 0;
 				for( int i=0; i<Document.RectSelectRanges.Length; i+=2 )
 				{
 					// get this row content
 					count += Document.RectSelectRanges[i+1]
-							 - Document.RectSelectRanges[i];
+						- Document.RectSelectRanges[i];
 				}
 
 				return count;
@@ -699,14 +703,16 @@ namespace Sgry.Azuki
 
 			if( Document.RectSelectRanges != null )
 			{
-				var text = new StringBuilder();
+				StringBuilder text = new StringBuilder();
 
 				// get text in the rect
 				for( int i=0; i<Document.RectSelectRanges.Length; i+=2 )
 				{
 					// get this row content
-					var row = Document.GetTextInRange( Document.RectSelectRanges[i],
-													   Document.RectSelectRanges[i+1] );
+					string row = Document.GetTextInRange(
+							Document.RectSelectRanges[i],
+							Document.RectSelectRanges[i+1]
+						);
 					text.Append( row + separator );
 				}
 
@@ -728,7 +734,7 @@ namespace Sgry.Azuki
 				return;
 
 			// draw view graphic
-			using( var g = _UI.GetIGraphics() )
+			using( IGraphics g = _UI.GetIGraphics() )
 			{
 				_View.Paint( g, clipRect );
 			}
@@ -876,11 +882,16 @@ namespace Sgry.Azuki
 
 				if( e.ButtonIndex == 0 ) // left click
 				{
+					int clickedIndex;
+					bool onSelectedText;
+
 					// calculate index of clicked character
-					var clickedIndex = View.GetIndexFromVirPos( g, pos );
+					clickedIndex = View.GetIndexFromVirPos( g, pos );
 
 					// determine whether the character is selected or not
-					var onSelectedText = Document.SelectionManager.IsInSelection( clickedIndex );
+					onSelectedText = Document.SelectionManager.IsInSelection(
+							clickedIndex
+						);
 
 					// set selection
 					if( onLineNumberArea )
@@ -910,8 +921,10 @@ namespace Sgry.Azuki
 					{
 						//--- expanding selection ---
 						_UI.SelectionMode = (e.Control) ? TextDataType.Words : TextDataType.Normal;
-						Document.SetSelection( Document.SelectionManager.OriginalAnchorIndex,
-											   clickedIndex, View );
+						Document.SetSelection(
+								Document.SelectionManager.OriginalAnchorIndex,
+								clickedIndex, View
+							);
 					}
 					else if( e.Alt )
 					{
@@ -926,15 +939,13 @@ namespace Sgry.Azuki
 						Document.SetSelection( clickedIndex, clickedIndex, View );
 					}
 					else if( onSelectedText
-						&& Document.RectSelectRanges == null )	// currently dragging rectangle
-																// selection is out of support
+						&& Document.RectSelectRanges == null ) // currently dragging rectangle selection is out of support
 					{
 						//--- starting timer to wait small delay of drag-editing ---
 						Debug.Assert( _MouseDragEditDelayTimer == null );
-						_MouseDragEditDelayTimer = new Timer( _MouseDragEditDelayTimer_Tick,
-															  null,
-															  500,
-															  Timeout.Infinite );
+						_MouseDragEditDelayTimer = new Timer(
+								_MouseDragEditDelayTimer_Tick, null, 500, Timeout.Infinite
+							);
 					}
 					else
 					{
@@ -960,10 +971,11 @@ namespace Sgry.Azuki
 			// select a word there if it is in the text area
 			if( _View.TextAreaRectangle.Contains(_MouseDownVirPos) )
 			{
+				int clickedIndex;
 				Point pos = e.Location;
 
 				View.ScreenToVirtual( ref pos );
-				var clickedIndex = View.GetIndexFromVirPos( pos );
+				clickedIndex = View.GetIndexFromVirPos( pos );
 				_UI.SelectionMode = TextDataType.Words;
 				Document.SetSelection( clickedIndex, clickedIndex, View );
 			}
@@ -1000,18 +1012,20 @@ namespace Sgry.Azuki
 			_MouseDragging = true;
 
 			// do drag action
-			using( var g = _UI.GetIGraphics() )
+			using( IGraphics g = _UI.GetIGraphics() )
 			{
 				lock( this )
 				{
 					if( _MouseDragEditing )
 					{
 						//--- dragging selected text ---
-						var rect = new Rectangle();
+						int index;
+						Rectangle rect = new Rectangle();
+						Point alignedPos;
 
 						// calculate position of the char below the mouse cursor
-						var index = View.GetIndexFromVirPos( pos );
-						var alignedPos = View.GetVirPosFromIndex( index );
+						index = View.GetIndexFromVirPos( pos );
+						alignedPos = View.GetVirPosFromIndex( index );
 						View.VirtualToScreen( ref alignedPos );
 
 						// display caret graphic at where
@@ -1094,7 +1108,7 @@ namespace Sgry.Azuki
 			View.ScrollToCaret( g, 0 );
 		}
 
-		void ClearDragState( Point? cursorScreenPos )
+		void ClearDragState( Nullable<Point> cursorScreenPos )
 		{
 			_MouseDownVirPos.X = Int32.MinValue;
 			_MouseDragging = false;
@@ -1112,8 +1126,9 @@ namespace Sgry.Azuki
 			ResetCursorGraphic( cursorScreenPos );
 		}
 
-		public void ResetCursorGraphic( Point? cursorScreenPos )
+		public void ResetCursorGraphic( Nullable<Point> cursorScreenPos )
 		{
+#			if !PocketPC
 			// check state
 			bool onLineNumberArea = false;
 			bool onHRulerArea = false;
@@ -1142,7 +1157,7 @@ namespace Sgry.Azuki
 					{
 						foreach( int id in Document.GetMarkingsAt(index) )
 						{
-							var info = Marking.GetMarkingInfo( id );
+							MarkingInfo info = Marking.GetMarkingInfo( id );
 							if( info.MouseCursor != MouseCursor.IBeam )
 							{
 								cursorType = info.MouseCursor;
@@ -1181,6 +1196,7 @@ namespace Sgry.Azuki
 			{
 				_UI.SetCursorGraphic( MouseCursor.IBeam );
 			}
+#			endif
 		}
 
 		void _MouseDragEditDelayTimer_Tick( object param )
@@ -1314,8 +1330,7 @@ namespace Sgry.Azuki
 		{
 			Debug.Assert( 0 <= bracketIndex );
 			Debug.Assert( bracketIndex <= _Document.Length );
-			var doc = Document;
-			var param = doc.ViewParam;
+			ViewParam param = _Document.ViewParam;
 			int offset = afterCaret ? 0 : 2;
 
 			// Reset matched bracket positions
@@ -1330,22 +1345,22 @@ namespace Sgry.Azuki
 
 			// Find matched brackets
 			int newIbbc = bracketIndex;
-			int newImbbc = doc.FindMatchedBracket( newIbbc, MaxMatchedBracketSearchLength );
+			int newImbbc = _Document.FindMatchedBracket( newIbbc, MaxMatchedBracketSearchLength );
 
 			// Update matched bracket positions and graphics
 			if( (0 <= newImbbc) != (0 <= oldImbbc) // ON --> OFF, OFF --> ON
 				|| (0 <= newIbbc && 0 <= newImbbc) ) // ON --> ON
 			{
 				// Erase old matched bracket highlight
-				if( 0 <= oldIbbc && oldIbbc+1 <= doc.Length )
+				if( 0 <= oldIbbc && oldIbbc+1 <= Document.Length )
 					View.Invalidate( oldIbbc, oldIbbc+1 );
-				if( 0 <= oldImbbc && oldImbbc+1 <= doc.Length )
+				if( 0 <= oldImbbc && oldImbbc+1 <= Document.Length )
 					View.Invalidate( oldImbbc, oldImbbc+1 );
 
 				// Reraw new matched bracket highlight
-				if( 0 <= newIbbc && newIbbc+1 <= doc.Length )
+				if( 0 <= newIbbc && newIbbc+1 <= Document.Length )
 					View.Invalidate( newIbbc, newIbbc+1 );
-				if( 0 <= newImbbc && newImbbc+1 <= doc.Length )
+				if( 0 <= newImbbc && newImbbc+1 <= Document.Length )
 					View.Invalidate( newImbbc, newImbbc+1 );
 
 				// Update matched bracket positions
@@ -1394,11 +1409,12 @@ namespace Sgry.Azuki
 		internal static string GetTabEquivalentSpaces( IUserInterface ui,
 													   int index )
 		{
-			var view = (View)ui.View;
-			var spaces = new StringBuilder( 32 );
+			Document doc = ui.Document;
+			View view = (View)ui.View;
+			StringBuilder spaces = new StringBuilder( 32 );
 
 			// Calculate next tab stop
-			var insertPos = view.GetVirPosFromIndex( index );
+			Point insertPos = view.GetVirPosFromIndex( index );
 			int nextTabStop = view.NextTabStopX( insertPos.X );
 
 			// make padding spaces
@@ -1419,22 +1435,26 @@ namespace Sgry.Azuki
 													  Point targetVirPos,
 													  bool alignTabStop )
 		{
+			StringBuilder paddingChars;
+			int targetIndex;
+			Point lineLastCharPos;
+			int rightMostTabStopX;
 			int neededTabCount = 0;
 			int neededSpaceCount;
-			var view = ui.View;
+			IView view = ui.View;
 
 			// calculate the position of the nearest character in line
 			// (this will be at end of the line)
-			var targetIndex = view.GetIndexFromVirPos( targetVirPos );
-			var lineLastCharPos = view.GetVirPosFromIndex( targetIndex );
+			targetIndex = view.GetIndexFromVirPos( targetVirPos );
+			lineLastCharPos = view.GetVirPosFromIndex( targetIndex );
 			if( targetVirPos.X <= lineLastCharPos.X + view.SpaceWidthInPx )
 			{
 				return ""; // no padding is needed
 			}
 
 			// calculate right most tab stop at left of the target position
-			var rightMostTabStopX = targetVirPos.X
-									- (targetVirPos.X % view.TabWidthInPx);
+			rightMostTabStopX = targetVirPos.X
+								- (targetVirPos.X % view.TabWidthInPx);
 			if( alignTabStop )
 			{
 				// to align position to tab stop,
@@ -1464,7 +1484,7 @@ namespace Sgry.Azuki
 			}
 
 			// pad tabs
-			var paddingChars = new StringBuilder();
+			paddingChars = new StringBuilder();
 			for( int i=0; i<neededTabCount; i++ )
 			{
 				paddingChars.Append( '\t' );

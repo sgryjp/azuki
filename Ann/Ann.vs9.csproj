@@ -11,7 +11,6 @@
     <ApplicationIcon>Resources\Ann.ico</ApplicationIcon>
     <StartupObject>
     </StartupObject>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -48,9 +47,6 @@
       <Private>False</Private>
     </ProjectReference>
     <Reference Include="System" />
-    <Reference Include="System.Core">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
@@ -59,6 +55,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Mru.cs" />
+    <Compile Include="MyMutex.cs" />
     <Compile Include="PseudoPipe.cs" />
     <Compile Include="Resource.Designer.cs">
       <AutoGen>True</AutoGen>

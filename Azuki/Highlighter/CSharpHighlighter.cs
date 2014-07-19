@@ -1,4 +1,9 @@
-﻿using System;
+﻿// file: CSharpHighlighter.cs
+// brief: C# highlighter.
+//=========================================================
+using System;
+using System.Text.RegularExpressions;
+using Color = System.Drawing.Color;
 
 namespace Sgry.Azuki.Highlighter
 {

@@ -130,7 +130,7 @@ namespace Sgry.Azuki
 		{
 			int line, column;
 
-			TextUtil.GetLineColumnIndexFromCharIndex(
+			LineLogic.GetLineColumnIndexFromCharIndex(
 					Document.InternalBuffer,
 					PLHI,
 					index,
@@ -163,15 +163,12 @@ namespace Sgry.Azuki
 			if( 0 < columnIndex )
 			{
 				// get partial content of the line which exists before the caret
-				var lineBegin = TextUtil.GetLineRange( Document.InternalBuffer,
-													   PLHI,
-													   lineIndex,
-													   true ).Begin;
+				int lineBegin, lineEnd;
+				LineLogic.GetLineRangeWithEol( Document.InternalBuffer, PLHI, lineIndex, out lineBegin, out lineEnd );
+				string leftPart = Document.GetTextInRange( lineBegin, lineBegin+columnIndex );
 
 				// measure the characters
-				pos.X = MeasureTokenEndX( g,
-										  new TextSegment(lineBegin, lineBegin + columnIndex),
-										  pos.X );
+				pos.X = MeasureTokenEndX( g, leftPart, pos.X );
 			}
 
 			return pos;
@@ -204,14 +201,15 @@ namespace Sgry.Azuki
 			columnIndex = 0;
 			if( 0 < pt.X )
 			{
+				int begin, end;
 				string line;
 				bool isWrapLine = false;
-
+				
 				// get content of the line
-				var range = TextUtil.GetLineRange( Document.InternalBuffer, PLHI, lineIndex, false );
-				line = Document.GetTextInRange( range.Begin, range.End );
-				if( range.End+1 < Document.Length
-					&& !TextUtil.IsEolChar(Document[range.End]) )
+				LineLogic.GetLineRange( Document.InternalBuffer, PLHI, lineIndex, out begin, out end );
+				line = Document.GetTextInRange( begin, end );
+				if( end+1 < Document.Length
+					&& !LineLogic.IsEolChar(Document[end]) )
 				{
 					isWrapLine = true;
 				}
@@ -223,15 +221,10 @@ namespace Sgry.Azuki
 
 				// if the location is nearer to the NEXT of that char,
 				// we should return the index of next one.
-				if( drawableTextLen < range.Length )
+				if( drawableTextLen < line.Length )
 				{
-					var nextChar = new TextSegment() {
-						Begin = range.Begin + drawableTextLen,
-						End = TextUtil.NextGraphemeClusterIndex(Document.InternalBuffer,
-																range.Begin + drawableTextLen)
-					};
-					int nextCharWidth = MeasureTokenEndX( g, nextChar, leftPartWidth )
-										- leftPartWidth;
+					string nextChar = line[drawableTextLen].ToString();
+					int nextCharWidth = MeasureTokenEndX( g, nextChar, leftPartWidth ) - leftPartWidth;
 					if( leftPartWidth + nextCharWidth/2 < pt.X ) // == "x of middle of next char" < "x of click in virtual text area"
 					{
 						columnIndex = drawableTextLen + 1;
@@ -245,7 +238,7 @@ namespace Sgry.Azuki
 				}
 			}
 
-			return TextUtil.GetCharIndexFromLineColumnIndex( Document.InternalBuffer, PLHI, lineIndex, columnIndex );
+			return LineLogic.GetCharIndexFromLineColumnIndex( Document.InternalBuffer, PLHI, lineIndex, columnIndex );
 		}
 
 		/// <summary>
@@ -270,7 +263,7 @@ namespace Sgry.Azuki
 			if( charIndex < 0 || Document.Length < charIndex )
 				throw new ArgumentOutOfRangeException( "charIndex", "Invalid index was given (charIndex:"+charIndex+", document.Length:"+Document.Length+")." );
 
-			return TextUtil.GetLineHeadIndexFromCharIndex(
+			return LineLogic.GetLineHeadIndexFromCharIndex(
 					Document.InternalBuffer, PLHI, charIndex
 				);
 		}
@@ -284,7 +277,7 @@ namespace Sgry.Azuki
 			if( charIndex < 0 || Document.Length < charIndex )
 				throw new ArgumentOutOfRangeException( "charIndex", "Invalid index was given (charIndex:"+charIndex+", document.Length:"+Document.Length+")." );
 
-			TextUtil.GetLineColumnIndexFromCharIndex(
+			LineLogic.GetLineColumnIndexFromCharIndex(
 					Document.InternalBuffer, PLHI, charIndex, out lineIndex, out columnIndex
 				);
 		}
@@ -300,7 +293,7 @@ namespace Sgry.Azuki
 			if( columnIndex < 0 )
 				throw new ArgumentOutOfRangeException( "columnIndex", "Invalid index was given (columnIndex:"+columnIndex+")." );
 
-			return TextUtil.GetCharIndexFromLineColumnIndex(
+			return LineLogic.GetCharIndexFromLineColumnIndex(
 					Document.InternalBuffer, PLHI, lineIndex, columnIndex
 				);
 		}
@@ -375,7 +368,7 @@ namespace Sgry.Azuki
 
 				// invalidate all lines below caret
 				// if old text or new text contains multiple lines
-				isMultiLine = TextUtil.IsMultiLine( e.NewText );
+				isMultiLine = LineLogic.IsMultiLine( e.NewText );
 				if( prevLineCount != PLHI.Count || isMultiLine )
 				{
 					//NO_NEED//invalidRect2.X = 0;
@@ -575,7 +568,7 @@ namespace Sgry.Azuki
 			int preTargetEndL;
 
 			// calculate where to recalculate PLHI from
-			int firstDirtyLineIndex = TextUtil.GetLineIndexFromCharIndex( PLHI, index );
+			int firstDirtyLineIndex = LineLogic.GetLineIndexFromCharIndex( PLHI, index );
 			if( 0 < firstDirtyLineIndex )
 			{
 				// we should always recalculate PLHI from previous line of the line replacement occured
@@ -589,7 +582,7 @@ namespace Sgry.Azuki
 			if( lastDirtyLogLineIndex+1 < doc.LineCount )
 			{
 				int delEnd = doc.GetLineHeadIndex( lastDirtyLogLineIndex + 1 ) - diff;
-				delEndL = TextUtil.GetLineIndexFromCharIndex( PLHI, delEnd );
+				delEndL = LineLogic.GetLineIndexFromCharIndex( PLHI, delEnd );
 			}
 			else
 			{
@@ -622,7 +615,7 @@ namespace Sgry.Azuki
 				shiftBeginL = Int32.MaxValue;
 			}
 			else if( replaceEnd < doc.Length
-				&& TextUtil.NextLineHead(doc.InternalBuffer, replaceEnd) == -1 )
+				&& LineLogic.NextLineHead(doc.InternalBuffer, replaceEnd) == -1 )
 			{
 				// there exists more characters but no lines.
 				shiftBeginL = Int32.MaxValue;
@@ -630,7 +623,7 @@ namespace Sgry.Azuki
 			else
 			{
 				// there are following lines.
-				shiftBeginL = TextUtil.GetLineIndexFromCharIndex( PLHI, reCalcEnd - diff );
+				shiftBeginL = LineLogic.GetLineIndexFromCharIndex( PLHI, reCalcEnd - diff );
 			}
 #			if PLHI_DEBUG
 			Console.Error.WriteLine("[1] shift:[{0}, {1})", shiftBeginL, PLHI.Count);
@@ -675,11 +668,11 @@ namespace Sgry.Azuki
 
 				// can this segment be written in this screen line?
 				if( drawableLen < str.Length
-					|| TextUtil.IsEolChar(str, drawableLen-1) )
+					|| LineLogic.IsEolChar(str, drawableLen-1) )
 				{
 					// hit right limit. end this screen line
 					end = begin + drawableLen;
-					if( TextUtil.IsEolChar(str, drawableLen-1) == false )
+					if( LineLogic.IsEolChar(str, drawableLen-1) == false )
 					{
 						// wrap word
 						int newEndIndex = doc.WordProc.HandleWordWrapping( doc, begin+drawableLen );
@@ -799,7 +792,7 @@ namespace Sgry.Azuki
 				int caretLine, caretPosY;
 
 				// calculate position of the underline
-				caretLine = TextUtil.GetLineIndexFromCharIndex( PLHI, Document.CaretIndex );
+				caretLine = LineLogic.GetLineIndexFromCharIndex( PLHI, Document.CaretIndex );
 				caretPosY = YofTextArea + (caretLine - FirstVisibleLine) * LineSpacing;
 				
 				// draw underline to current line
@@ -869,7 +862,7 @@ namespace Sgry.Azuki
 				// calc next drawing pos before drawing text
 				{
 					int virLeft = pos.X - (XofTextArea - ScrollPosX);
-					tokenEndPos.X = MeasureTokenEndX( g, new TextSegment(begin, end), virLeft );
+					tokenEndPos.X = MeasureTokenEndX( g, token, virLeft );
 					tokenEndPos.X += (XofTextArea - ScrollPosX);
 				}
 
@@ -907,6 +900,7 @@ namespace Sgry.Azuki
 				{
 					int visCharCount; // visible char count
 					int visPartRight;
+					string peekingChar;
 					int peekingCharRight = 0;
 
 					// calculate number of chars which fits within the clip-rect
@@ -916,10 +910,21 @@ namespace Sgry.Azuki
 					// we must write one more char so that the peeking char appears at the boundary.)
 
 					// try to get graphically peeking (drawn over the border line) char
-					var peekingChar = new TextSegment( visCharCount, TextUtil.NextGraphemeClusterIndex(Document.InternalBuffer, visCharCount) );
+					peekingChar = String.Empty;
+					if( visCharCount+1 <= token.Length )
+					{
+						if( Document.IsNotDividableIndex(token, visCharCount+1) )
+						{
+							peekingChar = token.Substring( visCharCount, 2 );
+						}
+						else
+						{
+							peekingChar = token.Substring( visCharCount, 1 );
+						}
+					}
 
 					// calculate right end coordinate of the peeking char
-					if( peekingChar.IsEmpty == false )
+					if( peekingChar != String.Empty )
 					{
 						peekingCharRight = MeasureTokenEndX( g, peekingChar, visPartRight );
 					}
@@ -947,7 +952,7 @@ namespace Sgry.Azuki
 			{
 				DebugUtl.Assert( lineHead <= lineEnd );
 				if( lineHead == lineEnd
-					|| (0 < lineEnd && TextUtil.IsEolChar(Document[lineEnd-1]) == false) )
+					|| (0 < lineEnd && LineLogic.IsEolChar(Document[lineEnd-1]) == false) )
 				{
 					DrawEofMark( g, ref pos );
 				}
@@ -1018,14 +1023,14 @@ namespace Sgry.Azuki
 
 		static bool IsWrappedLineHead( Document doc, SplitArray<int> plhi, int index )
 		{
-			int lineHeadIndex = TextUtil.GetLineHeadIndexFromCharIndex( doc.InternalBuffer, plhi, index );
+			int lineHeadIndex = LineLogic.GetLineHeadIndexFromCharIndex( doc.InternalBuffer, plhi, index );
 			if( lineHeadIndex <= 0 )
 			{
 				return false;
 			}
 
 			char lastCharOfPrevLine = doc[lineHeadIndex-1];
-			return ( TextUtil.IsEolChar(lastCharOfPrevLine) == false );
+			return ( LineLogic.IsEolChar(lastCharOfPrevLine) == false );
 		}
 		#endregion
 	}

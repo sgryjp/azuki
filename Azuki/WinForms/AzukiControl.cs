@@ -2,10 +2,12 @@
 // brief: User interface for WinForms framework (both Desktop and CE).
 //=========================================================
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 using WinFormsTimer = System.Windows.Forms.Timer;
 
 namespace Sgry.Azuki.WinForms
@@ -60,13 +62,20 @@ namespace Sgry.Azuki.WinForms
 		int _WheelPos = 0;
 		BorderStyle _BorderStyle = BorderStyle.Fixed3D;
 		Point _LastMouseDownPos;
+#		if !PocketPC
 		bool _LastAltWasForRectSelect = false;
+#		else
+		bool _IsHandleCreated = false;
+		int _ImeCompositionCharCount = 0; // count of chars already input by IME which must be ignored
+#		endif
 		
 		GetIGraphicsProc _getIGraphicsProc = null;
 		InvalidateProc1 _invalidateProc1 = null;
 		InvalidateProc2 _invalidateProc2 = null;
 		WinFormsTimer _HighlighterDelayTimer;
+#		if !PocketPC
 		Action<MouseCursor> _SetCursorGraphicDelegate = null;
+#		endif
 		
 		IntPtr _OriginalWndProcObj = IntPtr.Zero;
 		WinApi.WNDPROC _CustomWndProcObj = null;
@@ -119,6 +128,10 @@ namespace Sgry.Azuki.WinForms
 		{
 			base.OnHandleCreated( e );
 
+#			if PocketPC
+			// remember that handle is associated
+			_IsHandleCreated = true;
+#			endif
 			_HighlighterDelayTimer = new WinFormsTimer();
 			_HighlighterDelayTimer.Tick += delegate {
 				_HighlighterDelayTimer.Enabled = false;
@@ -134,7 +147,9 @@ namespace Sgry.Azuki.WinForms
 			WinApi.SetScrollRange( Handle, false, 0, 1, 1 );
 			WinApi.SetScrollRange( Handle, true, 0, 1, 1 );
 			
+#			if !PocketPC
 			base.Cursor = Cursors.IBeam;
+#			endif
 			this.Font = base.Font;
 			this.BorderStyle = _BorderStyle;
 
@@ -155,6 +170,11 @@ namespace Sgry.Azuki.WinForms
 		{
 			base.OnHandleDestroyed( e );
 
+#			if PocketPC
+			// remember that no handle is associated now
+			_IsHandleCreated = false;
+#			endif
+
 			// destroy caret
 			WinApi.DestroyCaret();
 		}
@@ -164,8 +184,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets the document which is the current editing target.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public Document Document
 		{
 			get
@@ -207,8 +229,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets the associated view object.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public IView View
 		{
 			get
@@ -223,9 +247,11 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets type of the view which determines how to render text content.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(ViewType.Proportional)]
 		[Description("Specify how to draw text content. Wrapped proportional view shows text wrapped within the width specified as ViewWidth property. Proportional view do not wrap text but draws faster.")]
+#		endif
 		public ViewType ViewType
 		{
 			get{ return _Impl.ViewType; }
@@ -300,8 +326,13 @@ namespace Sgry.Azuki.WinForms
 			SetKeyBind( Keys.Insert, Actions.ToggleOverwriteMode );
 			SetKeyBind( Keys.F5, Actions.Refresh );
 
+#			if !PocketPC
 			SetKeyBind( Keys.Up|Keys.Control, Actions.ScrollUp );
 			SetKeyBind( Keys.Down|Keys.Control, Actions.ScrollDown );
+#			else
+			SetKeyBind( Keys.Up|Keys.Control, Actions.MovePageUp );
+			SetKeyBind( Keys.Down|Keys.Control, Actions.MovePageDown );
+#			endif
 		}
 
 		/// <summary>
@@ -352,9 +383,11 @@ namespace Sgry.Azuki.WinForms
 		/// Gets or sets top margin of the view in pixel.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">A negative number was set.</exception>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(1)]
 		[Description("Specify margin at top of the text area in pixel.")]
+#		endif
 		public int TopMargin
 		{
 			get{ return View.TopMargin; }
@@ -370,9 +403,11 @@ namespace Sgry.Azuki.WinForms
 		/// Gets or sets left margin of the view in pixel.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">A negative number was set.</exception>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(1)]
 		[Description("Specify margin at left of the text area in pixel.")]
+#		endif
 		public int LeftMargin
 		{
 			get{ return View.LeftMargin; }
@@ -388,9 +423,11 @@ namespace Sgry.Azuki.WinForms
 		/// Gets or sets type of the indicator on the horizontal ruler.
 		/// </summary>
 		/// <seealso cref="HRulerIndicatorType"/>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(HRulerIndicatorType.Segment)]
 		[Description("Specify type of the indicator on the horizontal ruler.")]
+#		endif
 		public HRulerIndicatorType HRulerIndicatorType
 		{
 			get{ return View.HRulerIndicatorType; }
@@ -426,8 +463,10 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		public void UpdateCaretGraphic( Rectangle caretRect )
 		{
+#			if !PocketPC
 			if( DesignMode )
 				return;
+#			endif
 
 			// do nothing if not focused
 			if( Focused == false )
@@ -462,15 +501,18 @@ namespace Sgry.Azuki.WinForms
 		/// </summary>
 		public void SetCursorGraphic( MouseCursor cursorType )
 		{
+#			if !PocketPC
 			if( _SetCursorGraphicDelegate == null )
 			{
 				_SetCursorGraphicDelegate = SetCursorGraphic_Impl;
 			}
 			Invoke( _SetCursorGraphicDelegate, new object[]{cursorType} );
+#			endif
 		}
 
 		void SetCursorGraphic_Impl( MouseCursor cursorType )
 		{
+#			if !PocketPC
 			switch( cursorType )
 			{
 				case MouseCursor.DragAndDrop:
@@ -486,6 +528,7 @@ namespace Sgry.Azuki.WinForms
 					this.Cursor = Cursors.Arrow;
 					break;
 			}
+#			endif
 		}
 
 		/// <summary>
@@ -510,7 +553,9 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets raw font information to be used for displaying text.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
+#		endif
 		public FontInfo FontInfo
 		{
 			get{ return View.FontInfo; }
@@ -532,8 +577,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets graphical style of border of this control.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(BorderStyle.Fixed3D)]
+#		endif
 		public BorderStyle BorderStyle
 		{
 			get{ return _BorderStyle; }
@@ -603,7 +650,9 @@ namespace Sgry.Azuki.WinForms
 		/// <seealso cref="Invalidate()"/>
 		/// <seealso cref="Sgry.Azuki.Document.ViewParam">Document.ViewParam</seealso>
 		/// <seealso cref="Sgry.Azuki.ViewParam.FirstVisibleLine">ViewParam.FirstVisibleLine</seealso>
+#		if !PocketPC
 		[Browsable(false)]
+#		endif
 		public int FirstVisibleLine
 		{
 			get{ return Document.ViewParam.FirstVisibleLine; }
@@ -613,8 +662,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Color set used for displaying text.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public ColorScheme ColorScheme
 		{
 			get{ return View.ColorScheme; }
@@ -624,7 +675,9 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets drawing options.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
+#		endif
 		public DrawingOption DrawingOption
 		{
 			get{ return View.DrawingOption; }
@@ -634,9 +687,11 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether to show line number or not.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(true)]
 		[Description("Set true to show line number area.")]
+#		endif
 		public bool ShowsLineNumber
 		{
 			get{ return View.ShowLineNumber; }
@@ -653,9 +708,11 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether to show horizontal ruler or not.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(false)]
 		[Description("Set true to show horizontal ruler.")]
+#		endif
 		public bool ShowsHRuler
 		{
 			get{ return View.ShowsHRuler; }
@@ -672,9 +729,11 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether to show horizontal scroll bar or not.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(true)]
 		[Description("Set true to show horizontal scroll bar.")]
+#		endif
 		public bool ShowsHScrollBar
 		{
 			get{ return _ShowsHScrollBar; }
@@ -699,9 +758,11 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Whether to show vertical scroll bar or not.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(true)]
 		[Description("Set true to show vertical scroll bar.")]
+#		endif
 		public bool ShowsVScrollBar
 		{
 			get{ return _ShowsVScrollBar; }
@@ -749,9 +810,11 @@ namespace Sgry.Azuki.WinForms
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.LineDirtyState">LineDirtyState enum</seealso>
 		/// <seealso cref="Sgry.Azuki.Document.GetLineDirtyState">Document.GetLineDirtyState method</seealso>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(true)]
 		[Description("Set true to show a thin bar at right end of the line number area which indicates the dirty state of each text line.")]
+#		endif
 		public bool ShowsDirtBar
 		{
 			get{ return View.ShowsDirtBar; }
@@ -761,8 +824,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether the current line would be drawn with underline or not.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(true)]
+#		endif
 		public bool HighlightsCurrentLine
 		{
 			get{ return View.HighlightsCurrentLine; }
@@ -772,8 +837,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether to highlight matched bracket or not.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(true)]
+#		endif
 		public bool HighlightsMatchedBracket
 		{
 			get{ return View.HighlightsMatchedBracket; }
@@ -783,8 +850,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether to show half-width space with special graphic or not.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(false)]
+#		endif
 		public bool DrawsSpace
 		{
 			get{ return View.DrawsSpace; }
@@ -794,8 +863,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether to show full-width space with special graphic or not.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(true)]
+#		endif
 		public bool DrawsFullWidthSpace
 		{
 			get{ return View.DrawsFullWidthSpace; }
@@ -805,8 +876,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether to show tab character with special graphic or not.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(true)]
+#		endif
 		public bool DrawsTab
 		{
 			get{ return View.DrawsTab; }
@@ -816,8 +889,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether to show EOF mark or not.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(false)]
+#		endif
 		public bool DrawsEofMark
 		{
 			get{ return View.DrawsEofMark; }
@@ -827,8 +902,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether to show EOL code with special graphic or not.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(true)]
+#		endif
 		public bool DrawsEolCode
 		{
 			get{ return View.DrawsEolCode; }
@@ -838,8 +915,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets tab width in count of space characters.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(8)]
+#		endif
 		public int TabWidth
 		{
 			get{ return View.TabWidth; }
@@ -849,8 +928,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether to scroll beyond the last line of the document or not.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(true)]
+#		endif
 		public bool ScrollsBeyondLastLine
 		{
 			get{ return View.ScrollsBeyondLastLine; }
@@ -860,7 +941,9 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets height of each lines in pixel.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
+#		endif
 		public int LineHeight
 		{
 			get{ return View.LineHeight; }
@@ -869,9 +952,11 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets size of padding between lines in pixel.
 		/// </summary>
+#		if !PocketPC
 		[Category("Appearance")]
 		[DefaultValue(1)]
 		[Description("Height of padding between lines.")]
+#		endif
 		public int LinePadding
 		{
 			get{ return View.LinePadding; }
@@ -881,7 +966,9 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets distance between lines in pixel.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
+#		endif
 		public int LineSpacing
 		{
 			get{ return View.LineSpacing; }
@@ -903,9 +990,11 @@ namespace Sgry.Azuki.WinForms
 		/// </para>
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.View">AzukiControl.View property</seealso>
+#		if !PocketPC
 		[Browsable(true)]
 		[Category("Appearance")]
 		[Description("Width of the text content area. In proportional view, highlight line will be drawn in this width and this will be automatically expanded to enough width to show the input text. In wrapped-proportional view, text will be wrapped in this width.")]
+#		endif
 		public int ViewWidth
 		{
 			get{ return _Impl.View.TextAreaWidth + _Impl.View.XofTextArea; }
@@ -951,9 +1040,11 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether this document is read-only or not.
 		/// </summary>
+#		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(false)]
 		[Description("If true, nothing can be input or deleted by keyboard and mouse.")]
+#		endif
 		public bool IsReadOnly
 		{
 			get{ return Document.IsReadOnly; }
@@ -968,9 +1059,11 @@ namespace Sgry.Azuki.WinForms
 		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.OverwriteModeChanged">
 		/// AzukiControl.OverwriteModeChanged event
 		/// </seealso>
+#		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(false)]
 		[Description("If true, input character will not be inserted but replaces the character at where the caret is on.")]
+#		endif
 		public bool IsOverwriteMode
 		{
 			get{ return _Impl.IsOverwriteMode; }
@@ -994,8 +1087,10 @@ namespace Sgry.Azuki.WinForms
 		///   </para>
 		/// </remarks>
 		/// <seealso cref="AutoIndentHooks"/>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public AutoIndentHook AutoIndentHook
 		{
 			get{ return _Impl.AutoIndentHook; }
@@ -1016,9 +1111,11 @@ namespace Sgry.Azuki.WinForms
 		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.UsesTabForIndent">
 		/// AzukiControl.UsesTabForIndent property
 		/// </seealso>
+#		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(false)]
 		[Description("If false, tab characters are used for indentation, instead of space characters.")]
+#		endif
 		public bool ConvertsTabToSpaces
 		{
 			get{ return !UsesTabForIndent; }
@@ -1065,9 +1162,11 @@ namespace Sgry.Azuki.WinForms
 		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.TabWidth">AzukiControl.TabWidth property</seealso>
 		/// <seealso cref="Sgry.Azuki.Actions.BlockIndent">Actions.BlockIndent action</seealso>
 		/// <seealso cref="Sgry.Azuki.Actions.BlockUnIndent">Actions.BlockUnIndent action</seealso>
+#		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(true)]
 		[Description("If true, tab characters are used for indentation, instead of space characters.")]
+#		endif
 		public bool UsesTabForIndent
 		{
 			get{ return _Impl.UsesTabForIndent; }
@@ -1077,9 +1176,11 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether to automatically convert an input full-width space to a space.
 		/// </summary>
+#		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(false)]
 		[Description("If true, an input full-width space will be automatically converted to a half-width space.")]
+#		endif
 		public bool ConvertsFullWidthSpaceToSpace
 		{
 			get{ return _Impl.ConvertsFullWidthSpaceToSpace; }
@@ -1094,9 +1195,11 @@ namespace Sgry.Azuki.WinForms
 		///   For detail, see <see cref="IUserInterface.UnindentsWithBackspace"/> method.
 		/// </remarks>
 		/// <seealso cref="IUserInterface.UnindentsWithBackspace"/>
+#		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(false)]
 		[Description("If true, pressing Backspace will perform unindentation if the caret is at the end of a line.")]
+#		endif
 		public bool UnindentsWithBackspace
 		{
 			get{ return _Impl.UnindentsWithBackspace; }
@@ -1115,9 +1218,11 @@ namespace Sgry.Azuki.WinForms
 		///   The default value is false.
 		///   </para>
 		/// </remarks>
+#		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(false)]
 		[Description("If this is true, the content will be limited to a single line.")]
+#		endif
 		public bool IsSingleLineMode
 		{
 			get{ return _Impl.IsSingleLineMode; }
@@ -1131,9 +1236,11 @@ namespace Sgry.Azuki.WinForms
 		/// <remarks>
 		/// The default value is true.
 		/// </remarks>
+#		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(true)]
 		[Description("If this is true, treats Enter key as an input and prevent pressing dialog default button.")]
+#		endif
 		public bool AcceptsReturn
 		{
 			get{ return _AcceptsReturn; }
@@ -1147,9 +1254,11 @@ namespace Sgry.Azuki.WinForms
 		/// <remarks>
 		/// The default value is true.
 		/// </remarks>
+#		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(true)]
 		[Description("If this is true, treats Tab key as an input and prevent moving focus to other control in a dialog.")]
+#		endif
 		public bool AcceptsTab
 		{
 			get{ return _AcceptsTab; }
@@ -1159,8 +1268,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets whether Azuki is in line selection mode or not.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public bool IsLineSelectMode
 		{
 			get{ return (SelectionMode == TextDataType.Line); }
@@ -1170,8 +1281,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether Azuki is in rectangle selection mode or not.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public bool IsRectSelectMode
 		{
 			get{ return (SelectionMode == TextDataType.Rectangle); }
@@ -1181,16 +1294,20 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets how to select text.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public TextDataType SelectionMode
 		{
 			get{ return Document.SelectionMode; }
 			set
 			{
 				Document.SelectionMode = value;
+#				if !PocketPC
 				Point cursorPos = PointToClient( Cursor.Position );
 				_Impl.ResetCursorGraphic( cursorPos );
+#				endif
 			}
 		}
 
@@ -1211,9 +1328,11 @@ namespace Sgry.Azuki.WinForms
 		///   restores the column position of it to the place where you start typing text.
 		///   </para>
 		/// </remarks>
+#		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(false)]
 		[Description("If this is true, carets tries to keep its desired column position unless user explicitly changes it.")]
+#		endif
 		public bool UsesStickyCaret
 		{
 			get{ return _Impl.UsesStickyCaret; }
@@ -1234,9 +1353,11 @@ namespace Sgry.Azuki.WinForms
 		///   <see cref="Marking">document of marking feature</see> for details.
 		///   </para>
 		/// </remarks>
+#		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(false)]
 		[Description("If this is true, URIs written in the document will automatically marked.")]
+#		endif
 		public bool MarksUri
 		{
 			get{ return _Impl.MarksUri; }
@@ -1278,8 +1399,10 @@ namespace Sgry.Azuki.WinForms
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.Undo">AzukiControl.Undo method</seealso>
 		/// <seealso cref="Sgry.Azuki.Document.CanUndo">Document.CanUndo property</seealso>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public bool CanUndo
 		{
 			get{ return Document.CanUndo; }
@@ -1305,8 +1428,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets or sets whether the edit actions will be recorded or not.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public bool IsRecordingHistory
 		{
 			get{ return Document.IsRecordingHistory; }
@@ -1324,8 +1449,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets whether an available REDO action exists or not.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public bool CanRedo
 		{
 			get{ return Document.CanRedo; }
@@ -1342,8 +1469,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets whether cut action can be executed or not.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public bool CanCut
 		{
 			get{ return _Impl.CanCut; }
@@ -1360,8 +1489,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets whether copy action can be executed or not.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public bool CanCopy
 		{
 			get{ return _Impl.CanCopy; }
@@ -1378,8 +1509,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets whether paste action can be executed or not.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public bool CanPaste
 		{
 			get{ return _Impl.CanPaste; }
@@ -1422,7 +1555,9 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets the index of where the caret is at (in char-index).
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
+#		endif
 		public int CaretIndex
 		{
 			get{ return Document.CaretIndex; }
@@ -1496,8 +1631,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets number of (UTF-16) characters in the currently active document.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public int TextLength
 		{
 			get{ return Document.Length; }
@@ -1592,8 +1729,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets number of lines currently inputted.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public int LineCount
 		{
 			get{ return Document.LineCount; }
@@ -1971,8 +2110,10 @@ namespace Sgry.Azuki.WinForms
 		///   </para>
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.Highlighter.Highlighters">Highlighter.Highlighters</seealso>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public IHighlighter Highlighter
 		{
 			get{ return _Impl.Highlighter; }
@@ -1993,8 +2134,10 @@ namespace Sgry.Azuki.WinForms
 		/// <summary>
 		/// Gets version of Azuki.dll.
 		/// </summary>
+#		if !PocketPC
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+#		endif
 		public Version Version
 		{
 			get
@@ -2032,6 +2175,7 @@ namespace Sgry.Azuki.WinForms
 			_Impl.HandleMouseDown( amea );
 
 			// do Windows specific special actions
+#			if !PocketPC
 			if( amea.Alt )
 			{
 				// set flag to prevent opening menu
@@ -2041,6 +2185,7 @@ namespace Sgry.Azuki.WinForms
 					_LastAltWasForRectSelect = true;
 				}
 			}
+#			endif
 		}
 
 		/// <summary>
@@ -2060,6 +2205,7 @@ namespace Sgry.Azuki.WinForms
 			_Impl.HandleMouseUp( amea );
 		}
 
+#		if !PocketPC
 		/// <summary>
 		/// Invokes MouseClick event with additional information through IMouseEventArgs.
 		/// </summary>
@@ -2074,7 +2220,9 @@ namespace Sgry.Azuki.WinForms
 			WinFormsMouseEventArgs amea = Utl.CreateWinFormsMouseEventArgs( View, e );
 			base.OnMouseClick( amea );
 		}
+#		endif
 
+#		if !PocketPC
 		/// <summary>
 		/// Invokes MouseDoubleClick event with additional information through IMouseEventArgs.
 		/// </summary>
@@ -2089,6 +2237,7 @@ namespace Sgry.Azuki.WinForms
 			WinFormsMouseEventArgs amea = Utl.CreateWinFormsMouseEventArgs( View, e );
 			base.OnMouseDoubleClick( amea );
 		}
+#		endif
 
 		/// <summary>
 		/// Invokes Click event with additional information through IMouseEventArgs.
@@ -2545,7 +2694,9 @@ namespace Sgry.Azuki.WinForms
 		/// .
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.ColorScheme">AzukiControl.ColorScheme</seealso>
+#		if !PocketPC
 		[DefaultValue(0xff000000)]
+#		endif
 		public override Color ForeColor
 		{
 			get
@@ -2574,7 +2725,9 @@ namespace Sgry.Azuki.WinForms
 		/// .
 		/// </remarks>
 		/// <seealso cref="Sgry.Azuki.WinForms.AzukiControl.ColorScheme">AzukiControl.ColorScheme</seealso>
+#		if !PocketPC
 		[DefaultValue(0xfffffaf0)]
+#		endif
 		public override Color BackColor
 		{
 			get
@@ -2600,15 +2753,18 @@ namespace Sgry.Azuki.WinForms
 		/// <remarks>
 		/// The default value is true.
 		/// </remarks>
+#		if !PocketPC
 		[Category("Behavior")]
 		[DefaultValue(true)]
 		[Description("Whether this control uses Ctrl+Tab and Ctrl+Shift+Tab for moving focus to other controls in a dialog.")]
+#		endif
 		public bool UseCtrlTabToMoveFocus
 		{
 			get{ return _UseCtrlTabToMoveFocus; }
 			set{ _UseCtrlTabToMoveFocus = value; }
 		}
 
+#		if !PocketPC
 		/// <summary>
 		/// This defines the characters which must be treated as input for this control.
 		/// This affects mnemonic key event in a dialog and does not affect to KeyPress (WM_CHAR) event.
@@ -2680,10 +2836,11 @@ namespace Sgry.Azuki.WinForms
 
 			return base.ProcessDialogKey( keyData );
 		}
+#		endif // PocketPC
 
 		bool MyIsInputChar( char charCode )
 		{
-			if( !_AcceptsReturn && TextUtil.IsEolChar(charCode) )
+			if( !_AcceptsReturn && LineLogic.IsEolChar(charCode) )
 				return false;
 			if( !_AcceptsTab && charCode == '\t' )
 				return false;
@@ -2701,6 +2858,19 @@ namespace Sgry.Azuki.WinForms
 
 			return false;
 		}
+
+#		if PocketPC
+		/// <summary>
+		/// Gets a value indicating whether the control has a handle associated with it.
+		/// </summary>
+		public bool IsHandleCreated
+		{
+			get
+			{
+				return this._IsHandleCreated;
+			}
+		}
+#		endif
 		#endregion
 
 		#region Custom Window Procedure (handling v/h scroll and paint event etc.)
@@ -2729,10 +2899,12 @@ namespace Sgry.Azuki.WinForms
 				// we will get invalid(?) update region from BeginPaint API in Windows XP or former.)
 				return IntPtr.Zero;
 			}
+#			if !PocketPC
 			else if( DesignMode )
 			{
 				; // do nothing
 			}
+#			endif
 			else if( message == WinApi.WM_VSCROLL )
 			{
 				HandleVScrollEvent( wParam.ToInt32() & 0xffff );
@@ -2755,7 +2927,11 @@ namespace Sgry.Azuki.WinForms
 				int scrollCount;
 
 				// get line count to scroll on each wheel event
+#				if !PocketPC
 				linesPerWheel = SystemInformation.MouseWheelScrollLines;
+#				else
+				linesPerWheel = 1;
+#				endif
 
 				// calculate wheel position
 				wheelDelta = (Int16)( wParam.ToInt64() << 32 >> 48 ); // [*]
@@ -2768,6 +2944,16 @@ namespace Sgry.Azuki.WinForms
 				{
 					HandleWheelEvent( -(linesPerWheel * scrollCount) );
 				}
+			}
+			else if( message == WinApi.WM_CHAR )
+			{
+#				if PocketPC
+				if( 0 < _ImeCompositionCharCount )
+				{
+					_ImeCompositionCharCount--;
+					return IntPtr.Zero;
+				}
+#				endif
 			}
 			else if( message == WinApi.WM_IME_CHAR )
 			{
@@ -2798,12 +2984,25 @@ namespace Sgry.Azuki.WinForms
 					}
 
 					_Impl.HandleTextInput( text );
+#					if PocketPC
+					_ImeCompositionCharCount = text.Length;
+#					endif
 				}
 			}
 			else if( message == WinApi.WM_IME_STARTCOMPOSITION )
 			{
+#				if PocketPC
+				_ImeCompositionCharCount = 0;
+#				endif
+
 				// move IMM window to caret position
 				WinApi.SetImeWindowFont( Handle, View.FontInfo );
+			}
+			else if( message == WinApi.WM_IME_ENDCOMPOSITION )
+			{
+#				if PocketPC
+				_ImeCompositionCharCount = 0;
+#				endif
 			}
 			else if( message == WinApi.WM_IME_REQUEST
 				&& wParam.ToInt64() == (long)WinApi.IMR_RECONVERTSTRING )
@@ -2816,6 +3015,28 @@ namespace Sgry.Azuki.WinForms
 
 				return new IntPtr( rc );
 			}
+#			if PocketPC
+			else if( message == WinApi.WM_KEYDOWN )
+			{
+				// Default behavior of .NET Control class for WM_KEYDOWN
+				// moves focus and there seems to be no way to prevent moving focus on WinCE env.
+				// Thus here I hook WM_KEYDOWN message and control focus
+				Keys keyCode = (Keys)wParam.ToInt32();
+				Keys keyData = keyCode | WinApi.GetCurrentModifierKeyStates();
+				if( keyData == (Keys.Tab)
+					&& AcceptsTab )
+				{
+					OnKeyDown( new KeyEventArgs(keyData) );
+					return IntPtr.Zero;
+				}
+				if( keyData == (Keys.Tab | Keys.Control)
+					&& UseCtrlTabToMoveFocus == false )
+				{
+					OnKeyDown( new KeyEventArgs(keyData) );
+					return IntPtr.Zero;
+				}
+			}
+#			endif
 
 			return WinApi.CallWindowProc( _OriginalWndProcObj, window, message, wParam, lParam );
 		}
@@ -2864,7 +3085,10 @@ namespace Sgry.Azuki.WinForms
 				view.ScreenToVirtual( ref pt );
 				int index = view.GetIndexFromVirPos( pt );
 
-				int clicks = e.Clicks;
+				int clicks = 1;
+#				if !PocketPC
+				clicks = e.Clicks;
+#				endif
 
 				bool shift = WinApi.IsKeyDown( Keys.ShiftKey );
 				bool ctrl = WinApi.IsKeyDown( Keys.ControlKey );
@@ -2897,15 +3121,16 @@ namespace Sgry.Azuki.WinForms
 				if( ch != '\t' )
 				{
 					// this is not a tab so return width of this char
-					return g.MeasureText( ch.ToString() ).Width;
+					return view.MeasureTokenEndX( g, ch.ToString(), 0 );
 				}
 				else
 				{
 					// this is a tab so calculate distance
 					// from current position to next tab-stop and return it
 					int lineHead = view.GetLineHeadIndexFromCharIndex( caretIndex );
-					int currentX = view.MeasureTokenEndX( g, new TextSegment(lineHead, caretIndex), 0 );
-					int nextTabStopX = view.NextTabStopX( currentX );
+					string leftPart = doc.GetTextInRange( lineHead, caretIndex );
+					int currentX = view.MeasureTokenEndX( g, leftPart, 0 );
+					int nextTabStopX = view.MeasureTokenEndX( g, leftPart+'\t', 0 );
 					return nextTabStopX - currentX;
 				}
 			}

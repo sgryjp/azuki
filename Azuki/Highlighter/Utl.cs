@@ -1,6 +1,10 @@
-﻿using System;
+﻿// file: Utl.cs
+// brief: common utility for built-in highlighters.
+//=========================================================
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 
 namespace Sgry.Azuki.Highlighter
 {
@@ -464,7 +468,7 @@ namespace Sgry.Azuki.Highlighter
 
 				// If an EOL char was found and it is single-line enclosure,
 				// stop here
-				if( pair.multiLine == false && TextUtil.IsEolChar(doc[i]) )
+				if( pair.multiLine == false && LineLogic.IsEolChar(doc[i]) )
 				{
 					return i-1;
 				}
