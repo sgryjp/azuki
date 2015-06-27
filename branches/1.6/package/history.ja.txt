@@ -1,5 +1,6 @@
 == 1.6.4 (2012-xx-xx) ==
  * fix: [Ann] 拡張子の無いファイルを開くと LaTeX と認識される問題を修正
+ * fix: KeywordHighlighter で閉じられていないコメントをハイライトすると例外が発生する問題を修正 (#35279, neparzeさんに感謝)
 
 == 1.6.3 (2012-10-11) ==
  * add: Azuki の編集内容を一行だけに制限する IsSingleLineMode プロパティを AzukiControl (IUserInterface) に追加

@@ -578,8 +578,9 @@ dirtyEnd = doc.Length;
 			}
 
 			// highlight enclosed part
-			Highlight( doc, startIndex, closePos + pair.closer.Length, pair.klass );
-			return closePos + pair.closer.Length;
+            int nextPos = Math.Min( closePos + pair.closer.Length, endIndex );
+			Highlight( doc, startIndex, nextPos, pair.klass );
+            return nextPos;
 		}
 
 		/// <summary>
