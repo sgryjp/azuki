@@ -1,4 +1,4 @@
-== 1.6.4 (2012-xx-xx) ==
+== 1.6.4 (2015-06-27) ==
  * fix: [Ann] Ann recognizes a file without an extension as a LaTeX file.
  * fix: Exception thrown on highlighting unclosed comment block by KeywordHighlighter. (#35279, Special thanks to neparze)
 
