@@ -9,15 +9,15 @@ namespace Sgry.Azuki
 	static class CaretMoveLogic
 	{
 		#region Public interface
-		public delegate int CalcMethod( IViewInternal view );
+		public delegate int CalcMethod( IView view );
 
 		/// <summary>
 		/// Moves caret to the index where the specified method calculates.
 		/// </summary>
 		public static void MoveCaret( CalcMethod calculator, IUserInterface ui )
 		{
-			var doc = ui.Document;
-			var view = ui.View as IViewInternal;
+			Document doc = ui.Document;
+			IView view = ui.View;
 
 			int nextIndex = calculator( view );
 			if( nextIndex == doc.CaretIndex )
@@ -40,8 +40,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void SelectTo( CalcMethod calculator, IUserInterface ui )
 		{
-			var doc = ui.Document;
-			var view = ui.View as IViewInternal;
+			Document doc = ui.Document;
+			IView view = ui.View;
 			int nextIndex;
 
 			// calculate where to expand selection
@@ -63,7 +63,7 @@ namespace Sgry.Azuki
 		/// Calculate index of the location
 		/// where the caret should move to after pressing "right" key.
 		/// </summary>
-		public static int Calc_Right( IViewInternal view )
+		public static int Calc_Right( IView view )
 		{
 			Document doc = view.Document;
 			if( doc.Length < doc.CaretIndex+1 )
@@ -85,7 +85,7 @@ namespace Sgry.Azuki
 		/// Calculate index of the location
 		/// where the caret should move to after pressing "left" key.
 		/// </summary>
-		public static int Calc_Left( IViewInternal view )
+		public static int Calc_Left( IView view )
 		{
 			Document doc = view.Document;
 			if( doc.CaretIndex-1 < 0 )
@@ -107,7 +107,7 @@ namespace Sgry.Azuki
 		/// Calculate index of the location
 		/// where the caret should move to after pressing "down" key.
 		/// </summary>
-		public static int Calc_Down( IViewInternal view )
+		public static int Calc_Down( IView view )
 		{
 			Point pt;
 			int newIndex;
@@ -131,7 +131,7 @@ namespace Sgry.Azuki
 			// should select the line and a line below.
 			// To select a line below, calculate index of the char at one more line below.
 			if( doc.SelectionMode == TextDataType.Line
-				&& view.IsLineHeadIndex(newIndex) )
+				&& Document.Utl.IsLineHead(doc, view, newIndex) )
 			{
 				Point pt2 = new Point( pt.X, pt.Y+view.LineSpacing );
 				int skippedNewIndex = view.GetIndexFromVirPos( pt2 );
@@ -148,7 +148,7 @@ namespace Sgry.Azuki
 		/// Calculate index of the location
 		/// where the caret should move to after pressing "up" key.
 		/// </summary>
-		public static int Calc_Up( IViewInternal view )
+		public static int Calc_Up( IView view )
 		{
 			Point pt;
 			int newIndex;
@@ -172,7 +172,7 @@ namespace Sgry.Azuki
 			// To select a line above, calculate index of the char at one more line above.
 			if( doc.SelectionMode == TextDataType.Line
 				&& newIndex == doc.AnchorIndex
-				&& view.IsLineHeadIndex(newIndex) )
+				&& Document.Utl.IsLineHead(doc, view, newIndex) )
 			{
 				pt.Y -= view.LineSpacing;
 				if( 0 <= pt.Y )
@@ -187,7 +187,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Calculate index of the next word.
 		/// </summary>
-		public static int Calc_NextWord( IViewInternal view )
+		public static int Calc_NextWord( IView view )
 		{
 			int index;
 			Document doc = view.Document;
@@ -220,7 +220,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Calculate index of the previous word.
 		/// </summary>
-		public static int Calc_PrevWord( IViewInternal view )
+		public static int Calc_PrevWord( IView view )
 		{
 			int index;
 			int startIndex;
@@ -275,7 +275,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Calculate index of the first char of the line where caret is at.
 		/// </summary>
-		public static int Calc_LineHead( IViewInternal view )
+		public static int Calc_LineHead( IView view )
 		{
 			return view.GetLineHeadIndexFromCharIndex(
 					view.Document.CaretIndex
@@ -285,7 +285,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Calculate index of the first non-whitespace char of the line where caret is at.
 		/// </summary>
-		public static int Calc_LineHeadSmart( IViewInternal view )
+		public static int Calc_LineHeadSmart( IView view )
 		{
 			int lineHeadIndex, firstNonSpaceIndex;
 			Document doc = view.Document;
@@ -305,7 +305,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Calculate index of the end location of the line where caret is at.
 		/// </summary>
-		public static int Calc_LineEnd( IViewInternal view )
+		public static int Calc_LineEnd( IView view )
 		{
 			Document doc = view.Document;
 			int line, column;
@@ -330,7 +330,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Calculate first index of the file.
 		/// </summary>
-		public static int Calc_FileHead( IViewInternal view )
+		public static int Calc_FileHead( IView view )
 		{
 			return 0;
 		}
@@ -338,7 +338,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Calculate end index of the file.
 		/// </summary>
-		public static int Calc_FileEnd( IViewInternal view )
+		public static int Calc_FileEnd( IView view )
 		{
 			return view.Document.Length;
 		}

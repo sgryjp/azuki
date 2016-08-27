@@ -5,7 +5,6 @@ using System.IO;
 using System.Reflection;
 using Encoding = System.Text.Encoding;
 using Sgry.Azuki;
-using Sgry.Ini;
 
 namespace Sgry.Ann
 {
@@ -38,7 +37,7 @@ namespace Sgry.Ann
 		public static HRulerIndicatorType HRulerIndicatorType = HRulerIndicatorType.Segment;
 		public static bool ScrollsBeyondLastLine = true;
 		public static MruFileList MruFiles = new MruFileList();
-		public static IniDocument Ini = new IniDocument();
+		public static Ini Ini = new Ini();
 
 		/// <summary>
 		/// Loads application config file.
@@ -49,8 +48,7 @@ namespace Sgry.Ann
 			
 			try
 			{
-				using( var file = new StreamReader(IniFilePath, Encoding.UTF8) )
-					Ini.Load( file );
+				Ini.Load( IniFilePath, Encoding.UTF8 );
 
 				int fontSize = Ini.GetInt( "Default", "FontSize", 1, Int32.MaxValue, FontInfo.Size );
 				string fontName = Ini.Get( "Default", "Font", FontInfo.Name );
@@ -128,11 +126,7 @@ namespace Sgry.Ann
 				Ini.Set( "Default", "Mru",						AppConfig.MruFiles.ToString() );
 				Ini.Set( "Default", "Antialias",				UserPref.Antialias );
 
-				using( var file = new StreamWriter(IniFilePath, false, Encoding.UTF8) )
-				{
-					file .NewLine = "\r\n";
-					Ini.Save( file );
-				}
+				Ini.Save( IniFilePath, Encoding.UTF8, "\r\n" );
 			}
 			catch
 			{}

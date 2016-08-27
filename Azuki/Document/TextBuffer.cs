@@ -1,5 +1,7 @@
 ﻿// file: TextBuffer.cs
 // brief: Specialized SplitArray for char with text search feature without copying content.
+// author: YAMAMOTO Suguru
+// update: 2011-09-23
 //=========================================================
 using System;
 using System.Collections.Generic;
@@ -15,8 +17,8 @@ namespace Sgry.Azuki
 	class TextBuffer : SplitArray<Char>
 	{
 		#region Fields
-		readonly RleArray<CharClass> _Classes;
-		readonly RleArray<uint> _MarkingBitMasks;
+		SplitArray<CharClass> _Classes;
+		RleArray<uint> _MarkingBitMasks;
 		#endregion
 
 		#region Init / Dispose
@@ -26,7 +28,7 @@ namespace Sgry.Azuki
 		public TextBuffer( int initGapSize, int growSize )
 			: base( initGapSize, growSize )
 		{
-			_Classes = new RleArray<CharClass>();
+			_Classes = new SplitArray<CharClass>( initGapSize, growSize );
 			_MarkingBitMasks = new RleArray<uint>();
 		}
 		#endregion
@@ -37,8 +39,10 @@ namespace Sgry.Azuki
 		/// </summary>
 		public void ClearCharClasses()
 		{
-			_Classes.Clear();
-			_Classes.Insert( 0, CharClass.Normal, Count );
+			for( int i=0; i<_Classes.Count; i++ )
+			{
+				_Classes[i] = CharClass.Normal;
+			}
 		}
 
 		/// <summary>
@@ -69,14 +73,14 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets or sets the size of the internal buffer.
 		/// </summary>
-		/// <exception cref="OutOfMemoryException"/>
+		/// <exception cref="System.OutOfMemoryException">There is no enough memory to expand buffer.</exception>
 		public override int Capacity
 		{
 			get{ return base.Capacity; }
 			set
 			{
 				base.Capacity = value;
-				//NO_NEED//_Classes.Xxx = value;
+				_Classes.Capacity = value;
 				//NO_NEED//_MarkingBitMasks.Xxx = value;
 			}
 		}
@@ -103,30 +107,25 @@ namespace Sgry.Azuki
 		public override void Insert( int insertIndex, char[] values, int valueBegin, int valueEnd )
 		{
 			base.Insert( insertIndex, values, valueBegin, valueEnd );
-			_Classes.Insert( insertIndex, CharClass.Normal, valueEnd - valueBegin );
+			_Classes.Insert( insertIndex, new CharClass[valueEnd - valueBegin] );
 			_MarkingBitMasks.Insert( insertIndex, 0, valueEnd - valueBegin );
 		}
 
 		/// <summary>
-		/// Overwrites elements from "replaceIndex" with specified range [valueBegin, valueEnd) of
-		/// values.
+		/// Overwrites elements from "replaceIndex" with specified range [valueBegin, valueEnd) of values.
 		/// </summary>
-		public override void Replace( int replaceIndex, char[] values,
-									  int valueBegin, int valueEnd )
+		public override void Replace( int replaceIndex, char[] values, int valueBegin, int valueEnd )
 		{
 			int replaceLen = valueEnd - valueBegin;
 
 			base.Replace( replaceIndex, values, valueBegin, valueEnd );
 
-			for( int i=0; i<replaceLen; i++ )
-				_Classes.RemoveAt( replaceIndex + i );
-			for( int i=0; i<replaceLen; i++ )
-				_Classes.Insert( replaceIndex + i, CharClass.Normal );
+			_Classes.Replace( replaceIndex, new CharClass[replaceLen], valueBegin, valueEnd );
 
 			for( int i=0; i<replaceLen; i++ )
 				_MarkingBitMasks.RemoveAt( replaceIndex + i );
 			for( int i=0; i<replaceLen; i++ )
-				_MarkingBitMasks.Insert( replaceIndex + i, 0 );
+				_MarkingBitMasks.Insert( replaceIndex + i, values[valueBegin+i] );
 		}
 
 		/// <summary>
@@ -135,13 +134,11 @@ namespace Sgry.Azuki
 		public override void RemoveRange( int begin, int end )
 		{
 			base.RemoveRange( begin, end );
-
+			_Classes.RemoveRange( begin, end );
 			for( int i=begin; i<end; i++ )
-				_Classes.RemoveAt( begin );
-
-			for( int i=begin; i<end; i++ )
+			{
 				_MarkingBitMasks.RemoveAt( begin );
-
+			}
 			Debug.Assert( this.Count == _Classes.Count );
 			Debug.Assert( this.Count == _MarkingBitMasks.Count );
 		}
@@ -166,7 +163,7 @@ namespace Sgry.Azuki
 		/// <param name="end">End index of the search range.</param>
 		/// <param name="matchCase">Whether the search should be case-sensitive or not.</param>
 		/// <returns>Search result object if found, otherwise null if not found.</returns>
-		public TextSegment FindNext( string value, int begin, int end, bool matchCase )
+		public SearchResult FindNext( string value, int begin, int end, bool matchCase )
 		{
 			// If the gap exists after the search starting position,
 			// it must be moved to before the starting position.
@@ -217,7 +214,7 @@ namespace Sgry.Azuki
 			}
 
 			// return found index
-			return new TextSegment( foundIndex, foundIndex + value.Length );
+			return new SearchResult( foundIndex, foundIndex + value.Length );
 		}
 
 		/// <summary>
@@ -228,7 +225,7 @@ namespace Sgry.Azuki
 		/// <param name="end">The end index of the search range.</param>
 		/// <param name="matchCase">Whether the search should be case-sensitive or not.</param>
 		/// <returns>Search result object if found, otherwise null if not found.</returns>
-		public TextSegment FindPrev( string value, int begin, int end, bool matchCase )
+		public SearchResult FindPrev( string value, int begin, int end, bool matchCase )
 		{
 			// If the gap exists before the search starting position,
 			// it must be moved to after the starting position.
@@ -243,7 +240,7 @@ namespace Sgry.Azuki
 			// if empty string is the value to search, just return search start index
 			if( value.Length == 0 )
 			{
-				return new TextSegment( end, end );
+				return new SearchResult( end, end );
 			}
 
 			// convert begin/end indexes to start/length indexes
@@ -282,7 +279,7 @@ namespace Sgry.Azuki
 			}
 
 			// return found index
-			return new TextSegment( foundIndex, foundIndex + value.Length );
+			return new SearchResult( foundIndex, foundIndex + value.Length );
 		}
 
 		/// <summary>
@@ -299,7 +296,7 @@ namespace Sgry.Azuki
 		/// specified with the <paramref name="end"/> parameter
 		/// and does not stop at line ends nor null-characters.
 		/// </remarks>
-		public TextSegment FindNext( Regex regex, int begin, int end )
+		public SearchResult FindNext( Regex regex, int begin, int end )
 		{
 			int start, length;
 			Match match;
@@ -334,12 +331,12 @@ namespace Sgry.Azuki
 
 			// return found index
 			if( start == begin )
-				return new TextSegment( match.Index, match.Index + match.Length );
+				return new SearchResult( match.Index, match.Index + match.Length );
 			else
-				return new TextSegment( match.Index - _GapLen, match.Index - _GapLen + match.Length );
+				return new SearchResult( match.Index - _GapLen, match.Index - _GapLen + match.Length );
 		}
 
-		public TextSegment FindPrev( Regex regex, int begin, int end )
+		public SearchResult FindPrev( Regex regex, int begin, int end )
 		{
 			int start, length;
 			Match match;
@@ -373,9 +370,9 @@ namespace Sgry.Azuki
 
 			// return found index
 			if( start == begin )
-				return new TextSegment( match.Index, match.Index + match.Length );
+				return new SearchResult( match.Index, match.Index + match.Length );
 			else
-				return new TextSegment( match.Index - _GapLen, match.Index - _GapLen + match.Length );
+				return new SearchResult( match.Index - _GapLen, match.Index - _GapLen + match.Length );
 		}
 		#endregion
 

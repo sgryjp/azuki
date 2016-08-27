@@ -57,7 +57,7 @@ namespace Sgry.Azuki
 			}
 
 			// if EOL code was detected, perform indentation
-			if( TextUtil.IsEolChar(ch) )
+			if( LineLogic.IsEolChar(ch) )
 			{
 				str.Append( doc.EolCode );
 
@@ -133,7 +133,7 @@ namespace Sgry.Azuki
 			}
 
 			// user hit Enter key?
-			if( TextUtil.IsEolChar(ch) )
+			if( LineLogic.IsEolChar(ch) )
 			{
 				int i;
 				bool extraPaddingNeeded = false;
@@ -209,7 +209,7 @@ namespace Sgry.Azuki
 				// ensure this line contains only white spaces
 				for( int i=lineHead; i<lineEnd; i++ )
 				{
-					if( TextUtil.IsEolChar(doc[i]) )
+					if( LineLogic.IsEolChar(doc[i]) )
 					{
 						break;
 					}
@@ -265,11 +265,11 @@ namespace Sgry.Azuki
 		///     When the caret is in a middle of a paired parentheses, additional spaces will be
 		///     inserted so that the caret's column position will be the same as the previous
 		///     opening parenthesis. For example, if there is a code like next:
-		///     <pre><code language="python">
+		///     <pre><code lang="Python">
 		///     fruits = ('apple', 'orange')
 		///     </code></pre>
 		///     and pressing Enter when the caret is at one character ahead of a comma will result:
-		///     <pre><code language="python">
+		///     <pre><code lang="Python">
 		///     fruits = ('apple',
 		///               'orange')
 		///     </code></pre>
@@ -288,7 +288,7 @@ namespace Sgry.Azuki
 				return false;
 			}
 
-			if( TextUtil.IsEolChar(ch) )
+			if( LineLogic.IsEolChar(ch) )
 			{
 				Document doc = ui.Document;
 				View view = (View)ui.View;

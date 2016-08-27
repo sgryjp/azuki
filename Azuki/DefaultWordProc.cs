@@ -245,7 +245,7 @@ namespace Sgry.Azuki
 			{
 				if( value == null )
 					throw new ArgumentNullException( "value" );
-				if( 0 <= new String(value).IndexOfAny(TextUtil.EolChars) )
+				if( 0 <= new String(value).IndexOfAny(LineLogic.EolChars) )
 					throw new ArgumentException( "DefaultWordProc.CharsToBeHanged must not contain"
 												 + " EOL codes.", "value" );
 

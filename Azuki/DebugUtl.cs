@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Assembly = System.Reflection.Assembly;
 
 namespace Sgry
@@ -27,7 +28,11 @@ namespace Sgry
 	static class DebugUtl
 	{
 		#region Fields and Constants
+#		if !PocketPC
 		public const string kernel32_dll = "kernel32";
+#		else
+		public const string kernel32_dll = "coredll";
+#		endif
 		static AutoLogger _AutoLogger = null;
 		#endregion
 
@@ -58,6 +63,7 @@ namespace Sgry
 			Thread.CurrentThread.Join( millisecs );
 		}
 
+#		if !PocketPC
 		public static string GetStackTrace()
 		{
 			const int TraceBackCount = 5;
@@ -88,6 +94,7 @@ namespace Sgry
 
 			return buf.ToString();
 		}
+#		endif
 
 		/// <summary>
 		/// Gets system performance counter value in millisecond.
@@ -96,9 +103,25 @@ namespace Sgry
 		{
 			get
 			{
+#				if PocketPC
+				long count;
+				long freq;
+				QueryPerformanceCounter( out count );
+				QueryPerformanceFrequency( out freq );
+				return count / (double)freq * 1000;
+#				else
 				return (double)Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency;
+#				endif
 			}
 		}
+
+#		if PocketPC
+		[DllImport(kernel32_dll)]
+		static extern Int32 QueryPerformanceCounter( out Int64 count );
+
+		[DllImport(kernel32_dll)]
+		static extern Int32 QueryPerformanceFrequency( out Int64 count );
+#		endif
 		#endregion
 
 		#region Testable Assertion
@@ -147,7 +170,11 @@ namespace Sgry
 		readonly static StringBuilder _IndentStr = new StringBuilder( 8 );
 		bool _HeaderNotWritten = true;
 		TextWriter _SecondOutput = Console.Out;
+#		if !PocketPC
 		public const string LogDateHeader = "[yyyy-MM-dd hh:mm:ss.fff] ";
+#		else
+		public const string LogDateHeader = "hh:mm:ss ";
+#		endif
 		#endregion
 
 		#region Init / Dispose
@@ -427,7 +454,7 @@ namespace Sgry
 	}
 
 	#region Minimal Testing Framework
-#	if DEBUG
+#	if DEBUG && !PocketPC
 	/// <summary>
 	/// Test utility.
 	/// </summary>

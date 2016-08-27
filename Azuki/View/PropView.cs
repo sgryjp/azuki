@@ -8,15 +8,11 @@ using System.Diagnostics;
 
 namespace Sgry.Azuki
 {
-	using TextLayouts;
-
 	/// <summary>
 	/// Platform independent view implementation to display text with proportional font.
 	/// </summary>
 	class PropView : View
 	{
-		readonly ITextLayout _Layout;
-
 		#region Init / Dispose
 		/// <summary>
 		/// Creates a new instance.
@@ -25,7 +21,6 @@ namespace Sgry.Azuki
 		internal PropView( IUserInterface ui )
 			: base( ui )
 		{
-			_Layout = new PropTextLayout( this );
 		}
 
 		/// <summary>
@@ -34,21 +29,39 @@ namespace Sgry.Azuki
 		internal PropView( View other )
 			: base( other )
 		{
-			_Layout = new PropTextLayout( this );
-
-			// Release selection (because changing view while keeping selection makes pretty
-			// difficult problem around invalidation)
+			// release selection
+			// (because changing view while keeping selection makes
+			// pretty difficult problem around invalidation,
+			// force to release selection here)
 			if( Document != null )
 			{
 				Document.SetSelection( Document.CaretIndex, Document.CaretIndex );
+
+				// scroll to caret manually.
+				// (because text graphic was not drawn yet,
+				// maximum line length is unknown
+				// so ScrollToCaret does not work properly)
+				using( IGraphics g = _UI.GetIGraphics() )
+				{
+					Point pos = GetVirPosFromIndex( g, Document.CaretIndex );
+					int newValue = pos.X - (VisibleTextAreaSize.Width / 2);
+					if( 0 < newValue )
+					{
+						ScrollPosX = newValue;
+						_UI.UpdateScrollBarRange();
+					}
+				}
 			}
 		}
 		#endregion
 
 		#region Properties
-		public override ITextLayout Layout
+		/// <summary>
+		/// Gets number of the screen lines.
+		/// </summary>
+		public override int LineCount
 		{
-			get{ return _Layout; }
+			get{ return base.Document.LineCount; }
 		}
 
 		/// <summary>
@@ -67,11 +80,156 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
+		#region Position / Index Conversion
+		/// <summary>
+		/// Calculates location in the virtual space of the character at specified index.
+		/// </summary>
+		/// <returns>The location of the character at specified index.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
+		public override Point GetVirPosFromIndex( IGraphics g, int index )
+		{
+			int line, column;
+			Document.GetLineColumnIndexFromCharIndex( index, out line, out column );
+			return GetVirPosFromIndex( g, line, column );
+		}
+
+		/// <summary>
+		/// Calculates location in the virtual space of the character at specified index.
+		/// </summary>
+		/// <returns>The location of the character at specified index.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
+		public override Point GetVirPosFromIndex( IGraphics g, int lineIndex, int columnIndex )
+		{
+			if( lineIndex < 0 || LineCount <= lineIndex )
+				throw new ArgumentOutOfRangeException( "lineIndex", "Specified index is out of range. (value:"+lineIndex+", line count:"+LineCount+")" );
+			if( columnIndex < 0 )
+				throw new ArgumentOutOfRangeException( "columnIndex", "Specified index is out of range. (value:"+columnIndex+")" );
+
+			Point pos = new Point();
+
+			// set value for when the columnIndex is 0
+			pos.X = 0;
+			pos.Y = (lineIndex * LineSpacing) + (LinePadding >> 1);
+
+			// if the location is not the head of the line, calculate x-coord.
+			if( 0 < columnIndex )
+			{
+				// get partial content of the line which exists before the caret
+				string leftPart = Document.GetTextInRange( lineIndex, 0, lineIndex, columnIndex );
+
+				// measure the characters
+				pos.X = MeasureTokenEndX( g, leftPart, pos.X );
+			}
+
+			return pos;
+		}
+
+		/// <summary>
+		/// Gets char-index of the char at the point specified by location in the virtual space.
+		/// </summary>
+		/// <returns>The index of the character at specified location.</returns>
+		public override int GetIndexFromVirPos( IGraphics g, Point pt )
+		{
+			int lineIndex, columnIndex;
+			int drawableTextLen;
+
+			// calc line index
+			lineIndex = (pt.Y / LineSpacing);
+			if( lineIndex < 0 )
+			{
+				lineIndex = 0;
+			}
+			else if( Document.LineCount <= lineIndex
+				&& Document.LineCount != 0 )
+			{
+				// the point indicates beyond the final line.
+				// treat as if the final line was specified
+				lineIndex = Document.LineCount - 1;
+			}
+
+			// calc column index
+			columnIndex = 0;
+			if( 0 < pt.X )
+			{
+				// get content of the line
+				string line = Document.GetLineContent( lineIndex );
+
+				// calc maximum length of chars in line
+				int rightLimitX = pt.X;
+				int leftPartWidth = MeasureTokenEndX( g, line, 0, rightLimitX, out drawableTextLen );
+				Debug.Assert( Document.IsNotDividableIndex(line, drawableTextLen) == false );
+				columnIndex = drawableTextLen;
+
+				// if the location is nearer to the NEXT of that char,
+				// we should return the index of next one.
+				if( drawableTextLen < line.Length )
+				{
+					// get next grapheme cluster
+					string nextChar = line[drawableTextLen].ToString();
+					int nextCharEnd = drawableTextLen + 1;
+					while( Document.IsNotDividableIndex(line, nextCharEnd) )
+					{
+						nextChar += line[ nextCharEnd ];
+						nextCharEnd++;
+					}
+
+					// determine which side the location is near
+					int nextCharWidth = MeasureTokenEndX( g, nextChar, leftPartWidth ) - leftPartWidth;
+					if( leftPartWidth + nextCharWidth/2 < pt.X ) // == "x of middle of next char" < "x of click in virtual text area"
+					{
+						columnIndex = drawableTextLen + 1;
+						while( Document.IsNotDividableIndex(line, columnIndex) )
+						{
+							columnIndex++;
+						}
+					}
+				}
+			}
+
+			return Document.GetCharIndexFromLineColumnIndex( lineIndex, columnIndex );
+		}
+
+		/// <summary>
+		/// Gets the index of the first char in the line.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public override int GetLineHeadIndex( int lineIndex )
+		{
+			return Document.GetLineHeadIndex( lineIndex );
+		}
+
+		/// <summary>
+		/// Gets the index of the first char in the screen line
+		/// which contains the specified char-index.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public override int GetLineHeadIndexFromCharIndex( int charIndex )
+		{
+			return Document.GetLineHeadIndexFromCharIndex( charIndex );
+		}
+
+		/// <summary>
+		/// Calculates screen line/column index from char-index.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public override void GetLineColumnIndexFromCharIndex( int charIndex, out int lineIndex, out int columnIndex )
+		{
+			Document.GetLineColumnIndexFromCharIndex( charIndex, out lineIndex, out columnIndex );
+		}
+
+		/// <summary>
+		/// Calculates char-index from screen line/column index.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was invalid.</exception>
+		public override int GetCharIndexFromLineColumnIndex( int lineIndex, int columnIndex )
+		{
+			return Document.GetCharIndexFromLineColumnIndex( lineIndex, columnIndex );
+		}
+		#endregion
+
 		#region Appearance Invalidating and Updating
 		internal override void HandleSelectionChanged( object sender, SelectionChangedEventArgs e )
 		{
-			Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, e.OldAnchor) );
-			Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, e.OldCaret) );
 			Document doc = Document;
 			int anchor = doc.AnchorIndex;
 			int caret = doc.CaretIndex;
@@ -230,14 +388,13 @@ namespace Sgry.Azuki
 			Invalidate( invalidRect );
 		}
 
-		void HandleSelectionChanged_OnExpandSelInLine( IGraphics g, SelectionChangedEventArgs e,
-													   int begin, int end, int beginL )
+		void HandleSelectionChanged_OnExpandSelInLine( IGraphics g, SelectionChangedEventArgs e, int begin, int end, int beginL )
 		{
 			DebugUtl.Assert( beginL < LineCount );
-			Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, begin) );
-			Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, end) );
-			var doc = Document;
-			var rect = new Rectangle();
+			Document doc = Document;
+			Rectangle rect = new Rectangle();
+			int beginLineHead;
+			string token = String.Empty;
 
 			// if anchor was moved, invalidate largest range made with four indexes
 			if( e.OldAnchor != doc.AnchorIndex )
@@ -249,14 +406,18 @@ namespace Sgry.Azuki
 				return;
 			}
 
-			// calculate location of invalid rectangle
-			var beginLineHead = GetLineHeadIndex( beginL );
+			// get chars at left of invalid rect
+			beginLineHead = GetLineHeadIndex( beginL );
 			if( beginLineHead < begin )
-				rect.X = MeasureTokenEndX( g, new TextSegment(beginLineHead, begin), 0 );
+			{
+				token = Document.GetTextInRangeRef( ref beginLineHead, ref begin );
+			}
+			
+			// calculate invalid rect
+			rect.X = MeasureTokenEndX( g, token, 0 );
 			rect.Y = YofLine( beginL );
-
-			// calculate width of invalid rectangle
-			rect.Width = MeasureTokenEndX( g, new TextSegment(beginLineHead, end), 0 ) - rect.X;
+			token = Document.GetTextInRangeRef( ref beginLineHead, ref end );
+			rect.Width = MeasureTokenEndX( g, token, 0 ) - rect.X;
 			rect.Height = LineSpacing;
 
 			// invalidate
@@ -332,13 +493,14 @@ namespace Sgry.Azuki
 			beginLineHead = GetLineHeadIndexFromCharIndex( begin );
 			endLineHead = GetLineHeadIndexFromCharIndex( end );
 
+			// if old selection was in one line?
 			if( prevCaretLine == prevAnchorLine )
 			{
 				Rectangle rect = new Rectangle();
-				int left = MeasureTokenEndX( g, new TextSegment(beginLineHead, begin), 0 )
-						   - (ScrollPosX - XofTextArea);
-				int right = MeasureTokenEndX( g, new TextSegment(endLineHead, end), 0 )
-							- (ScrollPosX - XofTextArea);
+				string textBeforeSel = doc.GetTextInRange( beginLineHead, begin );
+				string textSelected = doc.GetTextInRange( endLineHead, end );
+				int left = MeasureTokenEndX( g, textBeforeSel, 0 ) - (ScrollPosX - XofTextArea);
+				int right = MeasureTokenEndX( g, textSelected, 0 ) - (ScrollPosX - XofTextArea);
 				rect.X = left;
 				rect.Y = YofLine( beginL );
 				rect.Width = right - left;
@@ -397,7 +559,7 @@ namespace Sgry.Azuki
 
 				// invalidate all lines below caret
 				// if old text or new text contains multiple lines
-				if( TextUtil.IsMultiLine(e.OldText) || TextUtil.IsMultiLine(e.NewText) )
+				if( LineLogic.IsMultiLine(e.OldText) || LineLogic.IsMultiLine(e.NewText) )
 				{
 					//NO_NEED//invalidRect2.X = 0;
 					invalidRect2.Y = invalidRect1.Bottom;
@@ -450,11 +612,6 @@ namespace Sgry.Azuki
 			int beginLineHead, endLineHead;
 			int beginL, endL, dummy;
 
-			while( TextUtil.IsUndividableIndex(Document.InternalBuffer, beginIndex) )
-				beginIndex++;
-			while( TextUtil.IsUndividableIndex(Document.InternalBuffer, endIndex) )
-				endIndex++;
-
 			// get needed coordinates
 			GetLineColumnIndexFromCharIndex( beginIndex, out beginL, out dummy );
 			GetLineColumnIndexFromCharIndex( endIndex, out endL, out dummy );
@@ -481,20 +638,21 @@ namespace Sgry.Azuki
 			DebugUtl.Assert( 0 <= beginL, "cond: 0 <= beginL("+beginL+")" );
 			DebugUtl.Assert( beginL <= this.LineCount, "cond: beginL("+beginL+") <= IView.LineCount("+this.LineCount+")" );
 			DebugUtl.Assert( beginLineHead <= begin, "cond: beginLineHead("+beginLineHead+") <= begin("+begin+")" );
-			Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, begin) );
-			Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, end) );
-			Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, beginLineHead) );
 			if( begin == end )
 				return;
 
 			Rectangle rect = new Rectangle();
+			string textBeforeSelBegin;
+			string textSelected;
 
 			// calculate position of the invalid rect
-			rect.X = MeasureTokenEndX( g, new TextSegment(beginLineHead, begin), 0 );
+			textBeforeSelBegin = Document.GetTextInRangeRef( ref beginLineHead, ref begin );
+			rect.X = MeasureTokenEndX( g, textBeforeSelBegin, 0 );
 			rect.Y = YofLine( beginL );
 
 			// calculate width and height of the invalid rect
-			rect.Width = MeasureTokenEndX( g, new TextSegment(begin, end), rect.X ) - rect.X;
+			textSelected = Document.GetTextInRangeRef( ref begin, ref end );
+			rect.Width = MeasureTokenEndX( g, textSelected, rect.X ) - rect.X;
 			rect.Height = LineSpacing;
 			Debug.Assert( 0 <= rect.Width );
 
@@ -519,26 +677,27 @@ namespace Sgry.Azuki
 				return;
 
 			Rectangle upper, lower, middle;
-			var doc = Document;
+			Document doc = Document;
 
 			// calculate upper part of the invalid area
+			String firstLinePart = doc.GetTextInRange( beginLineHead, begin );
 			upper = new Rectangle();
 			if( FirstVisibleLine <= beginLine ) // if not visible, no need to invalidate
 			{
-				upper.X = MeasureTokenEndX( g, new TextSegment(beginLineHead, begin), 0 )
-						  - (ScrollPosX - XofTextArea);
+				upper.X = MeasureTokenEndX( g, firstLinePart, 0 ) - (ScrollPosX - XofTextArea);
 				upper.Y = YofLine( beginLine );
 				upper.Width = VisibleSize.Width - upper.X;
 				upper.Height = LineSpacing;
 			}
 
 			// calculate lower part of the invalid area
+			String finalLinePart = doc.GetTextInRange( endLineHead, end );
 			lower = new Rectangle();
 			if( FirstVisibleLine <= endLine ) // if not visible, no need to invalidate
 			{
 				lower.X = XofTextArea;
 				lower.Y = YofLine( endLine );
-				lower.Width = MeasureTokenEndX( g, new TextSegment(endLineHead, end), 0 ) - ScrollPosX;
+				lower.Width = MeasureTokenEndX( g, finalLinePart, 0 ) - ScrollPosX;
 				lower.Height = LineSpacing;
 			}
 
@@ -691,9 +850,6 @@ namespace Sgry.Azuki
 				&& pos.X < clipRect.Right // or reaches right-end of the clip rect
 				&& end != -1 ) // or reaches the end of text
 			{
-				Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, begin) );
-				Debug.Assert( TextUtil.IsDividableIndex(Document.InternalBuffer, end) );
-
 				// get this token
 				token = Document.GetTextInRangeRef( ref begin, ref end );
 				DebugUtl.Assert( 0 < token.Length );
@@ -701,7 +857,7 @@ namespace Sgry.Azuki
 				// calc next drawing pos before drawing text
 				{
 					int virLeft = pos.X - (XofTextArea - ScrollPosX);
-					tokenEndPos.X = MeasureTokenEndX( g, new TextSegment(begin, end), virLeft );
+					tokenEndPos.X = MeasureTokenEndX( g, token, virLeft );
 					tokenEndPos.X += (XofTextArea - ScrollPosX);
 				}
 
@@ -739,7 +895,7 @@ namespace Sgry.Azuki
 					// set the position to cut extra trailings of this token
 					if( visibleCharCount+1 <= token.Length )
 					{
-						if( TextUtil.IsUndividableIndex(token, visibleCharCount+1) )
+						if( Document.IsNotDividableIndex(token, visibleCharCount+1) )
 						{
 							token = token.Substring( 0, visibleCharCount + 2 );
 						}
@@ -770,7 +926,7 @@ namespace Sgry.Azuki
 			{
 				DebugUtl.Assert( lineHead <= lineEnd );
 				if( lineHead == lineEnd
-					|| (0 < lineEnd && TextUtil.IsEolChar(Document[lineEnd-1]) == false) )
+					|| (0 < lineEnd && LineLogic.IsEolChar(Document[lineEnd-1]) == false) )
 				{
 					DrawEofMark( g, ref pos );
 				}
@@ -793,12 +949,18 @@ namespace Sgry.Azuki
 			ScreenToVirtual( ref virPos );
 			if( TextAreaWidth < virPos.X + (VisibleSize.Width >> 3) )
 			{
+				string lineContent;
+				int lineWidth;
+
 				// calculate full length of this line, in pixel
-				var lineWidth = MeasureTokenEndX( g, new TextSegment(lineHead, lineEnd), 0 );
+				lineContent = Document.GetTextInRange( lineHead, lineEnd );
+				lineWidth = MeasureTokenEndX( g, lineContent, 0 );
 
 				// remember length of this line if it is the longest ever
 				if( longestLineLength < lineWidth )
+				{
 					longestLineLength = lineWidth;
+				}
 			}
 
 			// draw graphics at left of text

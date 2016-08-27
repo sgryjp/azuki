@@ -10,15 +10,11 @@ using StringBuilder = System.Text.StringBuilder;
 
 namespace Sgry.Azuki
 {
-	using TextLayouts;
-
 	/// <summary>
 	/// Platform independent view implementation to display wrapped text with proportional font.
 	/// </summary>
 	class PropWrapView : PropView
 	{
-		readonly ITextLayout _Layout;
-
 		#region Init / Dispose
 		/// <summary>
 		/// Creates a new instance.
@@ -27,7 +23,6 @@ namespace Sgry.Azuki
 		internal PropWrapView( IUserInterface ui )
 			: base( ui )
 		{
-			_Layout = new PropWrapTextLayout( this );
 			Document.ViewParam.ScrollPosX = 0;
 		}
 
@@ -37,15 +32,17 @@ namespace Sgry.Azuki
 		internal PropWrapView( View other )
 			: base( other )
 		{
-			_Layout = new PropWrapTextLayout( this );
 			Document.ViewParam.ScrollPosX = 0;
 		}
 		#endregion
 
 		#region Properties
-		public override ITextLayout Layout
+		/// <summary>
+		/// Gets number of the screen lines.
+		/// </summary>
+		public override int LineCount
 		{
-			get{ return _Layout; }
+			get{ return PLHI.Count; }
 		}
 
 		/// <summary>
@@ -123,6 +120,185 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
+		#region Position / Index Conversion
+		/// <summary>
+		/// Calculates location in the virtual space of the character at specified index.
+		/// </summary>
+		/// <returns>The location of the character at specified index.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public override Point GetVirPosFromIndex( IGraphics g, int index )
+		{
+			int line, column;
+
+			LineLogic.GetLineColumnIndexFromCharIndex(
+					Document.InternalBuffer,
+					PLHI,
+					index,
+					out line,
+					out column
+				);
+
+			return GetVirPosFromIndex( g, line, column );
+		}
+
+		/// <summary>
+		/// Calculates location in the virtual space of the character at specified index.
+		/// </summary>
+		/// <returns>The location of the character at specified index.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public override Point GetVirPosFromIndex( IGraphics g, int lineIndex, int columnIndex )
+		{
+			if( lineIndex < 0 )
+				throw new ArgumentOutOfRangeException( "lineIndex("+lineIndex+")" );
+			if( columnIndex < 0 )
+				throw new ArgumentOutOfRangeException( "columnIndex("+columnIndex+")" );
+
+			Point pos = new Point();
+
+			// set value for when the columnIndex is 0
+			pos.X = 0;
+			pos.Y = (lineIndex * LineSpacing) + (LinePadding >> 1);
+
+			// if the location is not the head of the line, calculate x-coord.
+			if( 0 < columnIndex )
+			{
+				// get partial content of the line which exists before the caret
+				int lineBegin, lineEnd;
+				LineLogic.GetLineRangeWithEol( Document.InternalBuffer, PLHI, lineIndex, out lineBegin, out lineEnd );
+				string leftPart = Document.GetTextInRange( lineBegin, lineBegin+columnIndex );
+
+				// measure the characters
+				pos.X = MeasureTokenEndX( g, leftPart, pos.X );
+			}
+
+			return pos;
+		}
+
+		/// <summary>
+		/// Gets char-index of the char at the point specified by location in the virtual space.
+		/// </summary>
+		/// <returns>The index of the character at specified location.</returns>
+		public override int GetIndexFromVirPos( IGraphics g, Point pt )
+		{
+			int lineIndex, columnIndex;
+			int drawableTextLen;
+
+			// calc line index
+			lineIndex = (pt.Y / LineSpacing);
+			if( lineIndex < 0 )
+			{
+				lineIndex = 0;
+			}
+			else if( PLHI.Count <= lineIndex
+				&& Document.LineCount != 0 )
+			{
+				// the point indicates beyond the final line.
+				// treat as if the final line was specified
+				lineIndex = PLHI.Count - 1;
+			}
+
+			// calc column index
+			columnIndex = 0;
+			if( 0 < pt.X )
+			{
+				int begin, end;
+				string line;
+				bool isWrapLine = false;
+				
+				// get content of the line
+				LineLogic.GetLineRange( Document.InternalBuffer, PLHI, lineIndex, out begin, out end );
+				line = Document.GetTextInRange( begin, end );
+				if( end+1 < Document.Length
+					&& !LineLogic.IsEolChar(Document[end]) )
+				{
+					isWrapLine = true;
+				}
+
+				// calc maximum length of chars in line
+				int rightLimitX = pt.X;
+				int leftPartWidth = MeasureTokenEndX( g, line, 0, rightLimitX, out drawableTextLen );
+				columnIndex = drawableTextLen;
+
+				// if the location is nearer to the NEXT of that char,
+				// we should return the index of next one.
+				if( drawableTextLen < line.Length )
+				{
+					string nextChar = line[drawableTextLen].ToString();
+					int nextCharWidth = MeasureTokenEndX( g, nextChar, leftPartWidth ) - leftPartWidth;
+					if( leftPartWidth + nextCharWidth/2 < pt.X ) // == "x of middle of next char" < "x of click in virtual text area"
+					{
+						columnIndex = drawableTextLen + 1;
+					}
+				}
+				// if the whole line can be drawn and is a wrapped line,
+				// decrease column to avoid indicating invalid position
+				else if( isWrapLine )
+				{
+					columnIndex--;
+				}
+			}
+
+			return LineLogic.GetCharIndexFromLineColumnIndex( Document.InternalBuffer, PLHI, lineIndex, columnIndex );
+		}
+
+		/// <summary>
+		/// Gets the index of the first char in the line.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public override int GetLineHeadIndex( int lineIndex )
+		{
+			if( lineIndex < 0 || PLHI.Count <= lineIndex )
+				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid index was given (lineIndex:"+lineIndex+", LineCount:"+LineCount+")." );
+
+			return PLHI[ lineIndex ];
+		}
+
+		/// <summary>
+		/// Gets the index of the first char in the screen line
+		/// which contains the specified char-index.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public override int GetLineHeadIndexFromCharIndex( int charIndex )
+		{
+			if( charIndex < 0 || Document.Length < charIndex )
+				throw new ArgumentOutOfRangeException( "charIndex", "Invalid index was given (charIndex:"+charIndex+", document.Length:"+Document.Length+")." );
+
+			return LineLogic.GetLineHeadIndexFromCharIndex(
+					Document.InternalBuffer, PLHI, charIndex
+				);
+		}
+
+		/// <summary>
+		/// Calculates screen line/column index from char-index.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public override void GetLineColumnIndexFromCharIndex( int charIndex, out int lineIndex, out int columnIndex )
+		{
+			if( charIndex < 0 || Document.Length < charIndex )
+				throw new ArgumentOutOfRangeException( "charIndex", "Invalid index was given (charIndex:"+charIndex+", document.Length:"+Document.Length+")." );
+
+			LineLogic.GetLineColumnIndexFromCharIndex(
+					Document.InternalBuffer, PLHI, charIndex, out lineIndex, out columnIndex
+				);
+		}
+
+		/// <summary>
+		/// Calculates char-index from screen line/column index.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public override int GetCharIndexFromLineColumnIndex( int lineIndex, int columnIndex )
+		{
+			if( lineIndex < 0 || LineCount < lineIndex )
+				throw new ArgumentOutOfRangeException( "lineIndex", "Invalid index was given (lineIndex:"+lineIndex+", LineCount:"+LineCount+")." );
+			if( columnIndex < 0 )
+				throw new ArgumentOutOfRangeException( "columnIndex", "Invalid index was given (columnIndex:"+columnIndex+")." );
+
+			return LineLogic.GetCharIndexFromLineColumnIndex(
+					Document.InternalBuffer, PLHI, lineIndex, columnIndex
+				);
+		}
+		#endregion
+
 		#region Event Handlers
 		internal override void HandleContentChanged( object sender, ContentChangedEventArgs e )
 		{
@@ -192,7 +368,7 @@ namespace Sgry.Azuki
 
 				// invalidate all lines below caret
 				// if old text or new text contains multiple lines
-				isMultiLine = TextUtil.IsMultiLine( e.NewText );
+				isMultiLine = LineLogic.IsMultiLine( e.NewText );
 				if( prevLineCount != PLHI.Count || isMultiLine )
 				{
 					//NO_NEED//invalidRect2.X = 0;
@@ -392,7 +568,7 @@ namespace Sgry.Azuki
 			int preTargetEndL;
 
 			// calculate where to recalculate PLHI from
-			int firstDirtyLineIndex = TextUtil.GetLineIndexFromCharIndex( PLHI, index );
+			int firstDirtyLineIndex = LineLogic.GetLineIndexFromCharIndex( PLHI, index );
 			if( 0 < firstDirtyLineIndex )
 			{
 				// we should always recalculate PLHI from previous line of the line replacement occured
@@ -406,7 +582,7 @@ namespace Sgry.Azuki
 			if( lastDirtyLogLineIndex+1 < doc.LineCount )
 			{
 				int delEnd = doc.GetLineHeadIndex( lastDirtyLogLineIndex + 1 ) - diff;
-				delEndL = TextUtil.GetLineIndexFromCharIndex( PLHI, delEnd );
+				delEndL = LineLogic.GetLineIndexFromCharIndex( PLHI, delEnd );
 			}
 			else
 			{
@@ -439,7 +615,7 @@ namespace Sgry.Azuki
 				shiftBeginL = Int32.MaxValue;
 			}
 			else if( replaceEnd < doc.Length
-				&& TextUtil.NextLineHead(doc.InternalBuffer, replaceEnd) == -1 )
+				&& LineLogic.NextLineHead(doc.InternalBuffer, replaceEnd) == -1 )
 			{
 				// there exists more characters but no lines.
 				shiftBeginL = Int32.MaxValue;
@@ -447,7 +623,7 @@ namespace Sgry.Azuki
 			else
 			{
 				// there are following lines.
-				shiftBeginL = TextUtil.GetLineIndexFromCharIndex( PLHI, reCalcEnd - diff );
+				shiftBeginL = LineLogic.GetLineIndexFromCharIndex( PLHI, reCalcEnd - diff );
 			}
 #			if PLHI_DEBUG
 			Console.Error.WriteLine("[1] shift:[{0}, {1})", shiftBeginL, PLHI.Count);
@@ -492,11 +668,11 @@ namespace Sgry.Azuki
 
 				// can this segment be written in this screen line?
 				if( drawableLen < str.Length
-					|| TextUtil.IsEolChar(str, drawableLen-1) )
+					|| LineLogic.IsEolChar(str, drawableLen-1) )
 				{
 					// hit right limit. end this screen line
 					end = begin + drawableLen;
-					if( TextUtil.IsEolChar(str, drawableLen-1) == false )
+					if( LineLogic.IsEolChar(str, drawableLen-1) == false )
 					{
 						// wrap word
 						int newEndIndex = doc.WordProc.HandleWordWrapping( doc, begin+drawableLen );
@@ -616,7 +792,7 @@ namespace Sgry.Azuki
 				int caretLine, caretPosY;
 
 				// calculate position of the underline
-				caretLine = TextUtil.GetLineIndexFromCharIndex( PLHI, Document.CaretIndex );
+				caretLine = LineLogic.GetLineIndexFromCharIndex( PLHI, Document.CaretIndex );
 				caretPosY = YofTextArea + (caretLine - FirstVisibleLine) * LineSpacing;
 				
 				// draw underline to current line
@@ -686,7 +862,7 @@ namespace Sgry.Azuki
 				// calc next drawing pos before drawing text
 				{
 					int virLeft = pos.X - (XofTextArea - ScrollPosX);
-					tokenEndPos.X = MeasureTokenEndX( g, new TextSegment(begin, end), virLeft );
+					tokenEndPos.X = MeasureTokenEndX( g, token, virLeft );
 					tokenEndPos.X += (XofTextArea - ScrollPosX);
 				}
 
@@ -724,6 +900,7 @@ namespace Sgry.Azuki
 				{
 					int visCharCount; // visible char count
 					int visPartRight;
+					string peekingChar;
 					int peekingCharRight = 0;
 
 					// calculate number of chars which fits within the clip-rect
@@ -733,10 +910,21 @@ namespace Sgry.Azuki
 					// we must write one more char so that the peeking char appears at the boundary.)
 
 					// try to get graphically peeking (drawn over the border line) char
-					var peekingChar = new TextSegment( visCharCount, TextUtil.NextGraphemeClusterIndex(Document.InternalBuffer, visCharCount) );
+					peekingChar = String.Empty;
+					if( visCharCount+1 <= token.Length )
+					{
+						if( Document.IsNotDividableIndex(token, visCharCount+1) )
+						{
+							peekingChar = token.Substring( visCharCount, 2 );
+						}
+						else
+						{
+							peekingChar = token.Substring( visCharCount, 1 );
+						}
+					}
 
 					// calculate right end coordinate of the peeking char
-					if( peekingChar.IsEmpty == false )
+					if( peekingChar != String.Empty )
 					{
 						peekingCharRight = MeasureTokenEndX( g, peekingChar, visPartRight );
 					}
@@ -764,7 +952,7 @@ namespace Sgry.Azuki
 			{
 				DebugUtl.Assert( lineHead <= lineEnd );
 				if( lineHead == lineEnd
-					|| (0 < lineEnd && TextUtil.IsEolChar(Document[lineEnd-1]) == false) )
+					|| (0 < lineEnd && LineLogic.IsEolChar(Document[lineEnd-1]) == false) )
 				{
 					DrawEofMark( g, ref pos );
 				}
@@ -811,7 +999,7 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Utilities
-		internal SplitArray<int> PLHI
+		SplitArray<int> PLHI
 		{
 			get
 			{
@@ -835,14 +1023,14 @@ namespace Sgry.Azuki
 
 		static bool IsWrappedLineHead( Document doc, SplitArray<int> plhi, int index )
 		{
-			int lineHeadIndex = TextUtil.GetLineHeadIndexFromCharIndex( doc.InternalBuffer, plhi, index );
+			int lineHeadIndex = LineLogic.GetLineHeadIndexFromCharIndex( doc.InternalBuffer, plhi, index );
 			if( lineHeadIndex <= 0 )
 			{
 				return false;
 			}
 
 			char lastCharOfPrevLine = doc[lineHeadIndex-1];
-			return ( TextUtil.IsEolChar(lastCharOfPrevLine) == false );
+			return ( LineLogic.IsEolChar(lastCharOfPrevLine) == false );
 		}
 		#endregion
 	}

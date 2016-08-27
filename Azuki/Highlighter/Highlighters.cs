@@ -1,4 +1,9 @@
-﻿namespace Sgry.Azuki.Highlighter
+﻿// file: Highlighters.cs
+// brief: highlighter object factory.
+//=========================================================
+using System;
+
+namespace Sgry.Azuki.Highlighter
 {
 	/// <summary>
 	/// Factory to create built-in highlighter objects.

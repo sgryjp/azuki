@@ -277,13 +277,13 @@ namespace Sgry.Azuki
 		/// Gets char-index of the char at the point specified by location in the virtual space.
 		/// </summary>
 		/// <returns>The index of the character at specified location.</returns>
-		int GetIndexFromVirPos( Point virPos );
+		int GetIndexFromVirPos( Point pt );
 
 		/// <summary>
 		/// Gets char-index of the char at the point specified by location in the virtual space.
 		/// </summary>
 		/// <returns>The index of the char or -1 if invalid point was specified.</returns>
-		int GetIndexFromVirPos( IGraphics g, Point virPos );
+		int GetIndexFromVirPos( IGraphics g, Point pt );
 
 		/// <summary>
 		/// Converts a coordinate in virtual space to a coordinate in client area.
@@ -403,13 +403,14 @@ namespace Sgry.Azuki
 		/// <returns>Horizontal ruler index of the character.</returns>
 		/// <remarks>
 		/// <para>
-		/// This method calculates location of character at specified index in horizontal ruler
-		/// index.
+		/// This method calculates location of character at specified index
+		/// in horizontal ruler index.
 		/// </para>
 		/// <para>
 		/// 'Horizontal ruler index' here means how many small lines drawn on the horizontal ruler
-		/// exist between left-end of the text area and the character at the index specified by
-		/// with <paramref name="charIndex"/>. This value is zero-based index.
+		/// exist between left-end of the text area
+		/// and the character at index specified by <paramref name="charIndex"/>.
+		/// This value is zero-based index.
 		/// </para>
 		/// </remarks>
 		int GetHRulerIndex( int charIndex );
@@ -422,13 +423,14 @@ namespace Sgry.Azuki
 		/// <returns>Horizontal ruler index of the character.</returns>
 		/// <remarks>
 		/// <para>
-		/// This method calculates location of character at specified index in horizontal ruler
-		/// index.
+		/// This method calculates location of character at specified index
+		/// in horizontal ruler index.
 		/// </para>
 		/// <para>
 		/// 'Horizontal ruler index' here means how many small lines drawn on the horizontal ruler
-		/// exist between left-end of the text area and the character at specified index. This
-		/// value is zero-based index.
+		/// exist between left-end of the text area
+		/// and the character at index specified by <paramref name="charIndex"/>.
+		/// This value is zero-based index.
 		/// </para>
 		/// </remarks>
 		int GetHRulerIndex( int lineIndex, int columnIndex );
@@ -496,10 +498,12 @@ namespace Sgry.Azuki
 		///   redrawing. To redraw manually, you need to call <see cref="Invalidate()"/> method.
 		///   </para>
 		///   <para>
-		///   This property is associated with the currently active Document.
+		///   This property is just a synonym of Document.ViewParam.FirstVisibleLine
+		///   so changing Document property will also changes this property value.
 		///   </para>
 		/// </remarks>
 		/// <seealso cref="Invalidate()"/>
+		/// <seealso cref="ViewParam.FirstVisibleLine"/>
 		int FirstVisibleLine
 		{
 			get; set;

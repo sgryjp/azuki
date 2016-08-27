@@ -1,10 +1,16 @@
 @echo off
 
-for %%i in (Ann,Azuki,AzukiTest,doc) do (
-    pushd %%i
-    call clean.bat
-    popd
-)
+cd Azuki
+call clean.bat
+cd ..
+
+cd Ann
+call clean.bat
+cd ..
+
+cd doc
+call clean.bat
+cd ..
 
 del         *.sln.cache     2> NUL
 del         *.userprefs     2> NUL

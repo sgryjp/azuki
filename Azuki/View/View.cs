@@ -9,19 +9,16 @@ using Debug = System.Diagnostics.Debug;
 
 namespace Sgry.Azuki
 {
-	using TextLayouts;
-
 	/// <summary>
 	/// Platform independent view of Azuki.
 	/// </summary>
-	abstract partial class View : IViewInternal, IDisposable
+	abstract partial class View : IView, IDisposable
 	{
 		#region Fields and Types
 		const float GoldenRatio = 1.6180339887f;
 		const int DefaultTabWidth = 8;
 		const int MinimumFontSize = 1;
 		const int LineNumberAreaPadding = 2;
-		const int MaxMatchedBracketSearchLength = 2048;
 		static readonly int[] _LineNumberSamples = new int[] {
 			9999,
 			99999,
@@ -143,9 +140,9 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Gets number of the screen lines.
 		/// </summary>
-		public int LineCount
+		public abstract int LineCount
 		{
-			get{ return Layout.GetLineCount(); }
+			get;
 		}
 
 		/// <summary>
@@ -267,14 +264,8 @@ namespace Sgry.Azuki
 			// calculate minimum text area width
 			_MinimumTextAreaWidth = Math.Max( _FullSpaceWidth, TabWidthInPx ) << 1;
 		}
-
-		public abstract ITextLayout Layout
-		{
-			get;
-		}
 		#endregion
 
-		#region Screen Line
 		/// <summary>
 		/// Gets length of the pysical line.
 		/// </summary>
@@ -310,19 +301,6 @@ namespace Sgry.Azuki
 
 			return lineEndIndex - lineHeadIndex;
 		}
-
-		public bool IsLineHeadIndex( int index )
-		{
-			if( index < 0 )
-				return false;
-			else if( index == 0 )
-				return true;
-			else if( index < Document.Length )
-				return (GetLineHeadIndexFromCharIndex(index) == index);
-			else
-				return false;
-		}
-		#endregion
 
 		#region Drawing Options
 		/// <summary>
@@ -787,6 +765,63 @@ namespace Sgry.Azuki
 		#endregion
 
 		#region Position / Index Conversion
+		/// <summary>
+		/// Calculates location in the virtual space of the character at specified index.
+		/// </summary>
+		/// <returns>The location of the character at specified index.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
+		public Point GetVirPosFromIndex( int index )
+		{
+			using( IGraphics g = _UI.GetIGraphics() )
+			{
+				return GetVirPosFromIndex( g, index );
+			}
+		}
+
+		/// <summary>
+		/// Calculates location in the virtual space of the character at specified index.
+		/// </summary>
+		/// <returns>The location of the character at specified index.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
+		public abstract Point GetVirPosFromIndex( IGraphics g, int index );
+
+		/// <summary>
+		/// Calculates location in the virtual space of the character at specified index.
+		/// </summary>
+		/// <returns>The location of the character at specified index.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
+		public Point GetVirPosFromIndex( int lineIndex, int columnIndex )
+		{
+			using( IGraphics g = _UI.GetIGraphics() )
+			{
+				return GetVirPosFromIndex( g, lineIndex, columnIndex );
+			}
+		}
+
+		/// <summary>
+		/// Calculates location in the virtual space of the character at specified index.
+		/// </summary>
+		/// <returns>The location of the character at specified index.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index is out of range.</exception>
+		public abstract Point GetVirPosFromIndex( IGraphics g, int lineIndex, int columnIndex );
+
+		/// <summary>
+		/// Gets char-index of the char at the point specified by location in the virtual space.
+		/// </summary>
+		/// <returns>The index of the char or -1 if invalid point was specified.</returns>
+		public int GetIndexFromVirPos( Point pt )
+		{
+			using( IGraphics g = _UI.GetIGraphics() )
+			{
+				return GetIndexFromVirPos( g, pt );
+			}
+		}
+
+		/// <summary>
+		/// Gets char-index of the char at the point specified by location in the virtual space.
+		/// </summary>
+		/// <returns>The index of the char or -1 if invalid point was specified.</returns>
+		public abstract int GetIndexFromVirPos( IGraphics g, Point pt );
 
 		/// <summary>
 		/// Converts a coordinate in virtual space to a coordinate in client area.
@@ -814,6 +849,46 @@ namespace Sgry.Azuki
 			pt.X = (pt.X + ScrollPosX) - XofTextArea;
 			pt.Y = (pt.Y + FirstVisibleLine * LineSpacing) - YofTextArea;
 		}
+
+		/// <summary>
+		/// Gets the index of the first char in the line.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public abstract int GetLineHeadIndex( int lineIndex );
+
+		/// <summary>
+		/// Gets the index of the first char in the screen line
+		/// which contains the specified char-index.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public abstract int GetLineHeadIndexFromCharIndex( int charIndex );
+
+		/// <summary>
+		/// Calculates screen line index from char-index.
+		/// </summary>
+		/// <param name="charIndex">The index of the line which contains the char at this parameter will be calculated.</param>
+		/// <returns>The index of the line which contains the character at specified index.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public int GetLineIndexFromCharIndex( int charIndex )
+		{
+			int lineIndex, columnIndex;
+
+			GetLineColumnIndexFromCharIndex( charIndex, out lineIndex, out columnIndex );
+
+			return lineIndex;
+		}
+
+		/// <summary>
+		/// Calculates screen line/column index from char-index.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public abstract void GetLineColumnIndexFromCharIndex( int charIndex, out int lineIndex, out int columnIndex );
+
+		/// <summary>
+		/// Calculates char-index from screen line/column index.
+		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException">Specified index was out of range.</exception>
+		public abstract int GetCharIndexFromLineColumnIndex( int lineIndex, int columnIndex );
 
 		/// <summary>
 		/// Calculates and returns text ranges that will be selected by specified rectangle.
@@ -892,13 +967,14 @@ namespace Sgry.Azuki
 		/// <returns>Horizontal ruler index of the character.</returns>
 		/// <remarks>
 		/// <para>
-		/// This method calculates location of character at specified index in horizontal ruler
-		/// index.
+		/// This method calculates location of character at specified index
+		/// in horizontal ruler index.
 		/// </para>
 		/// <para>
 		/// 'Horizontal ruler index' here means how many small lines drawn on the horizontal ruler
-		/// exist between left-end of the text area and the character at index specified by
-		/// <paramref name="charIndex"/>. This value is zero-based index.
+		/// exist between left-end of the text area
+		/// and the character at index specified by <paramref name="charIndex"/>.
+		/// This value is zero-based index.
 		/// </para>
 		/// </remarks>
 		public int GetHRulerIndex( int charIndex )
@@ -926,13 +1002,14 @@ namespace Sgry.Azuki
 		/// <returns>Horizontal ruler index of the character.</returns>
 		/// <remarks>
 		/// <para>
-		/// This method calculates location of character at specified index in horizontal ruler
-		/// index.
+		/// This method calculates location of character at specified index
+		/// in horizontal ruler index.
 		/// </para>
 		/// <para>
 		/// 'Horizontal ruler index' here means how many small lines drawn on the horizontal ruler
-		/// exist between left-end of the text area and the character at specified index. This
-		/// value is zero-based index.
+		/// exist between left-end of the text area
+		/// and the character at index specified by <paramref name="charIndex"/>.
+		/// This value is zero-based index.
 		/// </para>
 		/// </remarks>
 		public int GetHRulerIndex( int lineIndex, int columnIndex )
@@ -1254,92 +1331,6 @@ namespace Sgry.Azuki
 		}
 		#endregion
 
-		#region Matched Bracket
-		bool IsMatchedBracket( int index )
-		{
-			Debug.Assert( 0 <= index && index < Document.Length );
-
-			if( 0 <= Array.IndexOf(Document.ViewParam.MatchedBracketIndexes, index) )
-			{
-				return true;
-			}
-			return false;
-		}
-
-		internal void UpdateMatchedBracketPosition( ContentChangedEventArgs e )
-		{
-			var param = Document.ViewParam;
-			for( int i=0; i<param.MatchedBracketIndexes.Length; i++ )
-			{
-				if( e.Index + e.OldText.Length < param.MatchedBracketIndexes[i] )
-				{
-					param.MatchedBracketIndexes[i] = param.MatchedBracketIndexes[i]
-													 - e.OldText.Length
-													 + e.NewText.Length;
-				}
-				else if( e.Index <= param.MatchedBracketIndexes[i] )
-				{
-					param.MatchedBracketIndexes[i] = e.Index + e.NewText.Length;
-				}
-			}
-
-			UpdateMatchedBracketPosition();
-		}
-
-		internal void UpdateMatchedBracketPosition()
-		{
-			var caretIndex = Document.CaretIndex;
-			UpdateMatchedBracketPosition( caretIndex, true );
-			if( 0 < caretIndex )
-				UpdateMatchedBracketPosition( caretIndex-1, false );
-		}
-
-		void UpdateMatchedBracketPosition( int bracketIndex, bool afterCaret )
-		{
-			Debug.Assert( 0 <= bracketIndex );
-			Debug.Assert( bracketIndex <= Document.Length );
-			var doc = Document;
-			var param = doc.ViewParam;
-			int offset = afterCaret ? 0 : 2;
-
-			// Reset matched bracket positions
-			int oldIbbc = param.MatchedBracketIndexes[offset];
-			int oldImbbc = param.MatchedBracketIndexes[offset+1];
-			param.MatchedBracketIndexes[offset] = -1;
-			param.MatchedBracketIndexes[offset+1] = -1;
-			if( HighlightsMatchedBracket == false )
-			{
-				return;
-			}
-
-			// Find matched brackets
-			int newIbbc = bracketIndex;
-			int newImbbc = doc.FindMatchedBracket( newIbbc, MaxMatchedBracketSearchLength );
-
-			// Update matched bracket positions and graphics
-			if( (0 <= newImbbc) != (0 <= oldImbbc) // ON --> OFF, OFF --> ON
-				|| (0 <= newIbbc && 0 <= newImbbc) ) // ON --> ON
-			{
-				// Erase old matched bracket highlight
-				if( 0 <= oldIbbc && oldIbbc+1 <= doc.Length )
-					Invalidate( oldIbbc, oldIbbc+1 );
-				if( 0 <= oldImbbc && oldImbbc+1 <= doc.Length )
-					Invalidate( oldImbbc, oldImbbc+1 );
-
-				// Reraw new matched bracket highlight
-				if( 0 <= newIbbc && newIbbc+1 <= doc.Length )
-					Invalidate( newIbbc, newIbbc+1 );
-				if( 0 <= newImbbc && newImbbc+1 <= doc.Length )
-					Invalidate( newImbbc, newImbbc+1 );
-
-				// Update matched bracket positions
-				param.MatchedBracketIndexes[offset+1] = newImbbc;
-				if( 0 <= newImbbc )
-					param.MatchedBracketIndexes[offset] = newIbbc;
-			}
-		}
-		#endregion
-
 		#region Communication between UI Module
 		/// <summary>
 		/// UI module must call this method
@@ -1608,7 +1599,7 @@ namespace Sgry.Azuki
 			return (  (lineIndex - FirstVisibleLine) * LineSpacing  ) + YofTextArea;
 		}
 
-		int EolCodeWidthInPx
+		internal int EolCodeWidthInPx
 		{
 			get{ return (_LineHeight >> 1) + (_LineHeight >> 2); }
 		}

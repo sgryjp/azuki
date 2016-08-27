@@ -1,4 +1,12 @@
-﻿namespace Sgry.Azuki.Highlighter
+﻿// file: RubyHighlighter.cs
+// brief: Ruby highlighter.
+// author: YAMAMOTO Suguru
+// update: 2008-11-14
+//=========================================================
+using System;
+using Color = System.Drawing.Color;
+
+namespace Sgry.Azuki.Highlighter
 {
 	/// <summary>
 	/// Highlighter for Ruby language based on keyword matching.

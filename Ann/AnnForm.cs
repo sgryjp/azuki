@@ -5,6 +5,8 @@ using System.Text;
 using System.Windows.Forms;
 using Sgry.Azuki;
 using Sgry.Azuki.WinForms;
+using Path = System.IO.Path;
+using File = System.IO.File;
 using Directory = System.IO.Directory;
 using Debug = System.Diagnostics.Debug;
 
@@ -33,15 +35,19 @@ namespace Sgry.Ann
 			InitKeyMap();
 			ResetShortcutInMenu();
 
+#			if !PocketPC
 			Font = SystemInformation.MenuFont;
 			AllowDrop = true;
 			DragEnter += Form_DragEnter;
 			DragDrop += Form_DragDrop;
 			Shown += Form_Shown;
+#			endif
 			Icon = Resource.AppIcon;
 
+#			if !PocketPC
 			_Azuki.UseCtrlTabToMoveFocus = false;
 			_Azuki.CaretMoved += _Azuki_CaretMoved;
+#			endif
 			_Azuki.ColorScheme.SetColor( CharClass.Number,
 										 Color.Red,
 										 Color.Transparent );
@@ -135,6 +141,7 @@ namespace Sgry.Ann
 			this.Text = text.ToString();
 
 			// update status bar
+#			if !PocketPC
 			switch( doc.SelectionMode )
 			{
 				case TextDataType.Line:
@@ -153,6 +160,7 @@ namespace Sgry.Ann
 			_Status_InsertionMode.Text = (Azuki.IsOverwriteMode) ? "O/W"
 																 : "Ins";
 			_Azuki_CaretMoved( this, EventArgs.Empty ); // update caret pos
+#			endif
 
 			// apply read-only mode
 			_MI_File_ReadOnly.Checked = readOnly;
@@ -297,6 +305,13 @@ namespace Sgry.Ann
 
 		void InitMenuMap()
 		{
+			// Action of top level menu of CF version is same as File/Save menu item
+			// but Ann's menu-action mapping does not handle multiple menu items for same action.
+			// Here we directly set menu action to the menu to ensure that mapping logic properly works.
+#			if PocketPC
+			_MI_Save.Click += delegate{ Actions.SaveDocument(_App); };
+#			endif
+
 			_MenuMap[ _MI_File_New ]		= Actions.CreateNewDocument;
 			_MenuMap[ _MI_File_Open ]		= Actions.OpenDocument;
 			_MenuMap[ _MI_File_Save ]		= Actions.SaveDocument;
@@ -439,6 +454,7 @@ namespace Sgry.Ann
 				= _MI_Window_Prev.Enabled = (1 < _App.Documents.Count);
 		}
 
+#		if !PocketPC
 		void Form_DragDrop( object sender, DragEventArgs e )
 		{
 			object dropData;
@@ -484,6 +500,7 @@ namespace Sgry.Ann
 				}
 			}
 		}
+#		endif
 
 		void Form_Shown( object sender, EventArgs e )
 		{
@@ -508,6 +525,7 @@ namespace Sgry.Ann
 			UpdateUI();
 		}
 
+#		if !PocketPC
 		void _Azuki_CaretMoved( object sender, EventArgs e )
 		{
 			int selLen;
@@ -569,6 +587,7 @@ namespace Sgry.Ann
 				}
 			}
 		}
+#		endif
 		#endregion
 
 		#region Other
@@ -578,6 +597,7 @@ namespace Sgry.Ann
 			set
 			{
 				base.Font = value;
+#				if !PocketPC
 				using( Graphics g = CreateGraphics() )
 				{
 					// update size of status panels
@@ -594,6 +614,7 @@ namespace Sgry.Ann
 							"O/W|", value
 						).Width;
 				}
+#				endif
 			}
 		}
 		#endregion
@@ -623,6 +644,7 @@ namespace Sgry.Ann
 			//
 			_SearchPanel.Dock = DockStyle.Bottom;
 			_SearchPanel.Enabled = false;
+#			if !PocketPC
 			//
 			// _StatusBar
 			//
@@ -641,6 +663,7 @@ namespace Sgry.Ann
 			// _Status_Message
 			//
 			_Status_Message.AutoSize = StatusBarPanelAutoSize.Spring;
+#			endif
 			//
 			// _MI_File
 			//
@@ -660,7 +683,9 @@ namespace Sgry.Ann
 			Controls.Add( _Azuki );
 			Controls.Add( _TabPanel );
 			Controls.Add( _SearchPanel );
+#			if !PocketPC
 			Controls.Add( _StatusBar );
+#			endif
 			Text = "Ann";
 			ResumeLayout( false );
 		}
@@ -668,12 +693,26 @@ namespace Sgry.Ann
 		void InitMenuComponents()
 		{
 			// construct root menu structure
+#			if PocketPC
+			_MI_Save.Text = "Save";
+			_MI_Menu.Text = "Menu";
+			_MainMenu.MenuItems.Add( _MI_Save );
+			_MainMenu.MenuItems.Add( _MI_Menu );
+
+			_MI_Menu.MenuItems.Add( _MI_File );
+			_MI_Menu.MenuItems.Add( _MI_Edit );
+			_MI_Menu.MenuItems.Add( _MI_View );
+			_MI_Menu.MenuItems.Add( _MI_Mode );
+			_MI_Menu.MenuItems.Add( _MI_Window );
+			_MI_Menu.MenuItems.Add( _MI_Help );
+#			else
 			_MainMenu.MenuItems.Add( _MI_File );
 			_MainMenu.MenuItems.Add( _MI_Edit );
 			_MainMenu.MenuItems.Add( _MI_View );
 			_MainMenu.MenuItems.Add( _MI_Mode );
 			_MainMenu.MenuItems.Add( _MI_Window );
 			_MainMenu.MenuItems.Add( _MI_Help );
+#			endif
 
 			// construct descendant menu structure
 			_MI_File.MenuItems.Add( _MI_File_New );
@@ -821,9 +860,11 @@ namespace Sgry.Ann
 			_MI_Help_About.Text = "&About...";
 
 			// other menu settings
+#			if !PocketPC
 			_MI_Edit_EolCode_CRLF.RadioCheck = true;
 			_MI_Edit_EolCode_LF.RadioCheck = true;
 			_MI_Edit_EolCode_CR.RadioCheck = true;
+#			endif
 
 			// bind menu actions
 			EventHandler menuActionHandler = this.HandleMenuAction;
@@ -885,6 +926,10 @@ namespace Sgry.Ann
 
 		#region UI Components
 		MainMenu _MainMenu			= new MainMenu();
+#		if PocketPC
+		MenuItem _MI_Menu			= new MenuItem();
+		MenuItem _MI_Save			= new MenuItem();
+#		endif
 		MenuItem _MI_File			= new MenuItem();
 		MenuItem _MI_File_New		= new MenuItem();
 		MenuItem _MI_File_Open		= new MenuItem();
@@ -959,11 +1004,13 @@ namespace Sgry.Ann
 		AzukiControl _Azuki;
 		TabPanel<Document> _TabPanel = new TabPanel<Document>();
 		SearchPanel _SearchPanel = new SearchPanel();
+#		if !PocketPC
 		StatusBar _StatusBar = new StatusBar();
 		StatusBarPanel _Status_Message = new StatusBarPanel();
 		StatusBarPanel _Status_CaretPos = new StatusBarPanel();
 		StatusBarPanel _Status_SelectionMode = new StatusBarPanel();
 		StatusBarPanel _Status_InsertionMode = new StatusBarPanel();
+#		endif
 		#endregion
 
 		#region Utilities

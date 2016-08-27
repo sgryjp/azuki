@@ -1,4 +1,12 @@
-﻿namespace Sgry.Azuki.Highlighter
+﻿// file: JavaHighlighter.cs
+// brief: Java highlighter.
+// author: YAMAMOTO Suguru
+// update: 2009-09-27
+//=========================================================
+using System;
+using Color = System.Drawing.Color;
+
+namespace Sgry.Azuki.Highlighter
 {
 	/// <summary>
 	/// Highlighter for Java language based on keyword matching.

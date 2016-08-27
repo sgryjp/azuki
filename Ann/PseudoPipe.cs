@@ -16,7 +16,7 @@ namespace Sgry.Ann
 		readonly byte[] EOL = new byte[]{ (byte)'\r', (byte)'\n' };
 		string _FilePath;
 		FileStream _File = null;
-		Mutex _Mutex = null;
+		MyMutex _Mutex = null;
 
 		/// <summary>
 		/// Finalize an instance.
@@ -38,7 +38,7 @@ namespace Sgry.Ann
 			}
 			if( _Mutex != null )
 			{
-				_Mutex.Close();
+				_Mutex.Dispose();
 				_Mutex = null;
 			}
 		}
@@ -53,7 +53,7 @@ namespace Sgry.Ann
 
 			// remember parameters
 			_FilePath = filePath;
-			_Mutex = new Mutex( false, MakeMutexName(filePath) );
+			_Mutex = new MyMutex( false, MakeMutexName(filePath) );
 
 			// open pseudo pipe file
 			_File = File.Open( filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite );
@@ -72,7 +72,7 @@ namespace Sgry.Ann
 
 			// remember parameters
 			_FilePath = filePath;
-			_Mutex = new Mutex( false, MakeMutexName(filePath) );
+			_Mutex = new MyMutex( false, MakeMutexName(filePath) );
 
 			// open pseudo pipe file
 			_File = File.Open( filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite );

@@ -24,8 +24,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void BackSpace( IUserInterface ui )
 		{
-			var doc = ui.Document;
-			var view = ui.View as View;
+			Document doc = ui.Document;
+			View view = (View)ui.View;
 
 			// do nothing if the document is read-only
 			if( doc.IsReadOnly )
@@ -117,8 +117,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void BackSpaceWord( IUserInterface ui )
 		{
-			var doc = ui.Document;
-			var view = ui.View as IViewInternal;
+			Document doc = ui.Document;
+			IView view = ui.View;
 
 			// do nothing if the document is read-only
 			if( doc.IsReadOnly )
@@ -231,8 +231,8 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void DeleteWord( IUserInterface ui )
 		{
-			var doc = ui.Document;
-			var view = ui.View as IViewInternal;
+			Document doc = ui.Document;
+			IView view = ui.View;
 
 			// do nothing if the document is read-only
 			if( doc.IsReadOnly )
@@ -477,7 +477,7 @@ namespace Sgry.Azuki
 				// Insert every row at same column position
 				insertPos = ui.View.GetVirPosFromIndex( doc.CaretIndex );
 				rowBegin = 0;
-				rowEnd = TextUtil.NextLineHead( clipboardText, rowBegin );
+				rowEnd = LineLogic.NextLineHead( clipboardText, rowBegin );
 				while( 0 <= rowEnd )
 				{
 					// get this row content
@@ -507,7 +507,7 @@ namespace Sgry.Azuki
 					// goto next line
 					insertPos.Y += ui.LineSpacing;
 					rowBegin = rowEnd;
-					rowEnd = TextUtil.NextLineHead( clipboardText, rowBegin );
+					rowEnd = LineLogic.NextLineHead( clipboardText, rowBegin );
 				}
 			}
 			else
@@ -543,16 +543,15 @@ namespace Sgry.Azuki
 		/// </summary>
 		public static void Undo( IUserInterface ui )
 		{
-			var view = ui.View;
-			var doc = view.Document;
-			if( doc.CanUndo == false
-				|| doc.IsReadOnly )
+			IView view = ui.View;
+			if( view.Document.CanUndo == false
+				|| view.Document.IsReadOnly )
 			{
 				return;
 			}
 
 			// undo
-			doc.Undo();
+			view.Document.Undo();
 			if( ui.UsesStickyCaret == false )
 			{
 				view.SetDesiredColumn();
@@ -562,7 +561,7 @@ namespace Sgry.Azuki
 			// redraw graphic of dirt-bar
 			if( ui.ShowsDirtBar )
 			{
-				view.Invalidate( view.DirtBarRectangle );
+				ui.View.Invalidate( ui.View.DirtBarRectangle );
 			}
 		}
 
@@ -1019,9 +1018,10 @@ namespace Sgry.Azuki
 
 				int lastIndex = doc.RectSelectRanges.Length - 1;
 				doc.SelectionMode = TextDataType.Rectangle;
-				doc.SelectionManager.SetSelection( doc.RectSelectRanges[0],
-												   doc.RectSelectRanges[lastIndex] + delta,
-												   (IViewInternal)ui.View );
+				doc.SelectionManager.SetSelection(
+						doc.RectSelectRanges[0],
+						doc.RectSelectRanges[lastIndex] + delta,
+						ui.View );
 			}
 			else
 			{
@@ -1046,7 +1046,7 @@ namespace Sgry.Azuki
 
 			// Is the caret is at end of a line or at non-whitespace character?
 			if( caret == doc.Length
-				|| TextUtil.IsEolChar(doc[caret])
+				|| LineLogic.IsEolChar(doc[caret])
 				|| " \t".IndexOf(doc[caret]) < 0 )
 			{
 				// And isn't there a non-whitespace character before the caret?

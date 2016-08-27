@@ -1,5 +1,7 @@
 ﻿// file: AzukiMouseEventArgs.cs
 // brief: mouse event parameter object for WinForms platform.
+// author: YAMAMOTO Suguru
+// update: 2010-12-04
 //=========================================================
 using System;
 using System.Drawing;
@@ -11,6 +13,9 @@ namespace Sgry.Azuki.WinForms
 	{
 		int _ButtonIndex;
 		int _Index;
+#		if PocketPC
+		int _Clicks;
+#		endif
 		bool _Shift, _Control, _Alt, _Special;
 		bool _Handled;
 
@@ -18,6 +23,9 @@ namespace Sgry.Azuki.WinForms
 			: base( e.Button, clicks, e.X, e.Y, 0 )
 		{
 			_Index = index;
+#			if PocketPC
+			_Clicks = clicks;
+#			endif
 			_Shift = shift;
 			_Control = control;
 			_Alt = alt;
@@ -25,12 +33,14 @@ namespace Sgry.Azuki.WinForms
 
 			switch( e.Button )
 			{
+#				if !PocketPC
 				case MouseButtons.XButton2:
 					_ButtonIndex = 4;
 					break;
 				case MouseButtons.XButton1:
 					_ButtonIndex = 3;
 					break;
+#				endif
 				case MouseButtons.Middle:
 					_ButtonIndex = 2;
 					break;
@@ -52,6 +62,20 @@ namespace Sgry.Azuki.WinForms
 		{
 			get{ return _Index; }
 		}
+
+#		if PocketPC
+		public Point Location
+		{
+			get{ return new Point(X, Y); }
+		}
+#		endif
+
+#		if PocketPC
+		public int Clicks
+		{
+			get{ return _Clicks; }
+		}
+#		endif
 
 		public bool Shift
 		{

@@ -14,9 +14,12 @@ namespace Sgry.Azuki
 	/// <summary>
 	/// Array of items which compresses contents with RLE compression method.
 	/// </summary>
-	internal class RleArray<T> : IList<T>
+	class RleArray<T> : IList<T>
 	{
-		internal SplitArray<Node> _Nodes;
+#		if TEST
+		internal
+#		endif
+		SplitArray<Node> _Nodes;
 		int _TotalCount = 0;
 
 		#region Init / Dispose
@@ -472,17 +475,16 @@ namespace Sgry.Azuki
 
 		#region Behavior as an object
 		/// <summary>
-		/// Retrieves an enumerator.
+		/// THIS METHOD IS NOT SUPPORTED.
 		/// </summary>
 		public IEnumerator<T> GetEnumerator()
 		{
-			for( int i=0; i<Count; i++ )
-				yield return this[i];
+			throw new NotImplementedException();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
-			return GetEnumerator();
+			throw new NotImplementedException();
 		}
 
 		/// <summary>

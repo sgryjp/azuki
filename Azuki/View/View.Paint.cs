@@ -3,6 +3,7 @@
 //=========================================================
 //DEBUG//#define DRAW_SLOWLY
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using StringBuilder = System.Text.StringBuilder;
 using Debug = System.Diagnostics.Debug;
@@ -136,7 +137,7 @@ namespace Sgry.Azuki
 				}
 			}
 			// EOL-Code
-			else if( TextUtil.IsEolChar(token, 0) )
+			else if( LineLogic.IsEolChar(token, 0) )
 			{
 				int width;
 
@@ -187,7 +188,7 @@ namespace Sgry.Azuki
 			// matched bracket
 			else if( HighlightsMatchedBracket
 				&& doc.CaretIndex == doc.AnchorIndex // ensure nothing is selected
-				&& IsMatchedBracket(tokenIndex) )
+				&& doc.IsMatchedBracket(tokenIndex) )
 			{
 				Color fore = ColorScheme.MatchedBracketFore;
 				Color back = ColorScheme.MatchedBracketBack;
@@ -247,6 +248,8 @@ namespace Sgry.Azuki
 			if( decoration.LineStyle == LineStyle.None )
 				return;
 
+			int lineBottomY = tokenPos.Y + (LinePadding / 2) + LineHeight;
+
 			// prepare drawing
 			if( decoration.LineColor == Color.Transparent )
 			{
@@ -268,7 +271,7 @@ namespace Sgry.Azuki
 				for( int x=tokenPos.X-offsetX; x<tokenEndPos.X; x += dotSpacing )
 				{
 					g.FillRectangle(
-						x, tokenPos.Y + LineHeight - dotSize,
+						x, lineBottomY - dotSize,
 						dotSize, dotSize );
 				}
 			}
@@ -278,10 +281,10 @@ namespace Sgry.Azuki
 				int lineLength = lineWidthSize + (lineWidthSize << 2);
 				int lineSpacing = lineWidthSize << 3;
 				int offsetX = tokenPos.X % lineSpacing;
-				for( int x=tokenPos.X-offsetX; x<tokenEndPos.X; x +=lineSpacing )
+				for( int x=tokenPos.X-offsetX; x<tokenEndPos.X; x += lineSpacing )
 				{
 					g.FillRectangle(
-						x, tokenPos.Y + LineHeight - lineWidthSize,
+						x, lineBottomY - lineWidthSize,
 						lineLength, lineWidthSize );
 				}
 			}
@@ -291,7 +294,7 @@ namespace Sgry.Azuki
 				int waveHeight = (_Font.Size / 6) + 1;
 				int offsetX = tokenPos.X % (waveHeight << 1);
 
-				int valleyY = tokenPos.Y + LineHeight - lineWidthSize;
+				int valleyY = lineBottomY - lineWidthSize;
 				int ridgeY = valleyY - waveHeight;
 				for( int x=tokenPos.X-offsetX; x<tokenEndPos.X; x += (waveHeight<<1) )
 				{
@@ -306,11 +309,11 @@ namespace Sgry.Azuki
 				int lineWidth = (_Font.Size / 24) + 1;
 
 				g.FillRectangle(
-					tokenPos.X, tokenPos.Y + LineHeight - (3*lineWidth),
+					tokenPos.X, lineBottomY - (3*lineWidth),
 					tokenEndPos.X, lineWidth );
 
 				g.FillRectangle(
-					tokenPos.X, tokenPos.Y + LineHeight - lineWidth,
+					tokenPos.X, lineBottomY - lineWidth,
 					tokenEndPos.X, lineWidth );
 			}
 			else if( decoration.LineStyle == LineStyle.Solid )
@@ -318,7 +321,7 @@ namespace Sgry.Azuki
 				int lineWidth = (_Font.Size / 24) + 1;
 
 				g.FillRectangle(
-					tokenPos.X, tokenPos.Y + LineHeight - lineWidth,
+					tokenPos.X, lineBottomY - lineWidth,
 					tokenEndPos.X, lineWidth );
 			}
 		}
@@ -838,7 +841,7 @@ namespace Sgry.Azuki
 		/// <summary>
 		/// Calculates x-coordinate of the right end of given token drawed at specified position with specified tab-width.
 		/// </summary>
-		internal int MeasureTokenEndX( IGraphics g, TextSegment segment, int virX )
+		internal int MeasureTokenEndX( IGraphics g, string token, int virX )
 		{
 			int dummy;
 			int rightLimitX = Int32.MaxValue;
@@ -848,17 +851,16 @@ namespace Sgry.Azuki
 			{
 				rightLimitX = Int32.MaxValue + virX;
 			}
-			return MeasureTokenEndX( g, Document.GetTextInRange(segment.Begin, segment.End),
-									 virX, rightLimitX, out dummy );
+			return MeasureTokenEndX( g, token, virX, rightLimitX, out dummy );
 		}
 
 		/// <summary>
 		/// Calculates x-coordinate of the right end of given token
 		/// drawed at specified position with specified tab-width.
 		/// </summary>
-		internal int MeasureTokenEndX( IGraphics g, string token, int virX, int rightLimitX,
-									   out int drawableLength )
+		protected int MeasureTokenEndX( IGraphics g, string token, int virX, int rightLimitX, out int drawableLength )
 		{
+			StringBuilder subToken;
 			int x = virX;
 			int relDLen; // relatively calculated drawable length
 			int subTokenWidth;
@@ -871,7 +873,7 @@ namespace Sgry.Azuki
 			}
 
 			// for each char
-			var subToken = new StringBuilder( token.Length );
+			subToken = new StringBuilder( token.Length );
 			for( int i=0; i<token.Length; i++ )
 			{
 				if( token[i] == '\t' )
@@ -897,7 +899,7 @@ namespace Sgry.Azuki
 					drawableLength++;
 					x = subTokenWidth;
 				}
-				else if( TextUtil.IsEolChar(token, i) )
+				else if( LineLogic.IsEolChar(token, i) )
 				{
 					//--- detected an EOL char ---
 					// calculate drawn length of cached characters
@@ -967,9 +969,7 @@ namespace Sgry.Azuki
 		}
 
 		/// <returns>true if measured right poisition hit the limit.</returns>
-		static bool MeasureTokenEndX_TreatSubToken( IGraphics gra, int i, StringBuilder subToken,
-													int rightLimitX, ref int x,
-													ref int drawableLength )
+		static bool MeasureTokenEndX_TreatSubToken( IGraphics gra, int i, StringBuilder subToken, int rightLimitX, ref int x, ref int drawableLength )
 		{
 			int subTokenWidth;
 			int relDLen;
@@ -1043,26 +1043,23 @@ namespace Sgry.Azuki
 				}
 			}
 
-			// Caltulate ending position in the longest case
-			int limit = index + MaxPaintTokenLen;
-			while( TextUtil.IsUndividableIndex(doc.InternalBuffer, limit) )
-				limit++;
-
 			if( index < selBegin )
 			{
 				// Token being drawn exist before a selection
 				// so we must extract characters not in a selection range.
 				inSelection = false;
-				return Math.Min( Math.Min(selBegin, nextLineHead ),
-								 limit );
+				return Math.Min( Math.Min( selBegin,
+										   nextLineHead ),
+								 index + MaxPaintTokenLen );
 			}
 			else if( index < selEnd )
 			{
 				// Token being drawin exist in a selection
 				// so we must extract characters in a selection range.
 				inSelection = true;
-				return Math.Min( Math.Min(selEnd, nextLineHead),
-								 limit );
+				return Math.Min( Math.Min( selEnd,
+										   nextLineHead ),
+								 index + MaxPaintTokenLen );
 			}
 			else
 			{
@@ -1070,7 +1067,7 @@ namespace Sgry.Azuki
 				// characters selected so we don't need to care about selection
 				inSelection = false;
 				return Math.Min( nextLineHead,
-								 limit );
+								 index + MaxPaintTokenLen );
 			}
 		}
 
@@ -1101,7 +1098,7 @@ namespace Sgry.Azuki
 
 			// calculate how many chars should be drawn as one token
 			tokenEndLimit = CalcTokenEndAtMost( doc, index, nextLineHead, out out_inSelection );
-			if( IsMatchedBracket(index) )
+			if( doc.IsMatchedBracket(index) )
 			{
 				// if specified index is a bracket paired with a bracket at caret, paint this single char
 				out_klass = doc.GetCharClass( index );
@@ -1113,9 +1110,7 @@ namespace Sgry.Azuki
 			firstKlass = doc.GetCharClass( index );
 			firstMarkingBitMask = doc.GetMarkingBitMaskAt( index );
 			out_klass = firstKlass;
-			if( Utl.IsSpecialChar(firstCh)
-				&& TextUtil.IsCombiningCharacter(doc.InternalBuffer, index+1) == false
-				&& TextUtil.IsVariationSelector(doc.InternalBuffer, index+1) == false )
+			if( Utl.IsSpecialChar(firstCh) )
 			{
 				// treat 1 special char as 1 token
 				if( firstCh == '\r'
@@ -1145,7 +1140,7 @@ namespace Sgry.Azuki
 					return index;
 				}
 				// or if this is matched bracket, stop seeking
-				else if( IsMatchedBracket(index) )
+				else if( doc.IsMatchedBracket(index) )
 				{
 					return index;
 				}
